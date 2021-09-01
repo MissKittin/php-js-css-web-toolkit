@@ -1,0 +1,76 @@
+/*
+ * Button library
+ * for inline and block elements
+ *
+ * Quick usage: add to class list
+ *  for blue button:
+ *   button button_blue button_slim button_shadow button_blue_hover button_blue_border button_black_text_shadow button_right
+ *  for dark button:
+ *   button button_dark button_slim button_shadow button_dark_hover button_dark_border button_white_text_shadow button_right
+ *
+ * Classes:
+ *  button
+ *   main button layout
+ *  button_full_width
+ *   place button in full width in div
+ *   note: do not add button_right with this
+ *  button_slim button_big button_circle
+ *   button size/style
+ *  button_shadow
+ *  button_right
+ *   force float position
+ *  button_black_text_shadow button_white_text_shadow
+ *   text shadow styles for button's background color
+ *  button_blue button_dark
+ *   background color
+ *  button_blue_border button_dark_border
+ *   border color
+ *  button_blue_hover button_dark_hover
+ *   add hover background color
+ */
+
+/* layouts */
+.button {
+	text-align: center;
+	text-decoration: none;
+	display: inline-block;
+	margin: 1px 1px 1px 1px;
+}
+.button_full_width { display: block; }
+.button_slim {
+	padding: 8px 12px;
+	border-radius: 4px;
+}
+.button_big {
+	padding-top: 11px;
+	padding-bottom: 10px;
+	padding-left: 12px;
+	padding-right: 12px;
+    border-radius: 5px;
+}
+.button_circle {
+	padding: 8px 12px;
+	border-radius: 50%;
+}
+.button_shadow { box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4), 0 1px 1px rgba(0, 0, 0, 0.2); }
+.button_right { float: right; }
+
+/* text color */
+.button_black_text_shadow { text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.4); }
+.button_white_text_shadow { text-shadow: 0 -1px 0 rgba(255, 255, 255, 0.2); }
+
+/* blue button */
+.button_blue {
+	color: #ffffff;
+	background-color: #4479ba;
+}
+.button_blue_border { border: solid 1px #20538D; }
+.button_blue_hover:hover { background-color: #558acb; }
+
+/* dark button */
+.button_dark {
+	color: #eeeeee;
+	background-color: #333333;
+}
+.button_dark_border { border: solid 1px #000000; }
+.button_dark_hover:hover { background-color: #444444; }

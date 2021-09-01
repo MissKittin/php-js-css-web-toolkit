@@ -1,0 +1,68 @@
+body {
+	background-color: #000000;
+	color: #ffffff;
+}
+#login-form {
+	border: 1px solid #555555;
+	border-radius: 10px;
+	text-align: center;
+	position: absolute;
+	padding: 3px;
+	width: 400px;
+	margin-left: -210px;
+	left: 50%;
+	margin-top: -80px;
+	top: 50%;
+}
+.input-text input {
+	font-family: Roboto, Helvetica, Arial, sans-serif;
+	width: 99%;
+	height: 40px;
+	border: 1px solid #ff0000;
+	border-radius: 10px;
+	color: #ffffff;
+	background-color: transparent;
+	font-size: 18px;
+	margin-top: 5px;
+	margin-bottom: 5px;
+}
+.input-button input {
+	font-family: Roboto, Helvetica, Arial, sans-serif;
+	width: 99%;
+	height: 40px;
+	border: none;
+	border-radius: 10px;
+	color: #ffffff;
+	background-color: #0000ff;
+	font-size: 18px;
+	margin-top: 5px;
+	margin-bottom: 5px;
+}
+
+.input-text ::-webkit-input-placeholder { /* Chrome/Opera/Safari */
+	padding-left: 5px;
+}
+.input-text ::-moz-placeholder { /* Firefox 19+ */
+	padding-left: 5px;
+}
+.input-text :-ms-input-placeholder { /* IE 10+ */
+	padding-left: 5px;
+}
+.input-text :-moz-placeholder { /* Firefox 18- */
+	padding-left: 5px;
+}
+
+@media only screen and (max-width: 850px) {
+	#login-form {
+		width: 300px;
+		margin-left: -155px;
+	}
+}
+
+#reload-label {
+	font-family: Roboto, Helvetica, Arial, sans-serif;
+	color: #999999;
+	position: absolute;
+	top: 43%;
+	left: 41%;
+}

@@ -1,0 +1,12 @@
+/* Link-styled span */
+
+.fakelink {
+	color: #3490dc;
+	display: inline;
+	background: none;
+	border: none;
+}
+.fakelink:hover {
+	color: #1d68a7;
+	text-decoration: underline;
+}
