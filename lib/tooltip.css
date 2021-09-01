@@ -1,0 +1,47 @@
+/*
+ * Simple CSS tooltip layout and themes
+ *
+ * If you want to put the tooltip on the left side, add tooltip_left after tooltip class
+ *
+ * Classes:
+ *  tooltip - main container - visible text
+ *  tooltip_text - container for text in tooltip
+ *  tooltip_animated - tooltip fade-in
+ *  tooltip_black - tooltip theme
+ *  tooltip_gray - tooltip theme (white text)
+ *  tooltip_white - tooltip theme
+ *
+ * Usage:
+ *  <span class="tooltip tooltip_animated tooltip_gray">show right tooltip<span style="width: 100%;" class="tooltip_text">Tooltip text</span></span>
+ *  <span class="tooltip tooltip_left tooltip_animated tooltip_black">show left tooltip<span style="width: 100%;" class="tooltip_text">Tooltip text</span></span>
+ *   adjust width for tooltip_text if you want put more text in tooltip
+ */
+
+.tooltip { position: relative; }
+.tooltip .tooltip_text {
+	visibility: hidden;
+	opacity: 0;
+	text-align: center;
+	border-radius: 6px;
+	padding: 1% 1% 1% 1%;
+	position: absolute;
+	top: -5%;
+	z-index: 1;
+}
+.tooltip_animated .tooltip_text { transition: opacity 0.25s; }
+.tooltip:hover .tooltip_text { opacity: 1; }
+.tooltip:hover .tooltip_text { visibility: visible; }
+.tooltip_left .tooltip_text { right: 105%; }
+
+.tooltip_black:hover .tooltip_text {
+	background-color: #000000;
+	color: #ffffff;
+}
+.tooltip_gray:hover .tooltip_text {
+	background-color: #999999;
+	color: #ffffff;
+}
+.tooltip_white:hover .tooltip_text {
+	background-color: #ffffff;
+	color: #000000;
+}
