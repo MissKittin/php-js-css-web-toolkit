@@ -1,9 +1,9 @@
 # Login component
 
 ## Required libraries
-*) `login.php`
-*) `sec_csrf.php`
-*) `check_var.php`
+* `login.php`
+* `sec_csrf.php`
+* `check_var.php`
 
 ## Initialization
 Add `include './components/login/init.php';` to include not yet imported libraries.  

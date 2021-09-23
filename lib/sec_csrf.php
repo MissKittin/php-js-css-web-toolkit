@@ -12,12 +12,6 @@
 	 *  csrf_check_token('post')
 	*/
 
-	$csrf_generateToken=function()
-	{
-		// internal function
-		if((!csrf_checkToken('get')) && (!csrf_checkToken('post')))
-			$_SESSION['csrf_token']=substr(base_convert(sha1(uniqid(mt_rand())), 16, 36), 0, 32);
-	};
 	function csrf_checkToken($method)
 	{
 		if(isset($_SESSION['csrf_token']))
@@ -49,10 +43,10 @@
 	}
 
 	if(session_status() === PHP_SESSION_NONE)
-		session_start();
+		throw new Exception('session not started');
 
-	$csrf_generateToken();
-	unset($csrf_generateToken);
+	if((!csrf_checkToken('get')) && (!csrf_checkToken('post')))
+		$_SESSION['csrf_token']=substr(base_convert(sha1(uniqid(mt_rand())), 16, 36), 0, 32);
 
 	// snake_case wrappers (camelCase for backward compatibility with my projects)
 	function csrf_check_token($method) { return csrf_checkToken($method); }
