@@ -6,7 +6,7 @@
 	 * Classes with timeout has autoclean function
 	 * 	removes ip from database if is not banned anymore.
 	 *  See clas's readme.
-	 * All classes are independent to each other.
+	 * All classes depends on bruteforce_generic.
 	 *
 	 * Warning: if you create database for one class, then cannot be used in another
 	 *  (you can read table from bruteforce_timeout_pdo in bruteforce_pdo)
@@ -78,7 +78,19 @@
 		return false;
 	}
 
-	class bruteforce_pdo
+	abstract class bruteforce_generic
+	{
+		protected $ip;
+		protected $max_attempts=3;
+		protected $current_attempts=0;
+
+		public function get_attempts()
+		{
+			return (int)$this->current_attempts;
+		}
+	}
+
+	class bruteforce_pdo extends bruteforce_generic
 	{
 		/*
 		 * Trivial permbanning method by IP on n unsuccessful attempts
@@ -110,10 +122,7 @@
 		 */
 
 		private $pdo_handler;
-		private $ip;
-		private $max_attempts=3;
 		private $table_name='sec_bruteforce';
-		private $current_attempts=0;
 
 		public function __construct($params)
 		{
@@ -140,10 +149,6 @@
 			$this->pdo_handler=null;
 		}
 
-		public function get_attempts()
-		{
-			return (int)$this->current_attempts;
-		}
 		public function check()
 		{
 			if($this->current_attempts < $this->max_attempts)
@@ -179,10 +184,10 @@
 			}
 		}
 	}
-	class bruteforce_timeout_pdo
+	class bruteforce_timeout_pdo extends bruteforce_generic
 	{
 		/*
-		 * Trivial banning method by IP on n unsuccessful attempts for n seconds
+		 * Trivial banning method by IP on x unsuccessful attempts for n seconds
 		 * from simpleblog project
 		 * rewritten to PDO OOP
 		 *
@@ -220,10 +225,7 @@
 		 */
 
 		private $pdo_handler;
-		private $ip;
-		private $max_attempts=3;
 		private $table_name='sec_bruteforce';
-		private $current_attempts=0;
 		private $ban_time=600;
 		private $current_timestamp=null;
 		private $auto_clean=true;
@@ -256,10 +258,6 @@
 			$this->pdo_handler=null;
 		}
 
-		public function get_attempts()
-		{
-			return (int)$this->current_attempts;
-		}
 		public function get_timestamp()
 		{
 			return (int)$this->current_timestamp;
@@ -313,7 +311,7 @@
 			}
 		}
 	}
-	class bruteforce_json
+	class bruteforce_json extends bruteforce_generic
 	{
 		/*
 		 * Trivial permbanning method by IP on n unsuccessful attempts
@@ -346,9 +344,6 @@
 		private $file;
 		private $lock_file=null;
 		private $database=array();
-		private $ip;
-		private $max_attempts=3;
-		private $current_attempts=0;
 
 		public function __construct($params)
 		{
@@ -405,10 +400,6 @@
 			return true;
 		}
 
-		public function get_attempts()
-		{
-			return (int)$this->current_attempts;
-		}
 		public function check()
 		{
 			if($this->current_attempts < $this->max_attempts)
@@ -429,10 +420,10 @@
 			}
 		}
 	}
-	class bruteforce_timeout_json
+	class bruteforce_timeout_json extends bruteforce_generic
 	{
 		/*
-		 * Trivial banning method by IP on n unsuccessful attempts for n seconds
+		 * Trivial banning method by IP on x unsuccessful attempts for n seconds
 		 * from simpleblog project
 		 * rewritten to JSON OOP
 		 * created for debugging purposes
@@ -471,9 +462,6 @@
 		private $file;
 		private $lock_file=null;
 		private $database=array();
-		private $ip;
-		private $max_attempts=3;
-		private $current_attempts=0;
 		private $ban_time=600;
 		private $current_timestamp=null;
 		private $auto_clean=true;
@@ -536,10 +524,6 @@
 			return true;
 		}
 
-		public function get_attempts()
-		{
-			return (int)$this->current_attempts;
-		}
 		public function get_timestamp()
 		{
 			return (int)$this->current_timestamp;

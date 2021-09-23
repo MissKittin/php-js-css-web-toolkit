@@ -39,7 +39,7 @@ Made for experimental purposes.
 
 ## PHP CLI tools
 * `assets-compiler.php` - compile assets from app/assets
-* `pdo-connect-offline-seed.php` - interface for pdo_connect.php and pdo_crud_builder.php (optional)- seed databases from app/databases
+* `pdo-connect-offline-seed.php` - interface for pdo_connect.php and pdo_crud_builder.php (optional) - seed databases from app/databases
 * `serve.php` - start php development server
 * `sqlite3-db-dump.php` - interface for sqlite3_db_dump.php
 * `sqlite3-db-vacuum.php` - vacuum database
@@ -57,17 +57,20 @@ Made for experimental purposes.
 * `logger.php` - easily write logs
 * `login.php` - login/logout helpers
 * `measure_exec_time.php` - debugging
+* `observer.php` - design pattern
 * `ob_minifier.php` - simple minifier and compressor
 * `ob_sfucator.php` - xor all page content on server and decode on client
 * `pdo_connect.php` - open preconfigured connection to the database and optionally seed
 * `pdo_crud_builder.php` - oop sql builder
 * `print_file.php` - set http headers and send specified file to the client
 * `rand_str.php` - random string generator
+* `registry.php` - design pattern
 * `sec_bruteforce.php` - trivial banning method by IP on n unsuccessful attempts
 * `sec_csrf.php` - CSRF protection helpers
 * `sec_http_basic_auth.php` - request and validate basic HTTP authentication
 * `sec_prevent_direct.php` - for historical purposes
 * `simple_html_dom.php` - S.C. Chen's HTML DOM parser v1.9.1 (MIT)
+* `singleton.php` - each time you use a singleton, one little kitten dies
 * `sqlite3_db_dump.php` - Ephestione's SQLite3 database dumper (unknown license)
 * `time_converter.php` - time converting library - convert time to human-readable form
 * `webdevsh.php` - cli functions for webdev.sh minifiers
