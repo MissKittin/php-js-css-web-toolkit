@@ -3,7 +3,7 @@
 	 * Start PHP development server
 	 *
 	 * Usage:
-	 *  php serve.php [-ip 127.0.0.1] [-port 8080] [-docroot ../public]
+	 *  php serve.php [-ip 127.0.0.1] [-port 8080] [-docroot ../public] [-preload ../tmp/app-preload.php]
 	 */
 
 	if(php_sapi_name() === 'cli-server')
@@ -27,6 +27,8 @@
 			$php_http_addr='127.0.0.1';
 		if(!$php_http_port=check_argv_next_param('-port'))
 			$php_http_port='8080';
+		$php_preload=''; if($php_preload=check_argv_next_param('-preload'))
+			$php_preload='-d opcache.preload='.$php_preload;
 		if($php_http_docroot=check_argv_next_param('-docroot'))
 		{
 			if(!chdir($php_http_docroot))
@@ -36,7 +38,7 @@
 			chdir(__DIR__ . '/../public');
 
 		echo 'Starting PHP server...' . PHP_EOL.PHP_EOL;
-		system(PHP_BINARY . ' -S ' . $php_http_addr.':'.$php_http_port .' '. __FILE__);
+		system(PHP_BINARY.' ' . $php_preload . ' -S ' . $php_http_addr.':'.$php_http_port .' '. __FILE__);
 	}
 	else
 		die('No php_sapi_name() cli or cli-server detected'.PHP_EOL);
