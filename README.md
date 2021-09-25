@@ -39,6 +39,7 @@ Made for experimental purposes.
 
 ## PHP CLI tools
 * `assets-compiler.php` - compile assets from app/assets
+* `opcache-preload-generator.php` - opcache preload script generator
 * `pdo-connect-offline-seed.php` - interface for pdo_connect.php and pdo_crud_builder.php (optional) - seed databases from app/databases
 * `serve.php` - start php development server
 * `sqlite3-db-dump.php` - interface for sqlite3_db_dump.php

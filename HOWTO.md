@@ -51,7 +51,7 @@ Note: database will be seeded automatically on first start.
 
 ### Running dev server
 In this dir run `php ./bin/serve.php`.  
-You can also specify IP, port and document root, eg `php ./bin/serve.php -ip 127.0.0.1 -port 8080 -docroot ./public`.
+You can also specify IP, port, preload script and document root, eg `php ./bin/serve.php -ip 127.0.0.1 -port 8080 -docroot ./public -preload ../tmp/app-preload.php`.
 
 ### Deploy on shared hosting in a subdirectory
 All routing and asset paths in views must be appropriate
