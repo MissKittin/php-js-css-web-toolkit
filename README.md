@@ -6,41 +6,19 @@ Made for experimental purposes.
 * respect the KISS rule
 * use MVC design pattern
 * avoid autoloading
+* avoid chdir()
 * move all repeating code to the separated files
 * mix PHP code with HTML as little as possible, avoid this in controllers
 * PHP and CSS have snake_case, Js - camelCase
 * if you are writing a new library, keep it independent of the other libraries
 * if you are writing a new component, keep it independent of the other components
 
-## Things to do after clone
-1) create `app/assets` directory
-2) `public/index.php` just imports another php file - this is stupid thing if your server OS allows you to use softlinks.  
-	You can remove this file and create link to `../app/routing.php`.  
-	Run in this directory:  
-	for *nix:
-	```
-	ln -s ../app/routing.php ./public/index.php
-	```
-	for windows:
-	```
-	mklink public\index.php ..\app\routing.php
-	```
-3) To install assets for default view, run in this directory:  
-	for *nix:
-	```
-	ln -s ../views/samples/default/default.css ./; ln -s ../views/samples/default/default.js ./app/assets/default.js; ln -s ../../lib/sendNotification.js ./app/assets/sendNotification.js
-	```
-	for windows:
-	```
-	mklink app\assets\default.css ..\views\samples\default\default.css
-	mklink /d app\assets\default.js ..\views\samples\default\default.js
-	mklink app\assets\sendNotification.js ..\..\lib\sendNotification.js 
-	```
-
 ## PHP CLI tools
 * `assets-compiler.php` - compile assets from app/assets
+* `include2blob.php` - a toy that converts inclusion to a single file blob
+* `lv-encrypter.php` - interface for sec_lv_encrypter.php
 * `opcache-preload-generator.php` - opcache preload script generator
-* `pdo-connect-offline-seed.php` - interface for pdo_connect.php and pdo_crud_builder.php (optional) - seed databases from app/databases
+* `pdo-connect.php` - interface for pdo_connect.php and pdo_crud_builder.php (optional) - seed databases from app/databases
 * `serve.php` - start php development server
 * `sqlite3-db-dump.php` - interface for sqlite3_db_dump.php
 * `sqlite3-db-vacuum.php` - vacuum database
@@ -49,33 +27,44 @@ Made for experimental purposes.
 ## PHP libraries
 * `array_tree.php` - convert flat array into tree, tree to list
 * `blog_page_slicer.php` - select n elements from array at start point
+* `cache_container.php` - cache manager
 * `check_date.php` - check if is between DD.MM - DD.MM
 * `check_var.php` - check if variable and eventually return value
 * `convert_bytes.php` - automatically convert input number to human-readable form
 * `curl_file_updown.php` - quickly download/upload file
 * `directoryIterator_sort.php` - run directoryIterator and sort output by name
-* `file_cache.php` - cache all output to file
+* `dotenv.php` - DotEnv proxy implementation
+* `ioc_container.php` - dependency injection containers
 * `logger.php` - easily write logs
 * `login.php` - login/logout helpers
+* `maintenance_break.php` - check to send the maintenance break pattern
 * `measure_exec_time.php` - debugging
-* `observer.php` - design pattern
+* `ob_cache.php` - cache output buffer
 * `ob_minifier.php` - simple minifier and compressor
 * `ob_sfucator.php` - xor all page content on server and decode on client
+* `observer.php` - design pattern
 * `pdo_connect.php` - open preconfigured connection to the database and optionally seed
 * `pdo_crud_builder.php` - oop sql builder
 * `print_file.php` - set http headers and send specified file to the client
 * `rand_str.php` - random string generator
 * `registry.php` - design pattern
+* `school_algorithms.php` - miscellaneous and sorting algorithms from lessons
 * `sec_bruteforce.php` - trivial banning method by IP on n unsuccessful attempts
+* `sec_captcha.php` - captcha image generator
 * `sec_csrf.php` - CSRF protection helpers
 * `sec_http_basic_auth.php` - request and validate basic HTTP authentication
+* `sec_lv_encrypter.php` - laravel's encrypter class for cookies and sessions (MIT)
 * `sec_prevent_direct.php` - for historical purposes
 * `simple_html_dom.php` - S.C. Chen's HTML DOM parser v1.9.1 (MIT)
 * `singleton.php` - each time you use a singleton, one little kitten dies
 * `sqlite3_db_dump.php` - Ephestione's SQLite3 database dumper (unknown license)
+* `strip_php_comments.php` - remove comments from PHP source
+* `superclosure.php` - serializable anonymous functions
 * `time_converter.php` - time converting library - convert time to human-readable form
+* `trivial_templating_engine.php`
+* `uri_router.php` - OOP routing solution
 * `webdevsh.php` - cli functions for webdev.sh minifiers
-* `zip.php` - make zip file from php - library from PhpMyAdmin (GNU GPL2)
+* `zip.php` - make zip file from php in ram - library from PhpMyAdmin (GNU GPL2)
 
 ## Javascript libraries
 * `addDesktopIcon.js` - create box with win98-style icon
@@ -99,6 +88,7 @@ Made for experimental purposes.
 * `sortTable.js` - adds table sort by clicking table header
 * `time_converter.php` - time_converter.php in javascript version
 * `titleScroller.js` - infinity title scrolling
+* `wicdPhpGuiWindows.js` - CSS window objects wrapped in javascript automation
 
 ## CSS libraries
 * `button.css` - quickly create button
@@ -110,11 +100,4 @@ Made for experimental purposes.
 
 ## PHP components
 * `login` - quickly create login-restricted content
-
-## Removing samples
-All sample code is in `samples` dirs - ignore this fact. Remove samples and start developing application.  
-To remove all samples run in this directory:  
-for *nix:
-```
-(find ./app -maxdepth 2 -name samples) | xargs rm -r -f; sed -i '/{/{:1;N;s/{.*}/{\n\t\t\n\t}/;T1}' ./app/routing.php
-```
+* `middleware_form` - customizable HTML form

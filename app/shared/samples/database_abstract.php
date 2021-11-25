@@ -26,7 +26,7 @@
 		public function create($input_array)
 		{
 			return $this->query_builder
-				->insert_into($this->table_name, $this->table_columns, $input_array)
+				->insert_into($this->table_name, $this->table_columns, [$input_array])
 				->exec();
 		}
 		public function read($column=null, $value=null, $select='*')
@@ -38,7 +38,18 @@
 			if(($column !== null) && ($value !== null))
 				$this->query_builder->where($column, '=', $value);
 
-			return $this->query_builder->query();
+			$query=$this->query_builder->query();
+
+			// the layout of the database is known
+			$query_size=count($query);
+			for($i=0; $i<$query_size; ++$i)
+				$query[$i]=array(
+					htmlspecialchars($query[$i][0], ENT_QUOTES, 'UTF-8'),
+					htmlspecialchars($query[$i][1], ENT_QUOTES, 'UTF-8'),
+					htmlspecialchars($query[$i][2], ENT_QUOTES, 'UTF-8')
+				);
+
+			return $query;
 		}
 		public function update($id, $sql_set)
 		{

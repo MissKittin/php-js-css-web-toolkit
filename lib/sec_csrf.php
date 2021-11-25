@@ -2,12 +2,17 @@
 	/*
 	 * CSRF prevention library
 	 * from simpleblog and server-admin-page/webadmin projects
-	 * token is generated at include and stored in the $_SESSION superglobal 
+	 * token is generated at include and stored in the $_SESSION
+	 *
+	 * Warning:
+	 *  you must start session before include
+	 *  $_SESSION['csrf_token'] is reseved
 	 *
 	 * HTML form:
 	 *  <input type="hidden" name="<?php echo csrf_print_token('parameter'); ?>" value="<?php echo csrf_print_token('value'); ?>">
 	 * GET token checking:
 	 *  csrf_check_token('get')
+	 *  note: forget about it for HTML forms
 	 * POST token checking:
 	 *  csrf_check_token('post')
 	*/
@@ -42,7 +47,7 @@
 		return false;
 	}
 
-	if(session_status() === PHP_SESSION_NONE)
+	if(session_status() !== PHP_SESSION_ACTIVE)
 		throw new Exception('session not started');
 
 	if((!csrf_checkToken('get')) && (!csrf_checkToken('post')))

@@ -1,3 +1,42 @@
+# Things to do after clone
+1) create `app/assets` directory
+2) `public/index.php` just imports another php file - this is stupid thing if your server OS allows you to use softlinks.  
+	You can remove this file and create link to `../app/routing.php`.  
+	Run in this directory:  
+	for *nix:
+	```
+	ln -s ../app/routing.php ./public/index.php
+	```
+	for windows:
+	```
+	mklink public\index.php ..\app\routing.php
+	```
+3) To install assets for default view, run in this directory:  
+	for *nix:
+	```
+	ln -s ../views/samples/default/default.css ./; ln -s ../views/samples/default/default.js ./app/assets/default.js; ln -s ../../lib/sendNotification.js ./app/assets/sendNotification.js
+	```
+	for windows:
+	```
+	mklink app\assets\default.css ..\views\samples\default\default.css
+	mklink /d app\assets\default.js ..\views\samples\default\default.js
+	mklink app\assets\sendNotification.js ..\..\lib\sendNotification.js 
+	```
+
+# Removing samples
+All sample code is in `samples` dirs - ignore this fact. Remove samples and start developing application.  
+To remove all samples run in this directory:  
+for *nix:
+```
+(find ./app -maxdepth 2 -name samples) | xargs rm -r -f; sed -i '/{/{:1;N;s/{.*}/{\n\t\t\n\t}/;T1}' ./app/routing.php
+```
+for windows:
+```
+cd app
+for /d /r . %d in (samples) do @if exist "%d" rd /s/q "%d"
+```
+and remove all cases inside the switch in app/routing.php
+
 # How to create application
 
 ### Configuring URL routing
@@ -46,7 +85,7 @@ Run `php ./bin/assets-compiler.php ./app/assets ./public/assets`.
 Run `php ./bin/webdev.sh ./public/assets`. All css and js files in `public/assets` will be minified.
 
 ### Seeding database offline with pdo_connect() (optional)
-To offline seed database, run `php ./bin/pdo-connect-offline-seed.php database-name`.  
+To offline seed database, run `php ./bin/pdo-connect.php -db ./app/databases/database-name`.  
 Note: database will be seeded automatically on first start.
 
 ### Running dev server

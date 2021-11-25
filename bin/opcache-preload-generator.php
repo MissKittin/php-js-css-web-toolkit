@@ -8,6 +8,7 @@
 	 *  be sure that ./tmp directory exists
 	 *  and add ./tmp/app-preload.php to the opcache.preload config entry
 	 *   use absolute path!
+	 *  you can add --debug parameter - additional info will be printed to stderr
 	 *
 	 * Configuration: create opcache-preload-generator.config.php in the app directory
 	 *  and define the blacklist, eg:
@@ -17,83 +18,83 @@
 			$blacklist[]='../app/databases';
 			$blacklist[]='../app/views/samples/default/default.js';
 		?>
+	 *
+	 * Required libraries:
+	 *  check_var.php
+	 *  strip_php_comments.php
 	 */
 
 	chdir(__DIR__.'/..');
 
+	include './lib/check_var.php';
+	include './lib/strip_php_comments.php';
+
 	$blacklist=array();
 	@include './app/opcache-preload-generator.config.php';
 
-	function strip_comments($source)
+	if(check_argv('--debug'))
 	{
-		// https://stackoverflow.com/questions/503871/best-way-to-automatically-remove-comments-from-php-code
-		// this function requires tokenizer extension
-
-		$output_string='';
-
-		$comment_tokens=array(T_COMMENT);
-		if(defined('T_DOC_COMMENT'))
-			$comment_tokens[]=T_DOC_COMMENT;
-		if(defined('T_ML_COMMENT'))
-			$comment_tokens[]=T_ML_COMMENT;
-
-		$tokens=token_get_all($source);
-		foreach($tokens as $token)
-		{    
-			if(is_array($token))
-			{
-				if(in_array($token[0], $comment_tokens))
-					continue;
-				$token=$token[1];
-			}
-			$output_string.=$token;
+		function _debug($message)
+		{
+			fwrite(STDERR, ' /* '.$message.' */ '.PHP_EOL);
 		}
-
-		return $output_string;	
+	}
+	else
+	{
+		function _debug(){}
 	}
 	function is_in_blacklist($file_name, $blacklist)
 	{
 		foreach($blacklist as $blacklist_item)
 			if(strpos($file_name, $blacklist_item) === 0)
+			{
+				_debug($file_name.' is blacklisted');
 				return true;
+			}
 		return false;
 	}
 	function scan_for_includes($file, $blacklist)
 	{
 		if(!is_in_blacklist('.'.$file, $blacklist))
 		{
-			$source=strip_comments(file_get_contents($file));
+			$source=strip_php_comments(file_get_contents($file));
 			preg_match_all('/(include|include_once|require|require_once) *\(? *[\'"](.*?)[\'"] *\)? *;/', $source, $output);
 			if(isset($output[2]))
 				foreach($output[2] as $include_file)
 					if(strtolower(substr($include_file, strrpos($include_file, '.')+1)) === 'php')
 					{
+						_debug('[:] scanning '.$include_file);
 						add_to_list($include_file);
 						scan_for_includes($include_file, $blacklist);
+						_debug('[:] ended '.$include_file);
 					}
 		}
 	}
-	function add_to_list($file)
+	$add_to_list__already_added=array(); function add_to_list($file)
 	{
 		global $add_to_list__already_added;
-		if(!isset($add_to_list__already_added))
-			$add_to_list__already_added=array();
-
 		if(!in_array($file, $add_to_list__already_added))
 		{
+			_debug('adding '.$file);
 			echo 'opcache_compile_file(\'.'.$file.'\');'.PHP_EOL;
 			$add_to_list__already_added[]=$file;
 		}
+		else
+			_debug($file.' already added');
 	}
 
 	echo '<?php'.PHP_EOL;
 	foreach(new RecursiveIteratorIterator(new RecursiveDirectoryIterator('./app')) as $file)
 		if(strtolower($file->getExtension()) === 'php')
+		{
 			if(!is_in_blacklist('.'.$file, $blacklist))
 			{
 				$file=$file->getPathname();
+				_debug('[1] scanning '.$file);
 				add_to_list($file);
 				scan_for_includes($file, $blacklist);
+				_debug('[1] ended '.$file);
 			}
+		}
 	echo '?>';
 ?>

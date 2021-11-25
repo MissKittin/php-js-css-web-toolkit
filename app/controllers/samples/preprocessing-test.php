@@ -1,5 +1,5 @@
 <?php
-	// wrapper for f* functions
+	// wrapper for file functions
 	class preprocessed_cache
 	{
 		private $cache_file_handle;
@@ -23,11 +23,9 @@
 	header('X-XSS-Protection: 0');
 	header('X-Content-Type-Options: nosniff');
 
-	// will be refreshed hourly
-	include './lib/file_cache.php';
-	if(file_cache(array(
-		'cache_file_url'=>$APP_ROUTER[1]
-	))['status'] === 0)
+	// will be refreshed hourly ("Cache file was created" will disappear in an hour)
+	include './lib/ob_cache.php';
+	if(ob_file_cache('./tmp/cache_'.str_replace('/', '___', strtok($_SERVER['REQUEST_URI'], '?'))) === 0)
 		exit();
 
 	$view['title']='Preprocessing test';

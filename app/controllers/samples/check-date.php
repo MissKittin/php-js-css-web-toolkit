@@ -3,10 +3,8 @@
 	header('X-XSS-Protection: 0');
 	header('X-Content-Type-Options: nosniff');
 
-	include './lib/file_cache.php';
-	if(file_cache(array(
-		'cache_file_url'=>$APP_ROUTER[1]
-	))['status'] === 0)
+	include './lib/ob_cache.php';
+	if(ob_file_cache('./tmp/cache_'.str_replace('/', '___', strtok($_SERVER['REQUEST_URI'], '?'))) === 0)
 		exit();
 
 	include './lib/check_date.php';

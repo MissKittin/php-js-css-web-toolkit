@@ -105,7 +105,7 @@
 		 *
 		 * Opening database:
 			$bruteforce=new bruteforce_pdo(array(
-				'pdo_handler'=>new PDO('sqlite:' . './tmp/sec_bruteforce.sqlite3') // or another PDO driver
+				'pdo_handler'=>new PDO('sqlite:./tmp/sec_bruteforce.sqlite3')
 			));
 		 * Checking: $bruteforce->check()
 		 *  returns bool
@@ -118,14 +118,17 @@
 		 * Closing connection: unset($bruteforce)
 		 *
 		 * Table layout:
-		 *  id[primary key] ip[text] attempts[int]
+		 *  id[primary key] ip[varchar(39)] attempts[int]
 		 */
 
 		private $pdo_handler;
 		private $table_name='sec_bruteforce';
 
-		public function __construct($params)
+		public function __construct(array $params)
 		{
+			if(!isset($params['pdo_handler']))
+				throw new Exception('no PDO handler given');
+
 			$this->ip=$_SERVER['REMOTE_ADDR'];
 			foreach(['pdo_handler', 'table_name', 'max_attempts', 'ip'] as $param)
 				if(isset($params[$param]))
@@ -140,13 +143,9 @@
 				SELECT *
 				FROM '.$this->table_name.'
 				WHERE ip="'.$this->ip.'"
-			')->fetchAll(PDO::FETCH_NAMED);
-			if(!empty($ip_query))
-				$this->current_attempts=$ip_query[0]['attempts'];
-		}
-		public function __destruct()
-		{
-			$this->pdo_handler=null;
+			')->fetch(PDO::FETCH_NAMED);
+			if($ip_query !== false)
+				$this->current_attempts=$ip_query['attempts'];
 		}
 
 		public function check()
@@ -204,7 +203,7 @@
 		 *
 		 * Opening database:
 			$bruteforce=new bruteforce_pdo(array(
-				'pdo_handler'=>new PDO('sqlite:' . './tmp/sec_bruteforce.sqlite3') // or another PDO driver
+				'pdo_handler'=>new PDO('sqlite:./tmp/sec_bruteforce.sqlite3')
 			));
 		 * Checking: $bruteforce->check()
 		 *  returns bool
@@ -219,7 +218,7 @@
 		 * Closing connection: unset($bruteforce)
 		 *
 		 * Table layout:
-		 *  id[primary key] ip[text] attempts[int] timestamp[int]
+		 *  id[primary key] ip[varchar(39)] attempts[int] timestamp[int]
 		 *
 		 * Changes with respect to bruteforce_pdo: $ban_time, $current_timestamp, $auto_clean, __construct(), get_timestamp(), check(), add()
 		 */
@@ -230,8 +229,11 @@
 		private $current_timestamp=null;
 		private $auto_clean=true;
 
-		public function __construct($params)
+		public function __construct(array $params)
 		{
+			if(!isset($params['pdo_handler']))
+				throw new Exception('no PDO handler given');
+
 			$this->ip=$_SERVER['REMOTE_ADDR'];
 			foreach(['pdo_handler', 'table_name', 'max_attempts', 'ban_time', 'ip', 'auto_clean'] as $param)
 				if(isset($params[$param]))
@@ -246,16 +248,12 @@
 				SELECT *
 				FROM '.$this->table_name.'
 				WHERE ip="'.$this->ip.'"
-			')->fetchAll(PDO::FETCH_NAMED);
-			if(!empty($ip_query))
+			')->fetch(PDO::FETCH_NAMED);
+			if($ip_query !== false)
 			{
-				$this->current_attempts=$ip_query[0]['attempts'];
-				$this->current_timestamp=$ip_query[0]['timestamp'];
+				$this->current_attempts=$ip_query['attempts'];
+				$this->current_timestamp=$ip_query['timestamp'];
 			}
-		}
-		public function __destruct()
-		{
-			$this->pdo_handler=null;
 		}
 
 		public function get_timestamp()
@@ -345,8 +343,11 @@
 		private $lock_file=null;
 		private $database=array();
 
-		public function __construct($params)
+		public function __construct(array $params)
 		{
+			if(!isset($params['file']))
+				throw new Exception('no file path given');
+
 			$this->ip=$_SERVER['REMOTE_ADDR'];
 			foreach(['file', 'lock_file', 'max_attempts', 'ip'] as $param)
 				if(isset($params[$param]))
@@ -466,8 +467,11 @@
 		private $current_timestamp=null;
 		private $auto_clean=true;
 
-		public function __construct($params)
+		public function __construct(array $params)
 		{
+			if(!isset($params['file']))
+				throw new Exception('no file path given');
+
 			$this->ip=$_SERVER['REMOTE_ADDR'];
 			foreach(['file', 'lock_file', 'max_attempts', 'ban_time', 'ip', 'auto_clean'] as $param)
 				if(isset($params[$param]))

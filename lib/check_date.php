@@ -6,46 +6,62 @@
 	 *
 	 * check_date()
 	 *  basic function - check time if is between DD.MM - DD.MM (or D.M - D.M)
-	 *  example usage: check_easter(20,04, 27,08)
-	 *  example usage: check_easter(24,06, 14,02)
+	 *  example usage: check_easter(20,4, 27,8)
+	 *  example usage: check_easter(24,6, 14,2)
 	 * check_easter()
 	 *  extension for check_date()
 	 *  example usage: check_easter(49)
 	 *  check_date() required
 	 * check_easter_with_cache()
 	 *  extension for check_date() that uses pre-calculated tables
-	 *  example usage: check_easter_with_cache(49, './var/check_easter_cache.php')
+	 *  example usage: check_easter_with_cache(49, file_get_contents('./tmp/check_easter_cache.php'))
 	 *  check_date() required
 	 * check_easter_make_cache()
 	 *  tables pre-calculation for check_easter_with_cache()
-	 *  mainly for offline usage
-	 *  example usage: check_easter_make_cache('./var/check_easter_cache.php')
+	 *  mainly for cli usage
+	 *  example usage: file_put_contents('./tmp/check_easter_cache.php', check_easter_make_cache())
 	 */
 
 	function check_date($start_day, $start_month, $end_day, $end_month)
 	{
-		$current_date=date('Y-m-d', strtotime(date('Y-m-d'))); // unix timestamp
-		$this_year=date('Y');
+		$current_date=strtotime(date('Y-m-d'));
+		$current_year=date('Y');
 
-		if($start_month < $end_month) // in the same year
-			$new_year=$this_year;
-		else // between new year
+		$calculate_between_years=function($start_month, $current_date, $current_year, $end_month, $end_day, $start_day)
 		{
-			if(($current_date <= date('Y-m-d', strtotime('12/31/'.$this_year))) && (date('m') > 11))
-				$new_year=++$this_year; // old year
-			else
+			$current_month=date('m');
+			if($current_month == $start_month)
 			{
-				// new year
-				$new_year=$this_year;
-				$this_year=--$this_year;
+				if(date('d') >= $start_day)
+					return true;
 			}
+			else if($current_month < $start_month)
+			{
+				if($current_date <= strtotime($current_year.'-'.$end_month.'-'.$end_day))
+					return true;
+			}
+			else
+				if($current_date >= strtotime($current_year.'-'.$start_month.'-'.$start_day))
+					return true;
+
+			return false;
+		};
+
+		if($start_month <= $end_month)
+		{
+			if(($start_month === $end_month) && ($start_day > $end_day))
+				return $calculate_between_years($start_month, $current_date, $current_year, $end_month, $end_day, $start_day);
+
+			if
+			(
+				($current_date >= strtotime($current_year.'-'.$start_month.'-'.$start_day))
+				&&
+				($current_date <= strtotime($current_year.'-'.$end_month.'-'.$end_day))
+			)
+				return true;
 		}
-
-		$start_date=date('Y-m-d', strtotime($start_month.'/'.$start_day.'/'.$this_year));
-		$end_date=date('Y-m-d', strtotime($end_month.'/'.$end_day.'/'.$new_year));
-
-		if(($current_date >= $start_date) && ($current_date <= $end_date))
-			return true;
+		else
+			return $calculate_between_years($start_month, $current_date, $current_year, $end_month, $end_day, $start_day);
 
 		return false;
 	}
@@ -113,12 +129,12 @@
 		return check_date($easter_start['day'].'.'.$easter_start['month'], $easter_end['day'].'.'.$easter_end['month']);
 	}
 
-	function check_easter_with_cache($easter_days, $input_file)
+	function check_easter_with_cache($easter_days, $input_data)
 	{
 		// run check_easter_make_cache() to make cache file
 
 		$this_year=date('Y'); // cache
-		if(!@$date_table=unserialize(file_get_contents($input_file))) return false; // read data, abort if no data available
+		if(!@$date_table=unserialize($input_data)) return false; // read data, abort if no data available
 
 		// calculate end date
 		$easter_end_day=$date_table[$this_year][0]+$easter_days;
@@ -137,7 +153,7 @@
 
 		return check_date($date_table[$this_year][0], $date_table[$this_year][1], $easter_end_day, $easter_end_month);
 	}
-	function check_easter_make_cache($output_file)
+	function check_easter_make_cache()
 	{
 		$calculate_easter=function($this_year)
 		{
@@ -190,6 +206,6 @@
 			++$this_year;
 		}
 
-		file_put_contents($output_file, serialize($output_array));
+		return serialize($output_array);
 	}
 ?>

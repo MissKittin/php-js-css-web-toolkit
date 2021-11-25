@@ -193,7 +193,7 @@
 		// constructor requires protected $constructor_params array
 		protected $app_name;
 
-		public function __construct($params)
+		public function __construct(array $params)
 		{
 			foreach($this->constructor_params as $param)
 				if(isset($params[$param]))
@@ -328,8 +328,6 @@
 
 		protected function do_log($priority, $message)
 		{
-			//if(!file_exists($this->file))
-			//	file_put_contents($this->file, 'date'.$this->delimiter.'app_name'.$this->delimiter.'priority'.$this->delimiter.'message'.PHP_EOL, FILE_APPEND);
 			return file_put_contents($this->file, gmdate('Y-m-d H:i:s').$this->delimiter.$this->app_name.$this->delimiter.$priority.$this->delimiter.$message.PHP_EOL, FILE_APPEND);
 		}
 	}

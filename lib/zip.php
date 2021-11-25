@@ -3,10 +3,13 @@
 	 * PhpMyAdmin zip library
 	 * https://github.com/phpmyadmin/phpmyadmin/blob/RELEASE_4_5_5_1/libraries/zip.lib.php
 	 * License GNU GPL2
-	 * Patched line 41-43
+	 * Patched line 28-30
+	 *
+	 * Note:
+	 *  zip will be created in ram
 	 *
 	 * Usage:
-	 *  $zip=new zipfile(); // create the zip
+	 *  $zip=new ZipFile(); // create the zip
 	 *
 	 *  $zip->addFile($file_content, $file_name); // add files to the zip, passing file contents, not actual files
 	 *  $zip->addFile($file_content, $dir_name . '/' . $file_name) // add to directory
@@ -18,8 +21,7 @@
 	 *
 	 *  echo $zip->file(); // get the zip content and send it back to the browser
 	 */
-?>
-<?php
+
 /* vim: set expandtab sw=4 ts=4 sts=4: */
 /**
  * Zip file creation
