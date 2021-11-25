@@ -1,15 +1,15 @@
 # Things to do after clone
 1) create `app/assets` directory
 2) `public/index.php` just imports another php file - this is stupid thing if your server OS allows you to use softlinks.  
-	You can remove this file and create link to `../app/routing.php`.  
+	You can remove this file and create link to `../app/entrypoint.php`.  
 	Run in this directory:  
 	for *nix:
 	```
-	ln -s ../app/routing.php ./public/index.php
+	ln -s ../app/entrypoint.php ./public/index.php
 	```
 	for windows:
 	```
-	mklink public\index.php ..\app\routing.php
+	mklink public\index.php ..\app\entrypoint.php
 	```
 3) to install assets for default view, run in this directory:  
 	for *nix:
@@ -30,19 +30,20 @@ All sample code is in `samples` dirs - ignore this fact. Remove samples and star
 To remove all samples run in this directory:  
 for *nix:
 ```
-(find ./app -maxdepth 2 -name samples) | xargs rm -r -f; sed -i '/{/{:1;N;s/{.*}/{\n\t\t\n\t}/;T1}' ./app/routing.php
+(find ./app -maxdepth 2 -name samples) | xargs rm -r -f; sed -i '/{/{:1;N;s/{.*}/{\n\t\t\n\t}/;T1}' ./app/entrypoint.php
 ```
 for windows:
 ```
 cd app
 for /d /r . %d in (samples) do @if exist "%d" rd /s/q "%d"
 ```
-and remove all cases inside the switch in app/routing.php
+and remove all cases inside the switch in app/entrypoint.php
 
 # How to create application
 
 ### Configuring URL routing
-Edit switch in `app/router.php` and `include` controller in case
+Edit switch in `app/entrypoint.php` and `include` controller in case  
+You can use e.g. uri_router.php library instead of switch
 
 ### Creating controllers and models
 Create new file in `app/controllers`.  
@@ -97,5 +98,5 @@ You can also specify IP, port, preload script and document root, eg `php ./bin/s
 ### Deploy on shared hosting in a subdirectory
 All routing and asset paths in views must be appropriate
 1) move `./public` directory to `../public_html/app-name` (where `public_html` is document root in your hosting)
-2) edit public_html/app-name/index.php and correct the include path (here: `include '../../your-app/app/routing.php';`)
+2) edit public_html/app-name/index.php and correct the include path (here: `include '../../your-app/app/entrypoint.php';`)
 3) test application: `php ./bin/serve.php -docroot ../public_html`

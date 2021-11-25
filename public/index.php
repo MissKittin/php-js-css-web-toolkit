@@ -1,1 +1,1 @@
-<?php include '../app/routing.php'; ?>
+<?php include '../app/entrypoint.php'; ?>
