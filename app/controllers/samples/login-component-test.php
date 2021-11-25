@@ -6,8 +6,8 @@
 	session_name('id');
 	session_start();
 
-	include './lib/login.php';
-	include './components/login/init.php'; // login.php won't be imported again
+	include './lib/sec_login.php';
+	include './components/login/init.php'; // sec_login.php won't be imported again
 
 	$view['lang']='en';
 	$view['title']='Protected page';

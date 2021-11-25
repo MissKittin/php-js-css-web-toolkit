@@ -38,7 +38,7 @@
 	 *  is_logged([bool_session_regenerate], [callback_on_check_fail])
 	 *   where session_regenerate=false disables session id regeneration
 	 *   and on_check_fail is used to log validation errors
-	 *    eg function($message){ error_log('login.php: '.$message); }
+	 *    eg function($message){ error_log('sec_login.php: '.$message); }
 	 *   if(is_logged()) { do logged stuff } else { do not logged stuff }
 	 */
 

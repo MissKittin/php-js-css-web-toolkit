@@ -11,10 +11,10 @@
 	```
 	mklink public\index.php ..\app\routing.php
 	```
-3) To install assets for default view, run in this directory:  
+3) to install assets for default view, run in this directory:  
 	for *nix:
 	```
-	ln -s ../views/samples/default/default.css ./; ln -s ../views/samples/default/default.js ./app/assets/default.js; ln -s ../../lib/sendNotification.js ./app/assets/sendNotification.js
+	ln -s ../views/samples/default/default.css ./app/assets/default.css; ln -s ../views/samples/default/default.js ./app/assets/default.js; ln -s ../../lib/sendNotification.js ./app/assets/sendNotification.js
 	```
 	for windows:
 	```
@@ -22,6 +22,8 @@
 	mklink /d app\assets\default.js ..\views\samples\default\default.js
 	mklink app\assets\sendNotification.js ..\..\lib\sendNotification.js 
 	```
+4) you can install component assets - see readme from component directory
+5) compile assets to the public directory: `php ./bin/assets-compiler.php ./app/assets ./public/assets`
 
 # Removing samples
 All sample code is in `samples` dirs - ignore this fact. Remove samples and start developing application.  
