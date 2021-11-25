@@ -3,12 +3,15 @@
 	header('X-XSS-Protection: 0');
 	header('X-Content-Type-Options: nosniff');
 
+	session_name('id');
+	session_start();
+
 	include './lib/login.php';
 	include './lib/sec_csrf.php';
 	include './lib/check_var.php';
 
 	$view['lang']='en';
-	$view['title']='login';
+	$view['title']='Login';
 	$view['template']='samples/default/default.php';
 	$view['login_failed']['single']=false;
 	$view['login_failed']['multi']=false;

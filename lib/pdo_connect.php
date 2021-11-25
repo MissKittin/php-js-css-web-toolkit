@@ -1,50 +1,50 @@
 <?php
 	function pdo_connect($db, $on_error=null)
 	{
-		/* PDO connection class with automatic seeder
-		 * Supported databases: SQLite3, PostgreSQL, MySQL
+		/*
+		 * PDO connection helper
+		 * with automatic seeder
+		 *
+		 * Supported databases:
+		 *  SQLite3
+		 *  PostgreSQL
+		 *  MySQL
+		 *
+		 * Returns the PDO handler, or false if an error has occurred
 		 *
 		 * Configuration:
-		 *  create directory for database config files
-		 *  create config.php file with:
-		 *   $db_type='your-db-type'; // sqlite pgsql mysql
-		 *   $db_host='server-ip-or-sqlite-db-path';
-		 *   //$db_socket='/path/to/socket'; // uncomment this to use unix socket
-		 *   $db_port='server-port';
-		 *   $db_name='database-name';
-		 *   $db_user='login';
-		 *   $db_password='password';
-		 *  optionally create seed.php file that will initialize database, eg:
-		 *   $pdo_handler->exec('
-		 *		CREATE TABLE tablename(
-		 *			id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-		 *			sampletext VARCHAR(255),
-		 *			sampleint INT
-		 *		)
-		 *   ');
-		 *   hint: also you can write INSERT INTO statements with default values
-		 *  include this library in your code
+		 *  1) create a directory for database config files
+		 *  2) create a config.php file:
+				$db_type='your-db-type'; // sqlite pgsql mysql
+				$db_host='server-ip-or-sqlite-db-path';
+				//$db_socket='/path/to/socket'; // uncomment to use a unix socket
+				$db_port='server-port';
+				$db_name='database-name';
+				$db_user='username';
+				$db_password='password';
+		 *  3) optionally you can create a seed.php file which will initialize the database, eg:
+				$pdo_handler->exec('
+					CREATE TABLE tablename(
+						id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+						sampletext VARCHAR(255),
+						sampleint INT
+					)
+				')
 		 *
 		 * Initialization:
-		 *  write in your code: $db=pdo_connect('pathTo/yourDatabaseConfigDirectory', function($error) { error_log('pdo_connect: '.$error); });
-		 *   where callback function is executed on PDOException and it's optional
-		 *
-		 * Usage:
-		 *  if connection is successfull, PDO handler will be in defined name
-		 *
-		 * Closing database connection:
-		 *  write in your code: unset($db);
+		 *  $db=pdo_connect('./pathTo/yourDatabaseConfigDirectory', function($error) { error_log('pdo_connect: '.$error); });
+		 *   where callback is optional and is executed on PDOException
 		 */
 
 		include $db . '/config.php';
 
-		// open
 		try
 		{
 			switch($db_type)
 			{
 				case 'sqlite':
-					if(!file_exists($db_host)) @unlink($db . '/database_seeded');
+					if(!file_exists($db_host))
+						@unlink($db . '/database_seeded');
 					$pdo_handler=new PDO('sqlite:' . $db_host);
 				break;
 				case 'pgsql':
@@ -61,16 +61,15 @@
 				break;
 			}
 		} catch(PDOException $error) {
-			if($on_error !== null) $on_error('pdo_connect::__construct() error: ' . $error);
+			if($on_error !== null)
+				$on_error($error->getMessage());
 			return false;
 		}
 
-		// seed
 		if((file_exists($db . '/seed.php')) && (!file_exists($db . '/database_seeded')))
 		{
-			// test if is writable
-			if(!file_put_contents($db . '/database_seed_w_test', '') === false)
-				die('could not create database_seeded');
+			if(file_put_contents($db . '/database_seed_w_test', '') === false)
+				throw new Exception('could not create database_seeded file');
 			unlink($db . '/database_seed_w_test');
 
 			include $db . '/seed.php';

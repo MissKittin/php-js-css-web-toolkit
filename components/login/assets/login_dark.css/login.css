@@ -2,7 +2,7 @@ body {
 	background-color: #000000;
 	color: #ffffff;
 }
-#login-form {
+#login_form {
 	border: 1px solid #555555;
 	border-radius: 10px;
 	text-align: center;
@@ -14,7 +14,7 @@ body {
 	margin-top: -80px;
 	top: 50%;
 }
-.input-text input {
+#login_form .input_text input {
 	font-family: Roboto, Helvetica, Arial, sans-serif;
 	width: 99%;
 	height: 40px;
@@ -26,7 +26,11 @@ body {
 	margin-top: 5px;
 	margin-bottom: 5px;
 }
-.input-button input {
+#login_form .input_checkbox {
+	font-family: Roboto, Helvetica, Arial, sans-serif;
+	color: #777777;
+}
+#login_form .input_button input {
 	font-family: Roboto, Helvetica, Arial, sans-serif;
 	width: 99%;
 	height: 40px;
@@ -39,27 +43,27 @@ body {
 	margin-bottom: 5px;
 }
 
-.input-text ::-webkit-input-placeholder { /* Chrome/Opera/Safari */
+#login_form .input_text ::-webkit-input-placeholder { /* Chrome/Opera/Safari */
 	padding-left: 5px;
 }
-.input-text ::-moz-placeholder { /* Firefox 19+ */
+#login_form .input_text ::-moz-placeholder { /* Firefox 19+ */
 	padding-left: 5px;
 }
-.input-text :-ms-input-placeholder { /* IE 10+ */
+#login_form .input_text :-ms-input-placeholder { /* IE 10+ */
 	padding-left: 5px;
 }
-.input-text :-moz-placeholder { /* Firefox 18- */
+#login_form .input_text :-moz-placeholder { /* Firefox 18- */
 	padding-left: 5px;
 }
 
 @media only screen and (max-width: 850px) {
-	#login-form {
+	#login_form {
 		width: 300px;
 		margin-left: -155px;
 	}
 }
 
-#reload-label {
+#reload_label {
 	font-family: Roboto, Helvetica, Arial, sans-serif;
 	color: #999999;
 	position: absolute;

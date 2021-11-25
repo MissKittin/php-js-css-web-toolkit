@@ -2,35 +2,54 @@
 	/*
 	 * Login validation library
 	 *
+	 * Warning:
+	 *  you must start session before include
+	 *  $_SESSION['login'] is reserved
+	 *  $_SERVER['HTTP_USER_AGENT'] is required
+	 *
 	 * Usage:
-	 * login_single('input-login', 'input-plain-password', 'valid-login', 'valid-bcrypted-password')
-	 *  use this to authenticate one user
-	   login_multi('input-login', 'input-plain-password', array(
-	    'first-person' => 'first-person-bcrypt-passwd',
-	    'second-person' => 'second-person-bcrypt-passwd',
-	    'n-person' => 'n-person-bcrypt-passwd'
-	   ))
-	 *  use this to authenticate more users
-	   login_callback('input-login', 'input-plain-password', function($input_login){
-	    if($password=find_password($input_login)) return $password;
-	    return null;
-	   })
-	 *  where find_password() is your defined function or something else
-	 *  that returns bcryped password if success or false if failed
-	 *  use this to get credentials from eg database
-	 * login_refresh('string|callback|file', 'reloadString|callback-function-name-or-function(){}|path-to-file')
-	 *  refresh page after successful login to remove credentials from browser's buffer
-	 * logout($logout-button-post-or-get-variable)
-	 *  if $logout-button-post-or-get-variable is not null, do logout
-	 * is_logged()
-	 *  if(is_logged()) { do logged stuff } else { do not logged stuff }
+	 *  login_single('input_login', 'input_plain_password', 'valid_login', 'valid_bcrypted_password')
+	 *   use this to authenticate one user
+	 *   hint: forget about it and use the login_multi
+	 *
+	    login_multi('input_login', 'input_plain_password', array(
+			'first-person' => 'first_person_bcrypt_passwd',
+			'second-person' => 'second_person_bcrypt_passwd',
+			'n-person' => 'n_person_bcrypt_passwd'
+	    ))
+	 *   use this to authenticate more users
+	 *
+	    login_callback('input_login', 'input_plain_password', function($input_login){
+			if($password=find_password($input_login)) return $password;
+			return null;
+	    })
+	 *   where find_password() is your defined function or something else
+	 *    that returns bcryped password if success or false if failed
+	 *   use this to get credentials eg from database
+	 *
+	 *  login_refresh('string|callback|file', 'reload string|callback_function|path_to_file')
+	 *   refresh page after successful login to remove credentials from browser's buffer
+	 *
+	 *  logout(['logout_button_post_or_get_variable'])
+	 *   if $logout_button_post_or_get_variable is not null, do logout
+	 *    this is prepared for check_var.php: if(logout(check_post('logout')))
+	 *    and it's optional
+	 *
+	 *  is_logged([bool_session_regenerate], [callback_on_check_fail])
+	 *   where session_regenerate=false disables session id regeneration
+	 *   and on_check_fail is used to log validation errors
+	 *    eg function($message){ error_log('login.php: '.$message); }
+	 *   if(is_logged()) { do logged stuff } else { do not logged stuff }
 	 */
 
 	function login_single($input_login, $input_password, $login, $password)
 	{
 		if(($input_login === $login) && (password_verify($input_password, $password)))
 		{
-			$_SESSION['logged']=true;
+			$_SESSION['login']['state']=true;
+			$_SESSION['login']['user']=$input_login;
+			$_SESSION['login']['user_agent']=md5($_SERVER['HTTP_USER_AGENT']);
+
 			return true;
 		}
 		return false;
@@ -40,7 +59,10 @@
 		if(isset($login_array[$input_login]))
 			if(password_verify($input_password, $login_array[$input_login]))
 			{
-				$_SESSION['logged']=true;
+				$_SESSION['login']['state']=true;
+				$_SESSION['login']['user']=$input_login;
+				$_SESSION['login']['user_agent']=md5($_SERVER['HTTP_USER_AGENT']);
+
 				return true;
 			}
 		return false;
@@ -51,7 +73,10 @@
 		if($password !== null)
 			if(password_verify($input_password, $password))
 			{
-				$_SESSION['logged']=true;
+				$_SESSION['login']['state']=true;
+				$_SESSION['login']['user']=$input_login;
+				$_SESSION['login']['user_agent']=md5($_SERVER['HTTP_USER_AGENT']);
+
 				return true;
 			}
 		return false;
@@ -63,21 +88,21 @@
 		{
 			case 'string':
 				echo $input;
-			break;
+				break;
 			case 'callback':
 				$input();
-			break;
+				break;
 			case 'file':
 				include $input;
-			break;
+				break;
 		}
 	}
 
-	function logout($null)
+	function logout($null=false)
 	{
 		if($null !== null)
 		{
-			$_SESSION['logged']=false;
+			$_SESSION['login']['state']=false;
 			session_regenerate_id(false);
 			session_destroy();
 			return true;
@@ -85,18 +110,26 @@
 		return false;
 	}
 
-	function is_logged()
+	function is_logged($session_regenerate=true, $on_check_fail=null)
 	{
-		if(isset($_SESSION['logged']))
-			if($_SESSION['logged'])
+		if(isset($_SESSION['login']))
+			if($_SESSION['login']['state'])
+			{
+				if($_SESSION['login']['user_agent'] !== md5($_SERVER['HTTP_USER_AGENT']))
+				{
+					if($on_check_fail !== null)
+						$on_check_fail($_SESSION['login']['user'].' user agent is invalid');
+					logout();
+					return false;
+				}
+
+				if($session_regenerate)
+					session_regenerate_id(true);
 				return true;
+			}
 		return false;
 	}
 
-	if(session_status() === PHP_SESSION_NONE)
-	{
-		session_name('id');
-		session_start();
-		if(is_logged()) session_regenerate_id(true);
-	}
+	if(session_status() !== PHP_SESSION_ACTIVE)
+		throw new Exception('session not started');
 ?>

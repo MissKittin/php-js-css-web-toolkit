@@ -1,0 +1,72 @@
+body {
+	background-color: #ffffff;
+	color: #000000;
+}
+#login_form {
+	border: 1px solid #555555;
+	border-radius: 10px;
+	text-align: center;
+	position: absolute;
+	padding: 3px;
+	width: 400px;
+	margin-left: -210px;
+	left: 50%;
+	margin-top: -80px;
+	top: 50%;
+}
+#login_form .input_text input {
+	font-family: Roboto, Helvetica, Arial, sans-serif;
+	width: 99%;
+	height: 40px;
+	border: 1px solid #ff0000;
+	border-radius: 10px;
+	color: #000000;
+	background-color: transparent;
+	font-size: 18px;
+	margin-top: 5px;
+	margin-bottom: 5px;
+}
+#login_form .input_checkbox {
+	font-family: Roboto, Helvetica, Arial, sans-serif;
+	color: #777777;
+}
+#login_form .input_button input {
+	font-family: Roboto, Helvetica, Arial, sans-serif;
+	width: 99%;
+	height: 40px;
+	border: none;
+	border-radius: 10px;
+	color: #ffffff;
+	background-color: #0000ff;
+	font-size: 18px;
+	margin-top: 5px;
+	margin-bottom: 5px;
+}
+
+#login_form .input_text ::-webkit-input-placeholder { /* Chrome/Opera/Safari */
+	padding-left: 5px;
+}
+#login_form .input_text ::-moz-placeholder { /* Firefox 19+ */
+	padding-left: 5px;
+}
+#login_form .input_text :-ms-input-placeholder { /* IE 10+ */
+	padding-left: 5px;
+}
+#login_form .input_text :-moz-placeholder { /* Firefox 18- */
+	padding-left: 5px;
+}
+
+@media only screen and (max-width: 850px) {
+	#login_form {
+		width: 300px;
+		margin-left: -155px;
+	}
+}
+
+#reload_label {
+	font-family: Roboto, Helvetica, Arial, sans-serif;
+	color: #999999;
+	position: absolute;
+	top: 43%;
+	left: 41%;
+}

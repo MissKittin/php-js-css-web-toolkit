@@ -27,7 +27,9 @@
 	*/
 
 	// Use PDO CRUD builder (you need to import this library manually)
-	$seed_crud_builder=new pdo_crud_builder($pdo_handler);
+	$seed_crud_builder=new pdo_crud_builder(array(
+		'pdo_handler'=>$pdo_handler
+	));
 	$seed_crud_builder->create_table('cars',
 		array(
 			'id' => 'INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL',

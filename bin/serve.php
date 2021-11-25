@@ -3,7 +3,10 @@
 	 * Start PHP development server
 	 *
 	 * Usage:
-	 *  php serve.php [-ip 127.0.0.1] [-port 8080] [-docroot ../public] [-preload ../tmp/app-preload.php]
+	 *  php serve.php [-ip 127.0.0.1] [-port 8080] [-docroot ../public] [-preload ./tmp/app-preload.php]
+	 *
+	 * Required libraries:
+	 *  check_var.php
 	 */
 
 	if(php_sapi_name() === 'cli-server')
@@ -28,7 +31,7 @@
 		if(!$php_http_port=check_argv_next_param('-port'))
 			$php_http_port='8080';
 		$php_preload=''; if($php_preload=check_argv_next_param('-preload'))
-			$php_preload='-d opcache.preload='.$php_preload;
+			$php_preload='-d opcache.preload='.realpath($php_preload);
 		if($php_http_docroot=check_argv_next_param('-docroot'))
 		{
 			if(!chdir($php_http_docroot))
