@@ -1,9 +1,7 @@
 <?php
-	// app setup
 	chdir(__DIR__ . '/..');
 	$APP_ROUTER=explode('/', strtok($_SERVER['REQUEST_URI'], '?'));
 
-	// app url routing
 	switch($APP_ROUTER[1])
 	{
 		case '': include './app/controllers/samples/home.php'; break;
