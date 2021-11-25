@@ -36,7 +36,6 @@ Made for experimental purposes.
 * `dotenv.php` - DotEnv proxy implementation
 * `ioc_container.php` - dependency injection containers
 * `logger.php` - easily write logs
-* `login.php` - login/logout helpers
 * `maintenance_break.php` - check to send the maintenance break pattern
 * `measure_exec_time.php` - debugging
 * `ob_cache.php` - cache output buffer
@@ -53,6 +52,7 @@ Made for experimental purposes.
 * `sec_captcha.php` - captcha image generator
 * `sec_csrf.php` - CSRF protection helpers
 * `sec_http_basic_auth.php` - request and validate basic HTTP authentication
+* `sec_login.php` - login/logout helpers
 * `sec_lv_encrypter.php` - laravel's encrypter class for cookies and sessions (MIT)
 * `sec_prevent_direct.php` - for historical purposes
 * `simple_html_dom.php` - S.C. Chen's HTML DOM parser v1.9.1 (MIT)

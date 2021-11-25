@@ -5,10 +5,10 @@
 
 	if(!function_exists('check_post'))
 		include $__init_module_path.'/check_var.php';
-	if(!function_exists('is_logged'))
-		include $__init_module_path.'/login.php';
 	if(!function_exists('csrf_check_token'))
 		include $__init_module_path.'/sec_csrf.php';
+	if(!function_exists('is_logged'))
+		include $__init_module_path.'/sec_login.php';
 
 	unset($__init_module_path);
 ?>

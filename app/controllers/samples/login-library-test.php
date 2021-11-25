@@ -6,9 +6,9 @@
 	session_name('id');
 	session_start();
 
-	include './lib/login.php';
-	include './lib/sec_csrf.php';
 	include './lib/check_var.php';
+	include './lib/sec_csrf.php';
+	include './lib/sec_login.php';
 
 	$view['lang']='en';
 	$view['title']='Login';
