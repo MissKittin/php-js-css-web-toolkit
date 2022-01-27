@@ -6,8 +6,10 @@
 	 * Mainly for historical purposes. You shouldn't be using this.
 	 */
 
-	function prevent_index($redirect_page_content=null, $redirect_page_content_type=null)
-	{
+	function prevent_index(
+		string $redirect_page_content=null,
+		string $redirect_page_content_type=null
+	){
 		/*
 		 * index.php 404 not found
 		 * Create one index.php and softlink it to another directories
@@ -30,8 +32,12 @@
 			case 'include': include $redirect_page_content; break;
 		}
 	}
-	function prevent_direct($script_name, $redirect_page_content=null, $redirect_page_content_type=null, $log_callback=null)
-	{
+	function prevent_direct(
+		string $script_name,
+		string $redirect_page_content=null,
+		string $redirect_page_content_type=null,
+		callable $log_callback=null
+	){
 		/*
 		 * Extension for prevent_index()
 		 * Fake 404 if script is called directly from address bar

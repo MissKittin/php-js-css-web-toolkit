@@ -8,8 +8,13 @@
 	 *   less customizable than rand_str()
 	 */
 
-	function rand_str($input_length, $lowercase=true, $uppercase=true, $numbers=true, $specialchars=true)
-	{
+	function rand_str(
+		int $input_length,
+		bool $lowercase=true,
+		bool $uppercase=true,
+		bool $numbers=true,
+		bool $specialchars=true
+	){
 		/*
 		 * Random string generator
 		 * Returns mixed lower and uppercase letters, numbers and special characters
@@ -19,10 +24,15 @@
 		 */
 
 		$const='';
-		if($lowercase) $const.='abcdefghijklmnopqrstuvwxyz';
-		if($uppercase) $const.='ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-		if($numbers) $const.='0123456789';
-		if($specialchars) $const.='!@#$%^&*()-_[]{}?~:<>|';
+		if($lowercase)
+			$const.='abcdefghijklmnopqrstuvwxyz';
+		if($uppercase)
+			$const.='ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+		if($numbers)
+			$const.='0123456789';
+		if($specialchars)
+			$const.='!@#$%^&*()-_[]{}?~:<>|';
+
 		$const_length=strlen($const)-1;
 
 		$output='';
@@ -31,7 +41,7 @@
 
 		return $output;
 	}
-	function rand_str_secure($chars, $force_openssl=false)
+	function rand_str_secure(int $chars, bool $force_openssl=false)
 	{
 		/*
 		 * Random string generator - cryptographically secure method

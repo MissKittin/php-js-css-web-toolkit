@@ -8,7 +8,7 @@
 	 * Usage: *_templating_engine(file_get_contents('./file.html'), $input_array)
 	 */
 
-	function basic_templating_engine($source, $variables)
+	function basic_templating_engine(string $source, array $variables=array())
 	{
 		/*
 		 * Basic version of templating engine
@@ -28,7 +28,7 @@
 
 		return $source;
 	}
-	function trivial_templating_engine($source, $variables)
+	function trivial_templating_engine(string $source, array $variables=array())
 	{
 		/*
 		 * Full version of templating engine

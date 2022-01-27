@@ -35,11 +35,11 @@
 		protected $call_getenv;
 		protected $env=array();
 
-		public function __construct($file=false, $call_getenv=false)
+		public function __construct(string $file=null, bool $call_getenv=false)
 		{
 			$this->call_getenv=$call_getenv;
 
-			if($file !== false)
+			if($file !== null)
 				if(file_exists($file))
 				{
 					$file=fopen($file, 'r');
@@ -85,7 +85,7 @@
 				}
 		}
 
-		public function getenv($variable, $default_value=false)
+		public function getenv(string $variable, $default_value=false)
 		{
 			if(isset($this->env[$variable]))
 				return $this->env[$variable];

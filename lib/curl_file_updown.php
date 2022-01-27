@@ -7,7 +7,7 @@
 	 *  curl_file_download()
 	 */
 
-	function curl_file_upload($url, $source, $params=array(), $curl_opts=array())
+	function curl_file_upload(string $url, string $source, array $params=array(), array $curl_opts=array())
 	{
 		/*
 		 * Quickly upload file
@@ -44,15 +44,24 @@
 			)
 		 */
 
+		if(!extension_loaded('curl'))
+			throw new Exception('curl extension is not loaded');
+
 		if(!file_exists($source))
 			return false;
 
-		if(!isset($curl_opts[CURLOPT_TIMEOUT])) $curl_opts[CURLOPT_TIMEOUT]=20;
-		if(!isset($curl_opts[CURLOPT_SSL_VERIFYPEER])) $curl_opts[CURLOPT_SSL_VERIFYPEER]=true;
-		if(!isset($curl_opts[CURLOPT_SSLVERSION])) $curl_opts[CURLOPT_SSLVERSION]=CURL_SSLVERSION_TLSv1_2;
-		if(!isset($curl_opts[CURLOPT_FAILONERROR])) $curl_opts[CURLOPT_FAILONERROR]=true;
-		if(!isset($curl_opts[CURLOPT_RETURNTRANSFER])) $curl_opts[CURLOPT_RETURNTRANSFER]=true;
-		if(isset($params['credentials'])) $curl_opts[CURLOPT_USERPWD]=$params['credentials'];
+		if(!isset($curl_opts[CURLOPT_TIMEOUT]))
+			$curl_opts[CURLOPT_TIMEOUT]=20;
+		if(!isset($curl_opts[CURLOPT_SSL_VERIFYPEER]))
+			$curl_opts[CURLOPT_SSL_VERIFYPEER]=true;
+		if(!isset($curl_opts[CURLOPT_SSLVERSION]))
+			$curl_opts[CURLOPT_SSLVERSION]=CURL_SSLVERSION_TLSv1_2;
+		if(!isset($curl_opts[CURLOPT_FAILONERROR]))
+			$curl_opts[CURLOPT_FAILONERROR]=true;
+		if(!isset($curl_opts[CURLOPT_RETURNTRANSFER]))
+			$curl_opts[CURLOPT_RETURNTRANSFER]=true;
+		if(isset($params['credentials']))
+			$curl_opts[CURLOPT_USERPWD]=$params['credentials'];
 
 		$curl_opts[CURLOPT_URL]=$url;
 		switch(strtok($url, ':'))
@@ -68,22 +77,26 @@
 			case 'http':
 			case 'https':
 				if(!isset($params['post_field_name']))
-					if(isset($params['on_error'])) $params['on_error']('curl_file_updown.php: you requested file_upload() via http but not define the post_field_name parameter');
+					if(isset($params['on_error']))
+						$params['on_error']('curl_file_updown.php: you requested file_upload() via http but not define the post_field_name parameter');
 
-				if(!isset($curl_opts[CURLOPT_TCP_FASTOPEN])) $curl_opts[CURLOPT_TCP_FASTOPEN]=true; // conflict with ftp and sftp
+				if(!isset($curl_opts[CURLOPT_TCP_FASTOPEN]))
+					$curl_opts[CURLOPT_TCP_FASTOPEN]=true; // conflict with ftp and sftp
 
 				$curl_opts[CURLOPT_HTTPAUTH]=CURLAUTH_BASIC;
 				$curl_opts[CURLOPT_POST]=true;
-				$curl_opts[CURLOPT_POSTFIELDS]=array(
+				$curl_opts[CURLOPT_POSTFIELDS]=[
 					$params['post_field_name']=>curl_file_create($source)
-				);
+				];
 				$curl_opts[CURLOPT_HEADER]=true;
 			    $curl_opts[CURLOPT_HTTPHEADER]=['Content-type: multipart/form-data'];
 			break;
 			case 'scp':
 			case 'sftp':
-				if(isset($params['private_key'])) $curl_opts[CURLOPT_SSH_PRIVATE_KEYFILE]=$params['private_key'];
-				if(isset($params['public_key'])) $curl_opts[CURLOPT_SSH_PUBLIC_KEYFILE]=$params['public_key'];
+				if(isset($params['private_key']))
+					$curl_opts[CURLOPT_SSH_PRIVATE_KEYFILE]=$params['private_key'];
+				if(isset($params['public_key']))
+					$curl_opts[CURLOPT_SSH_PUBLIC_KEYFILE]=$params['public_key'];
 
 				$file_handler=fopen($source, 'r');
 				$curl_opts[CURLOPT_URL].='/'.basename($source);
@@ -106,8 +119,12 @@
 
 		return $output;
 	}
-	function curl_file_download($url, $destination=null, $params=array(), $curl_opts=array())
-	{
+	function curl_file_download(
+		string $url,
+		string $destination=null,
+		array $params=array(),
+		array $curl_opts=array()
+	){
 		/*
 		 * Quickly download file and print it or save
 		 *
@@ -134,25 +151,37 @@
 		 * where output file is not specified, this function returns content.
 		 */
 
-		if(!isset($curl_opts[CURLOPT_TIMEOUT])) $curl_opts[CURLOPT_TIMEOUT]=10;
-		if(!isset($curl_opts[CURLOPT_SSL_VERIFYPEER])) $curl_opts[CURLOPT_SSL_VERIFYPEER]=true;
-		if(!isset($curl_opts[CURLOPT_SSLVERSION])) $curl_opts[CURLOPT_SSLVERSION]=CURL_SSLVERSION_TLSv1_2;
-		if(!isset($curl_opts[CURLOPT_FAILONERROR])) $curl_opts[CURLOPT_FAILONERROR]=true;
-		if(!isset($curl_opts[CURLOPT_RETURNTRANSFER])) $curl_opts[CURLOPT_RETURNTRANSFER]=true;
-		if(isset($params['credentials'])) $curl_opts[CURLOPT_USERPWD]=$params['credentials'];
+		if(!extension_loaded('curl'))
+			throw new Exception('curl extension is not loaded');
+
+		if(!isset($curl_opts[CURLOPT_TIMEOUT]))
+			$curl_opts[CURLOPT_TIMEOUT]=10;
+		if(!isset($curl_opts[CURLOPT_SSL_VERIFYPEER]))
+			$curl_opts[CURLOPT_SSL_VERIFYPEER]=true;
+		if(!isset($curl_opts[CURLOPT_SSLVERSION]))
+			$curl_opts[CURLOPT_SSLVERSION]=CURL_SSLVERSION_TLSv1_2;
+		if(!isset($curl_opts[CURLOPT_FAILONERROR]))
+			$curl_opts[CURLOPT_FAILONERROR]=true;
+		if(!isset($curl_opts[CURLOPT_RETURNTRANSFER]))
+			$curl_opts[CURLOPT_RETURNTRANSFER]=true;
+		if(isset($params['credentials']))
+			$curl_opts[CURLOPT_USERPWD]=$params['credentials'];
 
 		$curl_opts[CURLOPT_URL]=$url;
 		switch(strtok($url, ':'))
 		{
 			case 'http':
 			case 'https':
-				if(!isset($curl_opts[CURLOPT_TCP_FASTOPEN])) $curl_opts[CURLOPT_TCP_FASTOPEN]=true; // conflict with ftp and sftp
+				if(!isset($curl_opts[CURLOPT_TCP_FASTOPEN]))
+					$curl_opts[CURLOPT_TCP_FASTOPEN]=true; // conflict with ftp and sftp
 				$curl_opts[CURLOPT_HTTPAUTH]=CURLAUTH_BASIC;
 			break;
 			case 'scp':
 			case 'sftp':
-				if(isset($params['private_key'])) $curl_opts[CURLOPT_SSH_PRIVATE_KEYFILE]=$params['private_key'];
-				if(isset($params['public_key'])) $curl_opts[CURLOPT_SSH_PUBLIC_KEYFILE]=$params['public_key'];
+				if(isset($params['private_key']))
+					$curl_opts[CURLOPT_SSH_PRIVATE_KEYFILE]=$params['private_key'];
+				if(isset($params['public_key']))
+					$curl_opts[CURLOPT_SSH_PUBLIC_KEYFILE]=$params['public_key'];
 			break;
 		}
 

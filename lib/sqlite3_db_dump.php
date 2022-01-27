@@ -1,5 +1,5 @@
 <?php
-	function sqlite3_db_dump($file)
+	function sqlite3_db_dump(string $file)
 	{
 		/*
 		 * Ephestione's SQLite3 database dumper
@@ -12,6 +12,9 @@
 		 * Source:
 		 *  https://github.com/ephestione/php-sqlite-dump/blob/master/sqlite_dump.php
 		 */
+
+		if(!class_exists('SQLite3'))
+			throw new Exception('SQLite3 class not found');
 
 		if(!file_exists($file))
 			return false;
