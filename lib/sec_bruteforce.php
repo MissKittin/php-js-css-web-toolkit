@@ -121,8 +121,8 @@
 		 *  id[primary key] ip[varchar(39)] attempts[int]
 		 */
 
-		private $pdo_handler;
-		private $table_name='sec_bruteforce';
+		protected $pdo_handler;
+		protected $table_name='sec_bruteforce';
 
 		public function __construct(array $params)
 		{
@@ -223,11 +223,11 @@
 		 * Changes with respect to bruteforce_pdo: $ban_time, $current_timestamp, $auto_clean, __construct(), get_timestamp(), check(), add()
 		 */
 
-		private $pdo_handler;
-		private $table_name='sec_bruteforce';
-		private $ban_time=600;
-		private $current_timestamp=null;
-		private $auto_clean=true;
+		protected $pdo_handler;
+		protected $table_name='sec_bruteforce';
+		protected $ban_time=600;
+		protected $current_timestamp=null;
+		protected $auto_clean=true;
 
 		public function __construct(array $params)
 		{
@@ -339,9 +339,9 @@
 		 * Saving database: unset($bruteforce)
 		 */
 
-		private $file;
-		private $lock_file=null;
-		private $database=array();
+		protected $file;
+		protected $lock_file=null;
+		protected $database=array();
 
 		public function __construct(array $params)
 		{
@@ -369,7 +369,7 @@
 				$this->lock_unlock_database(false);
 			}
 		}
-		private function lock_unlock_database($action, $check=false)
+		protected function lock_unlock_database($action, $check=false)
 		{
 			/*
 			 * for constructor and destructor only
@@ -460,12 +460,12 @@
 		 * Changes with respect to bruteforce_json: $ban_time, $current_timestamp, $auto_clean, __construct(), get_timestamp(), check(), add()
 		 */
 
-		private $file;
-		private $lock_file=null;
-		private $database=array();
-		private $ban_time=600;
-		private $current_timestamp=null;
-		private $auto_clean=true;
+		protected $file;
+		protected $lock_file=null;
+		protected $database=array();
+		protected $ban_time=600;
+		protected $current_timestamp=null;
+		protected $auto_clean=true;
 
 		public function __construct(array $params)
 		{
@@ -496,7 +496,7 @@
 				$this->lock_unlock_database(false);
 			}
 		}
-		private function lock_unlock_database($action, $check=false)
+		protected function lock_unlock_database($action, $check=false)
 		{
 			/*
 			 * for constructor and destructor only

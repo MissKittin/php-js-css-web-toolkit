@@ -64,15 +64,15 @@
 
 	class cache_container
 	{
-		private $cache_driver;
-		private $local_cache=array();
+		protected $cache_driver;
+		protected $local_cache=array();
 
 		public function __construct(cache_driver $cache_driver)
 		{
 			$this->cache_driver=$cache_driver;
 		}
 
-		private function validate_cache($key, &$value, &$timeout)
+		protected function validate_cache($key, &$value, &$timeout)
 		{
 			if(isset($this->local_cache[$key]))
 			{
@@ -197,7 +197,7 @@
 	}
 	class cache_container_lite
 	{
-		private $cache_driver;
+		protected $cache_driver;
 
 		public function __construct(cache_driver $cache_driver)
 		{
@@ -206,7 +206,7 @@
 			$this->cache_driver=$cache_driver;
 		}
 
-		private function validate_cache($key)
+		protected function validate_cache($key)
 		{
 			$value=$this->cache_driver->get($key);
 
@@ -298,9 +298,9 @@
 
 	interface cache_driver
 	{
-		public function put($key, $value, $timeout);
+		public function put($key, $value, $timeout): array;
 			// returns array('value'=>string_value, 'timeout'=>int_timeout, 'timestamp'=>int_timestamp)|null
-		public function get($key);
+		public function get($key): array;
 			// returns array('value'=>string_value, 'timeout'=>int_timeout, 'timestamp'=>int_timestamp)|null
 		public function unset($key);
 		public function flush();
@@ -308,22 +308,22 @@
 
 	class cache_driver_none implements cache_driver
 	{
-		public function put($a, $b, $c)
+		public function put($a, $b, $c): array
 		{
-			return null;
+			return array();
 		}
-		public function get($a)
+		public function get($a): array
 		{
-			return null;
+			return array();
 		}
 		public function unset($a) {}
 		public function flush() {}
 	}
 	class cache_driver_file implements cache_driver
 	{
-		private $file;
-		private $lock_file;
-		private $container=array();
+		protected $file;
+		protected $lock_file;
+		protected $container=array();
 
 		public function __construct(array $params)
 		{
@@ -350,7 +350,7 @@
 			});
 		}
 
-		private function lock_unlock_file($make_lock, $save_callback=null)
+		protected function lock_unlock_file($make_lock, $save_callback=null)
 		{
 			if($make_lock)
 			{
@@ -375,13 +375,13 @@
 			}
 		}
 
-		public function put($key, $value, $timeout)
+		public function put($key, $value, $timeout): array
 		{
 			$this->container[$key]['value']=$value;
 			$this->container[$key]['timeout']=$timeout;
 			$this->container[$key]['timestamp']=time();
 		}
-		public function get($key)
+		public function get($key): array
 		{
 			if(isset($this->container[$key]))
 			{
@@ -406,8 +406,8 @@
 	}
 	class cache_driver_pdo implements cache_driver
 	{
-		private $pdo_handler;
-		private $table_name='cache_container';
+		protected $pdo_handler;
+		protected $table_name='cache_container';
 
 		public function __construct(array $params)
 		{
@@ -430,7 +430,7 @@
 				throw new Exception('cannot create '.$this->table_name.' table');
 		}
 
-		public function put($key, $value, $timeout)
+		public function put($key, $value, $timeout): array
 		{
 			$query=$this->pdo_handler->prepare('
 				REPLACE INTO '.$this->table_name.'(key, value, timeout, timestamp)
@@ -443,7 +443,7 @@
 				':timestamp'=>time()
 			));
 		}
-		public function get($key)
+		public function get($key): array
 		{
 			$result=$this->pdo_handler->prepare('SELECT value, timeout, timestamp FROM '.$this->table_name.' WHERE key=:key');
 			$result->execute(array(':key'=>$key));
@@ -467,8 +467,8 @@
 	}
 	class cache_driver_phpredis implements cache_driver
 	{
-		private $redis_handler;
-		private $prefix='cache_container__';
+		protected $redis_handler;
+		protected $prefix='cache_container__';
 
 		public function __construct(array $params)
 		{
@@ -492,7 +492,7 @@
 				$this->prefix=$params['prefix'];
 		}
 
-		public function put($key, $value, $timeout)
+		public function put($key, $value, $timeout): array
 		{
 			$value=serialize(array(
 				'value'=>$value,
@@ -505,7 +505,7 @@
 			else
 				$this->redis_handler->set($this->prefix.$key, $value);
 		}
-		public function get($key)
+		public function get($key): array
 		{
 			$value=$this->redis_handler->get($this->prefix.$key);
 

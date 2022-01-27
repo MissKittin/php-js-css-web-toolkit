@@ -59,7 +59,7 @@
 	}
 	class observer
 	{
-		private $observers=array();
+		protected $observers=array();
 
 		public function attach(observer_interface $observer)
 		{

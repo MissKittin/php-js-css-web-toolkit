@@ -22,7 +22,7 @@
 		 *  add after operation: error_log('Exec time: '.$exec_time->get_exec_time().' seconds');
 		 */
 
-		private $start_time;
+		protected $start_time;
 
 		public function __construct()
 		{
