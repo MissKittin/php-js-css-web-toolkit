@@ -1,5 +1,5 @@
 <?php
-	function convert_bytes($input)
+	function convert_bytes(int $input)
 	{
 		// Automatically convert input number to human-readable form
 
@@ -7,7 +7,7 @@
 		$value=$input;
 		while($value >= 1024)
 		{
-			$value=$value/1024;
+			$value/=1024;
 			++$depth;
 		}
 		switch($depth)
@@ -18,8 +18,8 @@
 			case 3: $unit='GB'; break;
 			case 4: $unit='TB'; break;
 			case 5: $unit='PB'; break;
-			default: $unit='?B';break;
+			default: $unit='?B';
 		}
-		return round($value, 1) . $unit;
+		return round($value, 1).$unit;
 	}
 ?>

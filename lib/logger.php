@@ -61,54 +61,54 @@
 	 *   input array keys: app_name file [lock_file]
 	 *
 	 * OOP examples:
-		$log=new log_to_csv(array(
+		$log=new log_to_csv([
 			'app_name'=>'test_app',
 			'file'=>'./log/journal.csv', // (required)
 			'lock_file'=>'./log/journal.csv.lock' // (suggested)
 			//,'delimiter'=>',' // (optional, default: comma char)
-		))
-		$log=new log_to_curl(array(
+		])
+		$log=new log_to_curl([
 			'app_name'=>'test_app',
 			'url'=>'http://127.0.0.1' // (required)
 			//,'on_error'=>function($error){ error_log(__FILE__.' log_to_curl: '.$error); }
 			//,'curl_opts'=>[CURLOPT_VERBOSE=>true]
-		))
-		$log=new log_to_exec(array(
+		])
+		$log=new log_to_exec([
 			'app_name'=>'test_app',
 			'command'=>'./program' // (required)
-		))
-		$log=new log_to_json(array(
+		])
+		$log=new log_to_json([
 			'app_name'=>'test_app',
 			'file'=>'./log/journal.json', // (required)
 			'lock_file'=>'./log/journal.json.lock' // (suggested)
-		))
-		$log=new log_to_mail(array(
+		])
+		$log=new log_to_mail([
 			'app_name'=>'test_app',
 			'recipient'=>'example@example.com' // (required)
-		))
-		$log=new log_to_pdo(array(
+		])
+		$log=new log_to_pdo([
 			'app_name'=>'test_app',
 			'pdo_handler'=>new PDO('sqlite:./database.sqlite3') // (required)
 			//,'table_name'=>'log' // (optional, default: log)
-		))
+		])
 		$log=new log_to_php(['app_name'=>'test_app'])
-		$log=new log_to_syslog(array(
+		$log=new log_to_syslog([
 			'app_name'=>'test_app'
 			//,'logger'=>'/bin/logger' (optional, default: logger)
-		))
-		$log=new log_to_txt(array(
+		])
+		$log=new log_to_txt([
 			'app_name'=>'test_app',
 			'file'=>'./log/journal.txt', // (required)
 			'lock_file'=>'./log/journal.txt.lock' // (suggested)
-		))
-		$log=new log_to_xml(array(
+		])
+		$log=new log_to_xml([
 			'app_name'=>'test_app',
 			'file'=>'./log/journal.xml', // (required)
 			'lock_file'=>'./log/journal.xml.lock' // (suggested)
-		))
+		])
 	 *
 	 * Combo example:
-		$log=new log_to_something(array(
+		$log=new log_to_something([
 			'app_name'=>'test_app',
 
 			// files
@@ -123,32 +123,50 @@
 
 			// pdo
 			'pdo_handler'=>new PDO('sqlite:./database.sqlite3'),
-			'table_name'=>'log'
+			'table_name'=>'log',
 
 			// curl
 			'url'=>'http://127.0.0.1'
 			//,'on_error'=>function($error){ error_log(__FILE__.' log_to_curl: '.$error); }
 			//,'curl_opts'=>[CURLOPT_VERBOSE=>true]
-		));
+		]);
+		$log->log('DEBUG', 'The condition is true');
 		$log->log('INFO', 'Nice message');
+		$log->log('WARN', 'This feature is deprecated');
+		$log->log('ERROR', 'Something went wrong');
 	 */
 
-	function log_to_curl($priority, $app_name, $url, $message, $on_error=null, $curl_opts=array())
-	{
-		if(!isset($curl_opts[CURLOPT_TIMEOUT])) $curl_opts[CURLOPT_TIMEOUT]=10;
-		if(!isset($curl_opts[CURLOPT_SSL_VERIFYPEER])) $curl_opts[CURLOPT_SSL_VERIFYPEER]=true;
-		if(!isset($curl_opts[CURLOPT_SSLVERSION])) $curl_opts[CURLOPT_SSLVERSION]=CURL_SSLVERSION_TLSv1_2;
-		if(!isset($curl_opts[CURLOPT_FAILONERROR])) $curl_opts[CURLOPT_FAILONERROR]=true;
-		if(!isset($curl_opts[CURLOPT_TCP_FASTOPEN])) $curl_opts[CURLOPT_TCP_FASTOPEN]=true;
-		if(!isset($curl_opts[CURLOPT_RETURNTRANSFER])) $curl_opts[CURLOPT_RETURNTRANSFER]=true;
+	function log_to_curl(
+		string $priority,
+		string $app_name,
+		string $url,
+		string $message,
+		callable $on_error=null,
+		array $curl_opts=array()
+	){
+		if(!extension_loaded('curl'))
+			throw new Exception('curl extension is not loaded');
+
+		if(!isset($curl_opts[CURLOPT_TIMEOUT]))
+			$curl_opts[CURLOPT_TIMEOUT]=10;
+		if(!isset($curl_opts[CURLOPT_SSL_VERIFYPEER]))
+			$curl_opts[CURLOPT_SSL_VERIFYPEER]=true;
+		if(!isset($curl_opts[CURLOPT_SSLVERSION]))
+			$curl_opts[CURLOPT_SSLVERSION]=CURL_SSLVERSION_TLSv1_2;
+		if(!isset($curl_opts[CURLOPT_FAILONERROR]))
+			$curl_opts[CURLOPT_FAILONERROR]=true;
+		if(!isset($curl_opts[CURLOPT_TCP_FASTOPEN]))
+			$curl_opts[CURLOPT_TCP_FASTOPEN]=true;
+		if(!isset($curl_opts[CURLOPT_RETURNTRANSFER]))
+			$curl_opts[CURLOPT_RETURNTRANSFER]=true;
 
 		$curl_opts[CURLOPT_URL]=$url;
 		$curl_opts[CURLOPT_POST]=true;
-		$curl_opts[CURLOPT_POSTFIELDS]=http_build_query(array(
+		$curl_opts[CURLOPT_POSTFIELDS]=http_build_query([
 			'priority'=>$priority,
 			'app_name'=>$app_name,
 			'message'=>$message
-		));
+		]);
 
 		$handler=curl_init();
 		curl_setopt_array($handler, $curl_opts);
@@ -163,19 +181,19 @@
 
 		return $output;
 	}
-	function log_to_exec($priority, $app_name, $command, $message)
+	function log_to_exec(string $priority, string $app_name, string $command, string $message)
 	{
 		return exec($command.' '.$app_name.' '.$priority.' "'.$message.'"');
 	}
-	function log_to_mail($priority, $app_name, $recipient, $message)
+	function log_to_mail(string $priority, string $app_name, string $recipient, string $message)
 	{
 		return mail($recipient, 'LOG '.$app_name ,$message);
 	}
-	function log_to_php($priority, $app_name, $message)
+	function log_to_php(string $priority, string $app_name, string $message)
 	{
 		return error_log($app_name.': ['.$priority.'] '.$message);
 	}
-	function log_to_syslog($priority, $app_name, $message, $logger='logger')
+	function log_to_syslog(string $priority, string $app_name, string $message, string $logger='logger')
 	{
 		switch($priority)
 		{
@@ -191,9 +209,10 @@
 	abstract class log_to_generic
 	{
 		// constructor requires protected $constructor_params array
+
 		protected $app_name;
 
-		public function __construct(array $params)
+		public function __construct($params)
 		{
 			foreach($this->constructor_params as $param)
 				if(isset($params[$param]))
@@ -222,13 +241,13 @@
 			return true;
 		}
 
-		public function log($priority, $message)
+		public function log(string $priority, string $message)
 		{
 			if(!file_exists(dirname($this->file)))
 				mkdir(dirname($this->file));
 			if($this->lock_unlock_file(true))
 			{
-				$return=$this->do_log($priority, $message); // protected function from child
+				$return=$this->do_log($priority, $message);
 				$this->lock_unlock_file(false);
 				return $return;
 			}
@@ -243,9 +262,24 @@
 		protected $curl_opts=array();
 		protected $on_error=null;
 
-		public function log($priority, $message)
+		public function __construct($params)
 		{
-			return log_to_curl($priority, $this->app_name, $this->url, $message, $this->on_error, $this->curl_opts);
+			if(!extension_loaded('curl'))
+				throw new Exception('curl extension is not loaded');
+
+			parent::__construct($params);
+		}
+
+		public function log(string $priority, string $message)
+		{
+			return log_to_curl(
+				$priority,
+				$this->app_name,
+				$this->url,
+				$message,
+				$this->on_error,
+				$this->curl_opts
+			);
 		}
 	}
 	class log_to_exec extends log_to_generic
@@ -253,7 +287,7 @@
 		protected $constructor_params=['app_name', 'command'];
 		protected $command;
 		
-		public function log($priority, $message)
+		public function log(string $priority, string $message)
 		{
 			return log_to_exec($priority, $this->app_name, $this->command, $message);
 		}
@@ -263,7 +297,7 @@
 		protected $constructor_params=['app_name', 'recipient'];
 		protected $recipient;
 
-		public function log($priority, $message)
+		public function log(string $priority, string $message)
 		{
 			return log_to_mail($priority, $this->app_name, $this->recipient, $message);
 		}
@@ -274,12 +308,7 @@
 		protected $pdo_handler;
 		protected $table_name='log';
 
-		public function __destruct()
-		{
-			$this->pdo_handler=null;
-		}
-
-		public function log($priority, $message)
+		public function log(string $priority, string $message)
 		{
 			return $this->pdo_handler->exec('
 				CREATE TABLE IF NOT EXISTS '.$this->table_name.'
@@ -305,7 +334,7 @@
 	{
 		protected $constructor_params=['app_name'];
 
-		public function log($priority, $message)
+		public function log(string $priority, string $message)
 		{
 			return log_to_php($priority, $this->app_name, $message);
 		}
@@ -315,7 +344,7 @@
 		protected $constructor_params=['app_name', 'logger'];
 		protected $logger='logger';
 
-		public function log($priority, $message)
+		public function log(string $priority, string $message)
 		{
 			return log_to_syslog($priority, $this->app_name, $message, $this->logger);
 		}
@@ -328,7 +357,18 @@
 
 		protected function do_log($priority, $message)
 		{
-			return file_put_contents($this->file, gmdate('Y-m-d H:i:s').$this->delimiter.$this->app_name.$this->delimiter.$priority.$this->delimiter.$message.PHP_EOL, FILE_APPEND);
+			return file_put_contents(
+				$this->file,
+				gmdate('Y-m-d H:i:s')
+					.$this->delimiter
+					.$this->app_name
+					.$this->delimiter
+					.$priority
+					.$this->delimiter
+					.$message
+					.PHP_EOL,
+				FILE_APPEND
+			);
 		}
 	}
 	class log_to_json extends log_to_file
@@ -338,9 +378,26 @@
 		protected function do_log($priority, $message)
 		{
 			if(!file_exists($this->file))
-				return file_put_contents($this->file, '[["'.gmdate('Y-m-d H:i:s').'","'.$this->app_name.'","'.$priority.'","'.$message.'"]]');
+				return file_put_contents(
+					$this->file,
+					'[["'
+						.gmdate('Y-m-d H:i:s').'","'
+						.$this->app_name.'","'
+						.$priority.'","'
+						.$message
+					.'"]]'
+				);
 			else
-				return file_put_contents($this->file, substr(file_get_contents($this->file), 0, -1).',["'.gmdate('Y-m-d H:i:s').'","'.$this->app_name.'","'.$priority.'","'.$message.'"]]');
+				return file_put_contents(
+					$this->file,
+					substr(file_get_contents($this->file), 0, -1)
+					.',["'
+						.gmdate('Y-m-d H:i:s').'","'
+						.$this->app_name.'","'
+						.$priority.'","'
+						.$message
+					.'"]]'
+				);
 		}
 	}
 	class log_to_txt extends log_to_file
@@ -349,7 +406,15 @@
 
 		protected function do_log($priority, $message)
 		{
-			return file_put_contents($this->file, gmdate('Y-m-d H:i:s').' '.$this->app_name.' ['.$priority.'] '.$message.PHP_EOL, FILE_APPEND);
+			return file_put_contents(
+				$this->file,
+				gmdate('Y-m-d H:i:s')
+					.' '.$this->app_name
+					.' ['.$priority.'] '
+					.$message
+					.PHP_EOL,
+				FILE_APPEND
+			);
 		}
 	}
 	class log_to_xml extends log_to_file
@@ -359,9 +424,27 @@
 		protected function do_log($priority, $message)
 		{
 			if(!file_exists($this->file))
-				return file_put_contents($this->file, '<journal><entry><date>'.gmdate('Y-m-d H:i:s').'</date><appname>'.$this->app_name.'</appname><priority>'.$priority.'</priority><message>'.$message.'</message></entry></journal>');
+				return file_put_contents(
+					$this->file,
+					'<?xml version="1.0" encoding="UTF-8" ?>'
+					.'<journal><entry>'
+						.'<date>'.gmdate('Y-m-d H:i:s').'</date>'
+						.'<appname>'.$this->app_name.'</appname>'
+						.'<priority>'.$priority.'</priority>'
+						.'<message>'.$message.'</message>'
+					.'</entry></journal>'
+				);
 			else
-				return file_put_contents($this->file, substr(file_get_contents($this->file), 0, -10).'<entry><date>'.gmdate('Y-m-d H:i:s').'</date><appname>'.$this->app_name.'</appname><priority>'.$priority.'</priority><message>'.$message.'</message></entry></journal>');
+				return file_put_contents(
+					$this->file,
+					substr(file_get_contents($this->file), 0, -10)
+					.'<entry>'
+						.'<date>'.gmdate('Y-m-d H:i:s').'</date>'
+						.'<appname>'.$this->app_name.'</appname>'
+						.'<priority>'.$priority.'</priority>'
+						.'<message>'.$message.'</message>'
+					.'</entry></journal>'
+				);
 		}
 	}
 ?>

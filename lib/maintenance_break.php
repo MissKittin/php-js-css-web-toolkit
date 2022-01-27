@@ -25,7 +25,7 @@
 	 * where $APP_ROUTER[1] is for maintenance_break_path
 	 */
 
-	function maintenance_break_get($cookie_name, $get_name)
+	function maintenance_break_get(string $cookie_name, string $get_name)
 	{
 		/*
 		 * Maintenance break
@@ -49,7 +49,7 @@
 
 		return false;
 	}
-	function maintenance_break_path($cookie_name, $path)
+	function maintenance_break_path(string $cookie_name, string $path)
 	{
 		/*
 		 * Maintenance break
@@ -75,7 +75,7 @@
 
 		return false;
 	}
-	function maintenance_break_http($header_name, $header_value)
+	function maintenance_break_http(string $header_name, string $header_value)
 	{
 		/*
 		 * Maintenance break
@@ -114,9 +114,13 @@
 				if($_SERVER['REMOTE_ADDR'] === $ip)
 					return true;
 		}
-		else
+		else if(is_string($allowed_ip))
+		{
 			if($_SERVER['REMOTE_ADDR'] === $allowed_ip)
 				return true;
+		}
+		else
+			throw new InvalidArgumentException('string or array expected');
 
 		return false;
 	}

@@ -11,7 +11,7 @@
 	 *  returns float or integer
 	 */
 
-	function seconds2human($input_seconds)
+	function seconds2human(int $input_seconds)
 	{
 		/*
 		 * Convert seconds to time string
@@ -32,7 +32,7 @@
 			'weeks'=>(int)floor($input_seconds/604800)
 		);
 	}
-	function convert_seconds($input_seconds, $output_format)
+	function convert_seconds(int $input_seconds, string $output_format)
 	{
 		/*
 		 * Convert seconds to higher unit

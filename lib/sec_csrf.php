@@ -2,10 +2,13 @@
 	/*
 	 * CSRF prevention library
 	 * from simpleblog and server-admin-page/webadmin projects
-	 * token is generated at include and stored in the $_SESSION
+	 *
+	 * Note:
+	 * 	token is generated at include and stored in the $_SESSION
 	 *
 	 * Warning:
 	 *  you must start session before include
+	 *  $_GET['csrf_token'] and $_POST['csrf_token'] are reserved
 	 *  $_SESSION['csrf_token'] is reseved
 	 *
 	 * HTML form:
@@ -17,43 +20,51 @@
 	 *  csrf_check_token('post')
 	*/
 
-	function csrf_checkToken($method)
+	function csrf_checkToken(string $method)
 	{
-		if(isset($_SESSION['csrf_token']))
-			switch($method)
-			{
-				case 'get':
-					if(isset($_GET['csrf_token']))
-						if($_SESSION['csrf_token'] === $_GET['csrf_token'])
-							return true;
-				break;
-				case 'post':
-					if(isset($_POST['csrf_token']))
-						if($_SESSION['csrf_token'] === $_POST['csrf_token'])
-							return true;
-				break;
-			}
+		switch($method)
+		{
+			case 'get':
+				if(isset($_GET['csrf_token']))
+					if($_SESSION['csrf_token'] === $_GET['csrf_token'])
+						return true;
+			break;
+			case 'post':
+				if(isset($_POST['csrf_token']))
+					if($_SESSION['csrf_token'] === $_POST['csrf_token'])
+						return true;
+			break;
+		}
 
 		return false;
 	}
-	function csrf_printToken($parameter)
+	function csrf_printToken(string $parameter)
 	{
 		switch($parameter)
 		{
-			case 'parameter': return 'csrf_token'; break;
-			case 'value': return $_SESSION['csrf_token']; break;
+			case 'parameter':
+				return 'csrf_token';
+			break;
+			case 'value':
+				return $_SESSION['csrf_token'];
+			break;
 		}
 
 		return false;
 	}
 
+	function csrf_check_token(string $method)
+	{
+		return csrf_checkToken($method);
+	}
+	function csrf_print_token(string $parameter)
+	{
+		return csrf_printToken($parameter);
+	}
+
 	if(session_status() !== PHP_SESSION_ACTIVE)
-		throw new Exception('session not started');
+		throw new Exception('Session not started');
 
 	if((!csrf_checkToken('get')) && (!csrf_checkToken('post')))
 		$_SESSION['csrf_token']=substr(base_convert(sha1(uniqid(mt_rand())), 16, 36), 0, 32);
-
-	// snake_case wrappers (camelCase for backward compatibility with my projects)
-	function csrf_check_token($method) { return csrf_checkToken($method); }
-	function csrf_print_token($parameter) { return csrf_printToken($parameter); }
 ?>

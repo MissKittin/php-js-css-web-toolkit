@@ -103,14 +103,14 @@
 			}
 		}
 
-		public function put_temp($key, $value, $timeout=0)
+		public function put_temp(string $key, $value, int $timeout=0)
 		{
 			$this->local_cache[$key]['value']=$value;
 			$this->local_cache[$key]['timeout']=$timeout;
 			$this->local_cache[$key]['timestamp']=time();
 		}
 
-		public function get($key, $default_value=null)
+		public function get(string $key, $default_value=null)
 		{
 			$value=null;
 			$timeout=0;
@@ -120,13 +120,13 @@
 				return $default_value;
 			return $value;
 		}
-		public function put($key, $value, $timeout=0)
+		public function put(string $key, $value, int $timeout=0)
 		{
 			$this->put_temp($key, $value, $timeout);
 			$this->cache_driver->put($key, $value, $timeout);
 		}
 
-		public function get_put($key, $default_value, $timeout=0)
+		public function get_put(string $key, $default_value, int $timeout=0)
 		{
 			$value=$this->get($key, null);
 			if($value === null)
@@ -136,7 +136,7 @@
 			}
 			return $value;
 		}
-		public function increment($key, $amount=1)
+		public function increment(string $key, float $amount=1)
 		{
 			$value=null;
 			$timeout=0;
@@ -150,7 +150,7 @@
 
 			return $value;
 		}
-		public function decrement($key, $amount=1)
+		public function decrement(string $key, float $amount=1)
 		{
 			$value=null;
 			$timeout=0;
@@ -164,7 +164,7 @@
 
 			return $value;
 		}
-		public function pull($key)
+		public function pull(string $key)
 		{
 			$value=null;
 			$timeout=0;
@@ -177,13 +177,13 @@
 
 			return $value;
 		}
-		public function unset($key)
+		public function unset(string $key)
 		{
 			$this->cache_driver->unset($key);
 			if(isset($this->local_cache[$key]))
 				unset($this->local_cache[$key]);
 		}
-		public function isset($key)
+		public function isset(string $key)
 		{
 			if($this->get($key, null) === null)
 				return false;
@@ -206,7 +206,7 @@
 			$this->cache_driver=$cache_driver;
 		}
 
-		protected function validate_cache($key)
+		protected function validate_cache(string $key)
 		{
 			$value=$this->cache_driver->get($key);
 
@@ -222,7 +222,7 @@
 			return $value;
 		}
 
-		public function get($key, $default_value=null)
+		public function get(string $key, $default_value=null)
 		{
 			$value=$this->validate_cache($key);
 			if($value === null)
@@ -230,7 +230,7 @@
 
 			return $value['value'];
 		}
-		public function put($key, $value, $timeout=0)
+		public function put(string $key, $value, int $timeout=0)
 		{
 			$this->cache_driver->put($key, $value, $timeout);
 		}
@@ -239,7 +239,7 @@
 		{
 			throw new Exception('put_temp() is not available in the '.__CLASS__);
 		}
-		public function get_put($key, $default_value, $timeout=0)
+		public function get_put(string $key, $default_value, int $timeout=0)
 		{
 			$value=$this->get($key, null);
 			if($value === null)
@@ -249,14 +249,14 @@
 			}
 			return $value;
 		}
-		public function isset($key)
+		public function isset(string $key)
 		{
 			$value=$this->get($key, null);
 			if($value === null)
 				return false;
 			return true;
 		}
-		public function increment($key, $amount=1)
+		public function increment(string $key, float $amount=1)
 		{
 			$value=$this->validate_cache($key);
 			if($value === null)
@@ -266,7 +266,7 @@
 
 			return $value['value'];
 		}
-		public function decrement($key, $amount=1)
+		public function decrement(string $key, float $amount=1)
 		{
 			$value=$this->validate_cache($key);
 			if($value === null)
@@ -276,7 +276,7 @@
 
 			return $value['value'];
 		}
-		public function pull($key)
+		public function pull(string $key)
 		{
 			$value=$this->get($key, null);
 			$this->unset($key);
@@ -286,7 +286,7 @@
 
 			return $value;
 		}
-		public function unset($key)
+		public function unset(string $key)
 		{
 			$this->cache_driver->unset($key);
 		}
@@ -472,6 +472,9 @@
 
 		public function __construct(array $params)
 		{
+			if(!extension_loaded('redis'))
+				throw new Exception('redis extension is not loaded');
+
 			if(!isset($params['address']))
 				throw new Exception('no redis address given');
 

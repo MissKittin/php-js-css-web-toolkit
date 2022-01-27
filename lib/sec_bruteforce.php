@@ -21,7 +21,7 @@
 	 *  bruteforce_timeout_json - store data in flat file (for debugging purposes) (timeout ban)
 	 */
 
-	function bruteforce_mixed($timeout_hook, $permban_hook, $iterate_permban_counter=true, $max_attempts=3)
+	function bruteforce_mixed($timeout_hook, $permban_hook, bool $iterate_permban_counter=true, int $max_attempts=3)
 	{
 		/*
 		 * Mix timeout ban with permban
@@ -36,14 +36,14 @@
 		 *
 		 * Checking ip status:
 			$bruteforce_tempban=new bruteforce_timeout_pdo(array(
-				'pdo_handler'=>new PDO('sqlite:' . './tmp/sec_bruteforce.sqlite3'),
+				'pdo_handler'=>new PDO('sqlite:'.'./tmp/sec_bruteforce.sqlite3'),
 				'table_name'=>'temp_ban',
 				'auto_clean'=>false
 			));
 			if(bruteforce_mixed(
 				$bruteforce_tempban,
 				new bruteforce_pdo(array(
-					'pdo_handler'=>new PDO('sqlite:' . './tmp/sec_bruteforce.sqlite3'),
+					'pdo_handler'=>new PDO('sqlite:'.'./tmp/sec_bruteforce.sqlite3'),
 					'table_name'=>'perm_ban'
 				))
 			))

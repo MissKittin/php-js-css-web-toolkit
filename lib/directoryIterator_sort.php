@@ -1,10 +1,12 @@
 <?php
-	function directoryIterator_sort($directory, $output_array_items, $key_method='getPathname')
+	function directoryIterator_sort(string $directory, array $output_array_items, string $key_method='getPathname')
 	{
 		/*
 		 * Sort directoryIterator output by name
 		 *
-		 * Warning: this function saves selected data into single array - this may be problematic
+		 * Warning:
+		 *  this function saves selected data into single array
+		 *  this may be problematic
 		 *
 		 * Usage:
 		 *  directoryIterator_sort('path/to/directory', ['getSomethingA', 'getSomethingB'])

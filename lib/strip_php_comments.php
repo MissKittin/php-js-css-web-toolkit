@@ -1,14 +1,21 @@
 <?php
-	function strip_php_comments($source)
+	function strip_php_comments(string $source)
 	{
 		/*
 		 * Remove comments from PHP source
-		 * Requires tokenizer extension
 		 *
-		 * Usage: strip_php_comments(file_get_contents('file.php'))
+		 * Warning:
+		 *  tokenizer extension is required
 		 *
-		 * Source: https://stackoverflow.com/questions/503871/best-way-to-automatically-remove-comments-from-php-code
+		 * Usage:
+		 *  strip_php_comments(file_get_contents('file.php'))
+		 *
+		 * Source:
+		 *  https://stackoverflow.com/questions/503871/best-way-to-automatically-remove-comments-from-php-code
 		 */
+
+		if(!extension_loaded('tokenizer'))
+			throw new Exception('tokenizer extension is not loaded');
 
 		$output_string='';
 

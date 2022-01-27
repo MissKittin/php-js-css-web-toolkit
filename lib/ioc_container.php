@@ -15,9 +15,6 @@
 		/*
 		 * Dependency Injection container
 		 *
-		 * Note:
-		 *  this class can be inherited
-		 *
 		 * Usage:
 			$container=new ioc_closure_container();
 			// here you can globalize the container
@@ -44,13 +41,13 @@
 		protected $object_container=array();
 		protected static $shared_containers=array();
 
-		public function set($name, Closure $closure)
+		public function set(string $name, Closure $closure)
 		{
 			if(isset($this->closure_container[$name]))
 				throw new Exception($name.' closure is already registered');
 			$this->closure_container[$name]=$closure;
 		}
-		public function get($name)
+		public function get(string $name)
 		{
 			if(isset($this->object_container[$name]))
 				return $this->object_container[$name];
@@ -59,32 +56,32 @@
 				throw new Exception($name.' closure is not registered');
 			return $this->closure_container[$name]($this);
 		}
-		public function share($name, Closure $closure)
+		public function share(string $name, Closure $closure)
 		{
 			if(isset($this->object_container[$name]))
 				throw new Exception($name.' object is already registered');
 			$this->object_container[$name]=$closure($this);
 		}
-		public function unset($name)
+		public function unset(string $name)
 		{
 			if(!isset($this->container[$name]))
 				throw new Exception($name.' is not registered');
 			unset($this->container[$name]);
 		}
 
-		public static function set_container($name, ioc_closure_container $container)
+		public static function set_container(string $name, ioc_closure_container $container)
 		{
 			if(isset(static::$shared_containers[$name]))
 				throw new Exception($name.' container is already shared');
 			static::$shared_containers[$name]=$container;
 		}
-		public static function get_container($name)
+		public static function get_container(string $name)
 		{
 			if(!isset(static::$shared_containers[$name]))
 				throw new Exception($name.' container is not shared');
 			return static::$shared_containers[$name];
 		}
-		public static function unset_container($name)
+		public static function unset_container(string $name)
 		{
 			if(!isset(static::$shared_containers[$name]))
 				throw new Exception($name.' container is not saved');
@@ -100,9 +97,6 @@
 		 *  the constructor parameter for object instance requires a type hint
 		 *  ioc_closure_container class is required
 		 *  ReflectionParameter::getType is required
-		 *
-		 * Note:
-		 *  this class can be inherited
 		 *
 		 * Usage:
 		 *  initialization:
@@ -127,12 +121,12 @@
 		protected $do_cache;
 		protected $cache=array();
 
-		public function __construct($do_cache=false)
+		public function __construct(bool $do_cache=false)
 		{
 			$this->do_cache=$do_cache;
 		}
 
-		public function get($name)
+		public function get(string $name)
 		{
 			try
 			{
@@ -173,7 +167,7 @@
 			return $instance;
 		}
 
-		public function remove_from_cache($name)
+		public function remove_from_cache(string $name)
 		{
 			if(!$this->do_cache)
 				throw new Exception('cache is disabled');
@@ -182,12 +176,12 @@
 			unset($this->cache[$name]);
 		}
 
-		public function register_constructor_arg($name, $arg_name, $arg)
+		public function register_constructor_arg(string $name, string $arg_name, $arg)
 		{
 			$this->args[$name][$arg_name]=$arg;
 			return $this;
 		}
-		public function unregister_constructor_arg($name, $arg_name)
+		public function unregister_constructor_arg(string $name, string $arg_name)
 		{
 			if(!isset($this->args[$name][$arg_name]))
 				throw new Exception($arg_name.' argument is not registered for '.$name);
