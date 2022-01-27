@@ -1,14 +1,15 @@
-<?php global $login_config; ?>
 <!DOCTYPE html>
-<html<?php if(isset($view['lang'])) echo ' lang="' . $view['lang'] . '"'; ?>>
+<html lang="<?php echo $GLOBALS['login']['view']['lang']; ?>">
 	<head>
-		<title><?php echo $login_config['title']; ?></title>
+		<title><?php echo $GLOBALS['login']['view']['loading_title']; ?></title>
 		<meta charset="utf-8">
+		<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'self';">
 		<meta name="viewport" content="width=device-width, initial-scale=1">
-		<link rel="stylesheet" href="<?php echo $login_config['assets_path']; ?>/assets/<?php if(isset($login_config['login_style'])) echo $login_config['login_style']; else echo 'login_dark.css'; ?>">
+		<link rel="stylesheet" href="<?php echo $GLOBALS['login']['view']['assets_path']; ?>/<?php echo $GLOBALS['login']['view']['login_style']; ?>">
+		<meta name="robots" content="noindex,nofollow">
 		<meta http-equiv="refresh" content="0">
 	</head>
 	<body>
-		<h1 id="reload_label"><?php echo $login_config['loading_label']; ?></h1>
+		<h1 id="reload_label"><?php echo $GLOBALS['login']['view']['loading_label']; ?></h1>
 	</body>
 </html>

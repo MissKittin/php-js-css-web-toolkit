@@ -1,23 +1,153 @@
 # Middleware form component
-You can specify any middleware form, not change the password only.
+You can specify any form
 
 ## Required libraries
-* `sec_csrf.php`
 * `check_var.php`
+* `sec_csrf.php`
 
-## Initialization
-Add `include './components/middleware_form/init.php';` to include not yet imported libraries.  
-Add `include './components/middleware_form/controller/middleware_form.php';` to display form.  
-Use `if(!$middleware_form_is_form_sent) exit();` check if the form is to be displayed.
+## Methods
+* `add_field(array_field)` [returns this]  
+	add input element
+* `add_config(string_key, value)` [returns this]  
+	change config option
+* `add_csp_header(string_section, string_value)` [returns this]  
+	add CSP element
+* `add_html_header(string_header)` [returns this]  
+	add raw html to the `<head>` section
+* `is_form_sent()` [returns bool]  
+	check if the form has been sent
+* `view()`  
+	display the form
 
-## Configuration
-`$view['form_fields']` defines form fields: input type, name and placeholder.  
-All data will be sent through the `$_POST` array.
-See `./config/middleware_form_fields.php` for more info.
+## Field definition
+`tag` is the first required element in an array. Can be `null` - see Special fields section.  
+The rest of the elements are tag parameters (param="value"). Value can be `null`.  
+Example:
+```
+$middleware_form->add_field([
+	'tag'=>'input_or_img_or_div_etc',
+	'name'=>'name_parameter',
+	'param_a'=>'value_a',
+	'param_b'=>'', // will be param_b=""
+	'param_c'=>null // will be without =""
+])
+```
 
-## Translation
-Put translated labels to `$middleware_form_config` array.  
-See `./config/middleware_form_config.php` for more info.
+## Special fields
+* `'tag'=>null`  
+	the content will be printed in its raw form  
+	second parameter: `'content'=>'<mytag>content</mytag>'`  
+	other parameters will be ignored
+* `'type'=>'slider'`  
+	a checkbox with the slider style will be added  
+	first parameter: `'tag'=>'input'`  
+	second parameter: `'type'=>'slider'`  
+	third parameter: `'slider_label'=>'Slider'`  
+	other parameters as for the checkbox tag
+
+## Config options
+Set config options with the `add_config` method
+* `lang` [string]  
+	`<html lang="lang">`
+* `title` [string]  
+	`<title>`
+* `assets_path` [string]  
+	default: `/assets`
+* `middleware_form_style` [string]  
+	default: `middleware_form_dark.css`
+* `submit_button_label` [string]  
+	default: `Next`
+
+## Example usage - captcha
+feat. login component & `sec_captcha.php` library
+```
+if(!isset($_SESSION['captcha_verified']))
+{
+	include './lib/sec_captcha.php';
+
+	if((!isset($_POST['captcha'])) || (!captcha_check($_POST['captcha'])))
+	{
+		include './components/middleware_form/middleware_form.php';
+		$captcha_form=new middleware_form();
+
+		// here you can setup the login component (view section)
+
+		$captcha_form
+			->add_csp_header('img-src', 'data:') // base64 captcha image
+			->add_csp_header('style-src', '\'unsafe-hashes\'') // for the hash below
+			->add_csp_header('style-src', '\'sha256-N6tSydZ64AHCaOWfwKbUhxXx2fRFDxHOaL3e3CO7GPI=\''); // captcha image style
+
+		$captcha_form
+			->add_config('middleware_form_style', 'middleware_form_bright.css')
+			->add_config('title', 'Verification')
+			->add_config('submit_button_label', 'Verify');
+
+		$captcha_form
+			->add_field([
+				'tag'=>'img',
+				'src'=>'data:image/jpeg;base64,'.base64_encode(captcha_get('captcha_gd2')),
+				'style'=>'width: 100%;'
+			])
+			->add_field([
+				'tag'=>'input',
+				'type'=>'text',
+				'name'=>'captcha',
+				'placeholder'=>'Rewrite the text from the picture'
+			]);
+
+		if($captcha_form->is_form_sent())
+			include './components/login/reload.php'; // display reload page
+		else
+			$captcha_form->view();
+
+		exit();
+	}
+
+	$_SESSION['captcha_verified']=true;
+
+	include './components/login/reload.php'; // display reload page
+	exit();
+}
+
+// rest of the code
+```
+
+## Example code - change password
+```
+if(change_password_requested())
+{
+	include './components/middleware_form/middleware_form.php';
+	$change_password_form=new middleware_form();
+
+	if(($change_password_form->is_form_sent()) && is_old_password_valid($_POST['old_password']))
+		save_new_password($_POST['old_password'], $_POST['new_password']);
+	else
+	{
+		$change_password_form
+			->add_config('title', 'Changing the password')
+			->add_config('submit_button_label', 'Change password');
+
+		$change_password_form
+			->add_field([
+				'tag'=>'input',
+				'type'=>'password',
+				'name'=>'old_password',
+				'placeholder'=>'Old password'
+			])
+			->add_field([
+				'tag'=>'input',
+				'type'=>'password',
+				'name'=>'new_password',
+				'placeholder'=>'New password'
+			]);
+
+			$change_password_form->view();
+			exit();
+	}
+}
+
+// rest of the code
+```
 
 ## Assets
 Link `./assets/middleware_form_bright.css` and `./assets/middleware_form_dark.css` to the `app/assets`. This step is optional.  
@@ -31,28 +161,6 @@ mklink /d app\assets\middleware_form_bright.css ..\..\components\middleware_form
 mklink /d app\assets\middleware_form_dark.css ..\..\components\middleware_form\assets\middleware_form_dark.css
 ```
 
-## Sample code
-```
-if(middleware_form_requested())
-{
-	include './components/middleware_form/init.php';
-
-	$middleware_form_config['title']='Zmiana hasla';
-	$middleware_form_config['button_label']='Zmien haslo';
-	$view['form_fields']=array(
-		['password', 'old_password', 'Stare haslo'],
-		['password', 'new_password', 'Nowe haslo']
-	);
-
-	include './components/middleware_form/controller/middleware_form.php';
-	if(!$middleware_form_is_form_sent)
-		exit();
-
-	save_new_password($_POST['old_password'], $_POST['new_password']);
-}
-
-// rest of the code
-```
-
 ## Portability
-Create a directory `./components/login/lib` and copy the required libraries to this directory.
+Create a directory `./components/login/lib`  
+and copy the required libraries to this directory.

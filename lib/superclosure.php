@@ -1,36 +1,33 @@
 <?php
-	/*
-	 * Serializable anonymous functions
-	 * Inspired by Jeremy Lindblom's SuperClosure
-	 *
-	 * PHP 7.4.0 and newer required
-	 *  and eval() must be allowed
-	 *
-	 * Warning: restoring static and global variables is not supported
-	 *
-	 * Usage (function($arg) use ($var) is supported):
-		$closure=new superclosure(function($arg){
-			echo 'My anonymous function: ' . $arg;
-		});
-		$serialized_closure=serialize($closure);
-		$unserialized_closure=unserialize($serialized_closure);
-	 *
-	 * Sources:
-	 *  http://www.htmlist.com/development/extending-php-5-3-closures-with-serialization-and-reflection/
-	 *  http://web.archive.org/web/20190220203506/http://www.htmlist.com/development/extending-php-5-3-closures-with-serialization-and-reflection/
-	 */
-
 	class superclosure
 	{
-		private $reflection;
-		private $closure_body;
-		private $closure_vars;
+		/*
+		 * Serializable anonymous functions
+		 * Inspired by Jeremy Lindblom's SuperClosure
+		 *
+		 * PHP 7.4.0 and newer required
+		 *  and eval() must be allowed
+		 *
+		 * Warning: restoring static and global variables is not supported
+		 *
+		 * Usage (function($arg) use ($var) is supported):
+			$closure=new superclosure(function($arg){
+				echo 'My anonymous function: ' . $arg;
+			});
+			$serialized_closure=serialize($closure);
+			$unserialized_closure=unserialize($serialized_closure);
+		 *
+		 * Sources:
+		 *  http://www.htmlist.com/development/extending-php-5-3-closures-with-serialization-and-reflection/
+		 *  http://web.archive.org/web/20190220203506/http://www.htmlist.com/development/extending-php-5-3-closures-with-serialization-and-reflection/
+		 */
 
-		public function __construct($function)
+		protected $reflection;
+		protected $closure_body;
+		protected $closure_vars;
+
+		public function __construct(closure $function)
 		{
-			if(!$function instanceOf Closure)
-				throw new InvalidArgumentException('closure expected');
-
 			$this->reflection=new ReflectionFunction($function);
 		}
 		public function __invoke()
@@ -56,7 +53,7 @@
 
 			$this->closure_vars=$this->reflection->getStaticVariables();
 
-			return array('closure_vars', 'closure_body');
+			return ['closure_vars', 'closure_body'];
 		}
 		public function __unserialize($data)
 		{

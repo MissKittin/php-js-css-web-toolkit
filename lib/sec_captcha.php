@@ -4,6 +4,7 @@
 	 *
 	 * Warning:
 	 *  captcha_check and captcha_get require started session
+	 *  captcha_gd2 require gd extension
 	 *  $_SESSION['captcha_token'] is reserved
 	 *
 	 * Functions:
@@ -21,7 +22,7 @@
 	 * Example code:
 		if((!isset($_POST['captcha'])) || (!captcha_check($_POST['captcha'])))
 		{
-			echo '<img src="data:image/jpeg;base64,'.base64_encode(captcha_get('captcha_gd2')).'" style="width: 400px; height: 80px;"></img>';
+			echo '<img src="data:image/jpeg;base64,'.base64_encode(captcha_get('captcha_gd2')).'" style="width: 400px; height: 80px;">';
 			echo '<form action="" method="post"><input type="text" name="captcha"><input type="submit"></form>';
 		}
 		else
@@ -30,18 +31,22 @@
 	 *  if(!captcha_check(check_post('captcha')))
 	 */
 
-	function captcha_gd2($encoding='jpeg')
+	function captcha_gd2(string $encoding='jpeg')
 	{
 		/*
-		 * Generates a token and a 100x20 image
+		 * Generates a token and a 100x20px image
 		 *
-		 * GD2 extension required
+		 * Warning:
+		 *  gd extension is required
 		 *
 		 * Usage: image_captcha(string_image_format)
 		 *  where string_image_format is optional and can be bmp gif png or jpeg (default)
 		 *
 		 * Source: https://stackoverflow.com/questions/5274563/php-imagecreate-error
 		 */
+
+		if(!extension_loaded('gd'))
+			throw new Exception('gd extension is not loaded');
 
 		$token_string=substr(md5(rand(0, 999)), 15, 5);
 
@@ -57,9 +62,9 @@
 		ob_start();
 		switch($encoding)
 		{
-			'bmp': imagebmp($image_object); break;
-			'gif': imagegif($image_object); break;
-			'png': imagepng($image_object); break;
+			case 'bmp': imagebmp($image_object); break;
+			case 'gif': imagegif($image_object); break;
+			case 'png': imagepng($image_object); break;
 			default: imagejpeg($image_object);
 		}
 		$token_image=ob_get_clean();
@@ -69,19 +74,25 @@
 		return [$token_string, $token_image];
 	}
 
-	function captcha_get($module, $module_params=array())
+	function captcha_get(callable $module, array $module_params=array())
 	{
 		if(session_status() !== PHP_SESSION_ACTIVE)
-			throw new Exception('session not started');
+			throw new Exception('Session not started');
+
+		if(isset($_SESSION['captcha_token']))
+			throw new Excaption('captcha_token exists in $_SESSION');
 
 		$captcha=call_user_func_array($module, $module_params);
 		$_SESSION['captcha_token']=$captcha[0];
 		return $captcha[1];
 	}
-	function captcha_check($input_token)
+	function captcha_check(string $input_token)
 	{
 		if(session_status() !== PHP_SESSION_ACTIVE)
-			throw new Exception('session not started');
+			throw new Exception('Session not started');
+
+		if(!isset($_SESSION['captcha_token']))
+			throw new Excaption('run captcha_get() first');
 
 		if($_SESSION['captcha_token'] === $input_token)
 			return true;

@@ -2,19 +2,38 @@
 	/*
 	 * Run pdo_connect offline
 	 *
+	 * Warning:
+	 *  check_var.php library is required
+	 *  pdo_cheat.php library is optional
+	 *  pdo_connect.php library is required
+	 *  pdo_crud_builder.php library is optional
+	 *
 	 * Note:
 	 *  you can use $pdo_handler in post script
-	 *
-	 * check_var.php library is required
-	 * pdo_connect.php library is required
-	 * pdo_crud_builder.php library is optional
 	 */
 
-	chdir(__DIR__ . '/..');
+	function load_library($libraries, $required=true)
+	{
+		foreach($libraries as $library)
+			if(file_exists(__DIR__.'/lib/'.$library))
+				include __DIR__.'/lib/'.$library;
+			else if(file_exists(__DIR__.'/../lib/'.$library))
+				include __DIR__.'/../lib/'.$library;
+			else
+				if($required)
+					throw new Exception($library.' library not found');
+	}
 
-	include './lib/check_var.php';
-	include './lib/pdo_connect.php';
-	@include './lib/pdo_crud_builder.php';
+	load_library([
+		'check_var.php',
+		'pdo_connect.php'
+	]);
+	load_library([
+		'pdo_cheat.php',
+		'pdo_crud_builder.php'
+	], false);
+
+	chdir(__DIR__ . '/..');
 
 	if(!$pcos_db_name=check_argv_next_param('-db'))
 	{

@@ -7,7 +7,7 @@
 	 *  blog_page_slicer_old - old optimized version, for historical purposes
 	 */
 
-	function blog_page_slicer($input_array, $current_page, $entries_per_page, $preserve_keys=false)
+	function blog_page_slicer(array $input_array, $current_page, int $entries_per_page, bool $preserve_keys=false)
 	{
 		/*
 		 * Select n elements from array at start point
@@ -20,12 +20,18 @@
 			}), 1, 5)
 		 */
 
-		if($current_page < 1)
+		$current_page=filter_var($current_page, FILTER_VALIDATE_INT);
+		if(($current_page === false) || ($current_page < 1))
 			$current_page=1;
 
-		return array_slice($input_array, ($current_page-1)*$entries_per_page, $entries_per_page, $preserve_keys);
+		return array_slice(
+			$input_array,
+			($current_page-1)*$entries_per_page,
+			$entries_per_page,
+			$preserve_keys
+		);
 	}
-	function blog_page_slicer_old($input_array, $current_page, $entries_per_page)
+	function blog_page_slicer_old(array $input_array, $current_page, int $entries_per_page)
 	{
 		/*
 		 * Select n elements from array at start point
@@ -35,13 +41,16 @@
 		 * Usage:
 		 *  blog_page_slicer_old(array_slice(scandir('/path'), 2), 1, 5)
 			blog_page_slicer_old(array_filter(scandir('/path'), function($input){
-				if(substr($input, 0, 7) === 'public_') return $input;
+				if(substr($input, 0, 7) === 'public_')
+					return $input;
 			}), 1, 5)
 		 */
 
-		$return_array=array();
-		if($current_page < 1)
+		$current_page=filter_var($current_page, FILTER_VALIDATE_INT);
+		if(($current_page === false) || ($current_page < 1))
 			$current_page=1;
+
+		$return_array=array();
 
 		$foreach_cache_a=($current_page*$entries_per_page)-($entries_per_page-1);
 		$foreach_cache_b=$current_page*$entries_per_page;

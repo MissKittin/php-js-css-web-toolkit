@@ -1,14 +1,14 @@
 <?php
-	header('X-Frame-Options: SAMEORIGIN');
-	header('X-XSS-Protection: 0');
-	header('X-Content-Type-Options: nosniff');
+	include './app/shared/samples/default_http_headers.php';
 
-	include './lib/ob_sfucator.php';
-	ob_start('ob_sfucator');
+	include './app/shared/samples/ob_adapter.php';
+	ob_adapter::add(new ob_adapter_obminifier());
+	ob_adapter::add(new ob_adapter_obsfucator());
+	ob_adapter::add(new ob_adapter_gzip());
+	ob_adapter::add(new ob_adapter_filecache_mod('obsfucate-html.cache'));
+	ob_adapter::add(new ob_adapter_gunzip());
+	ob_adapter::start();
 
-	$view['lang']='en';
-	$view['title']='HTML obsfucator';
-	
-	include './app/models/samples/obsfucate-html.php';
-	include './app/views/samples/default/default.php';
+	include './app/templates/samples/default/default_template.php';
+	default_template::quick_view('./app/views/samples/obsfucate-html');
 ?>
