@@ -1,6 +1,13 @@
 <?php
 	chdir(__DIR__ . '/..');
 
+	if(!($_SERVER['REQUEST_METHOD'] === 'GET') || ($_SERVER['REQUEST_METHOD'] === 'POST'))
+	{
+		include './app/controllers/samples/http_error.php';
+		http_error(400);
+		exit();
+	}
+
 	switch(explode('/', strtok($_SERVER['REQUEST_URI'], '?'), 2)[1])
 	{
 		case '': include './app/controllers/samples/home.php'; break;
@@ -16,6 +23,6 @@
 		case 'robots.txt': include './app/controllers/samples/robots-sitemap.php'; robots(); break;
 		case 'sitemap.xml': include './app/controllers/samples/robots-sitemap.php'; sitemap(); break;
 
-		default: include './app/controllers/samples/404.php';
+		default: include './app/controllers/samples/http_error.php'; http_error(404);
 	}
 ?>
