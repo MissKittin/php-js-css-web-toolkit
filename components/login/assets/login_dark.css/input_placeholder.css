@@ -1,0 +1,12 @@
+#middleware_form .input_text ::-webkit-input-placeholder {
+	padding-left: 5px;
+}
+#middleware_form .input_text ::-moz-placeholder {
+	padding-left: 5px;
+}
+#middleware_form .input_text :-ms-input-placeholder {
+	padding-left: 5px;
+}
+#middleware_form .input_text :-moz-placeholder {
+	padding-left: 5px;
+}

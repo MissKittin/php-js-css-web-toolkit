@@ -1,8 +1,7 @@
 <?php
 	chdir(__DIR__ . '/..');
-	$APP_ROUTER=explode('/', strtok($_SERVER['REQUEST_URI'], '?'));
 
-	switch($APP_ROUTER[1])
+	switch(explode('/', strtok($_SERVER['REQUEST_URI'], '?'), 2)[1])
 	{
 		case '': include './app/controllers/samples/home.php'; break;
 
@@ -14,6 +13,9 @@
 		case 'login-component-test': include './app/controllers/samples/login-component-test.php'; break;
 		case 'preprocessing-test': include './app/controllers/samples/preprocessing-test.php'; break;
 
-		default: include './app/controllers/samples/404.php'; break;
+		case 'robots.txt': include './app/controllers/samples/robots-sitemap.php'; robots(); break;
+		case 'sitemap.xml': include './app/controllers/samples/robots-sitemap.php'; sitemap(); break;
+
+		default: include './app/controllers/samples/404.php';
 	}
 ?>

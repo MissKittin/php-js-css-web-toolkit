@@ -5,15 +5,15 @@
 	 * Usage:
 	 *  php serve.php [-ip 127.0.0.1] [-port 8080] [-docroot ../public] [-preload ./tmp/app-preload.php]
 	 *
-	 * Required libraries:
-	 *  check_var.php
+	 * Warning:
+	 *  check_var.php library is required
 	 */
 
 	if(php_sapi_name() === 'cli-server')
 	{
-		// router script
 		if(
 			(file_exists($_SERVER['SCRIPT_FILENAME'])) &&
+			($_SERVER['SCRIPT_FILENAME'] !== __FILE__) &&
 			($_SERVER['SCRIPT_NAME'] !== '/.htaccess')
 		)
 			return false;
@@ -22,9 +22,19 @@
 	}
 	else if(php_sapi_name() === 'cli')
 	{
-		// run php dev server
+		function load_library($libraries, $required=true)
+		{
+			foreach($libraries as $library)
+				if(file_exists(__DIR__.'/lib/'.$library))
+					include __DIR__.'/lib/'.$library;
+				else if(file_exists(__DIR__.'/../lib/'.$library))
+					include __DIR__.'/../lib/'.$library;
+				else
+					if($required)
+						throw new Exception($library.' library not found');
+		}
 
-		include __DIR__.'/../lib/check_var.php';
+		load_library(['check_var.php']);
 
 		if(!$php_http_addr=check_argv_next_param('-ip'))
 			$php_http_addr='127.0.0.1';
@@ -38,10 +48,10 @@
 				die('Cannot chdir to the '.$php_http_docroot.PHP_EOL);
 		}
 		else
-			chdir(__DIR__ . '/../public');
+			chdir(__DIR__.'/../public');
 
-		echo 'Starting PHP server...' . PHP_EOL.PHP_EOL;
-		system(PHP_BINARY.' ' . $php_preload . ' -S ' . $php_http_addr.':'.$php_http_port .' '. __FILE__);
+		echo 'Starting PHP server...'.PHP_EOL.PHP_EOL;
+		system(PHP_BINARY.' '.$php_preload.' -S '.$php_http_addr.':'.$php_http_port .' '. __FILE__);
 	}
 	else
 		die('No php_sapi_name() cli or cli-server detected'.PHP_EOL);

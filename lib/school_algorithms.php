@@ -67,7 +67,7 @@
 	 *  line_segments_intersect(float_line_a_xa, float_line_a_ya, float_line_a_xb, float_line_a_yb, float_line_b_xa, float_line_b_ya, float_line_b_xb, float_line_b_yb) [returns bool]
 	 *   point_is_on_line_segment() required
 	 *    line_segment_length() required
-	 *  point_is_on_polygons_perimeter(array([float_point_a_x,float_point_a_y], [float_point_b_x,float_point_b_y], [float_point_c_x,float_point_c_y])) [returns bool]
+	 *  point_is_on_polygons_perimeter([float_point_a_x,float_point_a_y], [float_point_b_x,float_point_b_y], [float_point_c_x,float_point_c_y]) [returns bool]
 	 *   where array has vertex coordinates and vertices of the polygon can be infinity
 	 *   line_segments_intersect() required
 	 *    point_is_on_line_segment() required
@@ -129,14 +129,14 @@
 
 	/* ** Miscellaneous algorithms ** */
 
-	function is_prime_number($number)
+	function is_prime_number(int $number)
 	{
 		for($i=2; $i<$number; ++$i)
 			if($number%$i === 0)
 				return false;
 		return true;
 	}
-	function is_perfect_number($number)
+	function is_perfect_number(int $number)
 	{
 		$sum=0;
 
@@ -148,9 +148,9 @@
 			return true;
 		return false;
 	}
-	function factorization($number)
+	function factorization(int $number)
 	{
-		while($number>0)
+		while($number > 0)
 		{
 			$output_array[]=$number%10;
 			$number/=10;
@@ -159,7 +159,7 @@
 
 		return $output_array;
 	}
-	function is_narcissistic($number)
+	function is_narcissistic(int $number)
 	{
 		// factorization() required
 
@@ -174,7 +174,7 @@
 			return true;
 		return false;
 	}
-	function find_divisors($number)
+	function find_divisors(int $number)
 	{
 		$result=array();
 
@@ -188,25 +188,29 @@
 
 		return $result;
 	}
-	function greatest_common_divisor_iteratively($number_a, $number_b)
+	function greatest_common_divisor_iteratively(int $number_a, int $number_b)
 	{
 		while($number_a !== $number_b)
 			if($number_a > $number_b)
-				$number_a=$number_a-$number_b;
+				$number_a-=$number_b;
 			else
-				$number_b=$number_b-$number_a;
+				$number_b-=$number_a;
 
 		return $number_a;
 	}
-	function greatest_common_divisor_recursively($number_a, $number_b)
+	function greatest_common_divisor_recursively(int $number_a, int $number_b)
 	{
 		if($number_b === 0)
 			return $number_a;
 		
-		return greatest_common_divisor_recursively($number_b, $number_a%$number_b);
+		return (__METHOD__)($number_b, $number_a%$number_b);
 	}
-	function least_common_multiple($number_a, $number_b)
+	function least_common_multiple(int $number_a, int $number_b)
 	{
+		// patch
+		if($number_b < 1)
+			throw new Exception('number_b must be positive');
+
 		while($number_b !== 0)
 		{
 			$helper=$number_b;
@@ -216,7 +220,7 @@
 
 		return $number_a;
 	}
-	function prime_factorization($number)
+	function prime_factorization(int $number)
 	{
 		for($i=2; $i<=sqrt($number); ++$i)
 		{
@@ -232,7 +236,7 @@
 
 		return $output_array;
 	}
-	function dec2bin($number)
+	function dec2bin(int $number)
 	{
 		$i=0;
 		while($number > 0)
@@ -252,7 +256,7 @@
 
 		return (int)$output_int;
 	}
-	function bin2dec($number)
+	function bin2dec(int $number)
 	{
 		$number=(string)$number; // patch
 
@@ -268,7 +272,7 @@
 
 		return $result;
 	}
-	function find_associated_number($number_a)
+	function find_associated_number(int $number_a)
 	{
 		/*
 		 * Modifications:
@@ -326,7 +330,7 @@
 			return $number_b;
 		return false;
 	}
-	function factorial($number)
+	function factorial(float $number)
 	{
 		$result=1;
 		for($i=1; $i<=$number; ++$i)
@@ -336,14 +340,18 @@
 		}
 		return $result;
 	}
-	function power($number, $exponent)
+	function power(float $number, int $exponent)
 	{
+		// patch
+		if($exponent < 0)
+			throw new Exception('Exponent must be positive or 0');
+
 		$result=1;
 		for($i=0; $i<$exponent; ++$i)
 			$result*=$number;
 		return $result;
 	}
-	function newton_sqrt($number, $precission)
+	function newton_sqrt(float $number, int $precission)
 	{
 		$approx_number=$number*0.5;
 		for($i=0; $i<$precission; ++$i)
@@ -351,7 +359,7 @@
 
 		return $approx_number;
 	}
-	function fibonacci_sequence($length)
+	function fibonacci_sequence(int $length)
 	{
 		--$length;
 		$a=0;
@@ -367,7 +375,7 @@
 
 		return $result;
 	}
-	function polynomial($coefficients, $argument)
+	function polynomial(array $coefficients, float $argument)
 	{
 		$degree=count($coefficients);
 
@@ -377,7 +385,7 @@
 
 		return $result;
 	}
-	function numeric_array_min($array)
+	function numeric_array_min(array $array)
 	{
 		$array_size=count($array);
 		$min=$array[0];
@@ -388,7 +396,7 @@
 
 		return $min;
 	}
-	function numeric_array_max($array)
+	function numeric_array_max(array $array)
 	{
 		$array_size=count($array);
 		$max=$array[0];
@@ -399,7 +407,7 @@
 
 		return $max;
 	}
-	function numeric_array_average($array)
+	function numeric_array_average(array $array)
 	{
 		$array_size=count($array);
 		$sum=0;
@@ -409,20 +417,20 @@
 
 		return $sum/$array_size;
 	}
-	function tower_of_hanoi($pucks, $a='a', $b='b', $c='c')
+	function tower_of_hanoi(int $pucks, $a='a', $b='b', $c='c')
 	{
 		$array=array();
 
 		if($pucks > 0)
 		{
-			$array=array_merge($array, tower_of_hanoi($pucks-1, $a, $c, $b));
+			$array=array_merge($array, (__METHOD__)($pucks-1, $a, $c, $b));
 			$array[]=[$pucks, $a, $c]; // you can echo here
-			$array=array_merge($array, tower_of_hanoi($pucks-1, $b, $a, $c));
+			$array=array_merge($array, (__METHOD__)($pucks-1, $b, $a, $c));
 		}
 
 		return $array;
 	}
-	function amMod($carrier_frequency=500, $signal_frequency=10, $number_of_runs=360000)
+	function amMod(int $carrier_frequency=500, int $signal_frequency=10, int $number_of_runs=360000)
 	{
 		for($phase=0; $phase<=$number_of_runs; ++$phase)
 		{
@@ -430,13 +438,18 @@
 			$carrier=sin($phase_in_rad*$carrier_frequency);
 			$signal=sin(($phase_in_rad/($number_of_runs/360))*$signal_frequency);
 
-			$array[]=[$phase, number_format($carrier, 20, '.', ''), number_format($signal, 20, '.', ''), number_format($carrier*$signal, 20, '.', '')];
+			$array[]=[
+				$phase,
+				number_format($carrier, 20, '.', ''),
+				number_format($signal, 20, '.', ''),
+				number_format($carrier*$signal, 20, '.', '')
+			];
 		}
 
 		return $array;
 	}
 
-	function is_palindrome($string)
+	function is_palindrome(string $string)
 	{
 		$size=strlen($string)-1;
 		$i=0;
@@ -451,7 +464,7 @@
 
 		return true;
 	}
-	function are_anagrams($string_a, $string_b)
+	function are_anagrams(string $string_a, string $string_b)
 	{
 		$sort_string=function($string)
 		{
@@ -484,7 +497,7 @@
 			return false;
 		return true;
 	}
-	function count_pattern_matches($pattern, $string)
+	function count_pattern_matches(string $pattern, string $string)
 	{
 		$pattern_size=strlen($pattern);
 		$string_size=strlen($string);
@@ -516,7 +529,7 @@
 
 		return $result;
 	}
-	function caesar_cipher_encrypt($string, $offset)
+	function caesar_cipher_encrypt(string $string, int $offset)
 	{
 		$string=strtolower($string); // patch
 		$size=strlen($string);
@@ -537,7 +550,7 @@
 
 		return $result;
 	}
-	function caesar_cipher_decrypt($string, $offset)
+	function caesar_cipher_decrypt(string $string, int $offset)
 	{
 		$string=strtolower($string); // patch
 		$size=strlen($string);
@@ -556,7 +569,7 @@
 
 		return $result;
 	}
-	function morse_code_encrypt($string)
+	function morse_code_encrypt(string $string)
 	{
 		$string=strtolower($string); // patch
 		$size=strlen($string);
@@ -606,7 +619,7 @@
 
 		return substr($output, 0, -1); // patch
 	}
-	function morse_code_decrypt($string)
+	function morse_code_decrypt(string $string)
 	{
 		foreach(explode('    ', $string) as $word)
 		{
@@ -648,7 +661,7 @@
 					case '-....': $output.='6'; break;
 					case '--...': $output.='7'; break;
 					case '---..': $output.='8'; break;
-					case '----.': $output.='9'; break;
+					case '----.': $output.='9';
 				}
 			$output.=' ';
 		}
@@ -656,29 +669,29 @@
 		return substr($output, 0, -1);
 	}
 
-	function is_triangle($a, $b, $c)
+	function is_triangle(float $a, float $b, float $c)
 	{
 		if((($a+$b) > $c) && (($b+$c) > $a) && (($c+$a) > $b))
 		{
 			$perimeter=$a+$b+$c;
 			$height=$perimeter/2;
 
-			return array(
+			return [
 				'result'=>true,
 				'area'=>sqrt($height*($height-$a)*($height-$b)*($height-$c)),
 				'perimeter'=>$perimeter
-			);
+			];
 		}
 		return array('result'=>false);
 	}
-	function line_segment_length($xa, $ya, $xb, $yb)
+	function line_segment_length(float $xa, float $ya, float $xb, float $yb)
 	{
 		$x=$xb-$xa;
 		$y=$yb-$ya;
 
 		return sqrt(($x*$x) + ($y*$y));
 	}
-	function point_is_on_line_segment($point_x, $point_y, $xa, $ya, $xb, $yb)
+	function point_is_on_line_segment(float $point_x, float $point_y, float $xa, float $ya, float $xb, float $yb)
 	{
 		// line_segment_length() required
 
@@ -691,7 +704,7 @@
 			return true;
 		return false;
 	}
-	function line_segments_intersect($xa, $ya, $xb, $yb, $xc, $yc, $xd, $yd)
+	function line_segments_intersect(float $xa, float $ya, float $xb, float $yb, float $xc, float $yc, float $xd, float $yd)
 	{
 		// point_is_on_line_segment() required
 
@@ -722,7 +735,7 @@
 
 		return false;
 	}
-	function point_is_on_polygons_perimeter($point_x, $point_y, $vertex_coordinates)
+	function point_is_on_polygons_perimeter(array $point_x, array $point_y, array $vertex_coordinates)
 	{
 		// line_segments_intersect() required
 
@@ -745,7 +758,7 @@
 			return false;
 		return true;
 	}
-	function analysis_of_quadratic_function($a, $b, $c)
+	function analysis_of_quadratic_function(int $a, int $b, int $c)
 	{
 		$delta=($b*$b)-4*$a*$c;
 		$delta_sqrt=sqrt($delta); // optimization
@@ -768,7 +781,7 @@
 
 		return $x;
 	}
-	function straight_line_passes_through_point($a, $b, $x, $y)
+	function straight_line_passes_through_point(float $a, float $b, float $x, float $y)
 	{
 		if($y === $a*$x+$b)
 			return true;
@@ -777,14 +790,14 @@
 
 	/* ** Sorting algorithms library ** */
 
-	function sa_generate_array($array_size, $min, $max)
+	function sa_generate_array(int $array_size, int $min, int $max)
 	{
 		for($i=0; $i<$array_size; ++$i)
 			$array[]=rand($min, $max);
 		return $array;
 	}
 
-	function bogo_sort($array)
+	function bogo_sort(array $array)
 	{
 		$array_size_original=count($array);
 		$array_size=$array_size_original-1;
@@ -817,11 +830,11 @@
 
 		return $array;
 	}
-	function bogo_sort_ascending($array)
+	function bogo_sort_ascending(array $array)
 	{
 		return array_reverse(bogo_sort($array));
 	}
-	function naive_sort($array)
+	function naive_sort(array $array)
 	{
 		$array_size=count($array)-1;
 
@@ -842,7 +855,7 @@
 
 		return $array;
 	}
-	function bubble_sort($array)
+	function bubble_sort(array $array)
 	{
 		$array_size=count($array)-1;
 
@@ -864,7 +877,7 @@
 
 		return $array;
 	}
-	function insert_sort($array)
+	function insert_sort(array $array)
 	{
 		$array_size=count($array);
 
@@ -873,7 +886,7 @@
 			$j=$i;
 			$pivot=$array[$i];
 
-			while(($j>0) && ($array[$j-1]>$pivot)) // in PHP $j>0 must be first
+			while(($j > 0) && ($array[$j-1] > $pivot)) // in PHP $j>0 must be first
 			{
 				$array[$j]=$array[$j-1];
 				--$j;
@@ -883,7 +896,7 @@
 
 		return $array;
 	}
-	function selection_sort($array)
+	function selection_sort(array $array)
 	{
 		$array_size=count($array);
 
@@ -906,7 +919,7 @@
 
 		return $array;
 	}
-	function merge_sort($array, $array_size=null, $begin=0, $end=null)
+	function merge_sort(array $array, $array_size=null, $begin=0, $end=null)
 	{
 		if($array_size === null)
 			$array_size=count($array);
@@ -920,8 +933,8 @@
 			$middle=($begin+$end)/2;
 			$middle=(int)$middle; // patch
 
-			$array=merge_sort($array, $array_size, $begin, $middle); // left
-			$array=merge_sort($array, $array_size, $middle+1, $end); // right
+			$array=(__METHOD__)($array, $array_size, $begin, $middle); // left
+			$array=(__METHOD__)($array, $array_size, $middle+1, $end); // right
 
 			// this block was independent function:
 			//  $array=merge_sort__merge($array, $array_size, $begin, $middle, $end);
@@ -956,7 +969,7 @@
 
 		return $array;
 	}
-	function quick_sort($array, $array_size=null, $begin=0, $end=null)
+	function quick_sort(array $array, $array_size=null, $begin=0, $end=null)
 	{
 		if($array_size === null)
 			$array_size=count($array);
@@ -984,13 +997,13 @@
 		$array[$j]=$divider;
 
 		if($begin < $j-1)
-			$array=quick_sort($array, $array_size, $begin, $j-1);
+			$array=(__METHOD__)($array, $array_size, $begin, $j-1);
 		if($j+1 < $end)
-			$array=quick_sort($array, $array_size, $j+1, $end);
+			$array=(__METHOD__)($array, $array_size, $j+1, $end);
 
 		return $array;
 	}
-	function bucket_sort($array)
+	function bucket_sort(array $array)
 	{
 		$array_size=count($array);
 
@@ -1015,7 +1028,7 @@
 
 		return $array;
 	}
-	function bucket_sort_descending($array)
+	function bucket_sort_descending(array $array)
 	{
 		/*
 		 * Yes, I know that you can array_reverse(bucket_sort())
@@ -1045,7 +1058,7 @@
 
 		return $array;
 	}
-	function bucket_sort_optimized($array)
+	function bucket_sort_optimized(array $array)
 	{
 		$array_size=count($array);
 

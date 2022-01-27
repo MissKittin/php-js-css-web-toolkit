@@ -1,42 +1,42 @@
 <?php
-	// wrapper for file functions
 	class preprocessed_cache
 	{
-		private $cache_file_handle;
+		private $cache_file_handler;
+
 		public function __construct($output_file)
 		{
-			$this->cache_file_handle=fopen($output_file, 'w');
-			fwrite($this->cache_file_handle, '<?php ');
-		}
-		public function push($input)
-		{
-			fwrite($this->cache_file_handle, $input);
+			$this->cache_file_handler=fopen($output_file, 'w');
+			fwrite($this->cache_file_handler, '<?php ');
 		}
 		public function __destruct()
 		{
-			fwrite($this->cache_file_handle, ' ?>');
-			fclose($this->cache_file_handle);
+			fwrite($this->cache_file_handler, ' ?>');
+			fclose($this->cache_file_handler);
+		}
+
+		public function push($input)
+		{
+			fwrite($this->cache_file_handler, $input);
 		}
 	}
 
-	header('X-Frame-Options: SAMEORIGIN');
-	header('X-XSS-Protection: 0');
-	header('X-Content-Type-Options: nosniff');
+	include './app/shared/samples/default_http_headers.php';
 
 	// will be refreshed hourly ("Cache file was created" will disappear in an hour)
-	include './lib/ob_cache.php';
-	if(ob_file_cache('./tmp/cache_'.str_replace('/', '___', strtok($_SERVER['REQUEST_URI'], '?'))) === 0)
-		exit();
+	include './app/shared/samples/ob_cache.php';
+	ob_cache(ob_url2file(), 3600);
 
-	$view['title']='Preprocessing test';
-	$view['cache-created']=false;
+	include './app/templates/samples/default/default_template.php';
+	$view=new default_template();
 
-	// won't be refreshed
-	$cache_file='preprocessing-test.php';
-	if(!file_exists('./tmp/' . $cache_file))
+	// ./var/lib/preprocessing-test.php won't be refreshed
+	$view['cache_created']=false;
+	if(!file_exists('./var/lib/preprocessing-test.php'))
 	{
-		if(!file_exists('./tmp')) mkdir('./tmp');
-		$cache_object=new preprocessed_cache('./tmp/' . $cache_file);
+		@mkdir('./var');
+		@mkdir('./var/lib');
+
+		$cache_object=new preprocessed_cache('./var/lib/preprocessing-test.php');
 
 		if(strtoupper(substr(PHP_OS, 0, 3)) === 'WIN')
 			$cache_object->push('$view[\'windows\']=true;');
@@ -48,13 +48,10 @@
 		else
 			$cache_object->push('$view[\'builtin_server\']=false;');
 
-
-		$view['cache-created']=true;
-
+		$view['cache_created']=true;
 		unset($cache_object);
 	}
-	include './tmp/' . $cache_file;
+	include './var/lib/preprocessing-test.php';
 
-	include './app/models/samples/preprocessing-test.php';
-	include './app/views/samples/default/default.php';
+	$view->view('./app/views/samples/preprocessing-test');
 ?>

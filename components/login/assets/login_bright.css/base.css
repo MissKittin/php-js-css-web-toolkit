@@ -1,0 +1,24 @@
+body {
+	background-color: #ffffff;
+	color: #000000;
+	overflow: hidden;
+}
+#login_form {
+	border: 1px solid #555555;
+	border-radius: 10px;
+	text-align: center;
+	position: absolute;
+	padding: 3px;
+	width: 400px;
+	margin-left: -210px;
+	left: 50%;
+	margin-top: -80px;
+	top: 50%;
+}
+
+@media only screen and (max-width: 850px) {
+	#login_form {
+		width: 300px;
+		margin-left: -155px;
+	}
+}

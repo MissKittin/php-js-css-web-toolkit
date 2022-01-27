@@ -4,7 +4,7 @@
 	 * See list2tree.js for frontend function
 	 */
 
-	function array_flat2tree($input_array, $indexes, $parent_id)
+	function array_flat2tree(array $input_array, array $indexes, $parent_id)
 	{
 		/*
 		 * Convert flat array to nested array
@@ -43,11 +43,18 @@
 		$output_array=array();
 		foreach($input_array as $row)
 			if($row[$indexes['parent_element_id']] === $parent_id)
-				$output_array[$row[$indexes['content']]]=array_flat2tree($input_array, $indexes, $row[$indexes['element_id']]);
+				$output_array[$row[$indexes['content']]]=(__METHOD__)($input_array, $indexes, $row[$indexes['element_id']]);
 		return $output_array;
 	}
-	function print_array_recursive($input_array, $open_tree, $open_node, $print_node_element, $close_node, $close_tree, $current_depth=0)
-	{
+	function print_array_recursive(
+		array $input_array,
+		callable $open_tree,
+		callable $open_node,
+		callable $print_node_element,
+		callable $close_node,
+		callable $close_tree,
+		$current_depth=0
+	){
 		/*
 		 * Convert tree array to list
 		 *
@@ -143,7 +150,15 @@
 
 			$depth=$current_depth;
 			if(!empty($value))
-				$return.=print_array_recursive($value, $open_tree, $open_node, $print_node_element, $close_node, $close_tree, ++$depth);
+				$return.=(__METHOD__)(
+					$value,
+					$open_tree,
+					$open_node,
+					$print_node_element,
+					$close_node,
+					$close_tree,
+					++$depth
+				);
 
 			$return.=$close_node($key, $value, $current_depth);
 		}

@@ -1,48 +1,97 @@
 <?php
-	// webdev.sh client
+	/*
+	 * webdev.sh client
+	 *
+	 * Warning:
+	 *  check_var.php library is required
+	 *  webdevsh.php library is required
+	 */
 
-	if($argc < 2)
+	function load_library($libraries, $required=true)
 	{
-		echo 'Usage: ./public/assets'.PHP_EOL;
-		echo ' where ./public/assets is directory'.PHP_EOL;
-		exit(1);
+		foreach($libraries as $library)
+			if(file_exists(__DIR__.'/lib/'.$library))
+				include __DIR__.'/lib/'.$library;
+			else if(file_exists(__DIR__.'/../lib/'.$library))
+				include __DIR__.'/../lib/'.$library;
+			else
+				if($required)
+					throw new Exception($library.' library not found');
 	}
 
-	if(!is_dir($argv[1]))
-	{
-		echo $argv[1].' is not a directory'.PHP_EOL;
-		exit(1);
-	}
+	load_library([
+		'check_var.php',
+		'webdevsh.php'
+	]);
 
-	include __DIR__.'/../lib/webdevsh.php';
-
+	$input_directory=check_argv_next_param('--dir');
 	$minify_styles=true;
+	if(check_argv('--no-css'))
+		$minify_styles=false;
 	$minify_scripts=true;
-
+	if(check_argv('--no-js'))
+		$minify_scripts=false;
 	$ignore_https=false;
-	if(isset($argv[2]))
-		if($argv[2] === '--no-check-certificate')
-			$ignore_https=true;
+	if(check_argv('--no-check-certificate'))
+		$ignore_https=true;
 
-	$assets=scandir($argv[1]); $assets=array_diff($assets, array('.', '..'));
-	foreach($assets as $asset)
+	if(($input_directory === null) || check_argv('--help') || check_argv('-h'))
+	{
+		echo 'Usage: --dir ./public/assets [--no-css] [--no-js] [--no-check-certificate]'.PHP_EOL;
+		echo 'where ./public/assets is a directory'.PHP_EOL;
+		echo ' --no-css disables CSS minification'.PHP_EOL;
+		echo ' --no-js disables Javascript minification'.PHP_EOL;
+		echo ' --no-check-certificate disables HTTP certificate check in the curl'.PHP_EOL;
+		exit(1);
+	}
+
+	if(!is_dir($input_directory))
+	{
+		echo $input_directory.' is not a directory'.PHP_EOL;
+		exit(1);
+	}
+
+	foreach(new RecursiveIteratorIterator(new RecursiveDirectoryIterator($input_directory, RecursiveDirectoryIterator::SKIP_DOTS)) as $asset)
 	{
 		$file_extension=pathinfo($asset, PATHINFO_EXTENSION);
-		if($file_extension === 'css')
+		switch($file_extension)
 		{
-			if($minify_styles)
-			{
-				echo 'Processing ' . $asset . PHP_EOL;
-				file_put_contents($argv[1] . '/' . $asset, css_minifier_com(file_get_contents($argv[1] . '/' . $asset), $ignore_https));
-			}
-		}
-		else if($file_extension === 'js')
-		{
-			if($minify_scripts)
-			{
-				echo 'Processing ' . $asset . PHP_EOL;
-				file_put_contents($argv[1] . '/' . $asset, javascript_minifier_com(file_get_contents($argv[1] . '/' . $asset), $ignore_https));
-			}
+			case 'css':
+				if($minify_styles)
+				{
+					echo 'Processing '.$asset.PHP_EOL;
+					try {
+						if(file_put_contents(
+							$asset,
+							webdevsh_css_minifier(
+								file_get_contents($asset),
+								$ignore_https
+							)
+						) === false)
+							echo ' failed: file cannot be saved'.PHP_EOL;
+					} catch(Exception $error) {
+						echo ' failed: '.$error->getMessage().PHP_EOL;
+					}
+				}
+			break;
+			case 'js':
+				if($minify_scripts)
+				{
+					echo 'Processing '.$asset.PHP_EOL;
+					try {
+						if(file_put_contents(
+							$asset,
+							webdevsh_js_minifier(
+								file_get_contents($asset),
+								$ignore_https
+							)
+						) === false)
+							echo ' failed: file cannot be saved'.PHP_EOL;
+					} catch(Exception $error) {
+						echo ' failed: '.$error->getMessage().PHP_EOL;
+					}
+				}
+			break;
 		}
 	}
 ?>

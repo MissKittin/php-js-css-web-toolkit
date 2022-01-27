@@ -7,13 +7,15 @@
 	 * Warning:
 	 *  the key may leak through stack trace!!! - please display_errors=off
 	 *   or your app will be compromised!!!
-	 *  this library requires the OpenSSL (>=1.1.0g) and mbstring extensions
+	 *  openssl (>=1.1.0g) extension is required
+	 *  mbstring extensions is required
 	 *
 	 * Classes:
 	 *  lv_encrypter
 	 *   main class - content encryptor/decryptor and key generator
 	 *   from laravel framework
 	 *   distributed under the MIT license
+	 *   note: you cannot inherit from this class
 	 *  lv_cookie_encrypter
 	 *   adapter between setcookie and lv_encrypter
 	 *  lv_session_encrypter
@@ -26,7 +28,7 @@
 	 *   session handler that uses a relational database to store an encrypted session
 	 */
 
-	class lv_encrypter
+	final class lv_encrypter
 	{
 		/*
 		 * Lv encrypter
@@ -45,35 +47,55 @@
 		 *    serializes input content before encryption by default
 		 *  Decryption:
 		 *   $encrypter->decrypt(string_payload, [bool_if_do_unserialization=true])
+		 *  Print supported ciphers (returns array):
+		 *   lv_encrypter::supported_ciphers()
 		 *
 		 * Source: https://github.com/illuminate/encryption/blob/master/Encrypter.php
 		 * License: MIT
 		 */
 
-		private static $supported_ciphers=array(
-			'aes-128-cbc'=>array(
+		private static $supported_ciphers=[
+			'aes-128-cbc'=>[
 				'size'=>16,
 				'aead'=>false
-			),
-			'aes-256-cbc'=>array(
+			],
+			'aes-256-cbc'=>[
 				'size'=>32,
 				'aead'=>false
-			),
-			'aes-128-gcm'=>array(
+			],
+			'aes-128-gcm'=>[
 				'size'=>16,
 				'aead'=>true
-			),
-			'aes-256-gcm'=>array(
+			],
+			'aes-256-gcm'=>[
 				'size'=>32,
 				'aead'=>true
-			)
-		);
+			]
+		];
 
 		private $key;
 		private $cipher;
 
-		public function __construct($key, $cipher='aes-128-cbc')
+		public static function supported_ciphers()
 		{
+			return static::$supported_ciphers;
+		}
+		public static function generate_key(string $cipher='aes-128-cbc')
+		{
+			$cipher=strtolower($cipher);
+
+			if(isset(self::$supported_ciphers[$cipher]))
+				return base64_encode(random_bytes(self::$supported_ciphers[$cipher]['size']));
+			throw new Exception($cipher.' cipher is not supported');
+		}
+
+		public function __construct(string $key, string $cipher='aes-128-cbc')
+		{
+			if(!extension_loaded('openssl'))
+				throw new Exception('openssl extension is not loaded');
+			if(!extension_loaded('mbstring'))
+				throw new Exception('mbstring extension is not loaded');
+
 			$key=base64_decode($key);
 			$cipher=strtolower($cipher);
 
@@ -86,16 +108,7 @@
 			$this->cipher=$cipher;
 		}
 
-		public static function generate_key($cipher='aes-128-cbc')
-		{
-			$cipher=strtolower($cipher);
-
-			if(isset(self::$supported_ciphers[$cipher]))
-				return base64_encode(random_bytes(self::$supported_ciphers[$cipher]['size']));
-			throw new Exception($cipher.' cipher is not supported');
-		}
-
-		public function encrypt($content, $serialize=true)
+		public function encrypt($content, bool $serialize=true)
 		{
 			if($serialize)
 				$content=serialize($content);
@@ -122,7 +135,7 @@
 
 			return base64_encode($json);
 		}
-		public function decrypt($payload, $unserialize=true)
+		public function decrypt(string $payload, bool $unserialize=true)
 		{
 			$payload=json_decode(base64_decode($payload), true);
 			if
@@ -183,11 +196,11 @@
 		 *   $cookies->decrypt(check_cookie('cookie_name'));
 		 */
 
-		private static $do_serialization=true; // constant
+		protected static $do_serialization=true; // constant
 
-		private $lv_encrypter;
+		protected $lv_encrypter;
 
-		public function __construct($key, $cipher='aes-128-cbc')
+		public function __construct(string $key, string $cipher='aes-128-cbc')
 		{
 			$this->lv_encrypter=new lv_encrypter($key, $cipher);
 		}
@@ -196,14 +209,14 @@
 		{
 			return setcookie($name, $this->lv_encrypter->encrypt($value, self::$do_serialization), $expires, $path, $domain, $secure, $httponly);
 		}
-		public function getcookie($cookie_name)
+		public function getcookie(string $cookie_name)
 		{
 			if(isset($_COOKIE[$cookie_name]))
 				return $this->decrypt($_COOKIE[$cookie_name]);
 			return null;
 		}
 
-		public function decrypt($content)
+		public function decrypt(string $content)
 		{
 			if($content !== null)
 				return $this->lv_encrypter->decrypt($content, self::$do_serialization);
@@ -226,10 +239,10 @@
 		 *  session_set_save_handler(new lv_session_encrypter($key), true)
 		 */
 
-		private static $initialized=false;
-		private $lv_encrypter;
+		protected static $initialized=false;
+		protected $lv_encrypter;
 
-		public function __construct($key, $cipher='aes-128-cbc')
+		public function __construct(string $key, string $cipher='aes-128-cbc')
 		{
 			if(self::$initialized)
 				throw new Exception(__CLASS__.' is a singleton');
@@ -277,8 +290,9 @@
 		 *  lv_encrypter class is required
 		 *  lv_cookie_session_handler is a singleton
 		 *
-		 * Usage: just start a session by calling the static method
-		 *  lv_cookie_session_handler::session_start(array_setup_params)
+		 * Usage:
+		 *  lv_cookie_session_handler::register_handler(array_setup_params)
+		 *  lv_cookie_session_handler::session_start(array_optional_session_start_params)
 		 * where array_setup_params are
 		 *  'key'=>'randomstringforlvencrypter' // required
 		 *  'cipher'=>'aes-256-gcm' // optional, default: aes-128-cbc, for lv_encrypter, see lv_encrypter::$supported_ciphers
@@ -287,11 +301,11 @@
 		 *  'cookie_expire'=>10 // seconds, optional, default: session.cookie_lifetime
 		 */
 
-		private static $initialized=false;
-		private $lv_encrypter;
-		private $on_error;
-		private $cookie_id='id';
-		private $cookie_expire;
+		protected static $initialized=false;
+		protected $lv_encrypter;
+		protected $on_error;
+		protected $cookie_id='id';
+		protected $cookie_expire=null;
 
 		public function __construct(array $params)
 		{
@@ -306,7 +320,6 @@
 				$cipher=$params['cipher'];
 			$this->lv_encrypter=new lv_encrypter($params['key'], $cipher);
 
-			$this->cookie_expire=session_get_cookie_params()['lifetime'];
 			foreach(['cookie_id', 'cookie_expire'] as $param)
 				if(isset($params[$param]))
 					$this->$param=$params[$param];
@@ -320,12 +333,24 @@
 			self::$initialized=false;
 		}
 
-		public static function session_start($params)
+		public static function register_handler(array $params)
 		{
 			$class=__CLASS__;
-			session_set_save_handler(new $class($params), true);
+			if(!$class::$initialized)
+				return session_set_save_handler(new $class($params), true);
+			return false;
+		}
+		public static function session_start(array $params=array())
+		{
+			$class=__CLASS__;
+			if(!$class::$initialized)
+				throw new Exception($class.' is not registered - use the '.$class.'::register_handler method');
+
+			$params['use_cookies']=0;
+			$params['cache_limiter']='';
+
 			session_id('0');
-			return session_start(['use_cookies'=>0, 'cache_limiter'=>'']);
+			return session_start($params);
 		}
 
 		public function read($a)
@@ -347,7 +372,15 @@
 			if($session_data !== '')
 				$session_data=$this->lv_encrypter->encrypt($session_data, false);
 
-			setcookie($this->cookie_id, $session_data, time()+$this->cookie_expire, '', '', false, true);
+			$cookie_expire=$this->cookie_expire;
+			if($cookie_expire === null)
+				$cookie_expire=session_get_cookie_params()['lifetime'];
+
+			if($cookie_expire === 0)
+				setcookie($this->cookie_id, $session_data, 0, '', '', false, true);
+			else
+				setcookie($this->cookie_id, $session_data, time()+$cookie_expire, '', '', false, true);
+
 			return true;
 		}
 		public function destroy($a)
@@ -412,11 +445,11 @@
 			)), true);
 		 */
 
-		private static $initialized=false;
-		private $lv_encrypter;
-		private $on_error;
-		private $pdo_handler;
-		private $table_name='lv_pdo_session_handler';
+		protected static $initialized=false;
+		protected $lv_encrypter;
+		protected $on_error;
+		protected $pdo_handler;
+		protected $table_name='lv_pdo_session_handler';
 
 		public function __construct(array $params)
 		{
@@ -447,7 +480,7 @@
 			self::$initialized=false;
 		}
 
-		private function is_sid_available($session_id) // just for my peace of mind
+		protected function is_sid_available($session_id) // just for my peace of mind
 		{
 			$data=$this->pdo_handler->prepare('SELECT id FROM '.$this->table_name.' WHERE id=:id');
 			$data->execute(array(':id'=>$session_id));

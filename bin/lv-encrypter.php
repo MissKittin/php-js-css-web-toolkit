@@ -1,11 +1,27 @@
 <?php
 	/*
 	 * Interface for sec_lv_encrypter.php library
-	 * check_var.php library is required
+	 *
+	 * Warning:
+	 * 	check_var.php library is required
 	 */
 
-	include __DIR__.'/../lib/check_var.php';
-	include __DIR__.'/../lib/sec_lv_encrypter.php';
+	function load_library($libraries, $required=true)
+	{
+		foreach($libraries as $library)
+			if(file_exists(__DIR__.'/lib/'.$library))
+				include __DIR__.'/lib/'.$library;
+			else if(file_exists(__DIR__.'/../lib/'.$library))
+				include __DIR__.'/../lib/'.$library;
+			else
+				if($required)
+					throw new Exception($library.' library not found');
+	}
+
+	load_library([
+		'check_var.php',
+		'sec_lv_encrypter.php'
+	]);
 
 	if(($argc === 1) || (check_argv('--help')) || (check_argv('-h')))
 	{

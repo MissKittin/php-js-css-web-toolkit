@@ -1,43 +1,114 @@
 # Login component
+Simple middleware
 
 ## Required libraries
+* `check_var.php`
 * `sec_csrf.php`
 * `sec_login.php`
-* `check_var.php`
 
-## Initialization
-Add `include './components/login/init.php';` to include not yet imported libraries.  
-Add `include './components/login/controller/login.php';` to display login prompt.  
-Use `if(is_logged())` for logged-only code.
+## Reserved variables
+* `$GLOBALS['login']`
+* `$_SESSION['__login_remember_me']`
 
-## Configuration
-`$login_config['method']` defines method for `sec_login.php` library.  
-For individual login methods, the `$GLOBALS['login_credentials']` looks like this:
-for `login_single`:
+## Config sections
+Roadmap of `$GLOBALS['login']` array
+* `config`
+	* `method` [string]  
+		available: login_single login_multi login_callback  
+		see `sec_login.php` library for more info
+	* `remember_cookie_lifetime` [int]  
+		if "remember me" option is checked  
+		in seconds
+	* `session_reload` [closure]  
+		custom session reloader
+* `view`
+	* `lang` [string]  
+		`<html lang="lang">`
+	* `title` [string]  
+		`<title>` for `views/form.php`
+	* `assets_path` [string]  
+		default: `/assets`
+	* `login_style` [string]  
+		default: `login_dark.css`
+	* `html_headers` [string]  
+		custom html headers, will be added to the `<head>` section
+	* `login_label` [string]  
+		login input box placeholder
+	* `password_label` [string]  
+		password input box placeholder
+	* `display_remember_me_checkbox` [bool]  
+		enable (default) or disable "remember me" switch
+	* `remember_me_label` [string]  
+		switch label
+	* `submit_button_label` [string]
+	* `loading_title` [string]  
+		`<title>` for `views/reload.php`
+	* `loading_label` [string]  
+		`views/reload.php` content
+* `csp_header`  
+	section for the CSP generator  
+	to add element to the policy, do eg `$GLOBALS['login']['csp_header']['script-src'][]='\'myhash\'';`
+
+## Example usage
 ```
-['test', 'bcrypted-password']
-```
-for `login_multi`:
-```
-array(
-	['test1', 'bcrypted-password-1'],
-	['test2', 'bcrypted-password-2'],
-	['testN', 'bcrypted-password-n']
-)
-```
-for `login_callback`:
-```
-function($input_login)
+// set credentials for single method
+$GLOBALS['login']['credentials']=['login', 'bcrypted-password'];
+
+// set credentials for multi method
+$GLOBALS['login']['credentials']=[
+	['login1', 'bcrypted-password1'],
+	['login2', 'bcrypted-password2']
+];
+
+// set callback for callback method
+$GLOBALS['login']['callback']=function($login)
 {
-	// returns null if not found
-	return get_bcrypted_password($input_login);
+	if($login === 'login')
+		return 'bcrypted-password';
+	return null;
+};
+
+// set method
+$GLOBALS['login']['config']['method']='login_single';
+
+// display login prompt
+include './components/login/login.php';
+
+// you can do something on fail
+if(isset($GLOBALS['login']['login_failed']))
+	error_log('login failed')
+
+// check if user is authenticated
+if(is_logged())
+{
+	echo '
+		<h1>Logged!</h1>
+		<form method="post" action="">
+			<input type="submit" name="logout" value="Logout">
+			<input type="hidden" name="<?php echo csrf_print_token('parameter'); ?>" value="<?php echo csrf_print_token('value'); ?>">
+		</form>
+	';
 }
 ```
-For more info see `lib/sec_login.php`.
 
-## Translation
-Put translated labels to `$login_config` array.  
-See `./config/login_config.php` for more info.
+## Display reload page only
+```
+include './components/login/reload.php';
+exit();
+```
+
+## Custom session reloader for "Remember Me"
+If you want to use session_start() with parameters other than the default,  
+you can define the function `$GLOBALS['login_config']['session_reload']`.  
+eg. for the `sec_lv_encrypter.php` library the function will look like this:
+```
+$GLOBALS['login_config']['session_reload']=function($cookie_lifetime)
+{
+	lv_cookie_session_handler::session_start([
+		'cookie_lifetime'=>$cookie_lifetime
+	]);
+};
+```
 
 ## Assets
 Link `./assets/login_bright.css` and `./assets/login_dark.css` to the `app/assets`. This step is optional.  
@@ -52,4 +123,5 @@ mklink /d app\assets\login_dark.css ..\..\components\login\assets\login_dark.css
 ```
 
 ## Portability
-Create a directory `./components/login/lib` and copy the required libraries to this directory.
+Create a directory `./components/login/lib`  
+and copy the required libraries to this directory.

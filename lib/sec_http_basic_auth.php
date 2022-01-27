@@ -1,5 +1,5 @@
 <?php
-	function http_basic_auth($username, $password, $realm, $error_callback=null)
+	function http_basic_auth(string $username, string $password, string $realm, callable $error_callback=null)
 	{
 		/*
 		 * Request and validate basic HTTP authentication
@@ -16,19 +16,19 @@
 		if(isset($_SERVER['PHP_AUTH_USER']))
 		{
 			if(($_SERVER['PHP_AUTH_USER'] === $username) && ($_SERVER['PHP_AUTH_PW'] === $password))
-				return true; // authorized
-			else // wrong credentials
+				return true;
+			else
 				if($error_callback !== null)
 				{
 					header('HTTP/1.0 401 Unauthorized');
 					$error_callback(false);
 				}
 		}
-		else // display prompt
+		else
 		{
 			header('WWW-Authenticate: Basic realm="'.$realm.'"');
 			header('HTTP/1.0 401 Unauthorized');
-			$error_callback(true); // cancel button pressed
+			$error_callback(true);
 		}
 		return false;
 	}

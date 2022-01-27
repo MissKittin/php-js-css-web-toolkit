@@ -2,6 +2,10 @@
 	/*
 	 * Opcache preload script generator
 	 *
+	 * Warning:
+	 *  check_var.php library is required
+	 *  strip_php_comments.php library is required
+	 *
 	 * Usage:
 	 *  dump output of this command to the file, eg:
 	 *   php ./bin/opcache-preload-generator.php > ./tmp/app-preload.php
@@ -18,16 +22,25 @@
 			$blacklist[]='../app/databases';
 			$blacklist[]='../app/views/samples/default/default.js';
 		?>
-	 *
-	 * Required libraries:
-	 *  check_var.php
-	 *  strip_php_comments.php
 	 */
 
-	chdir(__DIR__.'/..');
+	function load_library($libraries)
+	{
+		foreach($libraries as $library)
+			if(file_exists(__DIR__.'/lib/'.$library))
+				include __DIR__.'/lib/'.$library;
+			else if(file_exists(__DIR__.'/../lib/'.$library))
+				include __DIR__.'/../lib/'.$library;
+			else
+				throw new Exception($library.' library not found');
+	}
 
-	include './lib/check_var.php';
-	include './lib/strip_php_comments.php';
+	load_library([
+		'check_var.php',
+		'strip_php_comments.php'
+	]);
+
+	chdir(__DIR__.'/..');
 
 	$blacklist=array();
 	@include './app/opcache-preload-generator.config.php';

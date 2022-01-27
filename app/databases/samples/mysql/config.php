@@ -6,4 +6,15 @@
 	$db_name='sampledb';
 	$db_user='root';
 	$db_password='';
+	//$db_seeded_path=$db;
+
+	// you can implement the var/databases hierarchy
+	$var_databases=__DIR__.'/../../../..';
+	if(!file_exists($var_databases.'/var/databases/mysql'))
+	{
+		@mkdir($var_databases.'/var');
+		@mkdir($var_databases.'/var/databases');
+		mkdir($var_databases.'/var/databases/mysql');
+	}
+	$db_seeded_path=$var_databases.'/var/databases/mysql';
 ?>

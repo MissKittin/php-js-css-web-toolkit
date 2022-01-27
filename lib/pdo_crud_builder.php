@@ -7,6 +7,7 @@
 		 * Note:
 		 *  most of the queries are parameterized to avoid sql injections
 		 *  all args in [] are optional
+		 *  for PHP7 and newer
 		 *
 		 * Initializing:
 		 *  $query_builder_object=new pdo_crud_builder(params_array)
@@ -35,7 +36,7 @@
 				create_table('table_name', array(
 					'id'=>pdo_crud_builder::ID_DEFAULT_PARAMS,
 					'first_column_name'=>'first column type',
-					'second_column_name'=>'second column type,
+					'second_column_name'=>'second column type',
 					'n_column_name'=>'n column type'
 				))
 		 *   Dropping table:
@@ -44,7 +45,7 @@
 		 *    truncate_table('table_name')
 		 *
 		 *  Creating:
-				insert_into(table_name_string, 'first_column_name,second_column_name,n_column_name', array(
+				insert_into('table_name', 'first_column_name,second_column_name,n_column_name', array(
 					['new_value_aa', 'new_value_ab', 'new_value_ac'],
 					['new_value_ba', 'new_value_bb', 'new_value_bc'],
 					['new_value_ca', 'new_value_cb', 'new_value_cc'],
@@ -52,28 +53,31 @@
 				))
 		 *
 		 *  Reading:
-		 *   select(what_string)
-		 *   select_top(int_how_many, what_string)
-		 *   as(what_string)
-		 *   group_by(what_string)
-		 *   order_by(what_string)
-		 *   join(inner|left|right|full, what_string, [on_string])
+		 *   select(string_what)
+		 *   select_top(int_how_many, string_what)
+		 *   select_top_percent(int_how_many, string_what)
+		 *   as(string_what)
+		 *   group_by(string_what)
+		 *   order_by(string_what)
+		 *   join(string_inner|left|right|full, string_what, [string_on])
 		 *   union()
 		 *   union_all()
 		 *   asc()
 		 *   desc()
-		 *   limit(how_many, [offset_number])
-		 *   fetch_first(how_many, [fetch_param], [offset_number], [offset_param]) // fetch_param default: ROWS ONLY, offset_param default: ROWS
-		 *   fetch_next(how_many, [fetch_param], [offset_number], [offset_param]) // fetch_param default: ROWS ONLY, offset_param default: ROWS
+		 *   limit(int_how_many, [int_offset])
+		 *   fetch_first(int_how_many, [string_fetch_param], [int_offset_number], [string_offset_param]) // fetch_param default: ROWS ONLY, offset_param default: ROWS
+		 *   fetch_first_percent(int_how_many, [string_fetch_param], [int_offset_number], [string_offset_param]) // fetch_param default: ROWS ONLY, offset_param default: ROWS
+		 *   fetch_next(int_how_many, [string_fetch_param], [int_offset_number], [string_offset_param]) // fetch_param default: ROWS ONLY, offset_param default: ROWS
+		 *   fetch_next_percent(int_how_many, [string_fetch_param], [int_offset_number], [string_offset_param]) // fetch_param default: ROWS ONLY, offset_param default: ROWS
 		 *
 		 *  Updating:
-				replace_into(table_name_string, 'id,second_column_name,n_column_name', array(
+				replace_into(string_table_name, 'id,second_column_name,n_column_name', array(
 					['id_a', 'new_value_aa', 'new_value_ab'],
 					['id_b', 'new_value_ba', 'new_value_bb'],
 					['id_c', 'new_value_ca', 'new_value_cb'],
 					['id_d', 'new_value_da', 'new_value_db']
 				))
-				update(table_name_string)
+				update(string_table_name)
 				set(array(
 					['first_column_name', 'new_value_a'],
 					['second_column_name', 'new_value_b'],
@@ -81,20 +85,20 @@
 				))
 		 *
 		 *  Deleting:
-		 *   delete(from_string)
+		 *   delete(string_from)
 		 *    note: you do not have to use from() method
 		 *
 		 *  Miscellaneous statements:
 		 *   from(string)
 		 *   where statements:
-		 *    where(string_a, operator, string_a)
-		 *     and(string_a, operator, string_a)
-		 *     or(string_a, operator, string_a)
-		 *    where_like(column_name, sql_string_with_wildcards)
-		 *    where_not_like(column_name, sql_string_with_wildcards)
-		 *    where_is(string_a, what_string)
-		 *    where_not(string_a, operator, string_a)
-		 *   output_into(parameters_string, into_where_string)
+		 *    where(string_a, string_operator, string_b)
+		 *     and(string_a, string_operator, string_b)
+		 *     or(string_a, string_operator, string_b)
+		 *    where_like(string_column_name, string_sql_with_wildcards)
+		 *    where_not_like(string_column_name, string_sql_with_wildcards)
+		 *    where_is(string_a, string_what)
+		 *    where_not(string_a, string_operator, string_b)
+		 *   output_into(string_parameters, string_into_where)
 		 *
 		 *  Raw sql input:
 		 *   raw_sql(string)
@@ -132,6 +136,9 @@
 		 *    returns string
 		 *   table_dump(table_name, [limit], [limit_offset])
 		 *    runs flush_all and returns array or false
+		 *   list_tables()
+		 *    returns an array with table names or false
+		 *    supported drivers: mysql pgsql sqlite oci dblib(SQL Server 2000)
 		 *
 		 * Closing connection:
 		 *  unset($query_builder_object)
@@ -157,12 +164,12 @@
 
 		const ID_DEFAULT_PARAMS='INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL';
 
-		private $pdo_handler;
-		private $fetch_mode;
-		private $on_error;
-		private $auto_flush=true;
-		private $sql_query='';
-		private $sql_parameters=array();
+		protected $pdo_handler;
+		protected $fetch_mode;
+		protected $on_error;
+		protected $auto_flush=true;
+		protected $sql_query='';
+		protected $sql_parameters=array();
 
 		public function __construct(array $params)
 		{
@@ -189,84 +196,91 @@
 			$this->fetch_mode=$fetch_mode;
 		}
 
-		public function from($from)
+		public function from(string $from)
 		{
 			$this->sql_query.='FROM '.$from.' ';
 			return $this;
 		}
-		public function where($name, $operator, $value)
+		public function where(string $name, string $operator, string $value)
 		{
 			$this->sql_query.='WHERE '.$name.$operator.'? ';
 			$this->sql_parameters[]=$value;
 			return $this;
 		}
-		public function where_is($name, $what)
+		public function where_is(string $name, string $what)
 		{
 			$this->sql_query.='WHERE '.$name.' IS '.$what.' ';
 			return $this;
 		}
-		public function where_like($name, $string)
+		public function where_like(string $name, string $string)
 		{
 			$this->sql_query.='WHERE '.$name.' LIKE ? ';
 			$this->sql_parameters[]=$string;
 			return $this;
 		}
-		public function where_not_like($name, $string)
+		public function where_not_like(string $name, string $string)
 		{
 			$this->sql_query.='WHERE '.$name.' NOT LIKE ? ';
 			$this->sql_parameters[]=$string;
 			return $this;
 		}
-		public function where_not($name, $operator, $value)
+		public function where_not(string $name, string $operator, string $value)
 		{
 			$this->sql_query.='WHERE NOT '.$name.$operator.'? ';
 			$this->sql_parameters[]=$value;
 			return $this;
 		}
-		public function and($name, $operator, $value)
+		public function and(string $name, string $operator, string $value)
 		{
 			$this->sql_query.='AND '.$name.$operator.'? ';
 			$this->sql_parameters[]=$value;
 			return $this;
 		}
-		public function or($name, $operator, $value)
+		public function or(string $name, string $operator, string $value)
 		{
 			$this->sql_query.='OR '.$name.$operator.'? ';
 			$this->sql_parameters[]=$value;
 			return $this;
 		}
-		public function output_into($parameters, $into)
+		public function output_into(string $parameters, string $into)
 		{
 			$this->sql_query.='OUTPUT '.$parameters.' INTO '.$into.' ';
 			return $this;
 		}
 
-		public function create_table($table_name, $columns)
+		public function create_table(string $table_name, array $columns)
 		{
 			$sql_columns='';
 			foreach($columns as $column_name=>$column_type)
+			{
+				if(!is_string($column_type))
+					throw new Exception('array value must be a string');
 				$sql_columns.=$column_name.' '.$column_type.', ';
+			}
 			$sql_columns=substr($sql_columns, 0, -2);
 
 			$this->sql_query.='CREATE TABLE '.$table_name.'('.$sql_columns.') ';
 			return $this;
 		}
-		public function drop_table($table_name)
+		public function drop_table(string $table_name)
 		{
 			$this->sql_query.='DROP TABLE IF EXISTS '.$table_name.' ';
 			return $this;
 		}
-		public function truncate_table($table_name)
+		public function truncate_table(string $table_name)
 		{
 			$this->sql_query.='TRUNCATE TABLE '.$table_name.' ';
 			return $this;
 		}
 
-		public function insert_into($where, $columns, $what)
+		public function insert_into(string $where, string $columns, array $what)
 		{
 			$sql_what='';
 			foreach($what as $what_data_set)
 			{
+				if(!is_array($what_data_set))
+					throw new Exception('the dataset must be an array');
+
 				$sql_what.='(';
 				foreach($what_data_set as $what_value)
 				{
@@ -282,32 +296,37 @@
 			return $this;
 		}
 
-		public function select($what)
+		public function select(string $what)
 		{
 			$this->sql_query.='SELECT '.$what.' ';
 			return $this;
 		}
-		public function select_top($param, $what)
+		public function select_top(int $param, string $what)
 		{
 			$this->sql_query.='SELECT TOP '.$param.' '.$what.' ';
 			return $this;
 		}
-		public function as($what)
+		public function select_top_percent(int $param, string $what)
+		{
+			$this->sql_query.='SELECT TOP '.$param.' PERCENT '.$what.' ';
+			return $this;
+		}
+		public function as(string $what)
 		{
 			$this->sql_query.='AS '.$what.' ';
 			return $this;
 		}
-		public function group_by($what)
+		public function group_by(string $what)
 		{
 			$this->sql_query.='GROUP BY '.$what.' ';
 			return $this;
 		}
-		public function order_by($what)
+		public function order_by(string $what)
 		{
 			$this->sql_query.='ORDER BY '.$what.' ';
 			return $this;
 		}
-		public function join($method, $what, $on=false)
+		public function join(string $method, string $what, string $on=null)
 		{
 			switch($method)
 			{
@@ -318,7 +337,7 @@
 				default: $this->on_error['callback']('::join(): inner/left/right/full $method not specified'); return false; break;
 			}
 
-			if($on !== false)
+			if($on !== null)
 				$this->sql_query.='ON '.$on.' ';
 
 			return $this;
@@ -343,7 +362,7 @@
 			$this->sql_query.='DESC ';
 			return $this;
 		}
-		public function limit($param, $offset=null)
+		public function limit(int $param, int $offset=null)
 		{
 			if($offset === null)
 				$this->sql_query.='LIMIT '.$param.' ';
@@ -351,7 +370,7 @@
 				$this->sql_query.='LIMIT '.$param.' OFFSET '.$offset.' ';
 			return $this;
 		}
-		public function fetch_first($param, $rows_param='ROWS ONLY', $offset=null, $offset_param='ROWS')
+		public function fetch_first(int $param, string $rows_param='ROWS ONLY', int $offset=null, string $offset_param='ROWS')
 		{
 			if($offset === null)
 				$this->sql_query.='FETCH FIRST '.$param.' '.$rows_param.' ';
@@ -359,7 +378,15 @@
 				$this->sql_query.='OFFSET '.$offset.' '.$offset_param.' FETCH FIRST '.$param.' '.$rows_param.' ';
 			return $this;
 		}
-		public function fetch_next($param, $rows_param='ROWS ONLY', $offset=null, $offset_param='ROWS')
+		public function fetch_first_percent(int $param, string $rows_param='ROWS ONLY', int $offset=null, string $offset_param='ROWS')
+		{
+			if($offset === null)
+				$this->sql_query.='FETCH FIRST '.$param.' PERCENT '.$rows_param.' ';
+			else
+				$this->sql_query.='OFFSET '.$offset.' '.$offset_param.' FETCH FIRST '.$param.' PERCENT '.$rows_param.' ';
+			return $this;
+		}
+		public function fetch_next(int $param, string $rows_param='ROWS ONLY', int $offset=null, string $offset_param='ROWS')
 		{
 			if($offset === null)
 				$this->sql_query.='FETCH NEXT '.$param.' '.$rows_param.' ';
@@ -367,12 +394,23 @@
 				$this->sql_query.='OFFSET '.$offset.' '.$offset_param.' FETCH NEXT '.$param.' '.$rows_param.' ';
 			return $this;
 		}
+		public function fetch_next_percent(int $param, string $rows_param='ROWS ONLY', int $offset=null, string $offset_param='ROWS')
+		{
+			if($offset === null)
+				$this->sql_query.='FETCH NEXT '.$param.' PERCENT '.$rows_param.' ';
+			else
+				$this->sql_query.='OFFSET '.$offset.' '.$offset_param.' FETCH NEXT '.$param.' PERCENT '.$rows_param.' ';
+			return $this;
+		}
 
-		public function replace_into($where, $columns, $what)
+		public function replace_into(string $where, string $columns, array $what)
 		{
 			$sql_what='';
 			foreach($what as $what_data_set)
 			{
+				if(!is_array($what_data_set))
+					throw new Exception('the dataset must be an array');
+
 				$sql_what.='(';
 				foreach($what_data_set as $what_value)
 				{
@@ -387,16 +425,25 @@
 			$this->sql_query.='REPLACE INTO '.$where.'('.$columns.') VALUES'.$sql_what.' ';
 			return $this;
 		}
-		public function update($table)
+		public function update(string $table)
 		{
 			$this->sql_query.='UPDATE '.$table.' ';
 			return $this;
 		}
-		public function set($what)
+		public function set(array $what)
 		{
 			$sql_what='';
 			foreach($what as $data_set)
 			{
+				if(!is_array($data_set))
+					throw new Exception('the dataset must be an array');
+				if(!isset($data_set[0]))
+					throw new Exception('no column name was provided');
+				if(!is_string($data_set[0]))
+					throw new Exception('column name must be a string');
+				if(!isset($data_set[1]))
+					throw new Exception('no value was provided for column '.$data_set[0]);
+
 				$sql_what.=$data_set[0].' = ?, ';
 				$this->sql_parameters[]=$data_set[1];
 			}
@@ -406,13 +453,13 @@
 			return $this;
 		}
 
-		public function delete($from)
+		public function delete(string $from)
 		{
 			$this->sql_query.='DELETE FROM '.$from.' ';
 			return $this;
 		}
 
-		public function raw_sql($raw_sql)
+		public function raw_sql(string $raw_sql)
 		{
 			$this->sql_query.=$raw_sql.' ';
 			return $this;
@@ -423,7 +470,7 @@
 			return $this;	
 		}
 
-		public function exec($query=false)
+		public function exec(bool $query=false)
 		{
 			$result=$this->pdo_handler->prepare($this->sql_query);
 
@@ -466,18 +513,18 @@
 			$this->sql_parameters=array();
 			return $this;
 		}
-		public function print_exec($echo=false)
+		public function print_exec(bool $echo=false)
 		{
 			if($echo)
 				echo $this->sql_query;
 			else
 				return $this->sql_query;
 		}
-		public function print_query($echo=false) // alias
+		public function print_query(bool $echo=false)
 		{
 			return $this->print_exec($echo);
 		}
-		public function print_parameters($var_dump=false)
+		public function print_parameters(bool $var_dump=false)
 		{
 			if($var_dump)
 				var_dump($this->sql_parameters);
@@ -491,12 +538,38 @@
 				$stmt=preg_replace('/\?/', $param, $stmt, 1);
 			return $stmt;
 		}
-		public function table_dump($table_name, $limit=null, $limit_offset=null)
+		public function table_dump(string $table_name, int $limit=null, int $limit_offset=null)
 		{
 			$this->flush_all();
 			if($limit === null)
 				return $this->select('*')->from($table_name)->query();
 			return $this->select('*')->from($table_name)->limit($limit, $limit_offset)->query();
+		}
+		public function list_tables()
+		{
+			switch($this->pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME))
+			{
+				case 'mysql':
+					$sql='SHOW TABLES';
+				break;
+				case 'pgsql':
+					$sql='SELECT tablename FROM pg_catalog.pg_tables';
+				break;
+				case 'sqlite':
+					$sql='SELECT name FROM sqlite_master WHERE type="table"';
+				break;
+				case 'oci':
+					$sql='SELECT table_name FROM user_tables';
+				break;
+				case 'dblib':
+					$sql='SELECT name FROM SYSOBJECTS';
+				break;
+				default:
+					return false;
+			}
+
+			$query=$this->pdo_handler->query($sql);
+			return $query->fetchAll(PDO::FETCH_COLUMN);
 		}
 	}
 ?>

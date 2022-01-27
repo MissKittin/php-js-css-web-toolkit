@@ -1,0 +1,21 @@
+body {
+	background-color: #000000;
+	color: #ffffff;
+}
+#middleware_form {
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	margin-right: -50%;
+	transform: translate(-50%, -50%);
+	width: 400px;
+	border: 1px solid #555555;
+	border-radius: 10px;
+	padding: 3px;
+}
+
+@media only screen and (max-width: 850px) {
+	#middleware_form {
+		width: 250px;
+	}
+}

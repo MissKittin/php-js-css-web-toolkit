@@ -1,12 +1,13 @@
 <?php
-	$GLOBALS['login_config']['method']='login_single'; // login_single login_multi login_callback
-	$GLOBALS['login_config']['title']='Logowanie'; // <title>
-	$GLOBALS['login_config']['login_label']='Nazwa użytkownika';
-	$GLOBALS['login_config']['password_label']='Hasło';
-	$GLOBALS['login_config']['display_remember_me_checkbox']=true;
-	$GLOBALS['login_config']['remember_me_label']='Zapamiętaj mnie';
-	//$GLOBALS['login_config']['remember_cookie_lifetime']=31556926; // 1 year (default), optional
-	$GLOBALS['login_config']['button_label']='Zaloguj';
-	$GLOBALS['login_config']['loading_label']='Ładowanie...';
-	$GLOBALS['login_config']['assets_path']=''; // $login_config['assets_path']/assets/*.css
+	$GLOBALS['login']['config']['method']='login_single';
+
+	$GLOBALS['login']['view']['lang']='pl';
+	$GLOBALS['login']['view']['title']='Logowanie';
+	$GLOBALS['login']['view']['login_style']='login_bright.css';
+	$GLOBALS['login']['view']['login_label']='Nazwa użytkownika';
+	$GLOBALS['login']['view']['password_label']='Hasło';
+	$GLOBALS['login']['view']['remember_me_label']='Zapamiętaj mnie';
+	$GLOBALS['login']['view']['submit_button_label']='Zaloguj';
+	$GLOBALS['login']['view']['loading_title']='Ładowanie...';
+	$GLOBALS['login']['view']['loading_label']='Ładowanie...';
 ?>

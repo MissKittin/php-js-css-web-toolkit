@@ -1,21 +1,21 @@
 <?php
-	header('X-Frame-Options: SAMEORIGIN');
-	header('X-XSS-Protection: 0');
-	header('X-Content-Type-Options: nosniff');
+	include './app/shared/samples/default_http_headers.php';
 
-	session_name('id');
-	session_start();
+	if(strpos($_SERVER['HTTP_ACCEPT_ENCODING'], 'gzip') !== false)
+		ob_start('ob_gzhandler');
+
+	include './app/shared/samples/session_start.php';
 
 	include './lib/check_var.php';
 	include './lib/sec_csrf.php';
 	include './lib/sec_login.php';
 
-	$view['lang']='en';
-	$view['title']='Login';
-	$view['template']='samples/default/default.php';
-	$view['login_failed']['single']=false;
-	$view['login_failed']['multi']=false;
-	$view['login_failed']['callback']=false;
+	include './app/templates/samples/default/default_template.php';
+	$view=new default_template();
+
+	$view['login_failed_single']=false;
+	$view['login_failed_multi']=false;
+	$view['login_failed_callback']=false;
 	$view['logout']=false;
 
 	$use_login_refresh=true;
@@ -32,18 +32,15 @@
 		{
 			case 'test':
 				return '$2y$10$H2UEollYJTP0l1Qe4njXl.B.2OlJ1/CkhZSIBGn.OLvUGeWNebXPO';
-			break;
 			case 'test2':
 				return '$2y$10$e6.i2KXM3orn1cFz3KVuKOCOx4WI9TXt0wCHgS3UM98MMNWsi7yau';
-			break;
 		}
 		return null; // login failed
 	}
 	function reload_page()
 	{
 		global $view;
-		$view['content']=function(){ echo '<h1>Loading...</h1><meta http-equiv="refresh" content="0">'; };
-		include './app/views/'.$view['template'];
+		$view->view('./app/views/samples/login-library-test', 'reload_page.html');
 	}
 
 	if(csrf_check_token('post'))
@@ -55,7 +52,7 @@
 				exit();
 			}
 		else
-			$view['login_failed']['single']=true;
+			$view['login_failed_single']=true;
 
 		if(login_multi(check_post('user_multi'), check_post('password_multi'), $login_credentials_multi))
 			if($use_login_refresh)
@@ -64,7 +61,7 @@
 				exit();
 			}
 		else
-			$view['login_failed']['multi']=true;
+			$view['login_failed_multi']=true;
 
 		if(login_callback(check_post('user_callback'), check_post('password_callback'), 'callback_function'))
 			if($use_login_refresh)
@@ -73,7 +70,7 @@
 				exit();
 			}
 		else
-			$view['login_failed']['callback']=true;
+			$view['login_failed_callback']=true;
 
 		if(logout(check_post('logout')))
 		{
@@ -86,6 +83,5 @@
 		}
 	}
 
-	include './app/models/samples/login-library-test.php';
-	include './app/views/'.$view['template'];
+	$view->view('./app/views/samples/login-library-test');
 ?>

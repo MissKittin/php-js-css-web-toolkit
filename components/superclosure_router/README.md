@@ -1,0 +1,37 @@
+# Superclosure router
+Cacheable `uri_router.php`  
+Allows you to convert defined rules to PHP code
+
+## Required libraries
+* `superclosure.php`
+* `uri_router.php`
+
+## Usage
+Before defining the rules, check if the cache file exists
+```
+if(file_exists('./tmp/routing-cache.php'))
+	include './tmp/routing-cache.php';
+else {
+```
+Use the same as `uri_router` (see `uri_router.php`)  
+Before calling `route()`, generate the cache:
+```
+superclosure_router::set_source_variable("strtok(\$_SERVER['REQUEST_URI'], '?')"); // required
+superclosure_router::set_request_method_variable("\$_SERVER['REQUEST_METHOD']"); // optional
+superclosure_router::dump_cache('./tmp/routing-cache.php');
+```
+or (the strtok function will only be called once - second parameter of the add_to_cache() will be eval'd)
+```
+superclosure_router::add_to_cache('strtok', "strtok(\$_SERVER['REQUEST_URI'], '?')"); // optimization
+superclosure_router::set_source_variable(superclosure_router::read_from_cache('strtok')); // required
+superclosure_router::set_request_method_variable("\$_SERVER['REQUEST_METHOD']"); // optional
+superclosure_router::dump_cache('./tmp/routing-cache.php');	
+```
+and then
+```
+superclosure_router::route(); // exec and flush routing table
+```
+
+## Portability
+Create a directory `./components/superclosure_router/lib`  
+and copy the required libraries to this directory.
