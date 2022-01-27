@@ -32,8 +32,8 @@
 			myenv_b="myval_b"
 		 */
 
-		private $call_getenv;
-		private $env=array();
+		protected $call_getenv;
+		protected $env=array();
 
 		public function __construct($file=false, $call_getenv=false)
 		{
