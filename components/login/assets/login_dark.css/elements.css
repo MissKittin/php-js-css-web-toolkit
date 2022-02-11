@@ -14,6 +14,9 @@
 	font-family: Roboto, Helvetica, Arial, sans-serif;
 	color: #777777;
 }
+#login_form .message_container {
+	color: #ff0000;
+}
 #login_form .input_button input {
 	font-family: Roboto, Helvetica, Arial, sans-serif;
 	width: 99%;

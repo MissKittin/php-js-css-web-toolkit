@@ -29,6 +29,9 @@
 	if(!isset($GLOBALS['login']['view']['remember_me_label']))
 		$GLOBALS['login']['view']['remember_me_label']='Remember me';
 
+	if(!isset($GLOBALS['login']['view']['wrong_credentials_label']))
+		$GLOBALS['login']['view']['wrong_credentials_label']='Invalid username or password';
+
 	if(!isset($GLOBALS['login']['view']['submit_button_label']))
 		$GLOBALS['login']['view']['submit_button_label']='Login';
 

@@ -31,8 +31,14 @@
 						<div class="input_checkbox_text"><?php echo $GLOBALS['login']['view']['remember_me_label']; ?></div>
 					</div>
 				<?php } ?>
+				<?php if(isset($GLOBALS['login']['wrong_credentials'])) { ?>
+					<div class="message_container">
+						<?php echo $GLOBALS['login']['view']['wrong_credentials_label']; ?>
+					</div>
+				<?php } ?>
 				<div class="input_button"><input type="submit" value="<?php echo $GLOBALS['login']['view']['submit_button_label']; ?>"></div>
 				<input type="hidden" name="<?php echo csrf_print_token('parameter'); ?>" value="<?php echo csrf_print_token('value'); ?>">
+				<input type="hidden" name="login_prompt">
 			</form>
 		</div>
 	</body>

@@ -55,6 +55,6 @@
 			return static::get_instance();
 		}
 
-		protected function init() {} // to be defined in child
+		protected function init() {}
 	}
 ?>

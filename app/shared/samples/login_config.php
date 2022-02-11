@@ -7,6 +7,7 @@
 	$GLOBALS['login']['view']['login_label']='Nazwa użytkownika';
 	$GLOBALS['login']['view']['password_label']='Hasło';
 	$GLOBALS['login']['view']['remember_me_label']='Zapamiętaj mnie';
+	$GLOBALS['login']['view']['wrong_credentials_label']='Nieprawidłowa nazwa użytkownika lub hasło';
 	$GLOBALS['login']['view']['submit_button_label']='Zaloguj';
 	$GLOBALS['login']['view']['loading_title']='Ładowanie...';
 	$GLOBALS['login']['view']['loading_label']='Ładowanie...';

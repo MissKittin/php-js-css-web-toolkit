@@ -4,6 +4,7 @@
 	//$db_socket='/tmp/mysql.sock';
 	$db_port='3306';
 	$db_name='sampledb';
+	$db_charset='utf8mb4';
 	$db_user='root';
 	$db_password='';
 	//$db_seeded_path=$db;

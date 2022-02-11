@@ -35,66 +35,74 @@
 	{
 		if(logout(check_post('logout')))
 		{
+			$GLOBALS['login']['config']['on_logout']();
 			login_refresh('file', __DIR__.'/view/reload.php');
 			exit();	
 		}
 
-		if(!isset($GLOBALS['login']['config']['method']))
-		{
-			$GLOBALS['login']['login_failed']=true;
-			throw new Exception('Login method not specified');
-		}
-
-		switch($GLOBALS['login']['config']['method'])
-		{
-			case 'login_single':
-				$GLOBALS['login']['result']=login_single(
-					check_post('login'),
-					check_post('password'),
-					$GLOBALS['login']['credentials'][0],
-					$GLOBALS['login']['credentials'][1]
-				);
-			break;
-			case 'login_multi':
-				$GLOBALS['login']['result']=login_multi(
-					check_post('login'),
-					check_post('password'),
-					$GLOBALS['login']['credentials']
-				);
-			break;
-			case 'login_callback':
-				$GLOBALS['login']['result']=login_callback(
-					check_post('login'),
-					check_post('password'),
-					$GLOBALS['login']['callback'](check_post('login'))
-				);
-			break;
-			default:
-				$GLOBALS['login']['login_failed']=true;
-				throw new Exception('Unknown login method');
-		}
-
-		if($GLOBALS['login']['result'])
-		{
-			if(check_post('remember_me') !== null)
-				$_SESSION['__login_remember_me']=true;
-
-			login_refresh('file', __DIR__.'/view/reload.php');
-			exit();
-		}
-
 		if(
+			(check_post('login_prompt') !== null) &&
 			(check_post('login') !== null) &&
-			(check_post('password') !== null) &&
-			($GLOBALS['login']['result'] === false)
-		)
-			$GLOBALS['login']['login_failed']=true;
+			(check_post('password') !== null)
+		){
+			if(!isset($GLOBALS['login']['config']['method']))
+				throw new Exception('Login method not specified');
 
-		unset($GLOBALS['login']['result']);
+			switch($GLOBALS['login']['config']['method'])
+			{
+				case 'login_single':
+					$GLOBALS['login']['result']=login_single(
+						check_post('login'),
+						check_post('password'),
+						$GLOBALS['login']['credentials'][0],
+						$GLOBALS['login']['credentials'][1]
+					);
+				break;
+				case 'login_multi':
+					$GLOBALS['login']['result']=login_multi(
+						check_post('login'),
+						check_post('password'),
+						$GLOBALS['login']['credentials']
+					);
+				break;
+				case 'login_callback':
+					$GLOBALS['login']['result']=login_callback(
+						check_post('login'),
+						check_post('password'),
+						$GLOBALS['login']['callback'](check_post('login'))
+					);
+				break;
+				default:
+					throw new Exception('Unknown login method');
+			}
+
+			if($GLOBALS['login']['result'])
+			{
+				if(check_post('remember_me') !== null)
+					$_SESSION['__login_remember_me']=true;
+
+				$GLOBALS['login']['config']['on_login_success']();
+				login_refresh('file', __DIR__.'/view/reload.php');
+				exit();
+			}
+			else
+			{
+				$GLOBALS['login']['wrong_credentials']=true;
+				$GLOBALS['login']['config']['on_login_failed']();
+			}
+
+			unset($GLOBALS['login']['result']);
+		}
 	}
 
 	if(!is_logged())
+	{
+		$GLOBALS['login']['config']['on_login_prompt']();
 		include __DIR__.'/view/form.php';
+
+		if($GLOBALS['login']['config']['exit_after_login_prompt'])
+			exit();
+	}
 
 	if(check_session('__login_remember_me') === true)
 	{

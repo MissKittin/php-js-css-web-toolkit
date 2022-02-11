@@ -14,24 +14,41 @@
 			]);
 		};
 
+	include './lib/logger.php';
+	$log_fails=new log_to_txt([
+		'app_name'=>'login-component-test',
+		'file'=>'./var/log/fails.log',
+		'lock_file'=>'./var/log/fails.log.lock'
+	]);
+	$log_infos=new log_to_txt([
+		'app_name'=>'login-component-test',
+		'file'=>'./var/log/infos.log',
+		'lock_file'=>'./var/log/infos.log.lock'
+	]);
+
 	include './app/models/samples/login_component_test_credentials.php';
+
+	// read configuration and define callbacks
 	include './app/shared/samples/login_config.php';
-	include './components/login/login.php'; // display login prompt
-
-	// save fails to journal
-	if(isset($GLOBALS['login']['login_failed']))
+	$GLOBALS['login']['config']['on_login_prompt']=function() use($log_infos)
 	{
-		@mkdir('./var');
-		@mkdir('./var/log');
+		$log_infos->info('Login prompt requested');
+	};
+	$GLOBALS['login']['config']['on_login_success']=function() use($log_infos)
+	{
+		$log_infos->info('User logged in');
+	};
+	$GLOBALS['login']['config']['on_login_failed']=function() use($log_fails)
+	{
+		$log_fails->info($_SERVER['REMOTE_ADDR'].' login failed');
+	};
+	$GLOBALS['login']['config']['on_logout']=function() use($log_infos)
+	{
+		$log_infos->info('User logged out');
+	};
 
-		include './lib/logger.php';
-		$log=new log_to_txt([
-			'app_name'=>'login-component-test',
-			'file'=>'./var/log/faillog.txt',
-			'lock_file'=>'./var/log/faillog.txt.lock'
-		]);
-		$log->log('INFO', $_SERVER['REMOTE_ADDR']);
-	}
+	// display login prompt
+	include './components/login/login.php';
 
 	if(is_logged())
 	{
@@ -39,7 +56,7 @@
 
 		if(!extension_loaded('gd'))
 		{
-			$log->log('WARN', 'gd extension not installed - CAPTCHA test disabled');
+			$log_fails->warn('gd extension not installed - CAPTCHA test disabled');
 			$_SESSION['captcha_verified']=true;
 		}
 
@@ -113,14 +130,25 @@
 		{
 			return !file_exists('./var/lib/login_component_test_new_password.php');
 		}
-		function are_passwords_valid($old_password, $new_password)
+		function are_passwords_valid($old_password, $new_password, $change_password_form)
 		{
 			if($old_password === $new_password)
+			{
+				$change_password_form->add_error_message('Nowe hasło nie może być takie samo jak stare');
 				return false;
+			}
 			if(password_verify($new_password, $GLOBALS['login']['credentials'][1]))
+			{
+				$change_password_form->add_error_message('Nowe hasło nie może być takie samo jak stare');
 				return false;
+			}
+			if(!password_verify($old_password, $GLOBALS['login']['credentials'][1]))
+			{
+				$change_password_form->add_error_message('Stare hasło jest nieprawidłowe');
+				return false;
+			}
 
-			return password_verify($old_password, $GLOBALS['login']['credentials'][1]);
+			return true;
 		}
 		function save_new_password($old_password, $new_password)
 		{
@@ -140,9 +168,10 @@
 
 			if(
 				($change_password_form->is_form_sent()) &&
-				are_passwords_valid($_POST['old_password'], $_POST['new_password'])
+				are_passwords_valid($_POST['old_password'], $_POST['new_password'], $change_password_form)
 			){
 				save_new_password($_POST['old_password'], $_POST['new_password']);
+				$log_infos->info('Password updated');
 
 				include './components/login/reload.php'; // display reload page
 				exit();

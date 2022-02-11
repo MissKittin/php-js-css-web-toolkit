@@ -33,24 +33,24 @@
 		'queue_worker.php'
 	]);
 
-	$worker_fifo=check_argv_next_param('--fifo');
-	$worker_functions=check_argv_next_param('--functions');
-	$worker_fork=false;
+	$__worker_fifo=check_argv_next_param('--fifo');
+	$__worker_functions=check_argv_next_param('--functions');
+	$__worker_fork=false;
 	if(check_argv('--fork'))
-		$worker_fork=true;
-	$children_limit=check_argv_param('--children-limit');
-	if($children_limit === null)
-		$children_limit=0;
-	$recreate_fifo=true;
+		$__worker_fork=true;
+	$__children_limit=check_argv_param('--children-limit');
+	if($__children_limit === null)
+		$__children_limit=0;
+	$__recreate_fifo=true;
 	if(check_argv('--no-recreate-fifo'))
-		$recreate_fifo=false;
-	$debug=false;
+		$__recreate_fifo=false;
+	$__debug=false;
 	if(check_argv('--debug'))
-		$debug=true;
+		$__debug=true;
 
 	if(
-		($worker_fifo === null) ||
-		($worker_functions === null) ||
+		($__worker_fifo === null) ||
+		($__worker_functions === null) ||
 		check_argv('--help') ||
 		check_argv('-h')
 	){
@@ -68,12 +68,12 @@
 
 	try {
 		queue_worker::start_worker(
-			$worker_fifo,
-			$worker_functions,
-			$worker_fork,
-			$children_limit,
-			$recreate_fifo,
-			$debug
+			$__worker_fifo,
+			$__worker_functions,
+			$__worker_fork,
+			$__children_limit,
+			$__recreate_fifo,
+			$__debug
 		);
 	} catch(Exception $error) {
 		echo '[E] '.$error->getMessage().PHP_EOL;

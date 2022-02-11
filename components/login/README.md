@@ -21,6 +21,16 @@ Roadmap of `$GLOBALS['login']` array
 		in seconds
 	* `session_reload` [closure]  
 		custom session reloader
+	* `exit_after_login_prompt` [bool]  
+		default: false
+	* `on_login_prompt` [closure]  
+		do before sending the login prompt
+	* `on_login_success` [closure]  
+		do on successful login
+	* `on_login_failed` [closure]  
+		do on failed login
+	* `on_logout` [closure]  
+		do before logout
 * `view`
 	* `lang` [string]  
 		`<html lang="lang">`
@@ -40,6 +50,8 @@ Roadmap of `$GLOBALS['login']` array
 		enable (default) or disable "remember me" switch
 	* `remember_me_label` [string]  
 		switch label
+	* `wrong_credentials_label` [string]  
+		message about bad credentials
 	* `submit_button_label` [string]
 	* `loading_title` [string]  
 		`<title>` for `views/reload.php`
@@ -48,6 +60,27 @@ Roadmap of `$GLOBALS['login']` array
 * `csp_header`  
 	section for the CSP generator  
 	to add element to the policy, do eg `$GLOBALS['login']['csp_header']['script-src'][]='\'myhash\'';`
+
+## Event callbacks
+You can define functions that will be run at the right moment, eg
+```
+$GLOBALS['login']['config']['on_login_prompt']=function()
+{
+	error_log('Login prompt requested');
+};
+$GLOBALS['login']['config']['on_login_success']=function()
+{
+	error_log('User logged in');
+};
+$GLOBALS['login']['config']['on_login_failed']=function()
+{
+	error_log('Login failed');
+};
+$GLOBALS['login']['config']['on_logout']=function()
+{
+	error_log('User logged out');
+};
+```
 
 ## Example usage
 ```
@@ -73,10 +106,6 @@ $GLOBALS['login']['config']['method']='login_single';
 
 // display login prompt
 include './components/login/login.php';
-
-// you can do something on fail
-if(isset($GLOBALS['login']['login_failed']))
-	error_log('login failed')
 
 // check if user is authenticated
 if(is_logged())

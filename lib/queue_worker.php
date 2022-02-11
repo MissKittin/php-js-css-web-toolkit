@@ -6,21 +6,15 @@
 		 * She is not afraid of any job
 		 *
 		 * Warning:
-		 *  this is an alpha version - use at your own risk
 		 *  only for *nix systems
 		 *  posix extension is recommended (for queue server)
 		 *  pcntl extension is optional (for queue server)
 		 *   if it is not available the fork option will be turned off automatically
-		 *   the server throws an exception on a fork error
-		 *  if fork is enabled and the daemon is waiting for new tasks,
-		 *   zombie processes may be visible - they will be closed
-		 *   before the new task is executed
-		 *   the use of the children limit option is recommended
 		 *
 		 * Note:
 		 *  the server can execute jobs in parallel: using several instances
 		 *   listening to one fifo or/and using the fork option flag
-		 *  the server throws an exception on error
+		 *  if the fork fails, the server will execute the job sequentially
 		 *
 		 * Queue server start:
 			queue_worker::start_worker(
@@ -131,6 +125,7 @@
 					echo '[D] PCNTL extension not available - forking disabled'.PHP_EOL;
 
 				$worker_fork=false;
+				$children_limit=0;
 			}
 
 			if($children_limit < 0)
@@ -223,17 +218,42 @@
 					if($debug)
 						echo '[D] No jobs to do - waiting'.PHP_EOL;
 
-					stream_set_blocking($worker_input, true);
+					if(empty(static::$children_pids))
+						stream_set_blocking($worker_input, true);
+					else
+					{
+						if($debug)
+							echo '[D]  Background processes are running - not waiting'.PHP_EOL;
+
+						usleep(500000); // 0.5s
+					}
 				}
 				else
 					foreach($queue as $job_id=>$job_content)
 					{
 						if($worker_fork)
 						{
-							$pid=pcntl_fork();
-							if($pid === -1)
-								throw new Exception('Fork error');
-							else if($pid === 0)
+							$child_pid=pcntl_fork();
+
+							if($child_pid === -1)
+							{
+								if($debug)
+								{
+									echo '[D][E] Fork error, job content: '.$job_content.PHP_EOL;
+									echo '[D] Executing this job sequentially'.PHP_EOL;
+								}
+
+								queue_worker_main(
+									unserialize($job_content),
+									[
+										'worker_fifo'=>$worker_fifo,
+										'worker_fork'=>false,
+										'children_limit'=>$children_limit,
+										'debug'=>$debug
+									]
+								);
+							}
+							else if($child_pid === 0)
 							{
 								if($debug)
 									echo '[D] Processing job '.$job_id.': '.$job_content.PHP_EOL;
@@ -252,14 +272,17 @@
 								exit();
 							}
 							else
-								static::$children_pids[$pid]=$pid;
+								static::$children_pids[$child_pid]=$child_pid;
 
-							if(($children_limit !== 0) && count(static::$children_pids) === $children_limit)
-							{
+							if(
+								($child_pid !== -1) &&
+								($children_limit !== 0) &&
+								(count(static::$children_pids) === $children_limit)
+							){
 								if($debug)
 									echo '[D] Child process limit ('.$children_limit.') reached - waiting'.PHP_EOL;
 
-								while(pcntl_waitpid(0, $forking_status) !== -1);
+								while(pcntl_waitpid(0, $fork_status) !== -1);
 							}
 						}
 						else

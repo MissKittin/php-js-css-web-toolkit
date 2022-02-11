@@ -2,10 +2,11 @@
 	$db_type='sqlite'; // sqlite pgsql mysql
 	$db_host=$db.'/database.sqlite3';
 	//$db_socket='';
-	$db_port='';
-	$db_name='';
-	$db_user='';
-	$db_password='';
+	//$db_port='';
+	//$db_name='';
+	//$db_charset='';
+	//$db_user='';
+	//$db_password='';
 	//$db_seeded_path=$db;
 
 	// you can implement the var/databases hierarchy

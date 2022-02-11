@@ -2,9 +2,6 @@
 	/*
 	 * Start PHP development server
 	 *
-	 * Usage:
-	 *  php serve.php [-ip 127.0.0.1] [-port 8080] [-docroot ../public] [-preload ./tmp/app-preload.php]
-	 *
 	 * Warning:
 	 *  check_var.php library is required
 	 */
@@ -36,13 +33,28 @@
 
 		load_library(['check_var.php']);
 
-		if(!$php_http_addr=check_argv_next_param('-ip'))
+		if(
+			check_argv('--help') ||
+			check_argv('-h')
+		)
+		{
+			echo 'Usage:'.PHP_EOL;
+			echo ' serve.php [--ip 127.0.0.1] [--port 8080] [--docroot ../public] [--preload ./tmp/app-preload.php] [--threads 1]'.PHP_EOL;
+			echo PHP_EOL;
+			echo '--threads option requires PHP 7.4.0 or newer'.PHP_EOL;
+			exit();
+		}
+
+		if(!$php_http_addr=check_argv_next_param('--ip'))
 			$php_http_addr='127.0.0.1';
-		if(!$php_http_port=check_argv_next_param('-port'))
+		if(!$php_http_port=check_argv_next_param('--port'))
 			$php_http_port='8080';
-		$php_preload=''; if($php_preload=check_argv_next_param('-preload'))
+		$php_preload=''; if($php_preload=check_argv_next_param('--preload'))
 			$php_preload='-d opcache.preload='.realpath($php_preload);
-		if($php_http_docroot=check_argv_next_param('-docroot'))
+		if($php_http_threads=check_argv_next_param('--threads'))
+			if(is_numeric($php_http_threads) && ($php_http_threads > 1))
+				putenv("PHP_CLI_SERVER_WORKERS=$php_http_threads");
+		if($php_http_docroot=check_argv_next_param('--docroot'))
 		{
 			if(!chdir($php_http_docroot))
 				die('Cannot chdir to the '.$php_http_docroot.PHP_EOL);

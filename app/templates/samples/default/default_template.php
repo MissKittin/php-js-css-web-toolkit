@@ -7,7 +7,8 @@
 	 *
 	 * Note:
 	 *  you can use $template->variable='value' and $template['variable']='value'
-	 *  and setters
+	 *   and setters
+	 *  pass true to the constructor to have the view method return the content instead of echoing it
 	 *
 	 * Methods:
 	 *  set_variable(string_variable, value)
@@ -57,6 +58,9 @@
 
 	class default_template extends registry
 	{
+		private static $do_return_content;
+		private static $return_content='';
+
 		public static function quick_view($view_path, $page_content='page_content.php')
 		{
 			$view=array();
@@ -107,10 +111,11 @@
 					{ ?><link rel="stylesheet" href="<?php echo $style; ?>"><?php }
 		}
 
-		public function __construct()
+		public function __construct(bool $return_content=false)
 		{
 			include __DIR__.'/default_csp_header.php';
 			$this->registry['csp_header']=$view['csp_header'];
+			static::$do_return_content=$return_content;
 		}
 
 		public function set_variable(string $variable, $value)
@@ -154,10 +159,26 @@
 		{
 			$view=$this->registry;
 
+			if(static::$do_return_content)
+				ob_start(function($content){
+					static::$return_content.=$content;
+					return $content;
+				});
+
 			@include $view_path.'/template_config.php';
 			include __DIR__.'/views/top.php';
 			include $view_path.'/'.$page_content;
 			include __DIR__.'/views/bottom.php';
+
+			if(static::$do_return_content)
+			{
+				ob_end_clean();
+
+				$return_content=static::$return_content;
+				static::$return_content='';
+
+				return $return_content;
+			}
 		}
 	}
 ?>
