@@ -4,18 +4,11 @@
 	 *
 	 * Warning:
 	 *  copy_recursive.php library is required
+	 *
+	 * lib directory path:
+	 *  __DIR__/lib
+	 *  __DIR__/../lib
 	 */
-
-	if(!isset($argv[1]))
-	{
-		echo 'link2file.php path/to/directory'.PHP_EOL;
-		exit(1);
-	}
-	if(!is_dir($argv[1]))
-	{
-		echo $argv[1].'is not a directory'.PHP_EOL;
-		exit(1);
-	}
 
 	function load_library($libraries, $required=true)
 	{
@@ -29,7 +22,23 @@
 					throw new Exception($library.' library not found');
 	}
 
-	load_library(['copy_recursive.php']);
+	try {
+		load_library(['copy_recursive.php']);
+	} catch(Exception $error) {
+		echo 'Error: '.$error->getMessage().PHP_EOL;
+		exit(1);
+	}
+
+	if(!isset($argv[1]))
+	{
+		echo 'link2file.php path/to/directory'.PHP_EOL;
+		exit(1);
+	}
+	if(!is_dir($argv[1]))
+	{
+		echo $argv[1].'is not a directory'.PHP_EOL;
+		exit(1);
+	}
 
 	$cwd=getcwd();
 	foreach(new RecursiveIteratorIterator(new RecursiveDirectoryIterator($argv[1], RecursiveDirectoryIterator::SKIP_DOTS)) as $file)

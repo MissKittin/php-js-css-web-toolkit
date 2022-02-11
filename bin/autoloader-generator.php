@@ -7,6 +7,10 @@
 	 *  check_var.php library is required
 	 *  find_php_definitions.php library is required
 	 *  relative_path.php library is required
+	 *
+	 * lib directory path:
+	 *  __DIR__/lib
+	 *  __DIR__/../lib
 	 */
 
 	function generate_autoloader($classes, $functions, $debug)
@@ -75,11 +79,16 @@
 					throw new Exception($library.' library not found');
 	}
 
-	load_library([
-		'check_var.php',
-		'find_php_definitions.php',
-		'relative_path.php'
-	]);
+	try {
+		load_library([
+			'check_var.php',
+			'find_php_definitions.php',
+			'relative_path.php'
+		]);
+	} catch(Exception $error) {
+		echo 'Error: '.$error->getMessage().PHP_EOL;
+		exit(1);
+	}
 
 	$input_dirs=check_argv_next_param_many('--in');
 	$output_file=check_argv_next_param('--out');
