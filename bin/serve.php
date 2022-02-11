@@ -4,6 +4,10 @@
 	 *
 	 * Warning:
 	 *  check_var.php library is required
+	 *
+	 * lib directory path:
+	 *  __DIR__/lib
+	 *  __DIR__/../lib
 	 */
 
 	if(php_sapi_name() === 'cli-server')
@@ -31,7 +35,12 @@
 						throw new Exception($library.' library not found');
 		}
 
-		load_library(['check_var.php']);
+		try {
+			load_library(['check_var.php']);
+		} catch(Exception $error) {
+			echo 'Error: '.$error->getMessage().PHP_EOL;
+			exit(1);
+		}
 
 		if(
 			check_argv('--help') ||

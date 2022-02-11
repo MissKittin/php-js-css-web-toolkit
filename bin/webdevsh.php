@@ -5,6 +5,10 @@
 	 * Warning:
 	 *  check_var.php library is required
 	 *  webdevsh.php library is required
+	 *
+	 * lib directory path:
+	 *  __DIR__/lib
+	 *  __DIR__/../lib
 	 */
 
 	function load_library($libraries, $required=true)
@@ -19,10 +23,15 @@
 					throw new Exception($library.' library not found');
 	}
 
-	load_library([
-		'check_var.php',
-		'webdevsh.php'
-	]);
+	try {
+		load_library([
+			'check_var.php',
+			'webdevsh.php'
+		]);
+	} catch(Exception $error) {
+		echo 'Error: '.$error->getMessage().PHP_EOL;
+		exit(1);
+	}
 
 	$input_directory=check_argv_next_param('--dir');
 	$minify_styles=true;

@@ -22,6 +22,10 @@
 			$blacklist[]='../app/databases';
 			$blacklist[]='../app/views/samples/default/default.js';
 		?>
+	 *
+	 * lib directory path:
+	 *  __DIR__/lib
+	 *  __DIR__/../lib
 	 */
 
 	function load_library($libraries)
@@ -35,10 +39,15 @@
 				throw new Exception($library.' library not found');
 	}
 
-	load_library([
-		'check_var.php',
-		'strip_php_comments.php'
-	]);
+	try {
+		load_library([
+			'check_var.php',
+			'strip_php_comments.php'
+		]);
+	} catch(Exception $error) {
+		echo 'Error: '.$error->getMessage().PHP_EOL;
+		exit(1);
+	}
 
 	chdir(__DIR__.'/..');
 

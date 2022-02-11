@@ -20,6 +20,10 @@
 	 *  check_var.php library is required
 	 *  global_variable_streamer.php library is required
 	 *  strip_php_comments.php library is required
+	 *
+	 * lib directory path:
+	 *  __DIR__/lib
+	 *  __DIR__/../lib
 	 */
 
 	function load_library($libraries, $required=true)
@@ -34,11 +38,16 @@
 					throw new Exception($library.' library not found');
 	}
 
-	load_library([
-		'check_var.php',
-		'global_variable_streamer.php',
-		'strip_php_comments.php'
-	]);
+	try {
+		load_library([
+			'check_var.php',
+			'global_variable_streamer.php',
+			'strip_php_comments.php'
+		]);
+	} catch(Exception $error) {
+		echo 'Error: '.$error->getMessage().PHP_EOL;
+		exit(1);
+	}
 
 	if(check_argv('--debug'))
 	{

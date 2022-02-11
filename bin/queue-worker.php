@@ -14,6 +14,10 @@
 	 *  pcntl extension is optional
 	 *  check_var.php library is required
 	 *  queue_worker.php library is required
+	 *
+	 * lib directory path:
+	 *  __DIR__/lib
+	 *  __DIR__/../lib
 	 */
 
 	function load_library($libraries, $required=true)
@@ -28,10 +32,15 @@
 					throw new Exception($library.' library not found');
 	}
 
-	load_library([
-		'check_var.php',
-		'queue_worker.php'
-	]);
+	try {
+		load_library([
+			'check_var.php',
+			'queue_worker.php'
+		]);
+	} catch(Exception $error) {
+		echo 'Error: '.$error->getMessage().PHP_EOL;
+		exit(1);
+	}
 
 	$__worker_fifo=check_argv_next_param('--fifo');
 	$__worker_functions=check_argv_next_param('--functions');

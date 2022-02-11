@@ -10,6 +10,10 @@
 	 *
 	 * Note:
 	 *  you can use $pdo_handler in post script
+	 *
+	 * lib directory path:
+	 *  __DIR__/lib
+	 *  __DIR__/../lib
 	 */
 
 	function load_library($libraries, $required=true)
@@ -24,14 +28,19 @@
 					throw new Exception($library.' library not found');
 	}
 
-	load_library([
-		'check_var.php',
-		'pdo_connect.php'
-	]);
-	load_library([
-		'pdo_cheat.php',
-		'pdo_crud_builder.php'
-	], false);
+	try {
+		load_library([
+			'check_var.php',
+			'pdo_connect.php'
+		]);
+		load_library([
+			'pdo_cheat.php',
+			'pdo_crud_builder.php'
+		], false);
+	} catch(Exception $error) {
+		echo 'Error: '.$error->getMessage().PHP_EOL;
+		exit(1);
+	}
 
 	chdir(__DIR__ . '/..');
 

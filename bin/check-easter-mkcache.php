@@ -4,6 +4,10 @@
 	 *
 	 * Warning:
 	 *  check_date.php library is required
+	 *
+	 * lib directory path:
+	 *  __DIR__/lib
+	 *  __DIR__/../lib
 	 */
 
 	function load_library($libraries, $required=true)
@@ -18,7 +22,12 @@
 					throw new Exception($library.' library not found');
 	}
 
-	load_library(['check_date.php']);
+	try {
+		load_library(['check_date.php']);
+	} catch(Exception $error) {
+		echo 'Error: '.$error->getMessage().PHP_EOL;
+		exit(1);
+	}
 
 	if(!isset($argv[1]))
 	{
