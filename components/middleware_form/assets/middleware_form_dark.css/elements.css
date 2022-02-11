@@ -10,6 +10,10 @@
 	margin-top: 5px;
 	margin-bottom: 5px;
 }
+#middleware_form .message_container {
+	color: #ff0000;
+	text-align: center;
+}
 #middleware_form .input_button input {
 	font-family: Roboto, Helvetica, Arial, sans-serif;
 	width: 99%;

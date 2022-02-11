@@ -1,5 +1,5 @@
 <?php
-	function pdo_connect(string $db, callable $on_error=function(){})
+	function pdo_connect(string $db, callable $on_error=null)
 	{
 		/*
 		 * PDO connection helper
@@ -20,6 +20,7 @@
 				//$db_socket='/path/to/socket'; // uncomment to use a unix socket
 				$db_port='server-port';
 				$db_name='database-name';
+				$db_charset='your-db-charset'; // for pgsql and mysql only, optional
 				$db_user='username';
 				$db_password='password';
 				//$db_seeded_path=$db; // uncomment this to move the database_seeded file to a different location
@@ -68,12 +69,18 @@
 					if(!extension_loaded('pdo_pgsql'))
 						throw new Exception('pdo_pgsql extension is not loaded');
 
+					if(isset($db_charset) && (!empty($db_charset)))
+						$db_charset=';options=\'--client_encoding='.$db_charset.'\'';
+					else
+						$db_charset='';
+
 					if(isset($db_socket))
 						$pdo_handler=new PDO(
 							$db_type.':host='.$db_socket
 							.';dbname='.$db_name
 							.';user='.$db_user
 							.';password='.$db_password
+							.$db_charset
 						);
 					else
 						$pdo_handler=new PDO(
@@ -82,16 +89,23 @@
 							.';dbname='.$db_name
 							.';user='.$db_user
 							.';password='.$db_password
+							.$db_charset
 						);
 				break;
 				case 'mysql':
 					if(!extension_loaded('pdo_mysql'))
 						throw new Exception('pdo_mysql extension is not loaded');
 
+					if(isset($db_charset) && (!empty($db_charset)))
+						$db_charset=';charset='.$db_charset;
+					else
+						$db_charset='';
+
 					if(isset($db_socket))
 						$pdo_handler=new PDO(
 							$db_type.':unix_socket='.$db_socket
-							.';dbname='.$db_name,
+							.';dbname='.$db_name
+							.$db_charset,
 							$db_user,
 							$db_password
 						);
@@ -99,21 +113,23 @@
 						$pdo_handler=new PDO(
 							$db_type.':host='.$db_host
 							.';port='.$db_port
-							.';dbname='.$db_name,
+							.';dbname='.$db_name
+							.$db_charset,
 							$db_user,
 							$db_password
 						);
-				break;
 			}
 		} catch(PDOException $error) {
-			$on_error($error);
+			if($on_error !== null)
+				$on_error($error);
+
 			return false;
 		}
 
 		if((file_exists($db.'/seed.php')) && (!file_exists($db_seeded_path.'/database_seeded')))
 		{
 			if(file_put_contents($db_seeded_path.'/database_seed_w_test', '') === false)
-				throw new Exception('could not create database_seeded file in '.$db_seeded_path);
+				throw new Exception('Could not create database_seeded file in '.$db_seeded_path);
 			unlink($db_seeded_path.'/database_seed_w_test');
 
 			include $db.'/seed.php';

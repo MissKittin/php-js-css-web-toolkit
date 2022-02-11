@@ -5,6 +5,8 @@
 	 * Note:
 	 *  timeout == 0 means infinity
 	 *  the timestamp of the variable will be refreshed with each modification
+	 *  for cache_driver_pdo and cache_driver_phpredis:
+	 *   if the key value is not json, the key will be deleted automatically
 	 *
 	 * Main classes:
 	 *  cache_container - full version of the container with local cache
@@ -35,14 +37,19 @@
 	 *  cache_driver_none -> dummy backend - only use local cache
 	 *   warning:
 	 *    this driver is rejected by cache_container_lite
-	 *  cache_driver_file -> store serialized data in a file
+	 *  cache_driver_file -> store json-encoded data in a file
 	 *   constructor array parameters:
 	 *    file => file path
 	 *    lock_file => lock file path
+	 *   note:
+	 *    the database is loaded by the constructor and written by the destructor
 	 *   warning:
 	 *    if an uncaught exception occurs, the lockfile will not be removed,
 	 *    a "lockfile still exists" exception will be thrown
 	 *    and the cache will not work until you manually remove the lockfile
+	 *  cache_driver_file_realtime
+	 *   cache_driver_file wrapper that reads the database and writes changes to the database after each use
+	 *   usage is the same as for cache_driver_file
 	 *  cache_driver_pdo -> use a relational database as a cache
 	 *   constructor array parameters:
 	 *    pdo_handler
@@ -83,8 +90,11 @@
 			else
 			{
 				$value=$this->cache_driver->get($key);
-				if($value === null)
+				if(empty($value))
+				{
+					$value=null;
 					return null;
+				}
 
 				$timeout=$value['timeout'];
 				$timestamp=$value['timestamp'];
@@ -118,6 +128,7 @@
 
 			if($value === null)
 				return $default_value;
+
 			return $value;
 		}
 		public function put(string $key, $value, int $timeout=0)
@@ -129,11 +140,13 @@
 		public function get_put(string $key, $default_value, int $timeout=0)
 		{
 			$value=$this->get($key, null);
+
 			if($value === null)
 			{
 				$this->put($key, $default_value, $timeout);
 				return $default_value;
 			}
+
 			return $value;
 		}
 		public function increment(string $key, float $amount=1)
@@ -180,6 +193,7 @@
 		public function unset(string $key)
 		{
 			$this->cache_driver->unset($key);
+
 			if(isset($this->local_cache[$key]))
 				unset($this->local_cache[$key]);
 		}
@@ -187,6 +201,7 @@
 		{
 			if($this->get($key, null) === null)
 				return false;
+
 			return true;
 		}
 		public function flush()
@@ -202,7 +217,8 @@
 		public function __construct(cache_driver $cache_driver)
 		{
 			if($cache_driver instanceof cache_driver_none)
-				throw new Exception('dummy driver cannot be used with '.__CLASS__);
+				throw new Exception('Dummy driver cannot be used with '.__CLASS__);
+
 			$this->cache_driver=$cache_driver;
 		}
 
@@ -210,7 +226,7 @@
 		{
 			$value=$this->cache_driver->get($key);
 
-			if($value === null)
+			if(empty($value))
 				return null;
 
 			if(($value['timeout'] !== 0) && ((time()-$value['timestamp']) > $value['timeout']))
@@ -225,6 +241,7 @@
 		public function get(string $key, $default_value=null)
 		{
 			$value=$this->validate_cache($key);
+
 			if($value === null)
 				return $default_value;
 
@@ -242,25 +259,31 @@
 		public function get_put(string $key, $default_value, int $timeout=0)
 		{
 			$value=$this->get($key, null);
+
 			if($value === null)
 			{
 				$this->put($key, $default_value, $timeout);
 				return $default_value;
 			}
+
 			return $value;
 		}
 		public function isset(string $key)
 		{
 			$value=$this->get($key, null);
+
 			if($value === null)
 				return false;
+
 			return true;
 		}
 		public function increment(string $key, float $amount=1)
 		{
 			$value=$this->validate_cache($key);
+
 			if($value === null)
 				throw new Exception($key.' is not set');
+
 			$value['value']=$value['value']+$amount;
 			$this->put($key, $value['value'], $value['timeout']);
 
@@ -269,8 +292,10 @@
 		public function decrement(string $key, float $amount=1)
 		{
 			$value=$this->validate_cache($key);
+
 			if($value === null)
 				throw new Exception($key.' is not set');
+
 			$value['value']=$value['value']-$amount;
 			$this->put($key, $value['value'], $value['timeout']);
 
@@ -298,20 +323,16 @@
 
 	interface cache_driver
 	{
-		public function put($key, $value, $timeout): array;
-			// returns array('value'=>string_value, 'timeout'=>int_timeout, 'timestamp'=>int_timestamp)|null
+		public function put($key, $value, $timeout);
 		public function get($key): array;
-			// returns array('value'=>string_value, 'timeout'=>int_timeout, 'timestamp'=>int_timestamp)|null
+			// returns array('value'=>string_value, 'timeout'=>int_timeout, 'timestamp'=>int_timestamp)|array()
 		public function unset($key);
 		public function flush();
 	}
 
 	class cache_driver_none implements cache_driver
 	{
-		public function put($a, $b, $c): array
-		{
-			return array();
-		}
+		public function put($a, $b, $c) {}
 		public function get($a): array
 		{
 			return array();
@@ -329,7 +350,7 @@
 		{
 			foreach(['file', 'lock_file'] as $param)
 				if(!isset($params[$param]))
-					throw new Exception('the '.$param.' parameter was not specified for the constructor');
+					throw new Exception('The '.$param.' parameter was not specified for the constructor');
 
 			foreach(['file', 'lock_file'] as $param)
 				if(isset($params[$param]))
@@ -337,15 +358,15 @@
 
 			$this->lock_unlock_file(true);
 			if(file_exists($this->file))
-				$this->container=unserialize(file_get_contents($this->file));
+				$this->container=json_decode(file_get_contents($this->file), true);
 		}
 		public function __destruct()
 		{
 			$this->lock_unlock_file(false, function(){
-				if(file_put_contents($this->file, serialize($this->container)) === false)
+				if(file_put_contents($this->file, json_encode($this->container, JSON_UNESCAPED_UNICODE)) === false)
 				{
 					unlink($this->lock_file);
-					throw new Exception('unable to save the cache file');
+					throw new Exception('Unable to save the cache file');
 				}
 			});
 		}
@@ -355,27 +376,31 @@
 			if($make_lock)
 			{
 				$max_wait=500; // 5 seconds
+
 				while(file_exists($this->lock_file))
 				{
 					usleep(10000);
 
 					if($max_wait === 0)
-						throw new Exception('lock file still exists');
+						throw new Exception('Lock file still exists');
+
 					--$max_wait;
 				}
+
 				if(file_put_contents($this->lock_file, '') === false)
-					throw new Exception('unable to create the lock file');
+					throw new Exception('Unable to create the lock file');
 			}
 			else
 			{
 				if(!file_exists($this->lock_file))
-					throw new Exception('lock file not exists - cache not saved');
+					throw new Exception('Lock file not exists - cache not saved');
+
 				$save_callback();
 				unlink($this->lock_file);
 			}
 		}
 
-		public function put($key, $value, $timeout): array
+		public function put($key, $value, $timeout)
 		{
 			$this->container[$key]['value']=$value;
 			$this->container[$key]['timeout']=$timeout;
@@ -388,11 +413,13 @@
 				if(($this->container[$key]['timeout'] !== 0) && ((time()-$this->container[$key]['timestamp']) > $this->container[$key]['timeout']))
 				{
 					unset($this->container[$key]);
-					return null;
+					return array();
 				}
+
 				return $this->container[$key];
 			}
-			return null;
+
+			return array();
 		}
 		public function unset($key)
 		{
@@ -404,6 +431,47 @@
 			$this->container=array();
 		}
 	}
+	class cache_driver_file_realtime implements cache_driver
+	{
+		protected $file;
+		protected $lock_file;
+
+		public function __construct(array $params)
+		{
+			foreach(['file', 'lock_file'] as $param)
+				if(!isset($params[$param]))
+					throw new Exception('The '.$param.' parameter was not specified for the constructor');
+
+			foreach(['file', 'lock_file'] as $param)
+				if(isset($params[$param]))
+					$this->$param=$params[$param];
+		}
+
+		protected function open_database()
+		{
+			return new cache_driver_file([
+				'file'=>$this->file,
+				'lock_file'=>$this->lock_file
+			]);
+		}
+
+		public function put($key, $value, $timeout)
+		{
+			$this->open_database()->put($key, $value, $timeout);
+		}
+		public function get($key): array
+		{
+			return $this->open_database()->get($key);
+		}
+		public function unset($key)
+		{
+			$this->open_database()->unset($key);
+		}
+		public function flush()
+		{
+			$this->open_database()->flush();
+		}
+	}
 	class cache_driver_pdo implements cache_driver
 	{
 		protected $pdo_handler;
@@ -412,7 +480,7 @@
 		public function __construct(array $params)
 		{
 			if(!isset($params['pdo_handler']))
-				throw new Exception('no pdo_handler given');
+				throw new Exception('No pdo_handler given');
 
 			foreach(['pdo_handler', 'table_name'] as $param)
 				if(isset($params[$param]))
@@ -427,38 +495,47 @@
 					timestamp INTEGER
 				)
 			') === false)
-				throw new Exception('cannot create '.$this->table_name.' table');
+				throw new Exception('Cannot create '.$this->table_name.' table');
 		}
 
-		public function put($key, $value, $timeout): array
+		public function put($key, $value, $timeout)
 		{
 			$query=$this->pdo_handler->prepare('
 				REPLACE INTO '.$this->table_name.'(key, value, timeout, timestamp)
 				VALUES(:key, :value, :timeout, :timestamp)
 			');
-			$query->execute(array(
+			$query->execute([
 				':key'=>$key,
-				':value'=>$value,
+				':value'=>json_encode($value, JSON_UNESCAPED_UNICODE),
 				':timeout'=>$timeout,
 				':timestamp'=>time()
-			));
+			]);
 		}
 		public function get($key): array
 		{
 			$result=$this->pdo_handler->prepare('SELECT value, timeout, timestamp FROM '.$this->table_name.' WHERE key=:key');
-			$result->execute(array(':key'=>$key));
+			$result->execute([':key'=>$key]);
 			$result=$result->fetch(PDO::FETCH_ASSOC);
+
 			if($result === false)
-				return null;
+				return array();
+
+			$result['value']=json_decode($result['value'], true);
+			if($result['value'] === false)
+			{
+				$this->unset($key);
+				return array();
+			}
 
 			$result['timeout']=(int)$result['timeout'];
 			$result['timestamp']=(int)$result['timestamp'];
+
 			return $result;
 		}
 		public function unset($key)
 		{
 			$query=$this->pdo_handler->prepare('DELETE FROM '.$this->table_name.' WHERE key=:key');
-			$query->execute(array(':key'=>$key));
+			$query->execute([':key'=>$key]);
 		}
 		public function flush()
 		{
@@ -476,7 +553,7 @@
 				throw new Exception('redis extension is not loaded');
 
 			if(!isset($params['address']))
-				throw new Exception('no redis address given');
+				throw new Exception('No redis address given');
 
 			if(!isset($params['port']))
 				$params['port']=6379;
@@ -485,23 +562,24 @@
 			if((isset($params['socket'])) && ($params['socket']))
 			{
 				if(!$this->redis_handler->connect($params['address']))
-					throw new Exception('cannot connect to the Redis');
+					throw new Exception('Cannot connect to the Redis');
 			}
 			else
 				if(!$this->redis_handler->connect($params['address'], $params['port']))
-					throw new Exception('cannot connect to the Redis');
+					throw new Exception('Cannot connect to the Redis');
 
 			if(isset($params['prefix']))
 				$this->prefix=$params['prefix'];
 		}
 
-		public function put($key, $value, $timeout): array
+		public function put($key, $value, $timeout)
 		{
-			$value=serialize(array(
+			$value=json_encode([
 				'value'=>$value,
 				'timeout'=>$timeout,
 				'timestamp'=>time()
-			));
+			],
+			JSON_UNESCAPED_UNICODE);
 
 			if($timeout > 0)
 				$this->redis_handler->setex($this->prefix.$key, $timeout, $value);
@@ -513,11 +591,14 @@
 			$value=$this->redis_handler->get($this->prefix.$key);
 
 			if($value === false)
-				return null;
+				return array();
 
-			$value=unserialize($value);
+			$value=json_decode($value, true);
 			if($value === false)
-				return null;
+			{
+				$this->unset($key);
+				return array();
+			}
 
 			return $value;
 		}

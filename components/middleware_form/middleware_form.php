@@ -86,7 +86,18 @@
 		{
 			if(!isset($this->registry['html_headers']))
 				$this->registry['html_headers']='';
+
 			$this->registry['html_headers'].=$header;
+
+			return $this;
+		}
+		public function add_error_message(string $message=null)
+		{
+			if($message === null)
+				unset($this->registry['error_message']);
+			else
+				$this->registry['error_message']=$message;
+
 			return $this;
 		}
 		public function is_form_sent()

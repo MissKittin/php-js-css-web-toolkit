@@ -79,9 +79,6 @@
 		if(session_status() !== PHP_SESSION_ACTIVE)
 			throw new Exception('Session not started');
 
-		if(isset($_SESSION['captcha_token']))
-			throw new Excaption('captcha_token exists in $_SESSION');
-
 		$captcha=call_user_func_array($module, $module_params);
 		$_SESSION['captcha_token']=$captcha[0];
 		return $captcha[1];

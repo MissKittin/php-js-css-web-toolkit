@@ -24,6 +24,11 @@
 		<div id="middleware_form">
 			<form method="post" action="">
 				<?php $this->parse_fields($view); ?>
+				<?php if(isset($view['error_message'])) { ?>
+					<div class="message_container">
+						<?php echo $view['error_message']; ?>
+					</div>
+				<?php } ?>
 				<div class="input_button"><input type="submit" name="middleware_form" value="<?php echo $view['submit_button_label']; ?>"></div>
 				<input type="hidden" name="<?php echo csrf_print_token('parameter'); ?>" value="<?php echo csrf_print_token('value'); ?>">
 			</form>

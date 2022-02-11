@@ -1,4 +1,7 @@
 <?php
+	// select database for pdo_connect
+	$pdo_connect_db='sqlite';
+
 	function if2switch($source_array, $param_array)
 	{
 		foreach($param_array as $param)
@@ -21,14 +24,26 @@
 	$view=new default_template();
 
 	include './app/models/samples/database_abstract.php';
-	$db_cars=new database_abstract(
-		'cars',
-		'id',
-		'name,price',
-		new pdo_crud_builder([
-			'pdo_handler'=>pdo_connect('./app/databases/samples/sqlite')
-		])
-	);
+	try {
+		$db_cars=new database_abstract(
+			'cars',
+			'id',
+			'name,price',
+			new pdo_crud_builder([
+				'pdo_handler'=>pdo_connect(
+					'./app/databases/samples/'.$pdo_connect_db,
+					function($error)
+					{
+						echo 'Database connection error: '.$error->getMessage();
+						exit();
+					}
+				)
+			])
+		);
+	} catch(Exception $error) {
+		echo 'pdo_connect error: '.$error->getMessage();
+		exit();
+	}
 	$view['db_cars']=$db_cars;
 
 	if(csrf_check_token('post'))

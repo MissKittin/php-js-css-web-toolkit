@@ -4,6 +4,7 @@
 	//$db_socket='/var/run/postgresql';
 	$db_port='5432';
 	$db_name='sampledb';
+	$db_charset='UTF8';
 	$db_user='postgres';
 	$db_password='postgres';
 	//$db_seeded_path=$db;

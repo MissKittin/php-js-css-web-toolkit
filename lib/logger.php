@@ -4,63 +4,67 @@
 	 * Easily write logs
 	 *
 	 * Warning:
-	 *  All variables shouldn't contain space character (except $message).
-	 *  All classes and log_to_file abstract depends on log_to_generic.
-	 *  app_name can be empty but must be defined.
+	 *  all variables shouldn't contain space character (except $message)
+	 *  all classes and log_to_file abstract depends on log_to_generic
+	 *  app_name can be empty string but must be defined
 	 *
-	 * Priorities: DEBUG INFO WARN ERROR
-	 * OOP usage: $output=$log->log('INFO', 'Nice message');
-	 *
-	 * Functions with examples:
-	 *  log_to_curl('INFO', 'app_name', 'http://127.0.0.1', 'Nice message', function($error){ error_log(__FILE__.' logger.php: '.$error); })
-	 *   where function() is executed on curl error (optional)
-	 *   last parameter is curl opts array() (empty by default, not defined in this example)
-	 *   Warning: supports HTTP and HTTPS only
-	 *   array on the server side:
-	 *    $_POST['app_name']
-	 *    $_POST['priority']
-	 *    $_POST['message']
-	 *  log_to_exec('INFO', 'app_name', './program', 'Nice message')
-	 *   exec() required
+	 * Classes:
+	 *  log_to_curl
+	 *   input array keys: string_app_name string_url [callable_on_curl_error] [array_curl_opts]
+	 *    on_curl_error is a callback function with one arg and is executed on curl error
+	 *     eg: function($error){ error_log(__FILE__.' logger.php: '.$error); }
+	 *    warning: supports HTTP and HTTPS only
+	 *    array on the server side:
+	 *     $_POST['app_name']
+	 *     $_POST['priority']
+	 *     $_POST['message']
+	 *    returns response content
+	 *  log_to_exec
+	 *   input array keys: string_app_name string_command
+	 *   exec() is required
 	 *   command parameters:
 	 *    $1 -> app_name
 	 *    $2 -> priority
 	 *    $3 -> message
-	 *  log_to_mail('INFO', 'app_name', 'example@example.com', 'Nice message')
-	 *   hint: add mail.add_x_header=0 to php configuration
-	 *  log_to_php('INFO', 'app_name', 'Nice message')
-	 *   uses configuration from php.ini
-	 *  log_to_syslog('INFO', 'app_name', 'Nice message')
-	 *   exec() and gnu logger binary required (default: logger, can be changed by last parameter)
-	 *   *nix only
-	 *
-	 * Function to class wrappers (class requires function with the same name):
-	 *  log_to_curl
-	 *   input array keys: app_name url [on_error] [curl_opts]
-	 *    on_error is callback function with one parameter
-	 *  log_to_exec
-	 *   input array keys: app_name command
+	 *   returns exec() output
 	 *  log_to_mail
-	 *   input array keys: app_name recipient
+	 *   input array keys: string_app_name string_recipient
+	 *   hint: add mail.add_x_header=0 to php configuration
+	 *   returns mail() output
 	 *  log_to_php
-	 *   input array keys: app_name
+	 *   input array keys: string_app_name
+	 *   uses configuration from php.ini
+	 *   returns error_log() output
 	 *  log_to_syslog
-	 *   input array keys: app_name [logger]
-	 *    where logger is path to logger binary
-	 *
-	 * Classes:
+	 *   input array keys: string_app_name [string_logger]
+	 *    where logger is path to logger binary (default: logger)
+	 *   exec() is required
+	 *   *nix only
+	 *   returns exec() output
 	 *  log_to_csv
-	 *   input array keys: app_name file [lock_file]
+	 *   input array keys: string_app_name string_file [string_lock_file]
+	 *   throws an Exception on error
 	 *  log_to_json
-	 *   input array keys: app_name file [lock_file]
+	 *   input array keys: string_app_name string_file [string_lock_file]
+	 *   throws an Exception on error
 	 *  log_to_pdo
-	 *   input array keys: app_name pdo_handler [table_name]
+	 *   input array keys: string_app_name pdo_handler [string_table_name] [callable_on_pdo_error]
+	 *    on_pdo_error is callback function with one arg and is executed on pdo's execute() error
+	 *     eg: function($error){ error_log(__FILE__.' logger.php: '.$error[0].' '.$error[1].' '.$error[2]); }
 	 *  log_to_txt
-	 *   input array keys: app_name file [lock_file]
+	 *   input array keys: string_app_name string_file [string_lock_file]
+	 *   throws an Exception on error
 	 *  log_to_xml
-	 *   input array keys: app_name file [lock_file]
+	 *   input array keys: string_app_name string_file [string_lock_file]
+	 *   throws an Exception on error
 	 *
-	 * OOP examples:
+	 * Usage:
+	 *  $output=$log->debug('The condition is true');
+	 *  $output=$log->info('Nice message');
+	 *  $output=$log->warn('This feature is deprecated');
+	 *  $output=$log->error('Something went wrong');
+	 *
+	 * Examples:
 		$log=new log_to_csv([
 			'app_name'=>'test_app',
 			'file'=>'./log/journal.csv', // (required)
@@ -70,7 +74,7 @@
 		$log=new log_to_curl([
 			'app_name'=>'test_app',
 			'url'=>'http://127.0.0.1' // (required)
-			//,'on_error'=>function($error){ error_log(__FILE__.' log_to_curl: '.$error); }
+			//,'on_curl_error'=>function($error){ error_log(__FILE__.' log_to_curl: '.$error); }
 			//,'curl_opts'=>[CURLOPT_VERBOSE=>true]
 		])
 		$log=new log_to_exec([
@@ -90,11 +94,12 @@
 			'app_name'=>'test_app',
 			'pdo_handler'=>new PDO('sqlite:./database.sqlite3') // (required)
 			//,'table_name'=>'log' // (optional, default: log)
+			//,'on_pdo_error'=>function($error){ error_log(__FILE__.' log_to_pdo: '.$error[0].' '.$error[1].' '.$error[2]); }
 		])
 		$log=new log_to_php(['app_name'=>'test_app'])
 		$log=new log_to_syslog([
 			'app_name'=>'test_app'
-			//,'logger'=>'/bin/logger' (optional, default: logger)
+			//,'logger'=>'/bin/logger' // (optional, default: logger)
 		])
 		$log=new log_to_txt([
 			'app_name'=>'test_app',
@@ -124,105 +129,75 @@
 			// pdo
 			'pdo_handler'=>new PDO('sqlite:./database.sqlite3'),
 			'table_name'=>'log',
+			//'on_pdo_error'=>function($error){ error_log(__FILE__.' log_to_pdo: '.$error[0].' '.$error[1].' '.$error[2]); },
 
 			// curl
 			'url'=>'http://127.0.0.1'
 			//,'on_error'=>function($error){ error_log(__FILE__.' log_to_curl: '.$error); }
 			//,'curl_opts'=>[CURLOPT_VERBOSE=>true]
 		]);
-		$log->log('DEBUG', 'The condition is true');
-		$log->log('INFO', 'Nice message');
-		$log->log('WARN', 'This feature is deprecated');
-		$log->log('ERROR', 'Something went wrong');
+		$log->debug('The condition is true');
+		$log->info('Nice message');
+		$log->warn('This feature is deprecated');
+		$log->error('Something went wrong');
 	 */
-
-	function log_to_curl(
-		string $priority,
-		string $app_name,
-		string $url,
-		string $message,
-		callable $on_error=null,
-		array $curl_opts=array()
-	){
-		if(!extension_loaded('curl'))
-			throw new Exception('curl extension is not loaded');
-
-		if(!isset($curl_opts[CURLOPT_TIMEOUT]))
-			$curl_opts[CURLOPT_TIMEOUT]=10;
-		if(!isset($curl_opts[CURLOPT_SSL_VERIFYPEER]))
-			$curl_opts[CURLOPT_SSL_VERIFYPEER]=true;
-		if(!isset($curl_opts[CURLOPT_SSLVERSION]))
-			$curl_opts[CURLOPT_SSLVERSION]=CURL_SSLVERSION_TLSv1_2;
-		if(!isset($curl_opts[CURLOPT_FAILONERROR]))
-			$curl_opts[CURLOPT_FAILONERROR]=true;
-		if(!isset($curl_opts[CURLOPT_TCP_FASTOPEN]))
-			$curl_opts[CURLOPT_TCP_FASTOPEN]=true;
-		if(!isset($curl_opts[CURLOPT_RETURNTRANSFER]))
-			$curl_opts[CURLOPT_RETURNTRANSFER]=true;
-
-		$curl_opts[CURLOPT_URL]=$url;
-		$curl_opts[CURLOPT_POST]=true;
-		$curl_opts[CURLOPT_POSTFIELDS]=http_build_query([
-			'priority'=>$priority,
-			'app_name'=>$app_name,
-			'message'=>$message
-		]);
-
-		$handler=curl_init();
-		curl_setopt_array($handler, $curl_opts);
-
-		$output=curl_exec($handler);
-
-		if($on_error !== null)
-			if(curl_errno($handler))
-				$on_error(curl_error($handler));
-
-		curl_close($handler);
-
-		return $output;
-	}
-	function log_to_exec(string $priority, string $app_name, string $command, string $message)
-	{
-		return exec($command.' '.$app_name.' '.$priority.' "'.$message.'"');
-	}
-	function log_to_mail(string $priority, string $app_name, string $recipient, string $message)
-	{
-		return mail($recipient, 'LOG '.$app_name ,$message);
-	}
-	function log_to_php(string $priority, string $app_name, string $message)
-	{
-		return error_log($app_name.': ['.$priority.'] '.$message);
-	}
-	function log_to_syslog(string $priority, string $app_name, string $message, string $logger='logger')
-	{
-		switch($priority)
-		{
-			case 'DEBUG': $priority='debug'; break;
-			case 'INFO': $priority='info'; break;
-			case 'WARN': $priority='warning'; break;
-			case 'ERROR': $priority='error'; break;
-			default: return false;
-		}
-		return exec($logger.' --priority user.'.$priority.' --tag '.$app_name.' '.$message);
-	}
 
 	abstract class log_to_generic
 	{
-		// constructor requires protected $constructor_params array
+		protected $constructor_params=['app_name'];
+		protected $required_constructor_params=['app_name'];
 
 		protected $app_name;
 
-		public function __construct($params)
+		public function __construct(array $params)
 		{
+			foreach($this->required_constructor_params as $param)
+				if(!isset($params[$param]))
+					throw new Exception('The '.$param.' parameter was not specified for the constructor');
+
 			foreach($this->constructor_params as $param)
 				if(isset($params[$param]))
 					$this->$param=$params[$param];
 		}
+
+		public function debug(string $message)
+		{
+			return $this->log('DEBUG', $message);
+		}
+		public function info(string $message)
+		{
+			return $this->log('INFO', $message);
+		}
+		public function warn(string $message)
+		{
+			return $this->log('WARN', $message);
+		}
+		public function error(string $message)
+		{
+			return $this->log('ERROR', $message);
+		}
 	}
 	abstract class log_to_file extends log_to_generic
 	{
+		protected $constructor_params=['app_name', 'file', 'lock_file'];
+		protected $required_constructor_params=['app_name', 'file'];
+
 		protected $file;
 		protected $lock_file=null;
+
+		public function __construct(array $params)
+		{
+			parent::__construct($params);
+
+			if(!file_exists(dirname($this->file)))
+				if(!mkdir(dirname($this->file), 0777, true))
+					throw new Exception('Unable to create '.dirname($this->file));
+
+			if($this->lock_file === null)
+				if(!file_exists(dirname($this->lock_file)))
+					if(!mkdir(dirname($this->lock_file), 0777, true))
+						throw new Exception('Unable to create '.dirname($this->lock_file));
+		}
 
 		protected function lock_unlock_file($lock)
 		{
@@ -232,85 +207,129 @@
 				{
 					while(file_exists($this->lock_file))
 						sleep(0.01);
+
 					if(file_put_contents($this->lock_file, '') === false)
-						return false;
+						throw new Exception('Unable to create lock file');
 				}
 				else
 					return unlink($this->lock_file);
 			}
+
 			return true;
 		}
 
 		public function log(string $priority, string $message)
 		{
-			if(!file_exists(dirname($this->file)))
-				mkdir(dirname($this->file));
 			if($this->lock_unlock_file(true))
 			{
 				$return=$this->do_log($priority, $message);
 				$this->lock_unlock_file(false);
+
 				return $return;
 			}
+
 			return false;
 		}
 	}
 
 	class log_to_curl extends log_to_generic
 	{
-		protected $constructor_params=['app_name', 'url', 'curl_opts', 'on_error'];
+		protected $constructor_params=['app_name', 'url', 'curl_opts'];
+		protected $required_constructor_params=['app_name', 'url'];
+
 		protected $url;
 		protected $curl_opts=array();
-		protected $on_error=null;
+		protected $on_error;
 
-		public function __construct($params)
+		public function __construct(array $params)
 		{
 			if(!extension_loaded('curl'))
 				throw new Exception('curl extension is not loaded');
 
 			parent::__construct($params);
+
+			$this->on_error['callback']=function(){};
+			if(isset($params['on_error']))
+				$this->on_error['callback']=$params['on_curl_error'];
+
+			if(!isset($this->curl_opts[CURLOPT_TIMEOUT]))
+				$this->curl_opts[CURLOPT_TIMEOUT]=10;
+			if(!isset($this->curl_opts[CURLOPT_SSL_VERIFYPEER]))
+				$this->curl_opts[CURLOPT_SSL_VERIFYPEER]=true;
+			if(!isset($this->curl_opts[CURLOPT_SSLVERSION]))
+				$this->curl_opts[CURLOPT_SSLVERSION]=CURL_SSLVERSION_TLSv1_2;
+			if(!isset($this->curl_opts[CURLOPT_FAILONERROR]))
+				$this->curl_opts[CURLOPT_FAILONERROR]=true;
+			if(!isset($this->curl_opts[CURLOPT_TCP_FASTOPEN]))
+				$this->curl_opts[CURLOPT_TCP_FASTOPEN]=true;
+			if(!isset($this->curl_opts[CURLOPT_RETURNTRANSFER]))
+				$this->curl_opts[CURLOPT_RETURNTRANSFER]=true;
+
+			$this->curl_opts[CURLOPT_URL]=$this->url;
+			$this->curl_opts[CURLOPT_POST]=true;
 		}
 
 		public function log(string $priority, string $message)
 		{
-			return log_to_curl(
-				$priority,
-				$this->app_name,
-				$this->url,
-				$message,
-				$this->on_error,
-				$this->curl_opts
-			);
+			$this->curl_opts[CURLOPT_POSTFIELDS]=http_build_query([
+				'priority'=>$priority,
+				'app_name'=>$this->app_name,
+				'message'=>$message
+			]);
+
+			$handler=curl_init();
+			foreach($this->curl_opts as $option=>$value)
+				curl_setopt($handler, $option, $value);
+			$output=curl_exec($handler);
+
+			if(curl_errno($handler))
+				$this->on_error['callback'](curl_error($handler));
+
+			curl_close($handler);
+
+			return $output;
 		}
 	}
 	class log_to_exec extends log_to_generic
 	{
 		protected $constructor_params=['app_name', 'command'];
+
 		protected $command;
 		
 		public function log(string $priority, string $message)
 		{
-			return log_to_exec($priority, $this->app_name, $this->command, $message);
+			return exec($this->command.' '.$this->app_name.' '.$priority.' "'.$message.'"');
 		}
 	}
 	class log_to_mail extends log_to_generic
 	{
 		protected $constructor_params=['app_name', 'recipient'];
+
 		protected $recipient;
 
 		public function log(string $priority, string $message)
 		{
-			return log_to_mail($priority, $this->app_name, $this->recipient, $message);
+			return mail($this->recipient, '[LOG] '.$this->app_name.' '.$priority ,$message);
 		}
 	}
 	class log_to_pdo extends log_to_generic
 	{
 		protected $constructor_params=['app_name', 'pdo_handler', 'table_name'];
+		protected $required_constructor_params=['app_name', 'pdo_handler'];
+
 		protected $pdo_handler;
 		protected $table_name='log';
+		protected $on_error;
 
-		public function log(string $priority, string $message)
+		public function __construct(array $params)
 		{
-			return $this->pdo_handler->exec('
+			parent::__construct($params);
+
+			$this->on_error['callback']=function(){};
+			if(isset($params['on_error']))
+				$this->on_error['callback']=$params['on_pdo_error'];
+
+			$this->pdo_handler->exec('
 				CREATE TABLE IF NOT EXISTS '.$this->table_name.'
 				(
 					id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -318,46 +337,72 @@
 					app_name VARCHAR(30),
 					priority VARCHAR(10),
 					message VARCHAR(255)
-				);
-				INSERT INTO '.$this->table_name.'(date, app_name, priority, message)
-				VALUES
-				(
-					"'.gmdate('Y-m-d H:i:s').'",
-					"'.$this->app_name.'",
-					"'.$priority.'",
-					"'.$message.'"
 				)
 			');
+		}
+
+		public function log(string $priority, string $message)
+		{
+			$query=$this->pdo_handler->prepare('
+				INSERT INTO '.$this->table_name.'(date, app_name, priority, message)
+				VALUES(:date, :app_name, :priority, :message)
+			');
+
+			if(!$query->execute([
+				':date'=>gmdate('Y-m-d H:i:s'),
+				':app_name'=>$this->app_name,
+				':priority'=>$priority,
+				':message'=>$message
+			]))
+				$this->on_error['callback']($this->pdo_handler->errorInfo());
 		}
 	}
 	class log_to_php extends log_to_generic
 	{
-		protected $constructor_params=['app_name'];
-
 		public function log(string $priority, string $message)
 		{
-			return log_to_php($priority, $this->app_name, $message);
+			return error_log($this->app_name.': ['.$priority.'] '.$message);
 		}
 	}
 	class log_to_syslog extends log_to_generic
 	{
 		protected $constructor_params=['app_name', 'logger'];
+
 		protected $logger='logger';
 
 		public function log(string $priority, string $message)
 		{
-			return log_to_syslog($priority, $this->app_name, $message, $this->logger);
+			switch($priority)
+			{
+				case 'WARN':
+					$priority='warning';
+				break;
+				case 'DEBUG':
+				case 'INFO':
+				case 'ERROR':
+					$priority=strtolower($priority);
+				break;
+				default:
+					return false;
+			}
+
+			return exec($this->logger
+				.' --priority user.'.$priority
+				.' --tag '.$this->app_name
+				.' '.$message
+			);
 		}
 	}
 
 	class log_to_csv extends log_to_file
 	{
 		protected $constructor_params=['app_name', 'file', 'lock_file', 'delimiter'];
+
 		protected $delimiter=',';
 
 		protected function do_log($priority, $message)
 		{
-			return file_put_contents(
+			if(file_put_contents(
 				$this->file,
 				gmdate('Y-m-d H:i:s')
 					.$this->delimiter
@@ -368,17 +413,17 @@
 					.$message
 					.PHP_EOL,
 				FILE_APPEND
-			);
+			) === false)
+				throw new Exception('Unable to create log file');
 		}
 	}
 	class log_to_json extends log_to_file
 	{
-		protected $constructor_params=['app_name', 'file', 'lock_file'];
-
 		protected function do_log($priority, $message)
 		{
 			if(!file_exists($this->file))
-				return file_put_contents(
+			{
+				if(file_put_contents(
 					$this->file,
 					'[["'
 						.gmdate('Y-m-d H:i:s').'","'
@@ -386,9 +431,12 @@
 						.$priority.'","'
 						.$message
 					.'"]]'
-				);
+				) === false)
+					throw new Exception('Unable to create log file');
+			}
 			else
-				return file_put_contents(
+			{
+				if(file_put_contents(
 					$this->file,
 					substr(file_get_contents($this->file), 0, -1)
 					.',["'
@@ -397,16 +445,16 @@
 						.$priority.'","'
 						.$message
 					.'"]]'
-				);
+				) === false)
+					throw new Exception('Unable to create log file');
+			}
 		}
 	}
 	class log_to_txt extends log_to_file
 	{
-		protected $constructor_params=['app_name', 'file', 'lock_file'];
-
 		protected function do_log($priority, $message)
 		{
-			return file_put_contents(
+			if(file_put_contents(
 				$this->file,
 				gmdate('Y-m-d H:i:s')
 					.' '.$this->app_name
@@ -414,17 +462,17 @@
 					.$message
 					.PHP_EOL,
 				FILE_APPEND
-			);
+			) === false)
+				throw new Exception('Unable to create log file');
 		}
 	}
 	class log_to_xml extends log_to_file
 	{
-		protected $constructor_params=['app_name', 'file', 'lock_file'];
-
 		protected function do_log($priority, $message)
 		{
 			if(!file_exists($this->file))
-				return file_put_contents(
+			{
+				if(file_put_contents(
 					$this->file,
 					'<?xml version="1.0" encoding="UTF-8" ?>'
 					.'<journal><entry>'
@@ -433,9 +481,12 @@
 						.'<priority>'.$priority.'</priority>'
 						.'<message>'.$message.'</message>'
 					.'</entry></journal>'
-				);
+				) === false)
+					throw new Exception('Unable to create log file');
+			}
 			else
-				return file_put_contents(
+			{
+				if(file_put_contents(
 					$this->file,
 					substr(file_get_contents($this->file), 0, -10)
 					.'<entry>'
@@ -444,7 +495,9 @@
 						.'<priority>'.$priority.'</priority>'
 						.'<message>'.$message.'</message>'
 					.'</entry></journal>'
-				);
+				) === false)
+					throw new Exception('Unable to create log file');
+			}
 		}
 	}
 ?>

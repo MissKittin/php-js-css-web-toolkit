@@ -6,14 +6,16 @@ You can specify any form
 * `sec_csrf.php`
 
 ## Methods
-* `add_field(array_field)` [returns this]  
+* `add_field(array_field)` [returns self]  
 	add input element
-* `add_config(string_key, value)` [returns this]  
+* `add_config(string_key, value)` [returns self]  
 	change config option
-* `add_csp_header(string_section, string_value)` [returns this]  
+* `add_csp_header(string_section, string_value)` [returns self]  
 	add CSP element
-* `add_html_header(string_header)` [returns this]  
+* `add_html_header(string_header)` [returns self]  
 	add raw html to the `<head>` section
+* `add_error_message(string_message=null)` [returns self]  
+	if is null, displaying the message will be canceled
 * `is_form_sent()` [returns bool]  
 	check if the form has been sent
 * `view()`  

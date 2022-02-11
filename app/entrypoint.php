@@ -1,7 +1,7 @@
 <?php
 	chdir(__DIR__ . '/..');
 
-	if(!($_SERVER['REQUEST_METHOD'] === 'GET') || ($_SERVER['REQUEST_METHOD'] === 'POST'))
+	if(($_SERVER['REQUEST_METHOD'] !== 'GET') && ($_SERVER['REQUEST_METHOD'] !== 'POST'))
 	{
 		include './app/controllers/samples/http_error.php';
 		http_error(400);

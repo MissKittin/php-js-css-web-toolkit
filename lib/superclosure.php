@@ -5,12 +5,17 @@
 		 * Serializable anonymous functions
 		 * Inspired by Jeremy Lindblom's SuperClosure
 		 *
-		 * PHP 7.4.0 and newer required
-		 *  and eval() must be allowed
+		 * Warning:
+		 *  for security reasons, it is better to sign or encrypt
+		 *   the serialized closure before sending or saving
+		 *  restoring static and global variables are not supported
+		 *  PHP 7.4.0 or newer is required
+		 *  eval() must be allowed
 		 *
-		 * Warning: restoring static and global variables is not supported
+		 * Note:
+		 *  function($arg) use ($var) is supported
 		 *
-		 * Usage (function($arg) use ($var) is supported):
+		 * Usage:
 			$closure=new superclosure(function($arg){
 				echo 'My anonymous function: ' . $arg;
 			});
@@ -57,7 +62,6 @@
 		}
 		public function __unserialize($data)
 		{
-			// I had no better idea
 			foreach($data as $data_field)
 				if(is_array($data_field))
 					extract($data_field);
@@ -65,7 +69,7 @@
 				{
 					eval('$this->reflection='.$data_field.';');
 					if(!$this->reflection instanceOf Closure)
-						throw new Exception('closure expected in unserialized data');
+						throw new Exception('Closure expected in unserialized data');
 				}
 
 			$this->reflection=new ReflectionFunction($this->reflection);

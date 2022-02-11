@@ -43,8 +43,8 @@
 	 */
 
 	function login_single(
-		string $input_login,
-		string $input_password,
+		string $input_login=null,
+		string $input_password=null,
 		string $login,
 		string $password
 	){
@@ -65,7 +65,7 @@
 
 		return false;
 	}
-	function login_multi(string $input_login, string $input_password, array $login_array)
+	function login_multi(string $input_login=null, string $input_password=null, array $login_array)
 	{
 		if(session_status() !== PHP_SESSION_ACTIVE)
 			throw new Exception('Session not started');
@@ -85,7 +85,7 @@
 
 		return false;
 	}
-	function login_callback(string $input_login, string $input_password, callable $callback)
+	function login_callback(string $input_login=null, string $input_password=null, callable $callback)
 	{
 		if(session_status() !== PHP_SESSION_ACTIVE)
 			throw new Exception('Session not started');
@@ -139,19 +139,21 @@
 		return false;
 	}
 
-	function is_logged(bool $session_regenerate=true, callable $on_check_fail=function(){})
+	function is_logged(bool $session_regenerate=true, callable $on_check_fail=null)
 	{
 		if(session_status() !== PHP_SESSION_ACTIVE)
 			throw new Exception('Session not started');
 
 		if(!isset($_SERVER['HTTP_USER_AGENT']))
 		{
-			$on_check_fail('User agent not sent');
+			if($on_check_fail !== null)
+				$on_check_fail('User agent not sent');
+
 			return false;
 		}
 
 		if(!isset($_SESSION['login']))
-			return false
+			return false;
 
 		if($_SESSION['login']['state'])
 		{

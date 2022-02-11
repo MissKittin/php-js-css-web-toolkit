@@ -1,6 +1,6 @@
 # Things to do after clone
 1) create `app/assets` directory
-2) `public/index.php` just imports another php file - this is stupid thing if your server OS allows you to use softlinks.  
+2) `public/index.php` just imports another php file - this is stupid thing if your OS allows you to use softlinks.  
 	You can remove this file and create link to `../app/entrypoint.php`.  
 	Run in this directory:  
 	for *nix:
@@ -57,7 +57,7 @@ There are tree types of assets:
 3) preprocessed assets
 	Create directory in `app/assets` with output file name.  
 	Create `main.php` file in this directory with css/js/etc code.  
-	Open `<?php` tag and write dynamic code - these block will be executed during compiling.  
+	Open `<?php` tag and write dynamic code - these block will be executed during compilation.  
 	`$current_asset` point to asset's directory.  
 	Also put css or js files in this directory these will be included in `main.php`.
 
@@ -76,15 +76,15 @@ Run `php ./bin/webdev.sh --dir ./public/assets`. All css and js files in `public
 
 ### Seeding database offline with pdo_connect() (optional)
 To offline seed database, run `php ./bin/pdo-connect.php -db ./app/databases/database-name`.  
-Note: database will be seeded automatically on first start.
+Note: database can be seeded automatically on first start.
 
 ### Running dev server
 In this dir run `php ./bin/serve.php`.  
-You can also specify IP, port, preload script and document root,  
-eg `php ./bin/serve.php -ip 127.0.0.1 -port 8080 -docroot ./public -preload ../tmp/app-preload.php`.
+You can also specify IP, port, preload script, document root and server threads,  
+eg `php ./bin/serve.php --ip 127.0.0.1 --port 8080 --docroot ./public --preload ../tmp/app-preload.php --threads 4`.
 
 ### Deploy on shared hosting in a subdirectory
-All routing and asset paths in views must be appropriate
+Note: all routing and asset paths in views must be appropriate
 1) move `./public` directory to `../public_html/app-name` (where `public_html` is document root in your hosting)
 2) edit `public_html/app-name/index.php` and correct the include path (here: `include '../../your-app/app/entrypoint.php';`)
-3) test application: `php ./bin/serve.php -docroot ../public_html`
+3) test application: `php ./bin/serve.php --docroot ../public_html`
