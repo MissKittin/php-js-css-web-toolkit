@@ -1,22 +1,22 @@
 # PHP-JS-CSS web toolkit
-MVC project skeleton and set of tools and libraries that you can use in your project.  
-Made for experimental purposes.
+A set of tools, components and libraries that you can use in your project  
+Recommended PHP version: 7
 
 ## Principles
 * respect the KISS rule
+* respect the DRY rule
 * use MVC design pattern
-* avoid autoloading
-* avoid chdir()
-* move all repeating code to the separated files
-* mix PHP code with HTML as little as possible, avoid this in controllers
+* avoid `chdir()`
 * PHP and CSS have a snake_case, Js - camelCase
 * if you are writing a new library, keep it independent of the other libraries
 * if you are writing a new component, keep it independent of the other components
+* if you are writing a new tool, keep it independent of the other tools
 
 ## PHP CLI tools
 * `assets-compiler.php` - compile assets from app/assets
 * `autoloader-generator.php` - a toy that scans PHP files and generates an autoloader script
 * `check-easter-mkcache.php` - cache generator for `check_easter_cache()`
+* `cron.php` - interface for `cron.php`
 * `file-sign.php` - interface for `sec_file_sign.php`
 * `file-watch.php` - run the command after modifying the file(s)
 * `include2blob.php` - a toy that converts inclusion to a single file blob
@@ -29,6 +29,7 @@ Made for experimental purposes.
 * `sqlite3-db-dump.php` - interface for `sqlite3_db_dump.php`
 * `sqlite3-db-vacuum.php` - vacuum database
 * `webdevsh.php` - interface for `webdevsh.php`
+* `websockets.php` - a simple point-to-point websocket server
 
 ## PHP libraries
 * `array_tree.php` - convert flat array into tree, tree to list
@@ -38,6 +39,7 @@ Made for experimental purposes.
 * `check_var.php` - check if variable and eventually return value
 * `convert_bytes.php` - automatically convert input number to human-readable form
 * `copy_recursive.php` - copy entire directories
+* `cron.php` - task scheduler
 * `curl_file_updown.php` - quickly download/upload file
 * `directoryIterator_sort.php` - run directoryIterator and sort output by name
 * `dotenv.php` - DotEnv proxy implementation
@@ -57,7 +59,7 @@ Made for experimental purposes.
 * `pdo_cheat.php` - use the table as an object
 * `pdo_connect.php` - open preconfigured connection to the database and optionally seed
 * `pdo_crud_builder.php` - OOP SQL builder
-* `print_file.php` - set http headers and send specified file to the client
+* `print_file.php` - set HTTP headers and send specified file to the client
 * `queue_worker.php` - execute jobs outside the HTTP server
 * `rand_str.php` - random string generator
 * `registry.php` - design pattern
@@ -102,6 +104,7 @@ Made for experimental purposes.
 * `list2tree.js` - convert ul or ol to expandable tree
 * `multipage.js` - put several pages in one HTML file / element switcher
 * `rand.js`
+* `richTextEditor.js` - basic WYSIWYG editor
 * `sendNotification.js` - send notification to the browser
 * `sleep.js`
 * `sortTable.js` - adds table sort by clicking table header
@@ -118,6 +121,7 @@ Made for experimental purposes.
 * `tooltip.css` - CSS tooltips
 
 ## PHP components
+* `admin_panel` - a small framework
 * `login` - quickly create login-restricted content
 * `middleware_form` - customizable HTML form
 * `superclosure_router` - cacheable `uri_router.php`

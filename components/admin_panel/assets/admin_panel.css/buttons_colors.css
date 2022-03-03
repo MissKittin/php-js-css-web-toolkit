@@ -1,0 +1,16 @@
+.button,
+.menu_button {
+	background-color: #0000ff;
+}
+.button a,
+.button a:hover,
+.button a:visited,
+.menu_button a,
+.menu_button a:hover,
+.menu_button a:visited {
+	color: #ffffff;
+}
+button, form input[type="submit"] {
+	background-color: #0000ff;
+	color: #ffffff;
+}

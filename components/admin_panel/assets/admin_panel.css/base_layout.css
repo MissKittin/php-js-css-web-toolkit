@@ -1,0 +1,17 @@
+body {
+	margin: 0;
+	padding: 0;
+}
+#admin_content {
+	overflow: auto;
+}
+#admin_menu {
+	float: left;
+	padding: 0.25%;
+	overflow: auto;
+}
+#admin_module {
+	padding: 1%;
+	overflow: auto;
+	border-radius: 15px 0 0 15px;
+}

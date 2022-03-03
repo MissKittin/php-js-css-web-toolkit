@@ -1,0 +1,28 @@
+#admin_header {
+	font-family: monospace;
+	display: flex;
+	padding: 0.5%;
+}
+#admin_header #menu_button {
+	margin-right: 1%;
+	display: none;
+}
+#admin_header h1,
+#admin_header h2,
+#admin_header h3,
+#admin_header h4,
+#admin_header h5,
+#admin_header h6 {
+	margin: 0;
+	display: inline;
+}
+#admin_header #logout_button {
+	display: flex;
+	justify-content: end;
+	float: right;
+	margin-left: auto;
+}
+#admin_header #logout_button form,
+#admin_header #logout_button form input[type="submit"] {
+	display: flex;
+}

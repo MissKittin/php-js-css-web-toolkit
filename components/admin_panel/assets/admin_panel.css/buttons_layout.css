@@ -1,0 +1,26 @@
+.button,
+.menu_button {
+	margin: 5px;
+	padding: 15px 5px 15px 5px;
+	text-align: center;
+	border-radius: 10px;
+}
+.button a,
+.button a:hover,
+.button a:visited,
+.menu_button a,
+.menu_button a:hover,
+.menu_button a:visited {
+	text-decoration: none;
+}
+.button {
+	display: inline-block;
+	padding: 10px 5px 10px 5px;
+}
+button, form input[type="submit"] {
+	border: none;
+	border-radius: 10px;
+}
+button:focus, form input[type="submit"]:focus {
+	outline-style: none;
+}

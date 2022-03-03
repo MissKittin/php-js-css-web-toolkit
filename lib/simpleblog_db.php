@@ -433,7 +433,7 @@
 				$i_stats=$this->db_handler->statIndex($i);
 				if($i_stats !== false)
 				{
-					$i_stats=explode('/', $i_stats['name'], 1)[0];
+					$i_stats=explode('/', $i_stats['name'])[0];
 					$result[$i_stats]=$i_stats;
 				}
 			}
