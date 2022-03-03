@@ -50,7 +50,10 @@
 			echo 'Usage:'.PHP_EOL;
 			echo ' serve.php [--ip 127.0.0.1] [--port 8080] [--docroot ../public] [--preload ./tmp/app-preload.php] [--threads 1]'.PHP_EOL;
 			echo PHP_EOL;
-			echo '--threads option requires PHP 7.4.0 or newer'.PHP_EOL;
+			echo '--threads and --preload options requires'.PHP_EOL;
+			echo ' PHP 7.4.0 or newer'.PHP_EOL;
+			echo 'if the server exists without any error,'.PHP_EOL;
+			echo ' it may be a preloader error'.PHP_EOL;
 			exit();
 		}
 

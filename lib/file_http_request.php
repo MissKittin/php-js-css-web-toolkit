@@ -160,7 +160,7 @@
 				{
 					$this->parsed_response_headers=array();
 
-					$response_status=explode(' ', $this->response_headers[$i], 2);
+					$response_status=explode(' ', $this->response_headers[$i]);
 					$this->response_protocol=$response_status[0];
 					$this->response_status=$response_status[1];
 

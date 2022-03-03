@@ -5,10 +5,12 @@
 	 *
 	 * Functions:
 	 *  maintenance_break_get(string_cookie_name, string_get_key)
-	 *  maintenance_break_path(string_cookie_name, string_uri_path)
+	 *  maintenance_break_path(string_cookie_name, string_uri_path, $_SERVER['REQUEST_URI'])
+	 *   note: $_SERVER['REQUEST_URI'] is optional
 	 *  maintenance_break_http(string_header_name, string_header_value)
-	 *  maintenance_break_ip(string_ip_addr)
-	 *   alternative: maintenance_break_ip([string_ip_addr, string_ip_addr])
+	 *  maintenance_break_ip(string_ip_addr, $_SERVER['REMOTE_ADDR'])
+	 *   alternative: maintenance_break_ip([string_ip_addr, string_ip_addr], $_SERVER['REMOTE_ADDR'])
+	 *   note: $_SERVER['REMOTE_ADDR'] is optional
 	 *
 	 * Example usage:
 		if(!maintenance_break_get('mbtoken', 'secretpassw0rd'))
@@ -31,9 +33,11 @@
 		 * Maintenance break
 		 * GET->cookie method
 		 *
-		 * Note: you only need to enter the password once
+		 * Note:
+		 *  you only need to enter the password once
 		 *
-		 * Usage: maintenance_break_get(string_cookie_name, string_get_key)
+		 * Usage:
+		 *  maintenance_break_get(string_cookie_name, string_get_key)
 		 *  type yourapp.addr?string_get_key in the address bar of your browser
 		 */
 
@@ -49,21 +53,34 @@
 
 		return false;
 	}
-	function maintenance_break_path(string $cookie_name, string $path)
-	{
+	function maintenance_break_path(
+		string $cookie_name,
+		string $path,
+		string $request_uri=null
+	){
 		/*
 		 * Maintenance break
 		 * URI->cookie method
 		 *
-		 * Warning: $_SERVER['REQUEST_URI'] is required
+		 * Note:
+		 *  you only need to enter the password once
+		 *  if you do not supply $request_uri, $_SERVER['REQUEST_URI'] will be used
 		 *
-		 * Note: you only need to enter the password once
-		 *
-		 * Usage: maintenance_break_path(string_cookie_name, string_uri_path)
+		 * Usage:
+		 *  maintenance_break_path(string_cookie_name, string_uri_path)
+		 *  maintenance_break_path(string_cookie_name, string_uri_path, string_request_uri)
 		 *  type yourapp.addr/string_uri_path in the address bar of your browser
 		 */
 
-		if(strtok($_SERVER['REQUEST_URI'], '?') === $path)
+		if($request_uri === null)
+		{
+			if(!isset($_SERVER['REQUEST_URI']))
+				throw new Exception('$_SERVER["REQUEST_URI"] is not set');
+
+			$request_uri=strtok($_SERVER['REQUEST_URI'], '?');
+		}
+
+		if($request_uri === $path)
 		{
 			setcookie($cookie_name, md5($path), time()+3600, '', '', false, true);
 			return true;
@@ -81,9 +98,11 @@
 		 * Maintenance break
 		 * HTTP header method
 		 *
-		 * Note: you have to pass the http header with each request
+		 * Note:
+		 *  you have to pass the http header with each request
 		 *
-		 * Usage: maintenance_break_http(string_header_name, string_header_value)
+		 * Usage:
+		 *  maintenance_break_http(string_header_name, string_header_value)
 		 *  in the client, add the http header: X-string_header_name: string_header_value
 		 */
 
@@ -94,33 +113,43 @@
 				return true;
 		return false;
 	}
-	function maintenance_break_ip($allowed_ip)
+	function maintenance_break_ip($allowed_ip, string $remote_ip=null)
 	{
 		/*
 		 * Maintenance break
 		 * IP method
 		 *
-		 * Warning:
-		 *  $_SERVER['REMOTE_ADDR'] is required
+		 * Note:
+		 *  if you do not supply $remote_ip, $_SERVER['REMOTE_ADDR'] will be used
 		 *
 		 * Usage:
-		 *  maintenance_break_ip(string_ip_addr)
-		 *  maintenance_break_ip([string_ip_addr, string_ip_addr])
+		 *  maintenance_break_ip(string_allowed_ip_addr)
+		 *  maintenance_break_ip(string_allowed_ip_addr, string_client_ip)
+		 *  maintenance_break_ip([string_allowed_ip_addr, string_allowed_ip_addr])
+		 *  maintenance_break_ip([string_allowed_ip_addr, string_allowed_ip_addr], string_client_ip)
 		 */
+
+		if($remote_ip === null)
+		{
+			if(!isset($_SERVER['REMOTE_ADDR']))
+				throw new Exception('$_SERVER["REMOTE_ADDR"] is not set');
+
+			$remote_ip=$_SERVER['REMOTE_ADDR'];
+		}
 
 		if(is_array($allowed_ip))
 		{
 			foreach($allowed_ip as $ip)
-				if($_SERVER['REMOTE_ADDR'] === $ip)
+				if($remote_ip === $ip)
 					return true;
 		}
 		else if(is_string($allowed_ip))
 		{
-			if($_SERVER['REMOTE_ADDR'] === $allowed_ip)
+			if($remote_ip === $allowed_ip)
 				return true;
 		}
 		else
-			throw new InvalidArgumentException('string or array expected');
+			throw new InvalidArgumentException('String or array expected');
 
 		return false;
 	}

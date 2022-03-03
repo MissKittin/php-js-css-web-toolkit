@@ -8,7 +8,7 @@
 		exit();
 	}
 
-	switch(explode('/', strtok($_SERVER['REQUEST_URI'], '?'), 2)[1])
+	switch(explode('/', strtok($_SERVER['REQUEST_URI'], '?'))[1])
 	{
 		case '': include './app/controllers/samples/home.php'; break;
 
