@@ -20,7 +20,7 @@
 
 	class superclosure_meta extends superclosure
 	{
-		public function __flush()
+		public function _flush()
 		{
 			$this->closure_vars=null;
 			$this->closure_body=null;
@@ -137,7 +137,7 @@
 
 				fwrite($output_file, '$__c='.$routing_element[1]->get_closure_body().';$__c();unset($__c);}');
 
-				$routing_element[1]->__flush();
+				$routing_element[1]->_flush();
 				$first_condition=true;
 				$first_if=false;
 			}
@@ -153,7 +153,7 @@
 
 				fwrite($output_file, '$__c='.static::$default_route['callback']->get_closure_body().';$__c();unset($__c);}');
 
-				static::$default_route['callback']->__flush();
+				static::$default_route['callback']->_flush();
 			}
 
 			if(!empty(static::$cache_registry))

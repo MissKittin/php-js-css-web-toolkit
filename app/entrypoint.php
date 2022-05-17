@@ -8,6 +8,12 @@
 		exit();
 	}
 
+	if(
+		isset($_SERVER['HTTP_X_FORWARDED_PROTO']) &&
+		($_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https')
+	)
+		$_SERVER['HTTPS']='on';
+
 	switch(explode('/', strtok($_SERVER['REQUEST_URI'], '?'))[1])
 	{
 		case '': include './app/controllers/samples/home.php'; break;

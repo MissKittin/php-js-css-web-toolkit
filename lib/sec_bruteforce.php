@@ -3,12 +3,14 @@
 	 * Trivial bruteforce prevention library - IP ban
 	 * designed so that the attacker does not see that he is banned
 	 *
-	 * Classes with timeout has autoclean function
-	 * 	removes ip from database if is not banned anymore.
-	 *  See clas's readme.
-	 * All classes depends on bruteforce_generic.
+	 * Note:
+	 *  Classes with timeout has autoclean function
+	 *   removes ip from database if is not banned anymore.
+	 *   See clas's readme.
+	 *  All classes depends on bruteforce_generic.
 	 *
-	 * Warning: if you create database for one class, then cannot be used in another
+	 * Warning:
+	 *  if you create database for one class, then cannot be used in another
 	 *  (you can read table from bruteforce_timeout_pdo in bruteforce_pdo)
 	 *
 	 * Functions:
@@ -46,8 +48,7 @@
 					'pdo_handler'=>new PDO('sqlite:'.'./tmp/sec_bruteforce.sqlite3'),
 					'table_name'=>'perm_ban'
 				))
-			))
-			{
+			)){
 				echo 'Banned';
 				exit();
 			}
@@ -59,6 +60,7 @@
 		{
 			if($iterate_permban_counter)
 				$permban_hook->add();
+
 			return true;
 		}
 		else
@@ -66,15 +68,19 @@
 			if($timeout_hook->check())
 			{
 				$timeout_hook->add();
+
 				if($timeout_hook->get_attempts()%$max_attempts === 0)
 				{
 					$permban_hook->add();
+
 					if($permban_hook->check())
 						$timeout_hook->del();
 				}
+
 				return true;
 			}
 		}
+
 		return false;
 	}
 
@@ -110,7 +116,7 @@
 		 * Checking: $bruteforce->check()
 		 *  returns bool
 		 * Current attempts number: $bruteforce->get_attempts()
-		 *  returns int from 0
+		 *  returns int from 0 (0 means not added)
 		 * Banning: $bruteforce->add()
 		 *  adding to the table or iterates attempts counter
 		 * Unbanning: $bruteforce->del()
@@ -152,24 +158,24 @@
 		{
 			if($this->current_attempts < $this->max_attempts)
 				return false;
+
 			return true;
 		}
 		public function add()
 		{
-			if($this->current_attempts === 0)
+			++$this->current_attempts;
+
+			if($this->current_attempts === 1)
 				$this->pdo_handler->exec('
 					INSERT INTO '.$this->table_name.'(ip, attempts)
 					VALUES("'.$this->ip.'", 1)
 				');
 			else
-			{
-				$this->current_attempts=++$this->current_attempts;
 				$this->pdo_handler->exec('
 					UPDATE '.$this->table_name.'
 					SET attempts='.$this->current_attempts.'
 					WHERE ip="'.$this->ip.'"
 				');
-			}
 		}
 		public function del()
 		{
@@ -179,6 +185,7 @@
 					DELETE FROM '.$this->table_name.'
 					WHERE ip="'.$this->ip.'"
 				');
+
 				$this->current_attempts=0;
 			}
 		}
@@ -208,7 +215,7 @@
 		 * Checking: $bruteforce->check()
 		 *  returns bool
 		 * Current attempts number: $bruteforce->get_attempts()
-		 *  returns int from 0
+		 *  returns int from 0 (0 means not added)
 		 * Last add() timestamp: $bruteforce->get_timestamp()
 		 *  returns int unix timestamp of last add() or 0
 		 * Banning: $bruteforce->add()
@@ -275,6 +282,7 @@
 			{
 				if($this->auto_clean)
 					$this->del();
+
 				return false;
 			}
 
@@ -282,20 +290,22 @@
 		}
 		public function add()
 		{
+			$timestamp=time();
+
 			if($this->current_attempts === 0)
 				$this->pdo_handler->exec('
 					INSERT INTO '.$this->table_name.'(ip, attempts, timestamp)
-					VALUES("'.$this->ip.'", 1, '.time().')
+					VALUES("'.$this->ip.'", 1, '.$timestamp.')
 				');
 			else
-			{
-				$this->current_attempts=++$this->current_attempts;
 				$this->pdo_handler->exec('
 					UPDATE '.$this->table_name.'
-					SET attempts='.$this->current_attempts.', timestamp='.time().'
+					SET attempts='.$this->current_attempts.', timestamp='.$timestamp.'
 					WHERE ip="'.$this->ip.'"
 				');
-			}
+
+			++$this->current_attempts;
+			$this->current_timestamp=$timestamp;
 		}
 		public function del()
 		{
@@ -305,7 +315,9 @@
 					DELETE FROM '.$this->table_name.'
 					WHERE ip="'.$this->ip.'"
 				');
+
 				$this->current_attempts=0;
+				$this->current_timestamp=null;
 			}
 		}
 	}
@@ -331,7 +343,7 @@
 		 * Checking: $bruteforce->check()
 		 *  returns bool
 		 * Current attempts number: $bruteforce->get_attempts()
-		 *  returns int from 0
+		 *  returns int from 0 (0 means not added)
 		 * Banning: $bruteforce->add()
 		 *  adding to the table or iterates attempts counter
 		 * Unbanning: $bruteforce->del()
@@ -385,6 +397,7 @@
 				{
 					while(file_exists($this->lock_file))
 						sleep(0.01);
+
 					file_put_contents($this->lock_file, '');
 				}
 				else
@@ -393,11 +406,14 @@
 					{
 						if(file_exists($this->lock_file))
 							return true;
+
 						return false;
 					}
+
 					unlink($this->lock_file);
 				}
 			}
+
 			return true;
 		}
 
@@ -405,11 +421,12 @@
 		{
 			if($this->current_attempts < $this->max_attempts)
 				return false;
+
 			return true;
 		}
 		public function add()
 		{
-			$this->current_attempts=++$this->current_attempts;
+			++$this->current_attempts;
 			$this->database[$this->ip]=$this->current_attempts;
 		}
 		public function del()
@@ -448,7 +465,7 @@
 		 * Checking: $bruteforce->check()
 		 *  returns bool
 		 * Current attempts number: $bruteforce->get_attempts()
-		 *  returns int from 0
+		 *  returns int from 0 (0 means not added)
 		 * Last add() timestamp: $bruteforce->get_timestamp()
 		 *  returns int unix timestamp of last add() or 0
 		 * Banning: $bruteforce->add()
@@ -512,6 +529,7 @@
 				{
 					while(file_exists($this->lock_file))
 						sleep(0.01);
+
 					file_put_contents($this->lock_file, '');
 				}
 				else
@@ -520,11 +538,14 @@
 					{
 						if(file_exists($this->lock_file))
 							return true;
+
 						return false;
 					}
+
 					unlink($this->lock_file);
 				}
 			}
+
 			return true;
 		}
 
@@ -547,6 +568,7 @@
 			{
 				if($this->auto_clean)
 					$this->del();
+
 				return false;
 			}
 
@@ -554,9 +576,11 @@
 		}
 		public function add()
 		{
-			$this->current_attempts=++$this->current_attempts;
+			++$this->current_attempts;
+			$this->current_timestamp=time();
+
 			$this->database[$this->ip]['attempts']=$this->current_attempts;
-			$this->database[$this->ip]['timestamp']=time();
+			$this->database[$this->ip]['timestamp']=$this->current_timestamp;
 		}
 		public function del()
 		{
@@ -564,6 +588,7 @@
 			{
 				unset($this->database[$this->ip]);
 				$this->current_attempts=0;
+				$this->current_timestamp=null;
 			}
 		}
 	}

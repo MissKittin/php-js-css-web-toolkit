@@ -15,9 +15,9 @@ The logout button action is the current URL via POST
 	* `'show_logout_button'=>true` optional
 	* `'csrf_token'=>['csrf_name', 'csrf_value']` required by show_logout_button
 
-* **[protected]** `__list_modules()` [returns array(link_name=>url)]  
+* **[protected]** `_list_modules()` [returns array(link_name=>url)]  
 	for view, prepares a list of modules for the menu
-* **[protected]** `__set_default_labels()`  
+* **[protected]** `_set_default_labels()`  
 	sets default values when called by the constructor
 * `add_module(array_params)` [returns self]  
 	you can add other parameters - they will be redirected to the module  

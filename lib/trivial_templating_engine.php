@@ -33,20 +33,22 @@
 		/*
 		 * Full version of templating engine
 		 *
-		 * eval() must be allowed
+		 * Warning:
+		 *  eval() must be allowed
+		 *  for and foreach loops accepts variables with lowerspace letters only
 		 *
 		 * Input array:
 			array(
 				'variable_a'=>'value_a',
 				'variable_b'=>'value_b',
-				'f_variable'=>['f_a', 'f_b', 'f_c']
+				'fvariable'=>['f_a', 'f_b', 'f_c']
 			)
 		 *
 		 * Input file:
 		 *  variables: {{variable}} or {{ variable }}
 		 *  inline PHP (without ; at the end): {[{phpcode}]}
 		 *  foreach (spaces as in variables, tabs doesn't matter):
-				{[foreach f_variable as myvariable]}
+				{[foreach fvariable as myvariable]}
 					{[[myvariable]]} sample text
 				{[end]}
 		 *  for (operator in second parameter can be < <= >= > and third parameter can be + or -):

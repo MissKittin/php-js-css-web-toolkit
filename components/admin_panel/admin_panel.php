@@ -27,7 +27,7 @@
 				throw new Exception('The base_url parameter was not specified for the constructor');
 			$this->base_url=$params['base_url'];
 
-			$this->__set_default_labels();
+			$this->_set_default_labels();
 
 			if(isset($params['show_logout_button']) && ($params['show_logout_button'] === true))
 				$this->registry['__show_logout_button']=true;
@@ -49,7 +49,7 @@
 				throw new Exception('The CSRF token has not been set');
 		}
 
-		protected function __list_modules()
+		protected function _list_modules()
 		{
 			$modules=array();
 
@@ -64,7 +64,7 @@
 
 			return $modules;
 		}
-		protected function __set_default_labels()
+		protected function _set_default_labels()
 		{
 			include __DIR__.'/views/csp_header.php';
 
@@ -74,7 +74,7 @@
 				->set_panel_label('Administration')
 				->set_logout_button_label('Logout');
 		}
-		protected function __view($__module)
+		protected function _view($__module)
 		{
 			if(isset($__module['config']))
 				include $__module['path'].'/'.$__module['config'];
@@ -211,7 +211,7 @@
 					return $content;
 				});
 
-			$this->__view($module_params);
+			$this->_view($module_params);
 
 			if($return_content)
 			{

@@ -48,8 +48,8 @@
 			$signature=$filesign->generate_input_signature('Message');
 			$verification=$filesign->verify_input_signature('Message', $signature);
 
-			$signature=$filesign->generate_input_signature(__FILE__);
-			$verification=$filesign->verify_input_signature(__FILE__, $signature);
+			$signature=$filesign->generate_file_signature(__FILE__);
+			$verification=$filesign->verify_file_signature(__FILE__, $signature);
 
 			$encrypted=$filesign->encrypt_data('Secret message');
 			$decrypted=$filesign->decrypt_data($encrypted);

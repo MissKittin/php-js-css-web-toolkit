@@ -25,6 +25,8 @@ Recommended PHP version: 7
 * `opcache-preload-generator.php` - opcache preload script generator
 * `pdo-connect.php` - interface for `pdo_connect.php`, `pdo_cheat.php` (optional) and `pdo_crud_builder.php` (optional) - seed databases from `app/databases`
 * `queue-worker.php` - interface for `queue_worker.php` server
+* `run-php-components-tests.php` - run PHP components tests in batch mode
+* `run-php-lib-tests.php` - run PHP library tests in batch mode
 * `serve.php` - start PHP development server
 * `sqlite3-db-dump.php` - interface for `sqlite3_db_dump.php`
 * `sqlite3-db-vacuum.php` - vacuum database
@@ -64,6 +66,7 @@ Recommended PHP version: 7
 * `rand_str.php` - random string generator
 * `registry.php` - design pattern
 * `relative_path.php` - get relative path between two files/directories
+* `rmdir_recursive.php` - remove non-empty directories
 * `school_algorithms.php` - miscellaneous and sorting algorithms from lessons
 * `sec_bruteforce.php` - trivial banning method by IP on n unsuccessful attempts
 * `sec_captcha.php` - CAPTCHA image generator

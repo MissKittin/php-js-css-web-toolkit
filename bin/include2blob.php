@@ -49,12 +49,22 @@
 		exit(1);
 	}
 
+	$ignore_include_errors=false;
+	if(check_argv('--ignore-include-errors'))
+		$ignore_include_errors=true;
+
 	if(check_argv('--debug'))
 	{
 		function open_file($matches)
 		{
 			if(!file_exists($matches[2]))
-				die($matches[2].' not exists');
+			{
+				if($GLOBALS['ignore_include_errors'])
+					return '/* include file '.$matches[2].' not found */'.PHP_EOL;
+				else
+					die($matches[2].' not exists');
+			}
+
 			return ' /* start include file '.$matches[2].' */ '.PHP_EOL.'?>'.include2blob(strip_php_comments(file_get_contents($matches[2]))).'<?php /* end include file '.$matches[2].' */ '.PHP_EOL;
 		}
 		$_SERVER['argv'][]='--no-compress';
@@ -64,7 +74,13 @@
 		function open_file($matches)
 		{
 			if(!file_exists($matches[2]))
-				die($matches[2].' not exists');
+			{
+				if($GLOBALS['ignore_include_errors'])
+					return '/* include file '.$matches[2].' not found */'.PHP_EOL;
+				else
+					die($matches[2].' not exists');
+			}
+
 			return '?>'.include2blob(strip_php_comments(file_get_contents($matches[2]))).'<?php ';
 		}
 	}
@@ -74,13 +90,15 @@
 		$file_content=preg_replace_callback('/include_once\s*\(?\s*(\'|")(.*)(\'|")\s*\)?\s*;/', 'open_file', $file_content);
 		$file_content=preg_replace_callback('/require\s*\(?\s*(\'|")(.*)(\'|")\s*\)?\s*;/', 'open_file', $file_content);
 		$file_content=preg_replace_callback('/require_once\s*\(?\s*(\'|")(.*)(\'|")\s*\)?\s*;/', 'open_file', $file_content);
+
 		return $file_content;
 	}
 
 	if(!isset($argv[1]))
 	{
 		echo 'No file name given'.PHP_EOL;
-		echo 'Usage: include2blob.php path/to/file.php [--debug] [--no-compress]'.PHP_EOL;
+		echo 'Usage: include2blob.php path/to/file.php [--debug] [--no-compress] [--ignore-include-errors]'.PHP_EOL;
+
 		exit(1);
 	}
 	if(!file_exists($argv[1]))

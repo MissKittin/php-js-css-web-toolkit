@@ -94,7 +94,7 @@
 		if($easter_start === false)
 			return false;
 
-		$easter_end['day']+=$easter_days;
+		$easter_end['day']=$easter_start['day']+$easter_days;
 		$easter_end['month']=$easter_start['month'];
 
 		while($easter_end['day'] > 30)
