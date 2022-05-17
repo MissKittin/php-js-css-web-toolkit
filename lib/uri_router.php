@@ -8,6 +8,7 @@
 		 * Hint:
 		 *  you can inherit from this class
 		 *  if you do uri_router::route() without uri_router::set_default_route() first, you can build next routing table
+		 *
 		 * Warning:
 		 *  uri_router::route() will flush routing table
 		 *  routes without request method specified applies to any request method

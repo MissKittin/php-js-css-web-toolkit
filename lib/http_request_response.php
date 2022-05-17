@@ -351,7 +351,7 @@
 		}
 		public function remote_port()
 		{
-			if(!isset($_SERVER['REQUEST_PORT']))
+			if(!isset($_SERVER['REMOTE_PORT']))
 				return false;
 
 			return $_SERVER['REMOTE_PORT'];
@@ -662,7 +662,7 @@
 		}
 		public function content_type(string $content_type)
 		{
-			$this->http_content_type=$content_type;
+			$this->http_headers['Content-Type']=$content_type;
 			return $this;
 		}
 		public function header(string $header, string $value)

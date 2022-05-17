@@ -205,12 +205,12 @@
 						if($this->exec('CREATE TABLE IF NOT EXISTS '.$this->table_name.'('.$table_schema.')') === false)
 							throw new Exception('unable to create table');
 
-						$this->__pdo_cheat__save_table_schema($params['table_schema']);
+						$this->_pdo_cheat__save_table_schema($params['table_schema']);
 					}
 				}
 				else
 					if(isset($table_schema[0]))
-						$this->__pdo_cheat__save_table_schema($table_schema[0]);
+						$this->_pdo_cheat__save_table_schema($table_schema[0]);
 			}
 		}
 
@@ -277,11 +277,11 @@
 			);
 		}
 
-		public function __pdo_cheat__clear_table_schema()
+		public function _pdo_cheat__clear_table_schema()
 		{
 			$this->table_schema=array();
 		}
-		public function __pdo_cheat__save_table_schema($table_schema)
+		public function _pdo_cheat__save_table_schema($table_schema)
 		{
 			foreach($table_schema as $column_name=>$a)
 				$this->table_schema[$column_name]=$column_name;
@@ -319,10 +319,10 @@
 			$statement=substr($statement, 0, -2);
 
 			$result=$this->exec('CREATE TABLE IF NOT EXISTS '.$this->table_name.'('.$statement.')');
-			if($result !== false)
+			if($result === false)
 				return false;
 
-			$this->pdo_cheat->__pdo_cheat__save_table_schema($this->table_schema);
+			$this->pdo_cheat->_pdo_cheat__save_table_schema($this->table_schema);
 			return true;
 		}
 	}
@@ -352,7 +352,7 @@
 			if($result === false)
 				return false;
 			
-			$this->pdo_cheat->__pdo_cheat__clear_table_schema();
+			$this->pdo_cheat->_pdo_cheat__clear_table_schema();
 			return true;
 		}
 	}

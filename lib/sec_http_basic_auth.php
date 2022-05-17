@@ -15,7 +15,10 @@
 
 		if(isset($_SERVER['PHP_AUTH_USER']))
 		{
-			if(($_SERVER['PHP_AUTH_USER'] === $username) && ($_SERVER['PHP_AUTH_PW'] === $password))
+			if(
+				($_SERVER['PHP_AUTH_USER'] === $username) &&
+				($_SERVER['PHP_AUTH_PW'] === $password)
+			)
 				return true;
 			else
 				if($error_callback !== null)
@@ -28,8 +31,11 @@
 		{
 			header('WWW-Authenticate: Basic realm="'.$realm.'"');
 			header('HTTP/1.0 401 Unauthorized');
-			$error_callback(true);
+
+			if($error_callback !== null)
+				$error_callback(true);
 		}
+
 		return false;
 	}
 ?>

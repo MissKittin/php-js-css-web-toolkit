@@ -6,6 +6,9 @@ Allows you to convert defined rules to PHP code
 * `superclosure.php`
 * `uri_router.php`
 
+## Required libraries for tests
+* `global_variable_streamer.php`
+
 ## Usage
 Before defining the rules, check if the cache file exists
 ```
@@ -25,7 +28,7 @@ or (the strtok function will only be called once - second parameter of the add_t
 superclosure_router::add_to_cache('strtok', "strtok(\$_SERVER['REQUEST_URI'], '?')"); // optimization
 superclosure_router::set_source_variable(superclosure_router::read_from_cache('strtok')); // required
 superclosure_router::set_request_method_variable("\$_SERVER['REQUEST_METHOD']"); // optional
-superclosure_router::dump_cache('./tmp/routing-cache.php');	
+superclosure_router::dump_cache('./tmp/routing-cache.php');
 ```
 and then
 ```

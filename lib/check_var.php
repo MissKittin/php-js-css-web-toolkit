@@ -188,12 +188,12 @@
 
 	function check_files(string $array_item, string $array_nested_item=null)
 	{
-		if($array_nested_item === null)
-			if(isset($_FILES[$array_item]))
-				return $_FILES[$array_item];
-		else
-			if(isset($_FILES[$array_item][$array_nested_item]))
-				return $_FILES[$array_item][$array_nested_item];
+		if(($array_nested_item === null) && isset($_FILES[$array_item]))
+			return $_FILES[$array_item];
+
+		if(isset($_FILES[$array_item][$array_nested_item]))
+			return $_FILES[$array_item][$array_nested_item];
+
 		return null;
 	}
 
@@ -232,12 +232,12 @@
 
 	function check_server(string $array_item, $array_nested_item=false)
 	{
-		if($array_nested_item === false)
-			if(isset($_SERVER[$array_item]))
-				return $_SERVER[$array_item];
-		else
-			if(isset($_SERVER[$array_item][$array_nested_item]))
-				return $_SERVER[$array_item][$array_nested_item];
+		if(($array_nested_item === false) && isset($_SERVER[$array_item]))
+			return $_SERVER[$array_item];
+
+		if(isset($_SERVER[$array_item][$array_nested_item]))
+			return $_SERVER[$array_item][$array_nested_item];
+	
 		return null;
 	}
 

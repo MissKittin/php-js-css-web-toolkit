@@ -26,6 +26,8 @@
 			});
 			$myclassb=$container->get('class_b');
 			$myclassb->do_someting();
+			$container->unset('class_a'); // optional
+			$container->unshare('class_b'); // optional
 		 * where set() saves the closure and executes it on demand
 		 *   (each get() returns new object instance)
 		 *  and share() executes the closure and saves the object
@@ -64,9 +66,15 @@
 		}
 		public function unset(string $name)
 		{
-			if(!isset($this->container[$name]))
+			if(!isset($this->closure_container[$name]))
 				throw new Exception($name.' is not registered');
-			unset($this->container[$name]);
+			unset($this->closure_container[$name]);
+		}
+		public function unshare(string $name)
+		{
+			if(!isset($this->object_container[$name]))
+				throw new Exception($name.' is not registered');
+			unset($this->object_container[$name]);
 		}
 
 		public static function set_container(string $name, ioc_closure_container $container)

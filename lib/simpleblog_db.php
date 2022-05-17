@@ -67,7 +67,7 @@
 	 *  reading record [returns array]:
 			$db->read('sample-record')
 	 *  search for keys/subrecords [returns array]:
-			$db->find('/subrecord/subrecord_name')
+			$db->find('subrecord/subrecord_name')
 	 *  delete a record:
 			$db->delete('sample-record')
 	 *
@@ -191,9 +191,9 @@
 			$found=array();
 			foreach(new RecursiveIteratorIterator(new RecursiveDirectoryIterator($this->db_path, RecursiveDirectoryIterator::SKIP_DOTS+RecursiveDirectoryIterator::UNIX_PATHS)) as $file)
 			{
-				$path=substr($file->getPathname(), strlen($this->db_path)+1);
-				if(strpos($path, $path) !== false)
-					$found[]=$path;
+				$path_b=substr($file->getPathname(), strlen($this->db_path)+1);
+				if(strpos($path_b, $path) !== false)
+					$found[]=$path_b;
 			}
 			return $found;
 		}
@@ -241,7 +241,7 @@
 			$file=str_replace(['/..', '../'], '', $file);
 
 			$content=call_user_func_array(['parent', $method], $method_params);
-			if($content !== null)
+			if(($content !== null) && (!empty($content)))
 				@file_put_contents($file, serialize($content));
 			return $content;
 		}
@@ -266,6 +266,10 @@
 		}
 		public function add(string $record_name, array $content)
 		{
+			if(file_exists($this->cache_path.'/'.$record_name))
+				if(!unlink($this->cache_path.'/'.$record_name))
+					throw new Exception('fatal error: unable to write cache');
+
 			$this->read_from_db($this->cache_path.'/'.$record_name, __FUNCTION__, [$record_name, $content]);
 			$this->remove_list_find_cache();
 		}
@@ -319,6 +323,9 @@
 
 		public function __construct(array $params)
 		{
+			if(!extension_loaded('Zip'))
+				throw new Exception('Zip extension is not loaded');
+
 			if(!isset($params['db_path']))
 				throw new Exception('the db_path parameter was not specified for the constructor');
 
@@ -329,10 +336,10 @@
 			$this->db_path=realpath($this->db_path);
 			if($this->db_path === false)
 			{
-				if(file_put_contents($this->db_path, '') === false)
+				if(file_put_contents($params['db_path'], '') === false)
 					throw new Exception('unable to create database');
 
-				$this->db_path=realpath($this->db_path);
+				$this->db_path=realpath($params['db_path']);
 				if($this->db_path === false)
 					throw new Exception('realpath(db_path) failed');
 
@@ -503,12 +510,23 @@
 			$this->open_db();
 
 			$found=array();
+			$strlen=strlen($path);
 			for($i=0; $i<$this->db_handler->numFiles; ++$i)
 			{
 				$i_stats=$this->db_handler->statIndex($i);
 				if($i_stats !== false)
-					if(strpos($i_stats['name'], $path) !== false)
+				{
+					$strpos=strpos($i_stats['name'], $path);
+
+					if(
+						($strpos !== false) &&
+						(
+							(substr($i_stats['name'], $strpos-1, $strlen+1) === '/'.$path) ||
+							(substr($i_stats['name'], $strpos, $strlen+1) === $path.'/')
+						)
+					)
 						$found[]=$i_stats['name'];
+				}
 			}
 			return $found;
 		}

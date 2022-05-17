@@ -11,10 +11,12 @@
 			if(!mkdir($destination))
 				return false;
 
-			foreach(new RecursiveIteratorIterator(
+			$iterator=new RecursiveIteratorIterator(
 				new RecursiveDirectoryIterator($source, RecursiveDirectoryIterator::SKIP_DOTS),
 				RecursiveIteratorIterator::SELF_FIRST
-			) as $item)
+			);
+
+			foreach($iterator as $item)
 				if($item->isDir())
 				{
 					if(!mkdir($destination.'/'.$iterator->getSubPathname()))

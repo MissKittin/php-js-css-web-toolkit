@@ -133,7 +133,7 @@
 
 			// curl
 			'url'=>'http://127.0.0.1'
-			//,'on_error'=>function($error){ error_log(__FILE__.' log_to_curl: '.$error); }
+			//,'on_curl_error'=>function($error){ error_log(__FILE__.' log_to_curl: '.$error); }
 			//,'curl_opts'=>[CURLOPT_VERBOSE=>true]
 		]);
 		$log->debug('The condition is true');

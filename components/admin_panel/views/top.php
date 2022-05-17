@@ -43,7 +43,7 @@
 		</div>
 		<div id="admin_content">
 			<div id="admin_menu">
-				<?php foreach($this->__list_modules() as $__module_name=>$__module_url) { ?>
+				<?php foreach($this->_list_modules() as $__module_name=>$__module_url) { ?>
 					<div class="menu_button">
 						<a href="<?php echo $__module_url; ?>"><?php echo $__module_name; ?></a>
 					</div>

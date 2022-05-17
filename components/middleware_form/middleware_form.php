@@ -1,8 +1,8 @@
 <?php
 	class middleware_form
 	{
-		private $is_form_sent=true;
-		private $registry=array();
+		protected $is_form_sent=true;
+		protected $registry=array();
 
 		public function __construct()
 		{
@@ -18,7 +18,7 @@
 				$this->is_form_sent=false;
 		}
 
-		private function load_function($libraries)
+		protected function load_function($libraries)
 		{
 			foreach($libraries as $library_file=>$library_func)
 				if(!function_exists($library_func))
@@ -28,18 +28,18 @@
 					else if(file_exists(__DIR__.'/../../lib/'.$library_file))
 						include __DIR__.'/../../lib/'.$library_file;
 					else
-						throw new Exception('library '.$library_file.' not found');
+						throw new Exception('Library '.$library_file.' not found');
 				}
 		}
 
-		private function parse_fields($view)
+		protected function parse_fields($view)
 		{
 			foreach($view['form_fields'] as $form_field)
 				if($form_field['tag'] === null)
 					echo $form_field['content'];
 				else
 				{
-					if((isset($form_field['type'])) && ($form_field['type'] === 'slider'))
+					if(isset($form_field['type']) && ($form_field['type'] === 'slider'))
 					{
 						$form_field['type']='checkbox';
 						$slider_label=$form_field['slider_label'];
