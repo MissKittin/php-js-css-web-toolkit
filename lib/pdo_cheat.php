@@ -9,27 +9,27 @@
 	 *
 	 * Usage/Examples:
 	 *  Creating the pdo_cheat handler:
-			$my_table=new pdo_cheat(array(
+			$my_table=new pdo_cheat([
 				'pdo_handler'=>new PDO('sqlite:./pdo_cheat.sqlite3'),
 				'table_name'=>'my_table'
-			))
+			])
 	 *  Creating the pdo_cheat handler with the fixed table schema option (recommended, see note below):
-			$my_table=new pdo_cheat(array(
+			$my_table=new pdo_cheat([
 				'pdo_handler'=>new PDO('sqlite:./pdo_cheat.sqlite3'),
 				'table_name'=>'my_table',
 				'table_schema'=>['id', 'name', 'surname', 'personal_id']
-			))
+			])
 	 *  Creating the pdo_cheat handler with automatic table creation (for testing purposes, see note below):
-			$my_table=new pdo_cheat(array(
+			$my_table=new pdo_cheat([
 				'pdo_handler'=>new PDO('sqlite:./pdo_cheat.sqlite3'),
 				'table_name'=>'my_table',
-				'new_table_schema'=>array(
+				'new_table_schema'=>[
 					'id'=>pdo_cheat::default_id_type,
 					'name'=>'VARCHAR(30)',
 					'surname'=>'VARCHAR(30)',
 					'personal_id'=>'INTEGER'
-				)
-			))
+				]
+			])
 	 *  Create a table (alternative method):
 			$my_table->new_table()
 				->id(pdo_cheat::default_id_type)
@@ -167,6 +167,7 @@
 				return false;
 
 			$result->execute($parameters);
+
 			return $result;
 		}
 	}
@@ -175,13 +176,13 @@
 	{
 		const default_id_type='INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL';
 
-		protected $table_schema=array();
+		protected $table_schema=[];
 
 		public function __construct(array $params)
 		{
 			foreach(['pdo_handler', 'table_name'] as $param)
 				if(!isset($params[$param]))
-					throw new Exception('the '.$param.' parameter was not specified for the constructor');
+					throw new Exception('The '.$param.' parameter was not specified for the constructor');
 
 			foreach(['pdo_handler', 'table_name'] as $param)
 				if(isset($params[$param]))
@@ -203,7 +204,7 @@
 						$table_schema=substr($table_schema, 0, -2);
 
 						if($this->exec('CREATE TABLE IF NOT EXISTS '.$this->table_name.'('.$table_schema.')') === false)
-							throw new Exception('unable to create table');
+							throw new Exception('Unable to create table');
 
 						$this->_pdo_cheat__save_table_schema($params['table_schema']);
 					}
@@ -279,7 +280,7 @@
 
 		public function _pdo_cheat__clear_table_schema()
 		{
-			$this->table_schema=array();
+			$this->table_schema=[];
 		}
 		public function _pdo_cheat__save_table_schema($table_schema)
 		{
@@ -291,7 +292,7 @@
 	class pdo_cheat__new_table extends pdo_cheat__exec
 	{
 		protected $pdo_cheat;
-		protected $table_schema=array();
+		protected $table_schema=[];
 
 		public function __construct(
 			pdo_cheat $pdo_cheat,
@@ -305,9 +306,10 @@
 		public function __call($column_name, $column_type)
 		{
 			if(!isset($column_type[0]))
-				throw new Exception('no column type defined for '.$column_name);
+				throw new Exception('No column type defined for '.$column_name);
 
 			$this->table_schema[$column_name]=$column_type[0];
+
 			return $this;
 		}
 
@@ -323,6 +325,7 @@
 				return false;
 
 			$this->pdo_cheat->_pdo_cheat__save_table_schema($this->table_schema);
+
 			return true;
 		}
 	}
@@ -344,6 +347,7 @@
 		{
 			if($this->exec('DELETE FROM '.$this->table_name) === false)
 				return false;
+
 			return true;
 		}
 		public function drop_table()
@@ -353,13 +357,14 @@
 				return false;
 			
 			$this->pdo_cheat->_pdo_cheat__clear_table_schema();
+
 			return true;
 		}
 	}
 	class pdo_cheat__get_row extends pdo_cheat__exec
 	{
-		protected $selected_columns=array();
-		protected $query_conditions=array();
+		protected $selected_columns=[];
+		protected $query_conditions=[];
 		protected $pdo_query=null;
 
 		protected $pdo_cheat;
@@ -381,13 +386,14 @@
 			if(substr($column_name, 0, 11) === 'get_row_by_')
 			{
 				if(!isset($value[0]))
-					throw new Exception('no column was provided');
+					throw new Exception('No column was provided');
 
 				$column_name=substr($column_name, 11);
 				if($column_name === '')
 					throw new Exception('get_row_by_() ???');
 
 				$this->query_conditions[$column_name]=$value[0];
+
 				return $this;
 			}
 			else if(substr($column_name, 0, 7) === 'select_')
@@ -397,6 +403,7 @@
 					throw new Exception('select_() ???');
 
 				$this->selected_columns[$column_name]=$column_name;
+
 				return $this;
 			}
 		}
@@ -405,11 +412,12 @@
 		{
 			if($this->pdo_query !== null)
 				throw new Exception('get_row() has been executed');
+
 			if(empty($this->query_conditions))
 				throw new Exception('get_row_by conditions not defined');
 
 			$statement='';
-			$parameters=array();
+			$parameters=[];
 			foreach($this->query_conditions as $column_name=>$value)
 			{
 				$statement.=$column_name.'=? AND ';
@@ -431,6 +439,7 @@
 				'SELECT '.$selected_columns.' FROM '.$this->table_name.' WHERE '.$statement,
 				$parameters
 			);
+
 			if($this->pdo_query === false)
 				return false;
 
@@ -458,7 +467,7 @@
 	{
 		protected $pdo_cheat;
 		protected $table_schema;
-		protected $query_conditions=array();
+		protected $query_conditions=[];
 
 		public function __construct(
 			pdo_cheat $pdo_cheat,
@@ -474,21 +483,23 @@
 		public function __call($column_name, $value)
 		{
 			if(!isset($value[0]))
-				throw new Exception('no value was provided for column '.$column_name);
+				throw new Exception('No value was provided for column '.$column_name);
+
 			if(!isset($this->table_schema[$column_name]))
 				throw new Exception('The '.$column_name.' column does not exist');
 
 			$this->query_conditions[$column_name]=$value[0];
+
 			return $this;
 		}
 
 		public function delete_row()
 		{
 			if(empty($this->query_conditions))
-				throw new Exception('conditions not specified');
+				throw new Exception('Conditions not specified');
 
 			$statement='';
-			$parameters=array();
+			$parameters=[];
 			foreach($this->query_conditions as $column_name=>$value)
 			{
 				$statement.=$column_name.'=? AND ';
@@ -496,7 +507,7 @@
 			}
 			$statement=substr($statement, 0, -5);
 
-			$this->query_conditions=array();
+			$this->query_conditions=[];
 
 			return $this->exec_prepared(
 				'DELETE FROM '.$this->table_name.' WHERE '.$statement,
@@ -535,6 +546,7 @@
 			{
 				if(isset($this->table_row[$column_name]))
 					return $this->table_row[$column_name];
+
 				return null;
 			}
 		}
@@ -547,7 +559,7 @@
 		{
 			$columns='';
 			$values='';
-			$parameters=array();
+			$parameters=[];
 			foreach($this->table_row as $column_name=>$value)
 			{
 				$columns.=$column_name.', ';
@@ -557,7 +569,7 @@
 			$columns=substr($columns, 0, -2);
 			$values=substr($values, 0, -2);
 
-			$this->table_row=array();
+			$this->table_row=[];
 
 			return $this->exec_prepared(
 				'REPLACE INTO '.$this->table_name.'('.$columns.') VALUES('.$values.')',

@@ -24,6 +24,7 @@
 
 		$sql='';
 		$tables=$db->query('SELECT name FROM sqlite_master WHERE type ="table" AND name NOT LIKE "sqlite_%"');
+
 		while($table=$tables->fetchArray(SQLITE3_NUM))
 		{
 			// CREATE TABLE
@@ -32,7 +33,7 @@
 			// INSERT INTO
 			$sql.='INSERT INTO '.$table[0].' (';
 				$columns=$db->query('PRAGMA table_info('.$table[0].')');
-				$fieldnames=array();
+				$fieldnames=[];
 				while($column=$columns->fetchArray(SQLITE3_ASSOC))
 					$fieldnames[]=$column['name'];
 				$sql.=implode(',', $fieldnames).') VALUES';
@@ -42,6 +43,7 @@
 				{
 					foreach($row as $k=>$v)
 						$row[$k]='"'.str_replace('"', '""', SQLite3::escapeString($v)).'"';
+
 					$sql.=PHP_EOL."\t".'('.implode(',', $row).'),';
 				}
 			$sql=rtrim($sql, ',').';'.PHP_EOL.PHP_EOL;

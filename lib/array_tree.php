@@ -10,16 +10,14 @@
 		 * Convert flat array to nested array
 		 *
 		 * Usage:
-			$nested_array=array_flat2tree
-			(
+			$nested_array=array_flat2tree(
 				$input_array,
 				$input_array_indexes,
 				null // parent_element_id for root
 			);
 		 *
 		 * Example input arrays:
-			$input_array=array
-			(
+			$input_array=[
 				[0, null, 'content0|description0'],
 				[1, null, 'content1|description1'],
 				[2, 3, 'content2|description2'],
@@ -30,20 +28,27 @@
 				[7, null, 'content7|description7'],
 				[8, 2, 'content8|description8'],
 				[9, 5, 'content9|description9']
-			);
-			$input_array_indexes=array
-			(
+			];
+			$input_array_indexes=[
 				'element_id'=>0,
 				'parent_element_id'=>1,
 				'content'=>2
-			);
+			];
 		 * $input_array can be from PDO's fetchAll()
 		 */
 
-		$output_array=array();
+		$output_array=[];
+
 		foreach($input_array as $row)
 			if($row[$indexes['parent_element_id']] === $parent_id)
-				$output_array[$row[$indexes['content']]]=(__METHOD__)($input_array, $indexes, $row[$indexes['element_id']]);
+				$output_array[
+					$row[$indexes['content']]
+				]=(__METHOD__)(
+					$input_array,
+					$indexes,
+					$row[$indexes['element_id']]
+				);
+
 		return $output_array;
 	}
 	function print_array_recursive(

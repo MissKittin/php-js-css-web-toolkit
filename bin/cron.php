@@ -105,7 +105,7 @@
 		}
 	}
 
-	if((!isset($log_callback)) ||(!is_callable($log_callback)))
+	if((!isset($log_callback)) || (!is_callable($log_callback)))
 		$log_callback=function(){};
 
 	if((!isset($debug_callback)) || (!is_callable($debug_callback)))
@@ -180,7 +180,7 @@
 		exit();
 	}
 
-	$GLOBALS['__children_pids']=array();
+	$GLOBALS['__children_pids']=[];
 	declare(ticks=1);
 	pcntl_signal(SIGCHLD, function($signal){
 		if($signal === SIGCHLD)

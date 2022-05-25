@@ -12,7 +12,7 @@
 	 *  cache_container - full version of the container with local cache
 	 *  cache_container_lite - simplified version without local cache
 	 *
-	 * Container methods:
+	 * Container methods ([] means optional):
 	 *  put(string_key, string_value, [int_timeout=0])
 	 *   save to cache
 	 *  put_temp(string_key, string_value, [int_timeout=0])
@@ -33,7 +33,7 @@
 	 *  flush()
 	 *   all cache
 	 *
-	 * Drivers:
+	 * Drivers ([] means optional):
 	 *  cache_driver_none -> dummy backend - only use local cache
 	 *   warning:
 	 *    this driver is rejected by cache_container_lite
@@ -64,15 +64,15 @@
 	 *    phpredis extension is required
 	 *
 	 * Example initialization:
-		$cache=new cache_container(new cache_driver_pdo(
+		$cache=new cache_container(new cache_driver_pdo([
 			'pdo_handler'=>new PDO('sqlite:./tmp/cache.sqlite3')
-		));
+		]));
 	 */
 
 	class cache_container
 	{
 		protected $cache_driver;
-		protected $local_cache=array();
+		protected $local_cache=[];
 
 		public function __construct(cache_driver $cache_driver)
 		{
@@ -207,7 +207,7 @@
 		public function flush()
 		{
 			$this->cache_driver->flush();
-			$this->local_cache=array();
+			$this->local_cache=[];
 		}
 	}
 	class cache_container_lite
@@ -335,7 +335,7 @@
 		public function put($a, $b, $c) {}
 		public function get($a): array
 		{
-			return array();
+			return [];
 		}
 		public function unset($a) {}
 		public function flush() {}
@@ -344,7 +344,7 @@
 	{
 		protected $file;
 		protected $lock_file;
-		protected $container=array();
+		protected $container=[];
 
 		public function __construct(array $params)
 		{
@@ -413,13 +413,13 @@
 				if(($this->container[$key]['timeout'] !== 0) && ((time()-$this->container[$key]['timestamp']) > $this->container[$key]['timeout']))
 				{
 					unset($this->container[$key]);
-					return array();
+					return [];
 				}
 
 				return $this->container[$key];
 			}
 
-			return array();
+			return [];
 		}
 		public function unset($key)
 		{
@@ -428,7 +428,7 @@
 		}
 		public function flush()
 		{
-			$this->container=array();
+			$this->container=[];
 		}
 	}
 	class cache_driver_file_realtime implements cache_driver
@@ -518,13 +518,13 @@
 			$result=$result->fetch(PDO::FETCH_ASSOC);
 
 			if($result === false)
-				return array();
+				return [];
 
 			$result['value']=json_decode($result['value'], true);
 			if($result['value'] === false)
 			{
 				$this->unset($key);
-				return array();
+				return [];
 			}
 
 			$result['timeout']=(int)$result['timeout'];
@@ -591,13 +591,13 @@
 			$value=$this->redis_handler->get($this->prefix.$key);
 
 			if($value === false)
-				return array();
+				return [];
 
 			$value=json_decode($value, true);
 			if($value === false)
 			{
 				$this->unset($key);
-				return array();
+				return [];
 			}
 
 			return $value;

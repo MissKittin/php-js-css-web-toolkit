@@ -159,10 +159,10 @@
 
 	class http_request
 	{
-		protected $cache_get=array();
-		protected $cache_http_headers=array();
-		protected $cache_parsed_http_headers=array();
-		protected $cache_post=array();
+		protected $cache_get=[];
+		protected $cache_http_headers=[];
+		protected $cache_parsed_http_headers=[];
+		protected $cache_post=[];
 		protected $cache_uri=null;
 
 		protected function get_http_header($header, $cache=true)
@@ -198,13 +198,17 @@
 				return false;
 			}
 
-			$params_sorted=array();
+			$params_sorted=[];
 			foreach(explode(',', $params) as $param)
 			{
 				if(strpos($param, ';') === false)
 					$params_sorted[trim($param)]=1;
 				else
-					$params_sorted[trim(substr($param, 0, strpos($param, ';')))]=trim(substr($param, strrpos($param, '=')+1));
+					$params_sorted[trim(substr(
+						$param, 0, strpos($param, ';')
+					))]=trim(substr(
+						$param, strrpos($param, '=')+1
+					));
 			}
 			krsort($params_sorted);
 
@@ -230,7 +234,7 @@
 				return false;
 			}
 
-			$params_sorted=array();
+			$params_sorted=[];
 			foreach(explode(',', $params) as $param)
 			{
 				$param_delimiter=strpos($param, '=');
@@ -424,10 +428,10 @@
 	{
 		protected $destination=null;
 		protected $max_file_size=null;
-		protected $allowed_mimes=array();
-		protected $moved_files=array();
+		protected $allowed_mimes=[];
+		protected $moved_files=[];
 
-		public function __construct(array $params=array())
+		public function __construct(array $params=[])
 		{
 			if($_SERVER['REQUEST_METHOD'] !== 'POST')
 				throw new Exception('Only POST method is supported');
@@ -439,7 +443,7 @@
 
 		public function list_uploaded_files()
 		{
-			$result=array();
+			$result=[];
 
 			foreach($_FILES as $file_name=>$file_array)
 				if($file_array['error'] === UPLOAD_ERR_OK)
@@ -451,8 +455,11 @@
 		{
 			return $this->moved_files;
 		}
-		public function move_uploaded_file(string $file, string $destination=null, string $file_name=null)
-		{
+		public function move_uploaded_file(
+			string $file,
+			string $destination=null,
+			string $file_name=null
+		){
 			if(!isset($_FILES[$file]))
 				throw new Exception($file.' not exists');
 
@@ -591,7 +598,7 @@
 		];
 		protected $http_status=200;
 		protected $http_content_charset=null;
-		protected $http_cookies=array();
+		protected $http_cookies=[];
 		protected $response_content=null;
 
 		public static function redirect(string $url, bool $exit=true)
@@ -625,7 +632,15 @@
 			bool $secure=false,
 			bool $httponly=false
 		){
-			$this->http_cookies[$name]=[$value, $expires, $path, $domain, $secure, $httponly];
+			$this->http_cookies[$name]=[
+				$value,
+				$expires,
+				$path,
+				$domain,
+				$secure,
+				$httponly
+			];
+
 			return $this;
 		}
 		public function etag(string $etag)

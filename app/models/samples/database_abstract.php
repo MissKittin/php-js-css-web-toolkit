@@ -1,6 +1,8 @@
 <?php
-	// database abstraction class
-	// for elimination of sql usage
+	/*
+	 * database abstraction class
+	 * for elimination of sql usage
+	 */
 
 	class database_abstract
 	{
@@ -43,11 +45,11 @@
 			// the layout of the database is known
 			$query_size=count($query);
 			for($i=0; $i<$query_size; ++$i)
-				$query[$i]=array(
+				$query[$i]=[
 					htmlspecialchars($query[$i][0], ENT_QUOTES, 'UTF-8'),
 					htmlspecialchars($query[$i][1], ENT_QUOTES, 'UTF-8'),
 					htmlspecialchars($query[$i][2], ENT_QUOTES, 'UTF-8')
-				);
+				];
 
 			return $query;
 		}
@@ -55,7 +57,10 @@
 		{
 			$table_columns=explode(',', $this->table_columns);
 			foreach($sql_set as $set_key=>$set_value)
-				$set_array[]=[$table_columns[$set_key], $set_value];
+				$set_array[]=[
+					$table_columns[$set_key],
+					$set_value
+				];
 
 			return $this->query_builder
 				->update($this->table_name)

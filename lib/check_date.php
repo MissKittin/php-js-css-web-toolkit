@@ -9,13 +9,18 @@
 	 *  check_easter_make_cache() requires check_easter__calculate()
 	 *
 	 * Functions:
-	 *  check_date [returns bool] -> basic function - check time if is between DD.MM - DD.MM (or D.M - D.M)
-	 *  check_easter [returns bool] -> easter extension for check_date
-	 *  check_easter_cache [returns bool] -> easter extension for check_date that uses pre-calculated tables
+	 *  check_date [returns bool]
+	 *   basic function - check time if is between DD.MM - DD.MM (or D.M - D.M)
+	 *  check_easter [returns bool]
+	 *   easter extension for check_date
+	 *  check_easter_cache [returns bool]
+	 *   easter extension for check_date that uses pre-calculated tables
 	 *
 	 * Helpers:
-	 *  check_easter__make_cache [returns string] -> tables pre-calculation for check_easter_with_cache
-	 *  check_easter__calculate -> Gauss Easter Algorithm calculator (for internal use)
+	 *  check_easter__make_cache [returns string]
+	 *   tables pre-calculation for check_easter_with_cache
+	 *  check_easter__calculate
+	 *   Gauss Easter Algorithm calculator (for internal use)
 	 *
 	 * Usage:
 	 *  check_date(20,4, 27,8)
@@ -178,10 +183,10 @@
 		for($i=1; $i<=100; ++$i)
 		{
 			$calculate_easter_output=check_easter__calculate($this_year);
-			$output_array[$this_year]=array(
+			$output_array[$this_year]=[
 				$calculate_easter_output['day'],
 				$calculate_easter_output['month']
-			);
+			];
 			++$this_year;
 		}
 

@@ -10,7 +10,7 @@
 		exit(1);
 	}
 
-	$failed_tests=array();
+	$failed_tests=[];
 
 	foreach(array_slice(scandir(__DIR__.'/../tests'), 2) as $test)
 		if(substr($test, strrpos($test, '.')) === '.php')

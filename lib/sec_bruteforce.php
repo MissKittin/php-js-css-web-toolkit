@@ -17,37 +17,49 @@
 	 *  bruteforce_mixed - mix timeout ban with permban
 	 *
 	 * Classes:
-	 *  bruteforce_pdo - store data in database via PDO (permban)
-	 *  bruteforce_timeout_pdo - store data in database via PDO (timeout ban)
-	 *  bruteforce_json - store data in flat file (for debugging purposes) (permban)
-	 *  bruteforce_timeout_json - store data in flat file (for debugging purposes) (timeout ban)
+	 *  bruteforce_pdo
+	 *   store data in database via PDO (permban)
+	 *  bruteforce_timeout_pdo
+	 *   store data in database via PDO (timeout ban)
+	 *  bruteforce_json
+	 *   store data in flat file (for debugging purposes) (permban)
+	 *  bruteforce_timeout_json
+	 *   store data in flat file (for debugging purposes) (timeout ban)
 	 */
 
-	function bruteforce_mixed($timeout_hook, $permban_hook, bool $iterate_permban_counter=true, int $max_attempts=3)
-	{
+	function bruteforce_mixed(
+		$timeout_hook,
+		$permban_hook,
+		bool $iterate_permban_counter=true,
+		int $max_attempts=3
+	){
 		/*
 		 * Mix timeout ban with permban
 		 *
 		 * Parameters:
-		 *  $timeout_hook - bruteforce_timeout type object
-		 *  $permban_hook - standard bruteforce type object
-		 *  $iterate_permban_counter - if banned permanently, iterates attemps counter on every request
-		 *  $max_attempts - ban permanently after n timeout bans (default 3)
+		 *  $timeout_hook
+		 *   bruteforce_timeout type object
+		 *  $permban_hook
+		 *   standard bruteforce type object
+		 *  $iterate_permban_counter
+		 *   if banned permanently, iterates attemps counter on every request
+		 *  $max_attempts
+		 *   ban permanently after n timeout bans (default 3)
 		 *
 		 * Returns true if ip is banned, false if not
 		 *
 		 * Checking ip status:
-			$bruteforce_tempban=new bruteforce_timeout_pdo(array(
+			$bruteforce_tempban=new bruteforce_timeout_pdo([
 				'pdo_handler'=>new PDO('sqlite:'.'./tmp/sec_bruteforce.sqlite3'),
 				'table_name'=>'temp_ban',
 				'auto_clean'=>false
-			));
+			]);
 			if(bruteforce_mixed(
 				$bruteforce_tempban,
-				new bruteforce_pdo(array(
+				new bruteforce_pdo([
 					'pdo_handler'=>new PDO('sqlite:'.'./tmp/sec_bruteforce.sqlite3'),
 					'table_name'=>'perm_ban'
-				))
+				])
 			)){
 				echo 'Banned';
 				exit();
@@ -104,15 +116,19 @@
 		 * rewritten to PDO OOP
 		 *
 		 * Constructor parameters:
-		 *  pdo_handler [object] (required)
-		 *  table_name [string] selected table for data (default sec_bruteforce)
-		 *  max_attempts [int] n attempts and ban (default 3)
-		 *  ip [string] default $_SERVER['REMOTE_ADDR']
+		 *  pdo_handler [object]
+		 *   required
+		 *  table_name [string]
+		 *   selected table for data (default sec_bruteforce)
+		 *  max_attempts [int]
+		 *   n attempts and ban (default 3)
+		 *  ip [string]
+		 *   default $_SERVER['REMOTE_ADDR']
 		 *
 		 * Opening database:
-			$bruteforce=new bruteforce_pdo(array(
+			$bruteforce=new bruteforce_pdo([
 				'pdo_handler'=>new PDO('sqlite:./tmp/sec_bruteforce.sqlite3')
-			));
+			]);
 		 * Checking: $bruteforce->check()
 		 *  returns bool
 		 * Current attempts number: $bruteforce->get_attempts()
@@ -133,7 +149,7 @@
 		public function __construct(array $params)
 		{
 			if(!isset($params['pdo_handler']))
-				throw new Exception('no PDO handler given');
+				throw new Exception('No PDO handler given');
 
 			$this->ip=$_SERVER['REMOTE_ADDR'];
 			foreach(['pdo_handler', 'table_name', 'max_attempts', 'ip'] as $param)
@@ -150,6 +166,7 @@
 				FROM '.$this->table_name.'
 				WHERE ip="'.$this->ip.'"
 			')->fetch(PDO::FETCH_NAMED);
+
 			if($ip_query !== false)
 				$this->current_attempts=$ip_query['attempts'];
 		}
@@ -198,20 +215,26 @@
 		 * rewritten to PDO OOP
 		 *
 		 * Constructor parameters:
-		 *  pdo_handler [object] (required)
-		 *  table_name [string] selected table for data (default sec_bruteforce)
-		 *  max_attempts [int] n attempts and ban (default 3)
-		 *  ban_time [int] unban after n seconds (default 600 [10min])
+		 *  pdo_handler [object]
+		 *   required
+		 *  table_name [string]
+		 *   selected table for data (default sec_bruteforce)
+		 *  max_attempts [int]
+		 *   n attempts and ban (default 3)
+		 *  ban_time [int]
+		 *   unban after n seconds (default 600 [10min])
 		 *   if is set to 0, ip is permanently banned after max_attempts
-		 *  ip [string] default $_SERVER['REMOTE_ADDR']
-		 *  auto_clean [bool] if exists in database, remove in check() if not banned anymore (defualt true)
+		 *  ip [string]
+		 *   default $_SERVER['REMOTE_ADDR']
+		 *  auto_clean [bool]
+		 *   if exists in database, remove in check() if not banned anymore (defualt true)
 		 *   if is enabled and ban timeout > 0, ip has max_attempts after ban, if disabled - one attempt after every ban
 		 *   if ban timeout === 0, auto_clean functionality will not work
 		 *
 		 * Opening database:
-			$bruteforce=new bruteforce_pdo(array(
+			$bruteforce=new bruteforce_pdo([
 				'pdo_handler'=>new PDO('sqlite:./tmp/sec_bruteforce.sqlite3')
-			));
+			]);
 		 * Checking: $bruteforce->check()
 		 *  returns bool
 		 * Current attempts number: $bruteforce->get_attempts()
@@ -239,7 +262,7 @@
 		public function __construct(array $params)
 		{
 			if(!isset($params['pdo_handler']))
-				throw new Exception('no PDO handler given');
+				throw new Exception('No PDO handler given');
 
 			$this->ip=$_SERVER['REMOTE_ADDR'];
 			foreach(['pdo_handler', 'table_name', 'max_attempts', 'ban_time', 'ip', 'auto_clean'] as $param)
@@ -256,6 +279,7 @@
 				FROM '.$this->table_name.'
 				WHERE ip="'.$this->ip.'"
 			')->fetch(PDO::FETCH_NAMED);
+
 			if($ip_query !== false)
 			{
 				$this->current_attempts=$ip_query['attempts'];
@@ -330,16 +354,20 @@
 		 * created for debugging purposes
 		 *
 		 * Constructor parameters:
-		 *  file [string] database file (required)
-		 *  lock_file [string] database lock file (suggested)
-		 *  max_attempts [int] n attempts and permban (default 3)
-		 *  ip [string] default $_SERVER['REMOTE_ADDR']
+		 *  file [string]
+		 *   database file (required)
+		 *  lock_file [string]
+		 *   database lock file (suggested)
+		 *  max_attempts [int]
+		 *   n attempts and permban (default 3)
+		 *  ip [string]
+		 *   default $_SERVER['REMOTE_ADDR']
 		 *
 		 * Opening database:
-			$bruteforce=new bruteforce_json(array(
+			$bruteforce=new bruteforce_json([
 				'file'=>'./tmp/sec_bruteforce.json',
 				'lock_file'=>'./tmp/sec_bruteforce.json.lock'
-			));
+			]);
 		 * Checking: $bruteforce->check()
 		 *  returns bool
 		 * Current attempts number: $bruteforce->get_attempts()
@@ -353,12 +381,12 @@
 
 		protected $file;
 		protected $lock_file=null;
-		protected $database=array();
+		protected $database=[];
 
 		public function __construct(array $params)
 		{
 			if(!isset($params['file']))
-				throw new Exception('no file path given');
+				throw new Exception('No file path given');
 
 			$this->ip=$_SERVER['REMOTE_ADDR'];
 			foreach(['file', 'lock_file', 'max_attempts', 'ip'] as $param)
@@ -447,21 +475,26 @@
 		 * created for debugging purposes
 		 *
 		 * Constructor parameters:
-		 *  file [string] database file (required)
-		 *  lock_file [string] database lock file (suggested)
-		 *  max_attempts [int] n attempts and ban (default 3)
-		 *  ban_time [int] unban after n seconds (default 600 [10min])
+		 *  file [string]
+		 *   database file (required)
+		 *  lock_file [string]
+		 *   database lock file (suggested)
+		 *  max_attempts [int]
+		 *   n attempts and ban (default 3)
+		 *  ban_time [int]
+		 *   unban after n seconds (default 600 [10min])
 		 *   if is set to 0, ip is permanently banned after max_attempts
 		 *  ip [string] default $_SERVER['REMOTE_ADDR']
-		 *  auto_clean [bool] if exists in database, remove in check() if not banned anymore (defualt true)
+		 *  auto_clean [bool]
+		 *   if exists in database, remove in check() if not banned anymore (defualt true)
 		 *   if is enabled and ban timeout > 0, ip has max_attempts after ban, if disabled - one attempt after every ban
 		 *   if ban timeout === 0, auto_clean functionality will not work
 		 *
 		 * Opening database:
-			$bruteforce=new bruteforce_json(array(
+			$bruteforce=new bruteforce_json([
 				'file'=>'./tmp/sec_bruteforce.json',
 				'lock_file'=>'./tmp/sec_bruteforce.json.lock'
-			));
+			]);
 		 * Checking: $bruteforce->check()
 		 *  returns bool
 		 * Current attempts number: $bruteforce->get_attempts()
@@ -479,7 +512,7 @@
 
 		protected $file;
 		protected $lock_file=null;
-		protected $database=array();
+		protected $database=[];
 		protected $ban_time=600;
 		protected $current_timestamp=null;
 		protected $auto_clean=true;
@@ -487,7 +520,7 @@
 		public function __construct(array $params)
 		{
 			if(!isset($params['file']))
-				throw new Exception('no file path given');
+				throw new Exception('No file path given');
 
 			$this->ip=$_SERVER['REMOTE_ADDR'];
 			foreach(['file', 'lock_file', 'max_attempts', 'ban_time', 'ip', 'auto_clean'] as $param)

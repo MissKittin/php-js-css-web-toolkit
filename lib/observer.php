@@ -45,9 +45,12 @@
 		}
 
 		$logger_object=new logger();
-
 		$my_observer_object=new my_observer();
-		$my_observer_object->attach(new article())->attach(new rss())->attach($logger_object);
+
+		$my_observer_object
+			->attach(new article())
+			->attach(new rss())
+			->attach($logger_object);
 		$my_observer_object->add('New article content');
 		$my_observer_object->detach($logger_object);
 		$my_observer_object->add('Second article content');
@@ -57,9 +60,10 @@
 	{
 		public function update($observer);
 	}
+
 	class observer
 	{
-		protected $observers=array();
+		protected $observers=[];
 
 		public function attach(observer_interface $observer)
 		{

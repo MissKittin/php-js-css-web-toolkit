@@ -63,7 +63,7 @@
 
 		public static function quick_view($view_path, $page_content='page_content.php')
 		{
-			$view=array();
+			$view=[];
 
 			include __DIR__.'/default_csp_header.php';
 
@@ -132,7 +132,9 @@
 		{
 			if(!isset($this->registry['html_headers']))
 				$this->registry['html_headers']='';
+
 			$this->registry['html_headers'].=$header;
+
 			return $this;
 		}
 		public function add_meta_name_header(string $name, string $content)

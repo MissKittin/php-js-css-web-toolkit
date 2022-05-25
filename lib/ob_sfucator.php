@@ -5,20 +5,40 @@
 		 * Obsfucate HTML by escaping all characters
 		 *
 		 * Usage:
-			$ob_sfucator=array(
+			// this is optional
+			$GLOBALS['ob_sfucator']=[
 				'title'=>'Nice title',
 				'label'=>'<h1>Enable javascript to view content</h1>'
-			);
+			];
+
 			ob_start('ob_sfucator');
-		 *  where $ob_sfucator is global variable
 		 */
 
-		global $ob_sfucator;
+		$buffer_length=strlen($buffer);
+		$hex_string='';
 
-		$hexString='';
-		for($i=0; $i<strlen($buffer); $i++)
-			$hexString.='%' . bin2hex($buffer[$i]);
+		for($i=0; $i<$buffer_length; ++$i)
+			$hex_string.='%'.bin2hex($buffer[$i]);
 
-		return '<!DOCTYPE html><html><head><title>' . $ob_sfucator['title'] . '</title><meta charset="utf-8"></head><body onload="document.write(unescape(\'' . $hexString . '\'));"><noscript>' . $ob_sfucator['label'] . '</noscript></body></html>';
+		$title='';
+		if(isset($GLOBALS['ob_sfucator']['title']))
+			$title='<title>'.$GLOBALS['ob_sfucator']['title'].'</title>';
+
+		$label='';
+		if(isset($GLOBALS['ob_sfucator']['label']))
+			$label='<noscript>'.$GLOBALS['ob_sfucator']['label'].'</noscript>';
+
+		return ''
+			.'<!DOCTYPE html>'
+			.'<html>'
+			.	'<head>'
+			.		$title
+			.		'<meta charset="utf-8">'
+			.	'</head>'
+			.	'<body onload="document.write(unescape(\''.$hex_string.'\'));">'
+			.		$label
+			.	'</body>'
+			.'</html>'
+		;
 	}
 ?>

@@ -37,7 +37,7 @@
 
 		protected $url=null;
 		protected $request_method='GET';
-		protected $request_headers=array();
+		protected $request_headers=[];
 		protected $request_content=null;
 		protected $request_context;
 		protected $response_protocol;
@@ -47,7 +47,7 @@
 		protected $response_content;
 		protected $response_cookies;
 
-		public function __construct(array $params=array())
+		public function __construct(array $params=[])
 		{
 			foreach(['url', 'method', 'request_content'] as $param)
 				if(isset($params[$param]))
@@ -66,7 +66,7 @@
 			$this->response_headers=null;
 			$this->parsed_response_headers=null;
 			$this->response_content=null;
-			$this->response_cookies=array();
+			$this->response_cookies=[];
 		}
 
 		public function set_url(string $url)
@@ -116,7 +116,7 @@
 
 				if(!empty($this->request_headers))
 				{
-					$request_headers=array();
+					$request_headers=[];
 					foreach($this->request_headers as $header_name=>$header_value)
 						$request_headers[]=$header_name.': '.$header_value;
 
@@ -158,7 +158,7 @@
 				$strpos=strpos($response_header, ':');
 				if($strpos === false)
 				{
-					$this->parsed_response_headers=array();
+					$this->parsed_response_headers=[];
 
 					$response_status=explode(' ', $this->response_headers[$i]);
 					$this->response_protocol=$response_status[0];

@@ -7,7 +7,8 @@
 		 *
 		 * Hint:
 		 *  you can inherit from this class
-		 *  if you do uri_router::route() without uri_router::set_default_route() first, you can build next routing table
+		 *  if you do uri_router::route() without uri_router::set_default_route() first,
+		 *   you can build next routing table
 		 *
 		 * Warning:
 		 *  uri_router::route() will flush routing table
@@ -62,7 +63,7 @@
 			uri_router::route(); // exec and flush routing table
 		 */
 
-		protected static $routing_table=array();
+		protected static $routing_table=[];
 		protected static $base_path='';
 		protected static $source=null;
 		protected static $request_method;
@@ -97,14 +98,24 @@
 			$request_method=null
 		){
 			if(static::$reverse_mode)
-				array_unshift(static::$routing_table, [$source, $callback, $use_regex, $request_method]);
+				array_unshift(static::$routing_table, [
+					$source,
+					$callback,
+					$use_regex,
+					$request_method
+				]);
 			else
-				static::$routing_table[]=[$source, $callback, $use_regex, $request_method];
+				static::$routing_table[]=[
+					$source,
+					$callback,
+					$use_regex,
+					$request_method
+				];
 		}
 		public static function route()
 		{
 			if(static::$source === null)
-				throw new Exception('source undefined');
+				throw new Exception('Source undefined');
 
 			$path_matches=false;
 			foreach(static::$routing_table as $routing_element)
@@ -113,7 +124,10 @@
 					{
 						if($routing_element[2])
 						{
-							if(preg_match('#^'.static::$base_path.$routing_path.'$#', static::$source))
+							if(preg_match(
+								'#^'.static::$base_path.$routing_path.'$#',
+								static::$source
+							))
 								$path_matches=true;
 						}
 						else
@@ -122,15 +136,16 @@
 
 						if($path_matches)
 						{
-							static::$routing_table=array();
+							static::$routing_table=[];
 							$routing_element[1]();
+
 							return true;
 						}
 					}
 
 			if(isset(static::$default_route['callback']))
 			{
-				static::$routing_table=array();
+				static::$routing_table=[];
 				static::$default_route['callback']();
 			}
 

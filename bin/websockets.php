@@ -102,8 +102,8 @@
 		private $read_bytes;
 		private $http_origin;
 		private $debug;
-		private $http_headers=array();
-		private $http_cookies=array();
+		private $http_headers=[];
+		private $http_cookies=[];
 
 		public function __construct($client, $read_bytes, $http_origin, $debug)
 		{
@@ -323,7 +323,7 @@
 
 	$__ws_http_origin=check_argv_next_param_many('--origin');
 	if($__ws_http_origin === null)
-		$__ws_http_origin=array();
+		$__ws_http_origin=[];
 
 	$__ws_children_limit=check_argv_param('--children-limit');
 	if($__ws_children_limit === null)
@@ -377,7 +377,7 @@
 		exit(1);
 	}
 
-	$GLOBALS['__ws_children_pids']=array();
+	$GLOBALS['__ws_children_pids']=[];
 	declare(ticks=1);
 	pcntl_signal(SIGCHLD, function($signal){
 		if($signal === SIGCHLD)

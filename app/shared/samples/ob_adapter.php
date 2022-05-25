@@ -20,7 +20,7 @@
 
 	abstract class ob_adapter
 	{
-		private static $instances=array();
+		private static $instances=[];
 
 		public static function add($instance)
 		{
@@ -34,6 +34,7 @@
 		{
 			foreach((__CLASS__)::$instances as $instance)
 				$buffer=$instance->exec($buffer, $phase);
+
 			return $buffer;
 		}
 	}
@@ -84,8 +85,10 @@
 		{
 			if(file_exists($output_file))
 			{
-				if((!isset($_SERVER['HTTP_ACCEPT_ENCODING'])) || (strpos($_SERVER['HTTP_ACCEPT_ENCODING'], 'gzip') === false))
-				{
+				if(
+					(!isset($_SERVER['HTTP_ACCEPT_ENCODING'])) ||
+					(strpos($_SERVER['HTTP_ACCEPT_ENCODING'], 'gzip') === false)
+				){
 					if(in_array('Content-Encoding: gzip', headers_list()))
 						header_remove('Content-Encoding');
 
@@ -111,8 +114,10 @@
 	{
 		public function exec($buffer)
 		{
-			if((!isset($_SERVER['HTTP_ACCEPT_ENCODING'])) || (strpos($_SERVER['HTTP_ACCEPT_ENCODING'], 'gzip') === false))
-			{
+			if(
+				(!isset($_SERVER['HTTP_ACCEPT_ENCODING'])) ||
+				(strpos($_SERVER['HTTP_ACCEPT_ENCODING'], 'gzip') === false)
+			){
 				if(in_array('Content-Encoding: gzip', headers_list()))
 					header_remove('Content-Encoding');
 

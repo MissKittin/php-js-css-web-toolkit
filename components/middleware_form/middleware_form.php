@@ -2,7 +2,7 @@
 	class middleware_form
 	{
 		protected $is_form_sent=true;
-		protected $registry=array();
+		protected $registry=[];
 
 		public function __construct()
 		{

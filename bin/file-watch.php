@@ -20,11 +20,14 @@
 	}
 
 	$watch_interval=500000;
-	if(isset($_SERVER['FILE_WATCH_INTERVAL']) && is_numeric($_SERVER['FILE_WATCH_INTERVAL']))
+	if(
+		isset($_SERVER['FILE_WATCH_INTERVAL']) &&
+		is_numeric($_SERVER['FILE_WATCH_INTERVAL'])
+	)
 		$watch_interval=$_SERVER['FILE_WATCH_INTERVAL'];
 
-	$files=array();
-	$removed_files=array();
+	$files=[];
+	$removed_files=[];
 	foreach(array_slice($argv, 2) as $file)
 		if(file_exists($file))
 		{

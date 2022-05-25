@@ -3,12 +3,16 @@
 	 * curl wrappers for quick file download and upload
 	 *
 	 * Functions:
-	 *  curl_file_upload()
-	 *  curl_file_download()
+	 *  curl_file_upload
+	 *  curl_file_download
 	 */
 
-	function curl_file_upload(string $url, string $source, array $params=array(), array $curl_opts=array())
-	{
+	function curl_file_upload(
+		string $url,
+		string $source,
+		array $params=[],
+		array $curl_opts=[]
+	){
 		/*
 		 * Quickly upload file
 		 * Supported protocols: FTP FTPS HTTP HTTPS SCP SFTP
@@ -76,9 +80,8 @@
 			break;
 			case 'http':
 			case 'https':
-				if(!isset($params['post_field_name']))
-					if(isset($params['on_error']))
-						$params['on_error']('curl_file_updown.php: you requested file_upload() via http but not define the post_field_name parameter');
+				if((!isset($params['post_field_name'])) && isset($params['on_error']))
+					$params['on_error']('curl_file_updown.php: you requested file_upload() via http but not define the post_field_name parameter');
 
 				if(!isset($curl_opts[CURLOPT_TCP_FASTOPEN]))
 					$curl_opts[CURLOPT_TCP_FASTOPEN]=true; // conflict with ftp and sftp
@@ -89,7 +92,7 @@
 					$params['post_field_name']=>curl_file_create($source)
 				];
 				$curl_opts[CURLOPT_HEADER]=true;
-			    $curl_opts[CURLOPT_HTTPHEADER]=['Content-type: multipart/form-data'];
+			    $curl_opts[CURLOPT_HTTPHEADER]=['Content-Type: multipart/form-data'];
 			break;
 			case 'scp':
 			case 'sftp':
@@ -111,9 +114,8 @@
 
 		$output=curl_exec($curl_handler);
 
-		if(isset($params['on_error']))
-			if(curl_errno($curl_handler))
-				$params['on_error'](curl_error($curl_handler));
+		if(isset($params['on_error']) && curl_errno($curl_handler))
+			$params['on_error'](curl_error($curl_handler));
 
 		curl_close($curl_handler);
 
@@ -122,8 +124,8 @@
 	function curl_file_download(
 		string $url,
 		string $destination=null,
-		array $params=array(),
-		array $curl_opts=array()
+		array $params=[],
+		array $curl_opts=[]
 	){
 		/*
 		 * Quickly download file and print it or save
@@ -174,6 +176,7 @@
 			case 'https':
 				if(!isset($curl_opts[CURLOPT_TCP_FASTOPEN]))
 					$curl_opts[CURLOPT_TCP_FASTOPEN]=true; // conflict with ftp and sftp
+
 				$curl_opts[CURLOPT_HTTPAUTH]=CURLAUTH_BASIC;
 			break;
 			case 'scp':
@@ -213,6 +216,7 @@
 
 			if(file_exists($destination))
 				return true;
+
 			return false;
 		}
 	}

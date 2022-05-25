@@ -5,7 +5,7 @@
 	{
 		function getallheaders()
 		{
-			$headers=array();
+			$headers=[];
 
 			foreach($_SERVER as $header_name=>$header_value)
 				if(substr($header_name, 0, 5) === 'HTTP_')

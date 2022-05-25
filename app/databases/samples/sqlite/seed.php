@@ -27,18 +27,21 @@
 	*/
 
 	// Use PDO CRUD builder (you need to import this library manually)
-	$seed_crud_builder=new pdo_crud_builder(array(
+	$seed_crud_builder=new pdo_crud_builder([
 		'pdo_handler'=>$pdo_handler
-	));
-	$seed_crud_builder->create_table('cars',
-		array(
-			'id' => 'INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL',
-			'name' => 'TEXT',
-			'price' => 'INT'
-		)
+	]);
+	$seed_crud_builder->create_table(
+		'cars',
+		[
+			'id'=>'INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL',
+			'name'=>'TEXT',
+			'price'=>'INT'
+		]
 	)->exec();
-	$seed_crud_builder->insert_into('cars', 'name,price',
-		array(
+	$seed_crud_builder->insert_into(
+		'cars',
+		'name,price',
+		[
 			['Bentley', '52642'],
 			['Audo', '5712'],
 			['Mercedes', '9000'],
@@ -46,8 +49,14 @@
 			['Lolvo', '29000'],
 			['Citroen', '41400'],
 			['Hummer', '21600']
-		)
+		]
 	)->exec();
-	$seed_crud_builder->insert_into('cars', 'name,price' , array(['Single row', '12354']))->exec();
+	$seed_crud_builder->insert_into(
+		'cars',
+		'name,price',
+		[
+			['Single row', '12354']
+		]
+	)->exec();
 	unset($seed_crud_builder);
 ?>

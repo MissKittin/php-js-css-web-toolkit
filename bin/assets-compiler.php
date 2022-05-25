@@ -22,7 +22,7 @@
 	}
 
 	$assets=scandir($argv[1]);
-	$assets=array_diff($assets, array('.', '..'));
+	$assets=array_diff($assets, ['.', '..']);
 	foreach($assets as $asset)
 	{
 		if(file_exists($argv[2].'/'.$asset))
@@ -49,7 +49,7 @@
 			echo 'Processing '.$asset.PHP_EOL;
 
 			$asset_files=scandir($argv[1].'/'.$asset);
-			$asset_files=array_diff($asset_files, array('.', '..'));
+			$asset_files=array_diff($asset_files, ['.', '..']);
 
 			foreach($asset_files as $file)
 				if(is_file($argv[1].'/'.$asset.'/'.$file))

@@ -3,12 +3,18 @@
 	 * Blog article slicing solutions from simpleblog project
 	 *
 	 * Functions:
-	 *  blog_page_slicer - a simplified version that uses built-in functions
-	 *  blog_page_slicer_old - old optimized version, for historical purposes
+	 *  blog_page_slicer
+	 *   a simplified version that uses built-in functions
+	 *  blog_page_slicer_old
+	 *   old optimized version, for historical purposes
 	 */
 
-	function blog_page_slicer(array $input_array, $current_page, int $entries_per_page, bool $preserve_keys=false)
-	{
+	function blog_page_slicer(
+		array $input_array,
+		$current_page,
+		int $entries_per_page,
+		bool $preserve_keys=false
+	){
 		/*
 		 * Select n elements from array at start point
 		 * from simpleblog project
@@ -16,7 +22,8 @@
 		 * Usage:
 		 *  blog_page_slicer(array_slice(scandir('/path'), 2), 1, 5)
 			blog_page_slicer(array_filter(scandir('/path'), function($input){
-				if(substr($input, 0, 7) === 'public_') return $input;
+				if(substr($input, 0, 7) === 'public_')
+					return $input;
 			}), 1, 5)
 		 */
 
@@ -50,7 +57,7 @@
 		if(($current_page === false) || ($current_page < 1))
 			$current_page=1;
 
-		$return_array=array();
+		$return_array=[];
 
 		$foreach_cache_a=($current_page*$entries_per_page)-($entries_per_page-1);
 		$foreach_cache_b=$current_page*$entries_per_page;
