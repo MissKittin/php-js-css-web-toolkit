@@ -86,6 +86,7 @@
 
 			if(isset(self::$supported_ciphers[$cipher]))
 				return base64_encode(random_bytes(self::$supported_ciphers[$cipher]['size']));
+
 			throw new Exception($cipher.' cipher is not supported');
 		}
 
@@ -93,6 +94,7 @@
 		{
 			if(!extension_loaded('openssl'))
 				throw new Exception('openssl extension is not loaded');
+
 			if(!extension_loaded('mbstring'))
 				throw new Exception('mbstring extension is not loaded');
 
@@ -101,8 +103,9 @@
 
 			if(!isset(self::$supported_ciphers[$cipher]))
 				throw new Exception($cipher.' cipher is not supported');
+
 			if(mb_strlen($key, '8bit') !== self::$supported_ciphers[$cipher]['size'])
-				throw new Exception('key length is invalid');
+				throw new Exception('Key length is invalid');
 
 			$this->key=$key;
 			$this->cipher=$cipher;
@@ -119,8 +122,9 @@
 				$content=openssl_encrypt($content, $this->cipher, $this->key, 0, $iv, $tag);
 			else
 				$content=openssl_encrypt($content, $this->cipher, $this->key, 0, $iv);
+
 			if($content === false)
-				throw new Exception('could not encrypt the data');
+				throw new Exception('Could not encrypt the data');
 
 			$iv=base64_encode($iv);
 			$tag=base64_encode($tag);
@@ -130,39 +134,43 @@
 				$mac=hash_hmac('sha256', $iv.$content, $this->key);
 
 			$json=json_encode(compact('iv', 'content', 'mac', 'tag'), JSON_UNESCAPED_SLASHES);
+
 			if(json_last_error() !== JSON_ERROR_NONE)
-				throw new Exception('could not encrypt the data');
+				throw new Exception('Could not encrypt the data');
 
 			return base64_encode($json);
 		}
 		public function decrypt(string $payload, bool $unserialize=true)
 		{
 			$payload=json_decode(base64_decode($payload), true);
-			if
-			(!(
+
+			if(!(
 				is_array($payload) &&
 				isset($payload['iv'], $payload['content'], $payload['mac']) &&
 				(strlen(base64_decode($payload['iv'], true)) === openssl_cipher_iv_length($this->cipher))
 			))
-				throw new Exception('the payload is invalid');
-			if
-			(
+				throw new Exception('The payload is invalid');
+
+			if(
 				(!self::$supported_ciphers[$this->cipher]['aead']) &&
 				(!hash_equals(hash_hmac('sha256', $payload['iv'].$payload['content'], $this->key), $payload['mac']))
 			)
-				throw new Exception('the MAC is invalid');
+				throw new Exception('The MAC is invalid');
 
 			$iv=base64_decode($payload['iv']);
+
 			if(empty($payload['tag']))
 				$tag='';
 			else
 				$tag=base64_decode($payload['tag']);
+
 			if((self::$supported_ciphers[$this->cipher]['aead']) && (strlen($tag) !== 16))
-				throw new Exception('could not decrypt the data');
+				throw new Exception('Could not decrypt the data');
 
 			$decrypted=openssl_decrypt($payload['content'], $this->cipher, $this->key, 0, $iv, $tag);
+
 			if($decrypted === false)
-				throw new Exception('could not decrypt the data');
+				throw new Exception('Could not decrypt the data');
 
 			if($unserialize)
 				$decrypted=unserialize($decrypted);
@@ -205,14 +213,30 @@
 			$this->lv_encrypter=new lv_encrypter($key, $cipher);
 		}
 
-		public function setcookie(string $name, $value='', int $expires=0, string $path='', string $domain='', bool $secure=false, bool $httponly=false)
-		{
-			return setcookie($name, $this->lv_encrypter->encrypt($value, self::$do_serialization), $expires, $path, $domain, $secure, $httponly);
+		public function setcookie(
+			string $name,
+			$value='',
+			int $expires=0,
+			string $path='',
+			string $domain='',
+			bool $secure=false,
+			bool $httponly=false
+		){
+			return setcookie(
+				$name,
+				$this->lv_encrypter->encrypt($value, self::$do_serialization),
+				$expires,
+				$path,
+				$domain,
+				$secure,
+				$httponly
+			);
 		}
 		public function getcookie(string $cookie_name)
 		{
 			if(isset($_COOKIE[$cookie_name]))
 				return $this->decrypt($_COOKIE[$cookie_name]);
+
 			return null;
 		}
 
@@ -220,6 +244,7 @@
 		{
 			if($content !== null)
 				return $this->lv_encrypter->decrypt($content, self::$do_serialization);
+
 			return null;
 		}
 	}
@@ -266,8 +291,10 @@
 		public function read($id)
 		{
 			$content=parent::read($id);
+
 			if($content !== '')
 				return $this->lv_encrypter->decrypt($content, false);
+
 			return '';
 		}
 		public function write($id, $content)
@@ -311,13 +338,16 @@
 		{
 			if(self::$initialized)
 				throw new Exception(__CLASS__.' is a singleton');
+
 			self::$initialized=true;
 
 			if(!isset($params['key']))
-				throw new Exception('no key specified');
+				throw new Exception('No key specified');
+
 			$cipher='aes-128-cbc';
 			if(isset($params['cipher']))
 				$cipher=$params['cipher'];
+
 			$this->lv_encrypter=new lv_encrypter($params['key'], $cipher);
 
 			foreach(['cookie_id', 'cookie_expire'] as $param)
@@ -336,13 +366,16 @@
 		public static function register_handler(array $params)
 		{
 			$class=__CLASS__;
+
 			if(!$class::$initialized)
 				return session_set_save_handler(new $class($params), true);
+
 			return false;
 		}
-		public static function session_start(array $params=array())
+		public static function session_start(array $params=[])
 		{
 			$class=__CLASS__;
+
 			if(!$class::$initialized)
 				throw new Exception($class.' is not registered - use the '.$class.'::register_handler method');
 
@@ -377,9 +410,25 @@
 				$cookie_expire=session_get_cookie_params()['lifetime'];
 
 			if($cookie_expire === 0)
-				setcookie($this->cookie_id, $session_data, 0, '', '', false, true);
+				setcookie(
+					$this->cookie_id,
+					$session_data,
+					0,
+					'',
+					'',
+					false,
+					true
+				);
 			else
-				setcookie($this->cookie_id, $session_data, time()+$cookie_expire, '', '', false, true);
+				setcookie(
+					$this->cookie_id,
+					$session_data,
+					time()+$cookie_expire,
+					'',
+					'',
+					false,
+					true
+				);
 
 			return true;
 		}
@@ -389,8 +438,14 @@
 			return true;
 		}
 
-		public function open($a, $b) { return true; }
-		public function close() { return true; }
+		public function open($a, $b)
+		{
+			return true;
+		}
+		public function close()
+		{
+			return true;
+		}
 		public function gc($a) {}
 	}
 	class lv_pdo_session_handler implements SessionHandlerInterface
@@ -434,7 +489,7 @@
 		 *  you can remove it from the class.
 		 *
 		 * Usage:
-			session_set_save_handler(new lv_pdo_session_handler(array(
+			session_set_save_handler(new lv_pdo_session_handler([
 				'key'=>'randomstringforlvencrypter', // required
 				'pdo_handler'=>new PDO('sqlite:./lv_pdo_session.sqlite3'), // required
 				'table_name'=>'lv_handler_sessions', // optional, default: lv_pdo_session_handler
@@ -442,7 +497,7 @@
 				{
 					error_log($message);
 				}
-			)), true);
+			]), true);
 		 */
 
 		protected static $initialized=false;
@@ -455,15 +510,17 @@
 		{
 			if(self::$initialized)
 				throw new Exception(__CLASS__.' is a singleton');
+
 			self::$initialized=true;
 
 			foreach(['pdo_handler', 'key'] as $param)
 				if(!isset($params[$param]))
-					throw new Exception('the '.$param.' parameter was not specified for the constructor');
+					throw new Exception('The '.$param.' parameter was not specified for the constructor');
 
 			$cipher='aes-128-cbc';
 			if(isset($params['cipher']))
 				$cipher=$params['cipher'];
+
 			$this->lv_encrypter=new lv_encrypter($params['key'], $cipher);
 
 			foreach(['pdo_handler', 'table_name'] as $param)
@@ -483,12 +540,13 @@
 		protected function is_sid_available($session_id) // just for my peace of mind
 		{
 			$data=$this->pdo_handler->prepare('SELECT id FROM '.$this->table_name.' WHERE id=:id');
-			$data->execute(array(':id'=>$session_id));
+			$data->execute([':id'=>$session_id]);
 
 			if(empty($data->fetchAll(PDO::FETCH_ASSOC)))
 				return true;
 
 			$this->on_error['callback'](__CLASS__.' error: session id collision with '.$session_id, $this->pdo_handler);
+
 			return false;
 		}
 
@@ -503,18 +561,20 @@
 				)
 			') === false)
 				return false;
+
 			return true;
 		}
 		public function create_sid() // just for my peace of mind
 		{
 			$SessionHandler=new SessionHandler();
-
 			$session_id=$SessionHandler->create_sid();
+	
 			while(!$this->is_sid_available($session_id))
 			{
 				$session_id=$SessionHandler->create_sid();
 				$this->on_error['callback'](__CLASS__.' create_sid: new session id generated', $this->pdo_handler);
 			}
+
 			return $session_id;
 		}
 		public function read($session_id)
@@ -522,7 +582,7 @@
 			$session_data='';
 
 			$data=$this->pdo_handler->prepare('SELECT payload FROM '.$this->table_name.' WHERE id=:id');
-			$data->execute(array(':id'=>$session_id));
+			$data->execute([':id'=>$session_id]);
 			$data=$data->fetch(PDO::FETCH_ASSOC);
 
 			if($data !== false)
@@ -541,10 +601,11 @@
 				REPLACE INTO '.$this->table_name.'(id, payload, last_activity)
 				VALUES(:id, :payload, '.time().')
 			');
-			return $data->execute(array(
+
+			return $data->execute([
 				':id'=>$session_id,
 				':payload'=>$this->lv_encrypter->encrypt($session_data, false)
-			));
+			]);
 		}
 		public function close()
 		{
@@ -554,7 +615,7 @@
 		public function destroy($session_id)
 		{
 			$data=$this->pdo_handler->prepare('DELETE FROM '.$this->table_name.' WHERE id=:id');
-			return $data->execute(array(':id'=>$session_id));
+			return $data->execute([':id'=>$session_id]);
 		}
 		public function gc($max_lifetime)
 		{
@@ -568,6 +629,7 @@
 			}
 
 			$this->on_error['callback'](__CLASS__.' gc: '.$result.' sessions removed', $this->pdo_handler);
+
 			return true;
 		}
 	}

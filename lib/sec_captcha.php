@@ -3,8 +3,8 @@
 	 * CAPTCHA protection library
 	 *
 	 * Warning:
-	 *  captcha_check and captcha_get require started session
-	 *  captcha_gd2 require gd extension
+	 *  captcha_check and captcha_get requires started session
+	 *  captcha_gd2 requires gd extension
 	 *  $_SESSION['captcha_token'] is reserved
 	 *
 	 * Functions:
@@ -52,20 +52,75 @@
 
 		$image_object=imagecreate(100, 20);
 
-		$color_grey=imagecolorallocate($image_object, 204, 204, 204);
-		imagefill($image_object, 0, 0, imagecolorallocate($image_object, 0, 0, 0));
-		imagestring($image_object, 3, 30, 3, $token_string, imagecolorallocate($image_object, 255, 255, 255));
-		imagerectangle($image_object, 0, 0, 99, 19, $color_grey);
-		imageline($image_object, 0, 10, 100, 10, $color_grey);
-		imageline($image_object, 50, 0, 50, 20, $color_grey);
+		$color_grey=imagecolorallocate(
+			$image_object,
+			204,
+			204,
+			204
+		);
+		imagefill(
+			$image_object,
+			0,
+			0,
+			imagecolorallocate(
+				$image_object,
+				0,
+				0,
+				0
+			)
+		);
+		imagestring(
+			$image_object,
+			3,
+			30,
+			3,
+			$token_string,
+			imagecolorallocate(
+				$image_object,
+				255,
+				255,
+				255
+			)
+		);
+		imagerectangle(
+			$image_object,
+			0,
+			0,
+			99,
+			19,
+			$color_grey
+		);
+		imageline(
+			$image_object,
+			0,
+			10,
+			100,
+			10,
+			$color_grey
+		);
+		imageline(
+			$image_object,
+			50,
+			0,
+			50,
+			20,
+			$color_grey
+		);
 
 		ob_start();
 		switch($encoding)
 		{
-			case 'bmp': imagebmp($image_object); break;
-			case 'gif': imagegif($image_object); break;
-			case 'png': imagepng($image_object); break;
-			default: imagejpeg($image_object);
+			case 'bmp':
+				imagebmp($image_object);
+			break;
+			case 'gif':
+				imagegif($image_object);
+			break;
+			case 'png':
+				imagepng($image_object);
+			break;
+			default:
+				imagejpeg($image_object);
 		}
 		$token_image=ob_get_clean();
 
@@ -74,13 +129,14 @@
 		return [$token_string, $token_image];
 	}
 
-	function captcha_get(callable $module, array $module_params=array())
+	function captcha_get(callable $module, array $module_params=[])
 	{
 		if(session_status() !== PHP_SESSION_ACTIVE)
 			throw new Exception('Session not started');
 
 		$captcha=call_user_func_array($module, $module_params);
 		$_SESSION['captcha_token']=$captcha[0];
+
 		return $captcha[1];
 	}
 	function captcha_check(string $input_token)
@@ -93,6 +149,7 @@
 
 		if($_SESSION['captcha_token'] === $input_token)
 			return true;
+
 		return false;
 	}
 ?>

@@ -11,7 +11,10 @@
 
 	include './app/shared/samples/default_http_headers.php';
 
-	if(strpos($_SERVER['HTTP_ACCEPT_ENCODING'], 'gzip') !== false)
+	if(
+		isset($_SERVER['HTTP_ACCEPT_ENCODING']) &&
+		(strpos($_SERVER['HTTP_ACCEPT_ENCODING'], 'gzip') !== false)
+	)
 		ob_start('ob_gzhandler');
 
 	include './app/shared/samples/session_start.php';
@@ -41,7 +44,7 @@
 			])
 		);
 	} catch(Exception $error) {
-		echo 'pdo_connect error: '.$error->getMessage();
+		echo 'pdo_connect() error: '.$error->getMessage();
 		exit();
 	}
 	$view['db_cars']=$db_cars;
@@ -50,13 +53,22 @@
 		switch(if2switch($_POST, ['create', 'read', 'update', 'delete']))
 		{
 			case 'create':
-				$db_cars->create(array($_POST['car_name'], $_POST['car_price']));
+				$db_cars->create([
+					$_POST['car_name'],
+					$_POST['car_price']
+				]);
 			break;
 			case 'read':
 				$view['do_read']=true;
 			break;
 			case 'update':
-				$db_cars->update($_POST['car_id'], array($_POST['car_name'], $_POST['car_price']));
+				$db_cars->update(
+					$_POST['car_id'],
+					[
+						$_POST['car_name'],
+						$_POST['car_price']
+					]
+				);
 			break;
 			case 'delete':
 				if(($_POST['car_id'] === '') && ($_POST['delete_allow_db_flush'] === 'allow'))

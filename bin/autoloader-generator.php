@@ -129,8 +129,8 @@
 		exit(1);
 	}
 
-	$classes=array();
-	$functions=array();
+	$classes=[];
+	$functions=[];
 	foreach($input_dirs as $input_dir)
 		foreach(new RecursiveIteratorIterator(new RecursiveDirectoryIterator($input_dir, RecursiveDirectoryIterator::SKIP_DOTS)) as $input_file)
 			if(

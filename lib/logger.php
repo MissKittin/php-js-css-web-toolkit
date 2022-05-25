@@ -238,7 +238,7 @@
 		protected $required_constructor_params=['app_name', 'url'];
 
 		protected $url;
-		protected $curl_opts=array();
+		protected $curl_opts=[];
 		protected $on_error;
 
 		public function __construct(array $params)

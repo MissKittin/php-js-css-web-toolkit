@@ -134,6 +134,7 @@
 		for($i=2; $i<$number; ++$i)
 			if($number%$i === 0)
 				return false;
+
 		return true;
 	}
 	function is_perfect_number(int $number)
@@ -146,6 +147,7 @@
 
 		if($sum === $number)
 			return true;
+
 		return false;
 	}
 	function factorization(int $number)
@@ -172,16 +174,18 @@
 
 		if($sum === $number)
 			return true;
+
 		return false;
 	}
 	function find_divisors(int $number)
 	{
-		$result=array();
+		$result=[];
 
 		$sqrt_number=sqrt($number);
 		for($i=1; $i<=$sqrt_number; ++$i)
 			if($number%$i === 0)
 				$result[]=$i;
+
 		for($i=count($result)-1; $i>=0; --$i)
 			if($number/$result[$i] !== $result[$i])
 				$result[]=$number/$result[$i];
@@ -267,6 +271,7 @@
 		{
 			if($number[$i] == 1) // $number[$i] is one-character string
 				$result+=$scale;
+
 			$scale*=2;
 		}
 
@@ -328,16 +333,19 @@
 
 		if($sum_b === $number_a+1)
 			return $number_b;
+
 		return false;
 	}
 	function factorial(float $number)
 	{
 		$result=1;
+
 		for($i=1; $i<=$number; ++$i)
 		{
 			$result*=$i;
 			//echo $i.'*'; // prints "$i*$i*...*$i"
 		}
+
 		return $result;
 	}
 	function power(float $number, int $exponent)
@@ -347,8 +355,10 @@
 			throw new Exception('Exponent must be positive or 0');
 
 		$result=1;
+
 		for($i=0; $i<$exponent; ++$i)
 			$result*=$number;
+
 		return $result;
 	}
 	function newton_sqrt(float $number, int $precission)
@@ -419,7 +429,7 @@
 	}
 	function tower_of_hanoi(int $pucks, $a='a', $b='b', $c='c')
 	{
-		$array=array();
+		$array=[];
 
 		if($pucks > 0)
 		{
@@ -430,8 +440,11 @@
 
 		return $array;
 	}
-	function amMod(int $carrier_frequency=500, int $signal_frequency=10, int $number_of_runs=360000)
-	{
+	function amMod(
+		int $carrier_frequency=500,
+		int $signal_frequency=10,
+		int $number_of_runs=360000
+	){
 		for($phase=0; $phase<=$number_of_runs; ++$phase)
 		{
 			$phase_in_rad=deg2rad($phase);
@@ -458,6 +471,7 @@
 		{
 			if($string[$i] !== $string[$size])
 				return false;
+
 			++$i;
 			--$size;
 		}
@@ -474,10 +488,12 @@
 			while($change)
 			{
 				$change=false;
+
 				for($i=0; $i<$size; ++$i)
 					if($string[$i] > $string[$i+1])
 					{
 						$change=true;
+
 						$pivot=$string[$i];
 						$string[$i]=$string[$i+1];
 						$string[$i+1]=$pivot;
@@ -495,6 +511,7 @@
 
 		if($string_a !== $string_b)
 			return false;
+
 		return true;
 	}
 	function count_pattern_matches(string $pattern, string $string)
@@ -508,6 +525,7 @@
 		while($i < $string_size)
 		{
 			$indicator=0;
+
 			if($string[$i] === $pattern[0])
 				++$indicator;
 
@@ -515,6 +533,7 @@
 				for($j=1; $j<$pattern_size; ++$j)
 				{
 					++$i;
+
 					if($string[$i] === $pattern[$j])
 						++$indicator;
 					else
@@ -663,6 +682,7 @@
 					case '---..': $output.='8'; break;
 					case '----.': $output.='9';
 				}
+
 			$output.=' ';
 		}
 
@@ -671,8 +691,11 @@
 
 	function is_triangle(float $a, float $b, float $c)
 	{
-		if((($a+$b) > $c) && (($b+$c) > $a) && (($c+$a) > $b))
-		{
+		if(
+			(($a+$b) > $c) &&
+			(($b+$c) > $a) &&
+			(($c+$a) > $b)
+		){
 			$perimeter=$a+$b+$c;
 			$height=$perimeter/2;
 
@@ -682,7 +705,8 @@
 				'perimeter'=>$perimeter
 			];
 		}
-		return array('result'=>false);
+
+		return ['result'=>false];
 	}
 	function line_segment_length(float $xa, float $ya, float $xb, float $yb)
 	{
@@ -691,8 +715,14 @@
 
 		return sqrt(($x*$x) + ($y*$y));
 	}
-	function point_is_on_line_segment(float $point_x, float $point_y, float $xa, float $ya, float $xb, float $yb)
-	{
+	function point_is_on_line_segment(
+		float $point_x,
+		float $point_y,
+		float $xa,
+		float $ya,
+		float $xb,
+		float $yb
+	){
 		// line_segment_length() required
 
 		// not moved into if() due to better code readability
@@ -702,10 +732,19 @@
 
 		if(abs($len_line_segment-($len_ls_A_2_point+$len_point_2_ls_B)) < 0.01)
 			return true;
+
 		return false;
 	}
-	function line_segments_intersect(float $xa, float $ya, float $xb, float $yb, float $xc, float $yc, float $xd, float $yd)
-	{
+	function line_segments_intersect(
+		float $xa,
+		float $ya,
+		float $xb,
+		float $yb,
+		float $xc,
+		float $yc,
+		float $xd,
+		float $yd
+	){
 		// point_is_on_line_segment() required
 
 		$det=function($x, $y, $xa, $ya, $xb, $yb)
@@ -735,8 +774,11 @@
 
 		return false;
 	}
-	function point_is_on_polygons_perimeter(array $point_x, array $point_y, array $vertex_coordinates)
-	{
+	function point_is_on_polygons_perimeter(
+		array $point_x,
+		array $point_y,
+		array $vertex_coordinates
+	){
 		// line_segments_intersect() required
 
 		$vertices=count($vertex_coordinates); // patch
@@ -751,11 +793,21 @@
 		$vertices-=1; // optimization
 		$common_vertices=0;
 		for($i=0; $i<$vertices; ++$i)
-			if(line_segments_intersect($point_x, $point_y, $pk, $point_y, $vertex_coordinates[$i][0], $vertex_coordinates[$i][1], $vertex_coordinates[$i+1][0], $vertex_coordinates[$i+1][1]))
+			if(line_segments_intersect(
+				$point_x,
+				$point_y,
+				$pk,
+				$point_y,
+				$vertex_coordinates[$i][0],
+				$vertex_coordinates[$i][1],
+				$vertex_coordinates[$i+1][0],
+				$vertex_coordinates[$i+1][1]
+			))
 				++$common_vertices;
 
 		if($common_vertices%2 === 0)
 			return false;
+
 		return true;
 	}
 	function analysis_of_quadratic_function(int $a, int $b, int $c)
@@ -785,6 +837,7 @@
 	{
 		if($y === $a*$x+$b)
 			return true;
+
 		return false;
 	}
 
@@ -794,6 +847,7 @@
 	{
 		for($i=0; $i<$array_size; ++$i)
 			$array[]=rand($min, $max);
+
 		return $array;
 	}
 
@@ -819,11 +873,13 @@
 					$array[$rand_a]=$array[$rand_b];
 					$array[$rand_b]=$pivot;
 				}
+
 				$i=0;
 			}
 			else
 			{
 				++$i;
+
 				if($i === $array_size)
 					$sorted=true;
 		}
@@ -863,15 +919,18 @@
 		while($change)
 		{
 			$change=false;
+
 			for($i=0; $i<$array_size; ++$i)
 				if($array[$i] > $array[$i+1])
 				{
 					$change=true;
+
 					$pivot=$array[$i];
 
 					$array[$i]=$array[$i+1];
 					$array[$i+1]=$pivot;
 				}
+
 			--$array_size;
 		}
 
@@ -886,11 +945,14 @@
 			$j=$i;
 			$pivot=$array[$i];
 
-			while(($j > 0) && ($array[$j-1] > $pivot)) // in PHP $j>0 must be first
-			{
+			while(
+				($j > 0) && // in PHP $j>0 must be first
+				($array[$j-1] > $pivot)
+			){
 				$array[$j]=$array[$j-1];
 				--$j;
 			}
+
 			$array[$j]=$pivot;
 		}
 
@@ -957,6 +1019,7 @@
 			/**/			$array[$q]=$pivot[$j];
 			/**/			++$j;
 			/**/		}
+			/**/
 			/**/		++$q;
 			/**/	}
 			/**/
@@ -1015,6 +1078,7 @@
 
 		for($i=0; $i<=$buckets_range; ++$i) // was originally $i<$buckets_range-1 ($buckets_range starts from 1)
 			$buckets[$i]=0;
+
 		for($i=0; $i<$array_size; ++$i)
 			++$buckets[$array[$i]];
 
@@ -1045,6 +1109,7 @@
 
 		for($i=0; $i<=$buckets_range; ++$i) // was originally $i<$buckets_range-1 ($buckets_range starts from 1)
 			$buckets[$i]=0;
+
 		for($i=0; $i<$array_size; ++$i)
 			++$buckets[$array[$i]];
 

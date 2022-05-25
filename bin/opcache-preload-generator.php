@@ -51,7 +51,7 @@
 
 	chdir(__DIR__.'/..');
 
-	$blacklist=array();
+	$blacklist=[];
 	@include './app/opcache-preload-generator.config.php';
 
 	if(check_argv('--debug'))
@@ -92,7 +92,8 @@
 					}
 		}
 	}
-	$add_to_list__already_added=array(); function add_to_list($file)
+	$add_to_list__already_added=[];
+	function add_to_list($file)
 	{
 		global $add_to_list__already_added;
 		if(!in_array($file, $add_to_list__already_added))

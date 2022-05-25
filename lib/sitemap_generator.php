@@ -21,8 +21,8 @@
 		 */
 
 		protected $url='';
-		protected $default_tags=array();
-		protected $content=array();
+		protected $default_tags=[];
+		protected $content=[];
 
 		public function __construct(array $params)
 		{
@@ -31,17 +31,16 @@
 					$this->$param=$params[$param];
 		}
 
-		public function add(string $loc, array $tags=array())
+		public function add(string $loc, array $tags=[])
 		{
 			$this->content[$loc]=array_merge($this->default_tags, $tags);
 			return $this;
 		}
 		public function get()
 		{
-			$sitemap='<?xml version="1.0" encoding="UTF-8" ?>'
-				."\n"
-				.'<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'
-				."\n";
+			$sitemap='<?xml version="1.0" encoding="UTF-8" ?>'."\n"
+				.'<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'."\n";
+
 			foreach($this->content as $loc=>$tags)
 			{
 				$sitemap.='<url>'."\n";
@@ -50,7 +49,9 @@
 						$sitemap.='<'.$tag_name.'>'.$tag_value.'</'.$tag_name.'>'."\n";
 				$sitemap.='</url>'."\n";
 			}
+
 			$sitemap.='</urlset>';
+
 			return $sitemap;
 		}
 	}

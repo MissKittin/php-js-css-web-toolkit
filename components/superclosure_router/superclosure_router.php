@@ -39,7 +39,7 @@
 	{
 		private static $source_variable=null;
 		private static $request_method_variable=null;
-		private static $cache_registry=array();
+		private static $cache_registry=[];
 
 		public static function set_source_variable(string $variable)
 		{
@@ -57,13 +57,15 @@
 		public static function add_to_cache(string $variable, string $value)
 		{
 			if(strpos($variable, '\'') !== false)
-				throw new Exception('an apostrophe is not allowed here');
+				throw new Exception('An apostrophe is not allowed here');
+
 			static::$cache_registry[$variable]=$value;
 		}
 		public static function read_from_cache(string $variable)
 		{
 			if(!isset(static::$cache_registry[$variable]))
-				throw new Exception('the '.$variable.' variable is not set in the cache');
+				throw new Exception('The '.$variable.' variable is not set in the cache');
+
 			return '$__superclosure_router_cache[\''.$variable.'\']';
 		}
 
@@ -84,7 +86,7 @@
 		public static function dump_cache(string $cache_file)
 		{
 			if(static::$source_variable === null)
-				throw new Exception('source variable undefined');
+				throw new Exception('Source variable undefined');
 
 			$output_file=fopen($cache_file, 'w');
 			fwrite($output_file, '<?php ');

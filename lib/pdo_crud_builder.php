@@ -32,25 +32,32 @@
 		 *  $query_builder_object->first_statement()->second_statement()->n_statement()->execution_method()
 		 *
 		 *  Operations on tables:
-		 *   Creating table:
-				create_table('table_name', array(
-					'id'=>pdo_crud_builder::ID_DEFAULT_PARAMS,
-					'first_column_name'=>'first column type',
-					'second_column_name'=>'second column type',
-					'n_column_name'=>'n column type'
-				))
+		 *   Creating table ([] means array):
+				create_table(
+					'table_name',
+					[
+						'id'=>pdo_crud_builder::ID_DEFAULT_PARAMS,
+						'first_column_name'=>'first column type',
+						'second_column_name'=>'second column type',
+						'n_column_name'=>'n column type'
+					]
+				)
 		 *   Dropping table:
 		 *    drop_table('table_name')
 		 *   Truncating table:
 		 *    truncate_table('table_name')
 		 *
-		 *  Creating:
-				insert_into('table_name', 'first_column_name,second_column_name,n_column_name', array(
-					['new_value_aa', 'new_value_ab', 'new_value_ac'],
-					['new_value_ba', 'new_value_bb', 'new_value_bc'],
-					['new_value_ca', 'new_value_cb', 'new_value_cc'],
-					['new_value_da', 'new_value_db', 'new_value_dc']
-				))
+		 *  Creating ([] means array):
+				insert_into(
+					'table_name',
+					'first_column_name,second_column_name,n_column_name',
+					[
+						['new_value_aa', 'new_value_ab', 'new_value_ac'],
+						['new_value_ba', 'new_value_bb', 'new_value_bc'],
+						['new_value_ca', 'new_value_cb', 'new_value_cc'],
+						['new_value_da', 'new_value_db', 'new_value_dc']
+					]
+				)
 		 *
 		 *  Reading:
 		 *   select(string_what)
@@ -70,19 +77,23 @@
 		 *   fetch_next(int_how_many, [string_fetch_param], [int_offset_number], [string_offset_param]) // fetch_param default: ROWS ONLY, offset_param default: ROWS
 		 *   fetch_next_percent(int_how_many, [string_fetch_param], [int_offset_number], [string_offset_param]) // fetch_param default: ROWS ONLY, offset_param default: ROWS
 		 *
-		 *  Updating:
-				replace_into(string_table_name, 'id,second_column_name,n_column_name', array(
-					['id_a', 'new_value_aa', 'new_value_ab'],
-					['id_b', 'new_value_ba', 'new_value_bb'],
-					['id_c', 'new_value_ca', 'new_value_cb'],
-					['id_d', 'new_value_da', 'new_value_db']
-				))
+		 *  Updating ([] means array):
+				replace_into(
+					string_table_name,
+					'id,second_column_name,n_column_name',
+					[
+						['id_a', 'new_value_aa', 'new_value_ab'],
+						['id_b', 'new_value_ba', 'new_value_bb'],
+						['id_c', 'new_value_ca', 'new_value_cb'],
+						['id_d', 'new_value_da', 'new_value_db']
+					]
+				)
 				update(string_table_name)
-				set(array(
+				set([
 					['first_column_name', 'new_value_a'],
 					['second_column_name', 'new_value_b'],
 					['n_column_name', 'new_value_n']
-				))
+				])
 		 *
 		 *  Deleting:
 		 *   delete(string_from)
@@ -169,12 +180,12 @@
 		protected $on_error;
 		protected $auto_flush=true;
 		protected $sql_query='';
-		protected $sql_parameters=array();
+		protected $sql_parameters=[];
 
 		public function __construct(array $params)
 		{
 			if(!isset($params['pdo_handler']))
-				throw new Exception('no PDO handler given');
+				throw new Exception('No PDO handler given');
 
 			$this->fetch_mode=PDO::FETCH_NAMED;
 			$this->on_error['callback']=function(){};
@@ -205,6 +216,7 @@
 		{
 			$this->sql_query.='WHERE '.$name.$operator.'? ';
 			$this->sql_parameters[]=$value;
+
 			return $this;
 		}
 		public function where_is(string $name, string $what)
@@ -216,30 +228,35 @@
 		{
 			$this->sql_query.='WHERE '.$name.' LIKE ? ';
 			$this->sql_parameters[]=$string;
+
 			return $this;
 		}
 		public function where_not_like(string $name, string $string)
 		{
 			$this->sql_query.='WHERE '.$name.' NOT LIKE ? ';
 			$this->sql_parameters[]=$string;
+
 			return $this;
 		}
 		public function where_not(string $name, string $operator, string $value)
 		{
 			$this->sql_query.='WHERE NOT '.$name.$operator.'? ';
 			$this->sql_parameters[]=$value;
+
 			return $this;
 		}
 		public function and(string $name, string $operator, string $value)
 		{
 			$this->sql_query.='AND '.$name.$operator.'? ';
 			$this->sql_parameters[]=$value;
+
 			return $this;
 		}
 		public function or(string $name, string $operator, string $value)
 		{
 			$this->sql_query.='OR '.$name.$operator.'? ';
 			$this->sql_parameters[]=$value;
+
 			return $this;
 		}
 		public function output_into(string $parameters, string $into)
@@ -254,12 +271,13 @@
 			foreach($columns as $column_name=>$column_type)
 			{
 				if(!is_string($column_type))
-					throw new Exception('array value must be a string');
+					throw new Exception('Array value must be a string');
 				$sql_columns.=$column_name.' '.$column_type.', ';
 			}
 			$sql_columns=substr($sql_columns, 0, -2);
 
 			$this->sql_query.='CREATE TABLE '.$table_name.'('.$sql_columns.') ';
+
 			return $this;
 		}
 		public function drop_table(string $table_name)
@@ -279,7 +297,7 @@
 			foreach($what as $what_data_set)
 			{
 				if(!is_array($what_data_set))
-					throw new Exception('the dataset must be an array');
+					throw new Exception('The dataset must be an array');
 
 				$sql_what.='(';
 				foreach($what_data_set as $what_value)
@@ -293,6 +311,7 @@
 			$sql_what=substr($sql_what, 0, -2);
 
 			$this->sql_query.='INSERT INTO '.$where.'('.$columns.') VALUES'.$sql_what.' ';
+
 			return $this;
 		}
 
@@ -330,11 +349,21 @@
 		{
 			switch($method)
 			{
-				case 'inner': $this->sql_query.='INNER JOIN '.$what.' '; break;
-				case 'left': $this->sql_query.='LEFT OUTER JOIN '.$what.' '; break;
-				case 'right': $this->sql_query.='RIGHT OUTER JOIN '.$what.' '; break;
-				case 'full': $this->sql_query.='FULL OUTER JOIN '.$what.' '; break;
-				default: $this->on_error['callback']('::join(): inner/left/right/full $method not specified'); return false; break;
+				case 'inner':
+					$this->sql_query.='INNER JOIN '.$what.' ';
+				break;
+				case 'left':
+					$this->sql_query.='LEFT OUTER JOIN '.$what.' ';
+				break;
+				case 'right':
+					$this->sql_query.='RIGHT OUTER JOIN '.$what.' ';
+				break;
+				case 'full':
+					$this->sql_query.='FULL OUTER JOIN '.$what.' ';
+				break;
+				default:
+					$this->on_error['callback']('::join(): inner/left/right/full $method not specified');
+					return false;
 			}
 
 			if($on !== null)
@@ -368,6 +397,7 @@
 				$this->sql_query.='LIMIT '.$param.' ';
 			else
 				$this->sql_query.='LIMIT '.$param.' OFFSET '.$offset.' ';
+
 			return $this;
 		}
 		public function fetch_first(int $param, string $rows_param='ROWS ONLY', int $offset=null, string $offset_param='ROWS')
@@ -376,6 +406,7 @@
 				$this->sql_query.='FETCH FIRST '.$param.' '.$rows_param.' ';
 			else
 				$this->sql_query.='OFFSET '.$offset.' '.$offset_param.' FETCH FIRST '.$param.' '.$rows_param.' ';
+
 			return $this;
 		}
 		public function fetch_first_percent(int $param, string $rows_param='ROWS ONLY', int $offset=null, string $offset_param='ROWS')
@@ -384,6 +415,7 @@
 				$this->sql_query.='FETCH FIRST '.$param.' PERCENT '.$rows_param.' ';
 			else
 				$this->sql_query.='OFFSET '.$offset.' '.$offset_param.' FETCH FIRST '.$param.' PERCENT '.$rows_param.' ';
+
 			return $this;
 		}
 		public function fetch_next(int $param, string $rows_param='ROWS ONLY', int $offset=null, string $offset_param='ROWS')
@@ -392,6 +424,7 @@
 				$this->sql_query.='FETCH NEXT '.$param.' '.$rows_param.' ';
 			else
 				$this->sql_query.='OFFSET '.$offset.' '.$offset_param.' FETCH NEXT '.$param.' '.$rows_param.' ';
+
 			return $this;
 		}
 		public function fetch_next_percent(int $param, string $rows_param='ROWS ONLY', int $offset=null, string $offset_param='ROWS')
@@ -400,6 +433,7 @@
 				$this->sql_query.='FETCH NEXT '.$param.' PERCENT '.$rows_param.' ';
 			else
 				$this->sql_query.='OFFSET '.$offset.' '.$offset_param.' FETCH NEXT '.$param.' PERCENT '.$rows_param.' ';
+
 			return $this;
 		}
 
@@ -409,7 +443,7 @@
 			foreach($what as $what_data_set)
 			{
 				if(!is_array($what_data_set))
-					throw new Exception('the dataset must be an array');
+					throw new Exception('The dataset must be an array');
 
 				$sql_what.='(';
 				foreach($what_data_set as $what_value)
@@ -423,6 +457,7 @@
 			$sql_what=substr($sql_what, 0, -2);
 
 			$this->sql_query.='REPLACE INTO '.$where.'('.$columns.') VALUES'.$sql_what.' ';
+
 			return $this;
 		}
 		public function update(string $table)
@@ -436,13 +471,16 @@
 			foreach($what as $data_set)
 			{
 				if(!is_array($data_set))
-					throw new Exception('the dataset must be an array');
+					throw new Exception('The dataset must be an array');
+
 				if(!isset($data_set[0]))
-					throw new Exception('no column name was provided');
+					throw new Exception('No column name was provided');
+
 				if(!is_string($data_set[0]))
-					throw new Exception('column name must be a string');
+					throw new Exception('Column name must be a string');
+
 				if(!isset($data_set[1]))
-					throw new Exception('no value was provided for column '.$data_set[0]);
+					throw new Exception('No value was provided for column '.$data_set[0]);
 
 				$sql_what.=$data_set[0].' = ?, ';
 				$this->sql_parameters[]=$data_set[1];
@@ -450,6 +488,7 @@
 			$sql_what=substr($sql_what, 0, -2);
 
 			$this->sql_query.='SET '.$sql_what.' ';
+
 			return $this;
 		}
 
@@ -500,6 +539,7 @@
 				return $exec_output->fetchAll($this->fetch_mode);
 
 			$this->on_error['callback'](' ::query(): exec() returned false');
+
 			return false;
 		}
 
@@ -510,7 +550,8 @@
 		public function flush_all()
 		{
 			$this->sql_query='';
-			$this->sql_parameters=array();
+			$this->sql_parameters=[];
+
 			return $this;
 		}
 		public function print_exec(bool $echo=false)
@@ -534,15 +575,19 @@
 		public function print_prepared()
 		{
 			$stmt=$this->print_exec();
+
 			foreach($this->print_parameters() as $param)
 				$stmt=preg_replace('/\?/', $param, $stmt, 1);
+
 			return $stmt;
 		}
 		public function table_dump(string $table_name, int $limit=null, int $limit_offset=null)
 		{
 			$this->flush_all();
+
 			if($limit === null)
 				return $this->select('*')->from($table_name)->query();
+
 			return $this->select('*')->from($table_name)->limit($limit, $limit_offset)->query();
 		}
 		public function list_tables()
@@ -569,6 +614,7 @@
 			}
 
 			$query=$this->pdo_handler->query($sql);
+
 			return $query->fetchAll(PDO::FETCH_COLUMN);
 		}
 	}

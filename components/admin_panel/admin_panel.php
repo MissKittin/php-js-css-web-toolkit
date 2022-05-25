@@ -14,9 +14,9 @@
 		protected static $return_content='';
 
 		protected $base_url;
-		protected $modules=array();
+		protected $modules=[];
 		protected $default_module=null;
-		protected $registered_urls=array();
+		protected $registered_urls=[];
 
 		public function __construct(array $params)
 		{
@@ -29,7 +29,10 @@
 
 			$this->_set_default_labels();
 
-			if(isset($params['show_logout_button']) && ($params['show_logout_button'] === true))
+			if(
+				isset($params['show_logout_button']) &&
+				($params['show_logout_button'] === true)
+			)
 				$this->registry['__show_logout_button']=true;
 
 			$this->registry['__assets_path']='';
@@ -51,7 +54,7 @@
 
 		protected function _list_modules()
 		{
-			$modules=array();
+			$modules=[];
 
 			foreach($this->modules as $module_id=>$module_params)
 				if(isset($module_params['name']))

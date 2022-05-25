@@ -21,10 +21,10 @@
 			throw new Exception('tokenizer extension is not loaded');
 
 		$return_array=[
-			'classes'=>array(),
-			'functions'=>array(),
-			'interfaces'=>array(),
-			'traits'=>array()
+			'classes'=>[],
+			'functions'=>[],
+			'interfaces'=>[],
+			'traits'=>[]
 		];
 
 		$next_string_is_namespace=false;

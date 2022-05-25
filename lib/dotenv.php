@@ -33,7 +33,7 @@
 		 */
 
 		protected $call_getenv;
-		protected $env=array();
+		protected $env=[];
 
 		public function __construct(string $file=null, bool $call_getenv=false)
 		{
@@ -89,10 +89,13 @@
 		{
 			if(isset($this->env[$variable]))
 				return $this->env[$variable];
+
 			if(isset($_ENV[$variable]))
 				return $_ENV[$variable];
+
 			if(isset($_SERVER[$variable]))
 				return $_SERVER[$variable];
+
 			if($this->call_getenv)
 			{
 				$result=getenv($variable);

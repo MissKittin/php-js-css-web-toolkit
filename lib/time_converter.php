@@ -22,7 +22,7 @@
 		 *   A years B months C days D hours E minutes F seconds (G weeks total)
 		 */
 
-		return array(
+		return [
 			'seconds'=>$input_seconds%60,
 			'minutes'=>(int)floor(($input_seconds%3600)/60),
 			'hours'=>(int)floor(($input_seconds%86400)/3600),
@@ -30,7 +30,7 @@
 			'months'=>(int)floor(($input_seconds/2592000)%12),
 			'years'=>(int)floor($input_seconds/31556926),
 			'weeks'=>(int)floor($input_seconds/604800)
-		);
+		];
 	}
 	function convert_seconds(int $input_seconds, string $output_format)
 	{
@@ -45,14 +45,22 @@
 
 		switch($output_format)
 		{
-			case 'minutes': return $input_seconds/60;
-			case 'hours': return $input_seconds/3600;
-			case 'days': return $input_seconds/43200;
-			case 'months30': return $input_seconds/1296000;
-			case 'months31': return $input_seconds/1339200;
-			case 'years': return $input_seconds/31536000;
-			case 'leap_years': return $input_seconds/31622400;
-			case 'weeks': return $input_seconds/604800;
+			case 'minutes':
+				return $input_seconds/60;
+			case 'hours':
+				return $input_seconds/3600;
+			case 'days':
+				return $input_seconds/43200;
+			case 'months30':
+				return $input_seconds/1296000;
+			case 'months31':
+				return $input_seconds/1339200;
+			case 'years':
+				return $input_seconds/31536000;
+			case 'leap_years':
+				return $input_seconds/31622400;
+			case 'weeks':
+				return $input_seconds/604800;
 		}
 	}
 ?>

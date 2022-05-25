@@ -1,6 +1,9 @@
 <?php
-	function directoryIterator_sort(string $directory, array $output_array_items, string $key_method='getPathname')
-	{
+	function directoryIterator_sort(
+		string $directory,
+		array $output_array_items,
+		string $key_method='getPathname'
+	){
 		/*
 		 * Sort directoryIterator output by name
 		 *
@@ -16,7 +19,7 @@
 		 *   warning: key must be an unique value!
 		 */
 
-		$return_array=array();
+		$return_array=[];
 
 		foreach(new directoryIterator($directory) as $file)
 			if(!$file->isDot())

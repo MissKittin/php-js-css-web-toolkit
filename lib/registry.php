@@ -20,7 +20,7 @@
 		 * note: you cannot use unset()
 		 */
 
-		protected $registry=array();
+		protected $registry=[];
 		protected $default_value;
 
 		public function __construct($default_value=null)
@@ -32,6 +32,7 @@
 		{
 			if(isset($this->registry[$key]))
 				return $this->registry[$key];
+
 			return $this->default_value;
 		}
 		public function __set($key, $value)

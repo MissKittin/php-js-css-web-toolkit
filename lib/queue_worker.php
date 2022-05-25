@@ -103,10 +103,10 @@
 		 *  https://web.archive.org/web/20120416013625/http://squirrelshaterobots.com/programming/php/building-a-queue-server-in-php-part-3-accepting-input-from-named-pipes/
 		 */
 
-		protected static $children_pids=array();
+		protected static $children_pids=[];
 
 		protected $worker_fifo;
-		protected $queue=array();
+		protected $queue=[];
 
 		public static function start_worker(
 			string $worker_fifo,
@@ -205,7 +205,7 @@
 
 			while(true)
 			{
-				$queue=array();
+				$queue=[];
 
 				while($input_data=trim(fgets($worker_input)))
 				{
@@ -310,6 +310,7 @@
 		{
 			if(!file_exists($worker_fifo))
 				throw new Exception($worker_fifo.' not exist');
+
 			if(is_dir($this->worker_fifo))
 				throw new Exception($worker_fifo.' is a directory');
 

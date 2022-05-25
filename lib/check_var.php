@@ -90,35 +90,42 @@
 		foreach($_SERVER['argv'] as $arg)
 			if($arg === $input_arg)
 				return true;
+
 		return false;
 	}
 	function check_argv_param(string $param_name, string $delimiter='=')
 	{
 		$argv=$_SERVER['argv'];
 		array_shift($argv);
+
 		foreach($argv as $arg)
 		{
 			$arg=explode($delimiter, $arg);
+
 			if($arg[0] === $param_name)
 				return $arg[1];
 		}
+
 		return null;
 	}
 	function check_argv_param_many(string $param_name, string $delimiter='=')
 	{
-		$output_array=array();
+		$output_array=[];
 
 		$argv=$_SERVER['argv'];
 		array_shift($argv);
+
 		foreach($argv as $arg)
 		{
 			$arg=explode($delimiter, $arg);
+
 			if($arg[0] === $param_name)
 				$output_array[]=$arg[1];
 		}
 
 		if(empty($output_array))
 			return null;
+
 		return $output_array;
 	}
 	function check_argv_next_param(string $param_name)
@@ -131,14 +138,16 @@
 		{
 			if($arg_found)
 				return $arg;
+
 			if($arg === $param_name)
 				$arg_found=true;
 		}
+
 		return null;
 	}
 	function check_argv_next_param_many(string $param_name)
 	{
-		$output_array=array();
+		$output_array=[];
 
 		$argv=$_SERVER['argv'];
 		array_shift($argv);
@@ -151,18 +160,21 @@
 				$output_array[]=$arg;
 				$arg_found=false;
 			}
+
 			if($arg === $param_name)
 				$arg_found=true;
 		}
 
 		if(empty($output_array))
 			return null;
+
 		return $output_array;
 	}
 	function check_argc()
 	{
 		if(isset($_SERVER['argc']))
 			return $_SERVER['argc'];
+
 		return null;
 	}
 
@@ -170,12 +182,14 @@
 	{
 		if(isset($_COOKIE[$array_item]))
 			return $_COOKIE[$array_item];
+
 		return null;
 	}
 	function check_cookie_escaped(string $array_item)
 	{
 		if(isset($_COOKIE[$array_item]))
 			return htmlspecialchars($_COOKIE[$array_item], ENT_QUOTES, 'UTF-8');
+
 		return null;
 	}
 
@@ -183,6 +197,7 @@
 	{
 		if(isset($_ENV[$array_item]))
 			return $_ENV[$array_item];
+
 		return null;
 	}
 
@@ -201,12 +216,14 @@
 	{
 		if(isset($_GET[$array_item]))
 			return $_GET[$array_item];
+
 		return null;
 	}
 	function check_get_escaped(string $array_item)
 	{
 		if(isset($_GET[$array_item]))
 			return htmlspecialchars($_GET[$array_item], ENT_QUOTES, 'UTF-8');
+
 		return null;
 	}
 
@@ -214,12 +231,14 @@
 	{
 		if(isset($_POST[$array_item]))
 			return $_POST[$array_item];
+
 		return null;
 	}
 	function check_post_escaped(string $array_item)
 	{
 		if(isset($_POST[$array_item]))
 			return htmlspecialchars($_POST[$array_item], ENT_QUOTES, 'UTF-8');
+
 		return null;
 	}
 
@@ -227,6 +246,7 @@
 	{
 		if(isset($_REQUEST[$array_item]))
 			return $_REQUEST[$array_item];
+
 		return null;
 	}
 
@@ -245,6 +265,7 @@
 	{
 		if(isset($_SESSION[$array_item]))
 			return $_SESSION[$array_item];
+
 		return null;
 	}
 ?>

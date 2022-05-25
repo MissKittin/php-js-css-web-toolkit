@@ -19,21 +19,22 @@
 
 		$output_string='';
 
-		$comment_tokens=array(T_COMMENT);
+		$comment_tokens=[T_COMMENT];
 		if(defined('T_DOC_COMMENT'))
 			$comment_tokens[]=T_DOC_COMMENT;
 		if(defined('T_ML_COMMENT'))
 			$comment_tokens[]=T_ML_COMMENT;
 
-		$tokens=token_get_all($source);
-		foreach($tokens as $token)
+		foreach(token_get_all($source) as $token)
 		{    
 			if(is_array($token))
 			{
 				if(in_array($token[0], $comment_tokens))
 					continue;
+
 				$token=$token[1];
 			}
+
 			$output_string.=$token;
 		}
 

@@ -10,7 +10,7 @@
 		exit(1);
 	}
 
-	$failed_tests=array();
+	$failed_tests=[];
 
 	foreach(array_slice(scandir(__DIR__.'/../components'), 2) as $component)
 		if(is_dir(__DIR__.'/../components/'.$component.'/tests'))

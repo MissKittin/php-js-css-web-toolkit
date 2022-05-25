@@ -39,14 +39,15 @@
 		 *  ioc_closure_container::unset_container('mycontainer')
 		 */
 
-		protected $closure_container=array();
-		protected $object_container=array();
-		protected static $shared_containers=array();
+		protected $closure_container=[];
+		protected $object_container=[];
+		protected static $shared_containers=[];
 
 		public function set(string $name, Closure $closure)
 		{
 			if(isset($this->closure_container[$name]))
 				throw new Exception($name.' closure is already registered');
+
 			$this->closure_container[$name]=$closure;
 		}
 		public function get(string $name)
@@ -56,24 +57,28 @@
 
 			if(!isset($this->closure_container[$name]))
 				throw new Exception($name.' closure is not registered');
+
 			return $this->closure_container[$name]($this);
 		}
 		public function share(string $name, Closure $closure)
 		{
 			if(isset($this->object_container[$name]))
 				throw new Exception($name.' object is already registered');
+
 			$this->object_container[$name]=$closure($this);
 		}
 		public function unset(string $name)
 		{
 			if(!isset($this->closure_container[$name]))
 				throw new Exception($name.' is not registered');
+
 			unset($this->closure_container[$name]);
 		}
 		public function unshare(string $name)
 		{
 			if(!isset($this->object_container[$name]))
 				throw new Exception($name.' is not registered');
+
 			unset($this->object_container[$name]);
 		}
 
@@ -81,18 +86,21 @@
 		{
 			if(isset(static::$shared_containers[$name]))
 				throw new Exception($name.' container is already shared');
+
 			static::$shared_containers[$name]=$container;
 		}
 		public static function get_container(string $name)
 		{
 			if(!isset(static::$shared_containers[$name]))
 				throw new Exception($name.' container is not shared');
+
 			return static::$shared_containers[$name];
 		}
 		public static function unset_container(string $name)
 		{
 			if(!isset(static::$shared_containers[$name]))
 				throw new Exception($name.' container is not saved');
+
 			unset(static::$shared_containers[$name]);
 		}
 	}
@@ -125,9 +133,9 @@
 		 *  see ioc_closure_container class
 		 */
 
-		protected $args=array();
+		protected $args=[];
 		protected $do_cache;
-		protected $cache=array();
+		protected $cache=[];
 
 		public function __construct(bool $do_cache=false)
 		{
@@ -136,17 +144,15 @@
 
 		public function get(string $name)
 		{
-			try
-			{
+			try {
 				return parent::get($name);
-			}
-			catch(Exception $e) {}
+			} catch(Exception $e) {}
 
 			if(isset($this->cache[$name]))
 				return $this->cache[$name];
 
 			if(!class_exists($name))
-				throw new Exception('class '.$name.' does not exists');
+				throw new Exception('Class '.$name.' does not exists');
 
 			$reflector=new ReflectionClass($name);
 			if(!$reflector->isInstantiable())
@@ -156,7 +162,7 @@
 			if($constructor === null)
 				return new $name();
 
-			$dependencies=array();
+			$dependencies=[];
 			foreach($constructor->getParameters() as $dependency)
 			{
 				$dependency_type=$dependency->getType();
@@ -178,9 +184,11 @@
 		public function remove_from_cache(string $name)
 		{
 			if(!$this->do_cache)
-				throw new Exception('cache is disabled');
+				throw new Exception('Cache is disabled');
+
 			if(!isset($this->cache[$name]))
 				throw new Exception($name.' is not cached');
+
 			unset($this->cache[$name]);
 		}
 
@@ -193,6 +201,7 @@
 		{
 			if(!isset($this->args[$name][$arg_name]))
 				throw new Exception($arg_name.' argument is not registered for '.$name);
+
 			unset($this->args[$name][$arg_name]);
 
 			return $this;
