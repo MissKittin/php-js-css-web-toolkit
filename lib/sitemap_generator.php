@@ -38,8 +38,10 @@
 		}
 		public function get()
 		{
-			$sitemap='<?xml version="1.0" encoding="UTF-8" ?>'."\n"
-				.'<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'."\n";
+			$sitemap=''
+				.'<?xml version="1.0" encoding="UTF-8" ?>'."\n"
+				.'<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'."\n"
+			;
 
 			foreach($this->content as $loc=>$tags)
 			{
@@ -50,7 +52,7 @@
 				$sitemap.='</url>'."\n";
 			}
 
-			$sitemap.='</urlset>';
+			$sitemap.='</urlset>'."\n";
 
 			return $sitemap;
 		}

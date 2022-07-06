@@ -1,44 +1,27 @@
 # Things to do after clone
-1) create `app/assets` directory
-2) `public/index.php` just imports another php file - this is stupid thing if your OS allows you to use softlinks.  
+1) `public/index.php` just imports another php file - this is stupid thing if your OS allows you to use softlinks.  
 	You can remove this file and create link to `../app/entrypoint.php`.  
 	Run in this directory:  
-	for *nix:
 	```
-	ln -s ../app/entrypoint.php ./public/index.php
+	php ./app/bin/replace-public-index-with-link.php
 	```
-	for windows:
+2) to install assets for default template, run in this directory:  
 	```
-	mklink public\index.php ..\app\entrypoint.php
+	php ./app/bin/install-assets.php
 	```
-3) to install assets for default template, run in this directory:  
-	for *nix:
+	and follow the prompts
+3) compile assets to the public directory:  
 	```
-	ln -s ../templates/samples/default/assets/default.css ./app/assets/default.css; ln -s ../templates/samples/default/assets/default.js ./app/assets/default.js; ln -s ../../lib/sendNotification.js ./app/assets/sendNotification.js
+	php ./bin/assets-compiler.php ./app/assets ./public/assets
 	```
-	for windows:
-	```
-	mklink app\assets\default.css ..\templates\samples\default\assets\default.css
-	mklink /d app\assets\default.js ..\templates\samples\default\assets\default.js
-	mklink app\assets\sendNotification.js ..\..\lib\sendNotification.js 
-	```
-4) you can install component assets - see readme from component directory
-5) compile assets to the public directory: `php ./bin/assets-compiler.php ./app/assets ./public/assets`
 
 # Removing samples
-All sample code is in `samples` dirs - ignore this fact. Remove samples and start developing application.  
-To remove all samples run in this directory:  
-for *nix:
+All example code is in `samples` dirs - ignore this fact.  
+Remove samples and start developing application.  
+To remove example application, run:  
 ```
-(find ./app -maxdepth 2 -name samples) | xargs rm -r -f; rmdir ./app/databases ./app/shared ./app/templates; sed -i '/{/{:1;N;s/{.*}/{\n\t\t\n\t}/;T1}' ./app/entrypoint.php
+php ./app/bin/remove-samples.php
 ```
-for windows:
-```
-cd app
-for /d /r . %d in (samples) do @if exist "%d" rd /s/q "%d"
-rd /s/q databases shared templates
-```
-and remove all cases inside the switch in `app/entrypoint.php`
 
 # How to create application
 

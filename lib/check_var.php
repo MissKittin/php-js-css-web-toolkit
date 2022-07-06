@@ -87,11 +87,7 @@
 
 	function check_argv(string $input_arg)
 	{
-		foreach($_SERVER['argv'] as $arg)
-			if($arg === $input_arg)
-				return true;
-
-		return false;
+		return in_array($input_arg, $_SERVER['argv']);
 	}
 	function check_argv_param(string $param_name, string $delimiter='=')
 	{
@@ -198,6 +194,10 @@
 		if(isset($_ENV[$array_item]))
 			return $_ENV[$array_item];
 
+		$result=getenv($array_item);
+		if($result !== false)
+			return $result;
+
 		return null;
 	}
 
@@ -257,7 +257,7 @@
 
 		if(isset($_SERVER[$array_item][$array_nested_item]))
 			return $_SERVER[$array_item][$array_nested_item];
-	
+
 		return null;
 	}
 

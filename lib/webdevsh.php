@@ -1,6 +1,6 @@
 <?php
 	/*
-	 * PHP client for webdev.sh minifiers
+	 * PHP client for Toptal minifiers
 	 *
 	 * Warning:
 	 *  curl extension is required
@@ -18,24 +18,25 @@
 		if(!extension_loaded('curl'))
 			throw new Exception('curl extension is not loaded');
 
-		$handler=curl_init();
+		$curl_handler=curl_init();
 
-		curl_setopt_array($handler, [
-			CURLOPT_URL=>'https://cssminifier.com/raw',
+		foreach([
+			CURLOPT_URL=>'https://www.toptal.com/developers/cssminifier/api/raw',
 			CURLOPT_RETURNTRANSFER=>true,
 			CURLOPT_POST=>true,
 			CURLOPT_HTTPHEADER=>['Content-Type: application/x-www-form-urlencoded'],
 			CURLOPT_POSTFIELDS=>http_build_query(['input'=>$input])
-		]);
+		] as $option=>$value)
+			curl_setopt($curl_handler, $option, $value);
 
 		if($ignore_https)
 		{
-			curl_setopt($handler, CURLOPT_SSL_VERIFYHOST, 0);
-			curl_setopt($handler, CURLOPT_SSL_VERIFYPEER, 0);
+			curl_setopt($curl_handler, CURLOPT_SSL_VERIFYHOST, 0);
+			curl_setopt($curl_handler, CURLOPT_SSL_VERIFYPEER, 0);
 		}
 
-		$output=curl_exec($handler);
-		curl_close($handler);
+		$output=curl_exec($curl_handler);
+		curl_close($curl_handler);
 
 		if($output === false)
 			throw new Exception('Server response is empty');
@@ -47,24 +48,25 @@
 		if(!extension_loaded('curl'))
 			throw new Exception('curl extension is not loaded');
 
-		$handler=curl_init();
+		$curl_handler=curl_init();
 
-		curl_setopt_array($handler, [
-			CURLOPT_URL=>'https://javascript-minifier.com/raw',
+		foreach([
+			CURLOPT_URL=>'https://www.toptal.com/developers/javascript-minifier/api/raw',
 			CURLOPT_RETURNTRANSFER=>true,
 			CURLOPT_POST=>true,
 			CURLOPT_HTTPHEADER=>['Content-Type: application/x-www-form-urlencoded'],
 			CURLOPT_POSTFIELDS=>http_build_query(['input'=>$input])
-		]);
+		] as $option=>$value)
+			curl_setopt($curl_handler, $option, $value);
 
 		if($ignore_https)
 		{
-			curl_setopt($handler, CURLOPT_SSL_VERIFYHOST, 0);
-			curl_setopt($handler, CURLOPT_SSL_VERIFYPEER, 0);
+			curl_setopt($curl_handler, CURLOPT_SSL_VERIFYHOST, 0);
+			curl_setopt($curl_handler, CURLOPT_SSL_VERIFYPEER, 0);
 		}
 
-		$output=curl_exec($handler);
-		curl_close($handler);
+		$output=curl_exec($curl_handler);
+		curl_close($curl_handler);
 
 		if($output === false)
 			throw new Exception('Server response is empty');

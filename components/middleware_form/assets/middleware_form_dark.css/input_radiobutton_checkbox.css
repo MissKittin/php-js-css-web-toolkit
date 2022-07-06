@@ -1,0 +1,16 @@
+#middleware_form .input_radiobutton,
+#middleware_form .input_checkbox {
+	width: 99%;
+}
+#middleware_form .input_radiobutton input,
+#middleware_form .input_checkbox input {
+	font-family: Roboto, Helvetica, Arial, sans-serif;
+	width: 40px;
+	height: 40px;
+	border-radius: 10px;
+}
+#middleware_form .input_radiobutton label:not(.switch),
+#middleware_form .input_checkbox label:not(.switch) {
+	float: right;
+	padding-top: 18px;
+}

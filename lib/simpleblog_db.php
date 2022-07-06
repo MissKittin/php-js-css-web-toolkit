@@ -117,9 +117,11 @@
 			if($record_name === '')
 				throw new Exception('Record name cannot be empty');
 
-			if(!file_exists($this->db_path.'/'.$record_name))
-				if(!mkdir($this->db_path.'/'.$record_name))
-					throw new Exception('The database could not be saved');
+			if(
+				(!file_exists($this->db_path.'/'.$record_name)) &&
+				(!mkdir($this->db_path.'/'.$record_name))
+			)
+				throw new Exception('The database could not be saved');
 
 			foreach($content as $key=>$value)
 				if($value === null)
@@ -143,7 +145,7 @@
 			$old_name=$this->db_path.'/'.$old_name;
 			$new_name=$this->db_path.'/'.$new_name;
 
-			if((!file_exists($old_name)) || (file_exists($new_name)))
+			if((!file_exists($old_name)) || file_exists($new_name))
 				return false;
 
 			if(!rename($old_name, $new_name))
@@ -242,9 +244,11 @@
 		{
 			parent::__construct($params);
 
-			if(!file_exists($this->cache_path))
-				if(!mkdir($this->cache_path))
-					throw new Exception('Unable to create cache store');
+			if(
+				(!file_exists($this->cache_path)) &&
+				(!mkdir($this->cache_path))
+			)
+				throw new Exception('Unable to create cache store');
 
 			$this->cache_path=realpath($this->cache_path);
 		}
@@ -280,9 +284,11 @@
 		}
 		protected function remove_list_find_cache()
 		{
-			if(file_exists($this->cache_path.'/__list_records__'))
-				if(!unlink($this->cache_path.'/__list_records__'))
-					throw new Exception('Fatal error: unable to write cache');
+			if(
+				file_exists($this->cache_path.'/__list_records__') &&
+				(!unlink($this->cache_path.'/__list_records__'))
+			)
+				throw new Exception('Fatal error: unable to write cache');
 
 			foreach(glob($this->cache_path.'/__find_cache_*__') as $file)
 				if(!unlink($file))
@@ -300,9 +306,11 @@
 		}
 		public function add(string $record_name, array $content)
 		{
-			if(file_exists($this->cache_path.'/'.$record_name))
-				if(!unlink($this->cache_path.'/'.$record_name))
-					throw new Exception('Fatal error: unable to write cache');
+			if(
+				file_exists($this->cache_path.'/'.$record_name) &&
+				(!unlink($this->cache_path.'/'.$record_name))
+			)
+				throw new Exception('Fatal error: unable to write cache');
 
 			$this->read_from_db($this->cache_path.'/'.$record_name, __FUNCTION__, [$record_name, $content]);
 			$this->remove_list_find_cache();
@@ -311,9 +319,11 @@
 		{
 			$old_name=str_replace(['/..', '../'], '', $old_name);
 
-			if(file_exists($this->cache_path.'/'.$old_name))
-				if(!unlink($this->cache_path.'/'.$old_name))
-					throw new Exception('Fatal error: unable to write cache');
+			if(
+				file_exists($this->cache_path.'/'.$old_name) &&
+				(!unlink($this->cache_path.'/'.$old_name))
+			)
+				throw new Exception('Fatal error: unable to write cache');
 
 			$this->remove_list_find_cache();
 
@@ -334,9 +344,11 @@
 
 			parent::{__FUNCTION__}($record_name);
 
-			if(file_exists($this->cache_path.'/'.$record_name))
-				if(!unlink($this->cache_path.'/'.$record_name))
-					throw new Exception('Fatal error: unable to delete record from cache');
+			if(
+				file_exists($this->cache_path.'/'.$record_name) &&
+				(!unlink($this->cache_path.'/'.$record_name))
+			)
+				throw new Exception('Fatal error: unable to delete record from cache');
 
 			$this->remove_list_find_cache();
 		}
@@ -540,9 +552,11 @@
 			{
 				$i_stats=$this->db_handler->statIndex($i);
 
-				if($i_stats !== false)
-					if(substr($i_stats['name'], 0, $record_name_length) === $record_name)
-						$result[substr($i_stats['name'], $record_name_length+1)]=$this->db_handler->getFromName($i_stats['name']);
+				if(
+					($i_stats !== false) &&
+					(substr($i_stats['name'], 0, $record_name_length) === $record_name)
+				)
+					$result[substr($i_stats['name'], $record_name_length+1)]=$this->db_handler->getFromName($i_stats['name']);
 			}
 
 			return $this->unflatten($result);
@@ -560,10 +574,12 @@
 			{
 				$i_stats=$this->db_handler->statIndex($i);
 
-				if($i_stats !== false)
-					if(stripos($i_stats['name'], $path) === 0)
-						if(!$this->db_handler->deleteName($i_stats['name']))
-							throw new Exception('The database could not be saved');
+				if(
+					($i_stats !== false) &&
+					(stripos($i_stats['name'], $path) === 0) &&
+					(!$this->db_handler->deleteName($i_stats['name']))
+				)
+					throw new Exception('The database could not be saved');
 			}
 		}
 		public function find(string $path)

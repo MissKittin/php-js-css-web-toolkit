@@ -27,7 +27,10 @@
 	 *    that returns bcryped password if success or false if failed
 	 *   use this to get credentials eg from database
 	 *
-	 *  login_refresh('string|callback|file', 'reload string|callback_function|path_to_file')
+	 *  login_refresh('string', 'reload string')
+	 *  login_refresh('callback', 'callback_function')
+	 *  login_refresh('callback', 'callback_function', ['callback_arg_a', 'callback_arg_b'])
+	 *  login_refresh('file', 'path/to/file')
 	 *   refresh page after successful login to remove credentials from browser's buffer
 	 *
 	 *  logout(['logout_button_post_or_get_variable'])
@@ -65,8 +68,11 @@
 
 		return false;
 	}
-	function login_multi(string $input_login=null, string $input_password=null, array $login_array)
-	{
+	function login_multi(
+		string $input_login=null,
+		string $input_password=null,
+		array $login_array
+	){
 		if(session_status() !== PHP_SESSION_ACTIVE)
 			throw new Exception('Session not started');
 
@@ -85,8 +91,11 @@
 
 		return false;
 	}
-	function login_callback(string $input_login=null, string $input_password=null, callable $callback)
-	{
+	function login_callback(
+		string $input_login=null,
+		string $input_password=null,
+		callable $callback
+	){
 		if(session_status() !== PHP_SESSION_ACTIVE)
 			throw new Exception('Session not started');
 
@@ -108,15 +117,18 @@
 		return false;
 	}
 
-	function login_refresh(string $input_type, string $input)
-	{
+	function login_refresh(
+		string $input_type,
+		string $input,
+		array $callback_args=[]
+	){
 		switch($input_type)
 		{
 			case 'string':
 				echo $input;
 			break;
 			case 'callback':
-				$input();
+				call_user_func_array($input, $callback_args);
 			break;
 			case 'file':
 				include $input;

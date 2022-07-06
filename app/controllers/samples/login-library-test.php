@@ -1,7 +1,10 @@
 <?php
 	include './app/shared/samples/default_http_headers.php';
 
-	if(strpos($_SERVER['HTTP_ACCEPT_ENCODING'], 'gzip') !== false)
+	if(
+		isset($_SERVER['HTTP_ACCEPT_ENCODING']) &&
+		(strpos($_SERVER['HTTP_ACCEPT_ENCODING'], 'gzip') !== false)
+	)
 		ob_start('ob_gzhandler');
 
 	include './app/shared/samples/session_start.php';
@@ -23,36 +26,48 @@
 	// import credentials and callback_function()
 	include './app/models/samples/login_library_test_credentials.php';
 
-	function reload_page()
+	function reload_page($view)
 	{
-		global $view;
 		$view->view('./app/views/samples/login-library-test', 'reload_page.html');
 	}
 
 	if(csrf_check_token('post'))
 	{
-		if(login_single(check_post('user'), check_post('password'), $login_credentials_single[0], $login_credentials_single[1]))
+		if(login_single(
+			check_post('user'),
+			check_post('password'),
+			$login_credentials_single[0],
+			$login_credentials_single[1]
+		))
 			if($use_login_refresh)
 			{
-				login_refresh('callback', 'reload_page');
+				login_refresh('callback', 'reload_page', [$view]);
 				exit();
 			}
 		else
 			$view['login_failed_single']=true;
 
-		if(login_multi(check_post('user_multi'), check_post('password_multi'), $login_credentials_multi))
+		if(login_multi(
+			check_post('user_multi'),
+			check_post('password_multi'),
+			$login_credentials_multi
+		))
 			if($use_login_refresh)
 			{
-				login_refresh('callback', 'reload_page');
+				login_refresh('callback', 'reload_page', [$view]);
 				exit();
 			}
 		else
 			$view['login_failed_multi']=true;
 
-		if(login_callback(check_post('user_callback'), check_post('password_callback'), 'callback_function'))
+		if(login_callback(
+			check_post('user_callback'),
+			check_post('password_callback'),
+			'callback_function'
+		))
 			if($use_login_refresh)
 			{
-				login_refresh('callback', 'reload_page');
+				login_refresh('callback', 'reload_page', [$view]);
 				exit();
 			}
 		else
@@ -63,9 +78,9 @@
 			$view['logout']=true;
 			if($use_login_refresh)
 			{
-				login_refresh('callback', 'reload_page');
+				login_refresh('callback', 'reload_page', [$view]);
 				exit();
-			}		
+			}
 		}
 	}
 

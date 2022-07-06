@@ -21,7 +21,7 @@
 		public function __construct(array $params)
 		{
 			if(!isset($_SERVER['REQUEST_URI']))
-				throw new Exception('REQUEST_URI is not defined in $_SERVER');
+				throw new Exception('$_SERVER["REQUEST_URI"] is not set');
 
 			if(!isset($params['base_url']))
 				throw new Exception('The base_url parameter was not specified for the constructor');
@@ -33,21 +33,21 @@
 				isset($params['show_logout_button']) &&
 				($params['show_logout_button'] === true)
 			)
-				$this->registry['__show_logout_button']=true;
+				$this->registry['_show_logout_button']=true;
 
-			$this->registry['__assets_path']='';
+			$this->registry['_assets_path']='';
 			if(isset($params['assets_path']))
-				$this->registry['__assets_path']=$params['assets_path'];
+				$this->registry['_assets_path']=$params['assets_path'];
 
 			if(isset($params['csrf_token']))
-				$this->registry['__csrf_token']=[
+				$this->registry['_csrf_token']=[
 					'name'=>$params['csrf_token'][0],
 					'value'=>$params['csrf_token'][1]
 				];
 
 			if(
-				isset($this->registry['__show_logout_button']) &&
-				(!isset($this->registry['__csrf_token']))
+				isset($this->registry['_show_logout_button']) &&
+				(!isset($this->registry['_csrf_token']))
 			)
 				throw new Exception('The CSRF token has not been set');
 		}
@@ -77,13 +77,13 @@
 				->set_panel_label('Administration')
 				->set_logout_button_label('Logout');
 		}
-		protected function _view($__module)
+		protected function _view($_module)
 		{
-			if(isset($__module['config']))
-				include $__module['path'].'/'.$__module['config'];
+			if(isset($_module['config']))
+				include $_module['path'].'/'.$_module['config'];
 
 			include __DIR__.'/views/top.php';
-			include $__module['path'].'/'.$__module['script'];
+			include $_module['path'].'/'.$_module['script'];
 			include __DIR__.'/views/bottom.php';
 		}
 
@@ -93,7 +93,7 @@
 				if(!isset($params[$param]))
 					throw new Exception('The '.$param.' parameter was not specified for the add_module');
 
-			foreach(['__args', '__is_default', '__not_found'] as $reserved_param)
+			foreach(['_args', '_is_default', '_not_found'] as $reserved_param)
 				if(isset($params[$reserved_param]))
 					throw new Exception('The '.$reserved_param.' parameter is reserved');
 
@@ -124,7 +124,7 @@
 			if(!isset($this->modules[$module_id]))
 				throw new Exception('Module with id '.$params['id'].' is not registered');
 
-			unset($this->registered_urls[$this->modules[$module_id]['url']]);	
+			unset($this->registered_urls[$this->modules[$module_id]['url']]);
 			unset($this->modules[$module_id]);
 
 			return $this;
@@ -185,7 +185,7 @@
 			if($current_module === '')
 			{
 				$current_module=$this->modules[$this->default_module]['url'];
-				$this->modules[$this->default_module]['__is_default']=true;
+				$this->modules[$this->default_module]['_is_default']=true;
 			}
 
 			foreach($this->modules as $module_id=>$module_params)
@@ -198,13 +198,13 @@
 			if(isset($current_module_id))
 			{
 				$module_params=$this->modules[$current_module_id];
-				$module_params['__args']=explode('/', substr($current_url, strlen($module_params['url'])+1));
+				$module_params['_args']=explode('/', substr($current_url, strlen($module_params['url'])+1));
 			}
 			else
 			{
 				$module_params=$this->modules[$this->default_module];
-				$module_params['__args']=[''];
-				$module_params['__not_found']=true;
+				$module_params['_args']=[''];
+				$module_params['_not_found']=true;
 			}
 			$module_params['url']=$this->base_url.'/'.$module_params['url'];
 
@@ -229,52 +229,52 @@
 
 		protected function set_lang(string $lang)
 		{
-			$this->registry['__lang']=$lang;
+			$this->registry['_lang']=$lang;
 			return $this;
 		}
 		protected function set_title(string $title)
 		{
-			$this->registry['__title']=$title;
+			$this->registry['_title']=$title;
 			return $this;
 		}
 		protected function add_csp_header(string $section, string $value)
 		{
-			$this->registry['__csp_header'][$section][]=$value;
+			$this->registry['_csp_header'][$section][]=$value;
 			return $this;
 		}
 		public function add_style_header(string $path)
 		{
-			$this->registry['__styles'][]=$path;
+			$this->registry['_styles'][]=$path;
 			return $this;
 		}
 		public function add_script_header(string $path)
 		{
-			$this->registry['__scripts'][]=$path;
+			$this->registry['_scripts'][]=$path;
 			return $this;
 		}
 		protected function add_html_header(string $header)
 		{
-			if(!isset($this->registry['__html_headers']))
-				$this->registry['__html_headers']='';
+			if(!isset($this->registry['_html_headers']))
+				$this->registry['_html_headers']='';
 
-			$this->registry['__html_headers'].=$header;
+			$this->registry['_html_headers'].=$header;
 
 			return $this;
 		}
 
 		public function set_menu_button_label(string $label)
 		{
-			$this->registry['__menu_button_label']=$label;
+			$this->registry['_menu_button_label']=$label;
 			return $this;
 		}
 		public function set_panel_label(string $label)
 		{
-			$this->registry['__panel_label']=$label;
+			$this->registry['_panel_label']=$label;
 			return $this;
 		}
 		public function set_logout_button_label(string $label)
 		{
-			$this->registry['__logout_button_label']=$label;
+			$this->registry['_logout_button_label']=$label;
 			return $this;
 		}
 	}

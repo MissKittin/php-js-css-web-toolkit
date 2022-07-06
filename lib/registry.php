@@ -3,7 +3,7 @@
 	{
 		/*
 		 * Registry design pattern
-		 * 
+		 *
 		 * Note:
 		 *  this class can be inherited
 		 *

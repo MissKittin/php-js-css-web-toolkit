@@ -161,56 +161,59 @@
 	echo ' [ OK ]'.PHP_EOL;
 
 	foreach(['sqlite', 'pgsql', 'mysql'] as $database)
-	{
-		try {
-			echo ' -> Testing pdo_connect with '.$database.PHP_EOL;
-				$pdo_handler=pdo_connect(__DIR__.'/tmp/pdo_connect/db_'.$database);
+		if(extension_loaded('pdo_'.$database))
+		{
+			try {
+				echo ' -> Testing pdo_connect with '.$database.PHP_EOL;
+					$pdo_handler=pdo_connect(__DIR__.'/tmp/pdo_connect/db_'.$database);
 
-			echo '  -> returns PDO instance';
-				if($pdo_handler instanceof PDO)
-					echo ' [ OK ]'.PHP_EOL;
-				else
-				{
-					echo ' [FAIL]'.PHP_EOL;
-					$errors[]=$database.' instanceof PDO failed';
-					continue;
-				}
-
-			echo '  -> database seeded';
-				if(file_exists(__DIR__.'/tmp/pdo_connect/db_'.$database.'/database_seeded'))
-					echo ' [ OK ]';
-				else
-				{
-					echo ' [FAIL]'.PHP_EOL;
-					$errors[]=$database.' database_seeded file not exists';
-				}
-				$query=$pdo_handler->query('SELECT * FROM test_table');
-				if($query === false)
-				{
-					echo ' [FAIL]'.PHP_EOL;
-					$errors[]=$database.' PDO query() failed';
-				}
-				else
-				{
-					echo ' [ OK ]';
-
-					$result="array(0=>array('id'=>'1','a'=>'aa','b'=>'ab',),1=>array('id'=>'2','a'=>'ba','b'=>'bb',),)";
-					if($database === 'pgsql')
-						$result="array(0=>array('id'=>1,'a'=>'aa','b'=>'ab',),1=>array('id'=>2,'a'=>'ba','b'=>'bb',),)";
-
-					if(str_replace(["\n", ' '], '', var_export($query->fetchAll(PDO::FETCH_NAMED), true)) === $result)
+				echo '  -> returns PDO instance';
+					if($pdo_handler instanceof PDO)
 						echo ' [ OK ]'.PHP_EOL;
 					else
 					{
 						echo ' [FAIL]'.PHP_EOL;
-						$errors[]=$database.' PDO fetchAll() failed';
+						$errors[]=$database.' instanceof PDO failed';
+						continue;
 					}
-				}
-		} catch(Throwable $error) {
-			echo ' <- Testing pdo_connect with '.$database.' [FAIL]'.PHP_EOL;
-			$errors[]=$database.' caught: '.$error->getMessage();
+
+				echo '  -> database seeded';
+					if(file_exists(__DIR__.'/tmp/pdo_connect/db_'.$database.'/database_seeded'))
+						echo ' [ OK ]';
+					else
+					{
+						echo ' [FAIL]'.PHP_EOL;
+						$errors[]=$database.' database_seeded file not exists';
+					}
+					$query=$pdo_handler->query('SELECT * FROM test_table');
+					if($query === false)
+					{
+						echo ' [FAIL]'.PHP_EOL;
+						$errors[]=$database.' PDO query() failed';
+					}
+					else
+					{
+						echo ' [ OK ]';
+
+						$result="array(0=>array('id'=>'1','a'=>'aa','b'=>'ab',),1=>array('id'=>'2','a'=>'ba','b'=>'bb',),)";
+						if($database === 'pgsql')
+							$result="array(0=>array('id'=>1,'a'=>'aa','b'=>'ab',),1=>array('id'=>2,'a'=>'ba','b'=>'bb',),)";
+
+						if(str_replace(["\n", ' '], '', var_export($query->fetchAll(PDO::FETCH_NAMED), true)) === $result)
+							echo ' [ OK ]'.PHP_EOL;
+						else
+						{
+							echo ' [FAIL]'.PHP_EOL;
+							$errors[]=$database.' PDO fetchAll() failed';
+						}
+					}
+			} catch(Throwable $error) {
+				echo ' <- Testing pdo_connect with '.$database.' [FAIL]'.PHP_EOL;
+				$errors[]=$database.' caught: '.$error->getMessage();
+			}
 		}
-	}
+		else
+			echo ' -> Testing pdo_connect with '.$database.' [SKIP]'.PHP_EOL;
 
 	if(!empty($errors))
 	{

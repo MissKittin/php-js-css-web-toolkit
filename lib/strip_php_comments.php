@@ -26,7 +26,7 @@
 			$comment_tokens[]=T_ML_COMMENT;
 
 		foreach(token_get_all($source) as $token)
-		{    
+		{
 			if(is_array($token))
 			{
 				if(in_array($token[0], $comment_tokens))
@@ -38,6 +38,6 @@
 			$output_string.=$token;
 		}
 
-		return $output_string;	
+		return $output_string;
 	}
 ?>

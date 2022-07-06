@@ -4,6 +4,9 @@
 	 * Easily write logs
 	 *
 	 * Warning:
+	 *  methods log_to_csv, log_to_json, log_to_txt, and log_to_xml
+	 *   can be problematic if the output file is too large
+	 *   consider using other methods or apply log rotation
 	 *  all variables shouldn't contain space character (except $message)
 	 *  all classes and log_to_file abstract depends on log_to_generic
 	 *  app_name can be empty string but must be defined
@@ -189,14 +192,18 @@
 		{
 			parent::__construct($params);
 
-			if(!file_exists(dirname($this->file)))
-				if(!mkdir(dirname($this->file), 0777, true))
-					throw new Exception('Unable to create '.dirname($this->file));
+			if(
+				(!file_exists(dirname($this->file))) &&
+				(!mkdir(dirname($this->file), 0777, true))
+			)
+				throw new Exception('Unable to create '.dirname($this->file));
 
-			if($this->lock_file === null)
-				if(!file_exists(dirname($this->lock_file)))
-					if(!mkdir(dirname($this->lock_file), 0777, true))
-						throw new Exception('Unable to create '.dirname($this->lock_file));
+			if(
+				($this->lock_file === null) &&
+				(!file_exists(dirname($this->lock_file))) &&
+				(!mkdir(dirname($this->lock_file), 0777, true))
+			)
+				throw new Exception('Unable to create '.dirname($this->lock_file));
 		}
 
 		protected function lock_unlock_file($lock)
@@ -252,18 +259,16 @@
 			if(isset($params['on_error']))
 				$this->on_error['callback']=$params['on_curl_error'];
 
-			if(!isset($this->curl_opts[CURLOPT_TIMEOUT]))
-				$this->curl_opts[CURLOPT_TIMEOUT]=10;
-			if(!isset($this->curl_opts[CURLOPT_SSL_VERIFYPEER]))
-				$this->curl_opts[CURLOPT_SSL_VERIFYPEER]=true;
-			if(!isset($this->curl_opts[CURLOPT_SSLVERSION]))
-				$this->curl_opts[CURLOPT_SSLVERSION]=CURL_SSLVERSION_TLSv1_2;
-			if(!isset($this->curl_opts[CURLOPT_FAILONERROR]))
-				$this->curl_opts[CURLOPT_FAILONERROR]=true;
-			if(!isset($this->curl_opts[CURLOPT_TCP_FASTOPEN]))
-				$this->curl_opts[CURLOPT_TCP_FASTOPEN]=true;
-			if(!isset($this->curl_opts[CURLOPT_RETURNTRANSFER]))
-				$this->curl_opts[CURLOPT_RETURNTRANSFER]=true;
+			foreach([
+				CURLOPT_TIMEOUT=>10,
+				CURLOPT_SSL_VERIFYPEER=>true,
+				CURLOPT_SSLVERSION=>CURL_SSLVERSION_TLSv1_2,
+				CURLOPT_FAILONERROR=>true,
+				CURLOPT_TCP_FASTOPEN=>true,
+				CURLOPT_RETURNTRANSFER=>true
+			] as $curl_opt_name=>$curl_opt_value)
+				if(!isset($this->curl_opts[$curl_opt_name]))
+					$this->curl_opts[$curl_opt_name]=$curl_opt_value;
 
 			$this->curl_opts[CURLOPT_URL]=$this->url;
 			$this->curl_opts[CURLOPT_POST]=true;
@@ -277,15 +282,15 @@
 				'message'=>$message
 			]);
 
-			$handler=curl_init();
+			$curl_handler=curl_init();
 			foreach($this->curl_opts as $option=>$value)
-				curl_setopt($handler, $option, $value);
-			$output=curl_exec($handler);
+				curl_setopt($curl_handler, $option, $value);
+			$output=curl_exec($curl_handler);
 
-			if(curl_errno($handler))
-				$this->on_error['callback'](curl_error($handler));
+			if(curl_errno($curl_handler))
+				$this->on_error['callback'](curl_error($curl_handler));
 
-			curl_close($handler);
+			curl_close($curl_handler);
 
 			return $output;
 		}
@@ -295,7 +300,7 @@
 		protected $constructor_params=['app_name', 'command'];
 
 		protected $command;
-		
+
 		public function log(string $priority, string $message)
 		{
 			return exec($this->command.' '.$this->app_name.' '.$priority.' "'.$message.'"');
@@ -329,24 +334,68 @@
 			if(isset($params['on_error']))
 				$this->on_error['callback']=$params['on_pdo_error'];
 
-			$this->pdo_handler->exec('
-				CREATE TABLE IF NOT EXISTS '.$this->table_name.'
-				(
-					id INTEGER PRIMARY KEY AUTOINCREMENT,
-					date VARCHAR(25),
-					app_name VARCHAR(30),
-					priority VARCHAR(10),
-					message VARCHAR(255)
-				)
-			');
+			switch($this->pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME))
+			{
+				case 'pgsql':
+					if($this->pdo_handler->exec(''
+					.	'CREATE TABLE IF NOT EXISTS '.$this->table_name
+					.	'('
+					.		'id SERIAL PRIMARY KEY,'
+					.		'date VARCHAR(25),'
+					.		'app_name VARCHAR(30),'
+					.		'priority VARCHAR(10),'
+					.		'message VARCHAR(255)'
+					.	')'
+					) === false)
+						$this->on_error['callback']($this->pdo_handler->errorInfo());
+				break;
+				case 'mysql':
+					if($this->pdo_handler->exec(''
+					.	'CREATE TABLE IF NOT EXISTS '.$this->table_name
+					.	'('
+					.		'id INT NOT NULL AUTO_INCREMENT, PRIMARY KEY(id),'
+					.		'date VARCHAR(25),'
+					.		'app_name VARCHAR(30),'
+					.		'priority VARCHAR(10),'
+					.		'message VARCHAR(255)'
+					.	')'
+					) === false)
+						$this->on_error['callback']($this->pdo_handler->errorInfo());
+				break;
+				default:
+					if($this->pdo_handler->exec(''
+					.	'CREATE TABLE IF NOT EXISTS '.$this->table_name
+					.	'('
+					.		'id INTEGER PRIMARY KEY AUTOINCREMENT,'
+					.		'date VARCHAR(25),'
+					.		'app_name VARCHAR(30),'
+					.		'priority VARCHAR(10),'
+					.		'message VARCHAR(255)'
+					.	')'
+					) === false)
+						$this->on_error['callback']($this->pdo_handler->errorInfo());
+			}
 		}
 
 		public function log(string $priority, string $message)
 		{
-			$query=$this->pdo_handler->prepare('
-				INSERT INTO '.$this->table_name.'(date, app_name, priority, message)
-				VALUES(:date, :app_name, :priority, :message)
-			');
+			$query=$this->pdo_handler->prepare(''
+			.	'INSERT INTO '.$this->table_name
+			.	'('
+			.		'date,'
+			.		'app_name,'
+			.		'priority,'
+			.		'message'
+			.	') VALUES ('
+			.		':date,'
+			.		':app_name,'
+			.		':priority,'
+			.		':message'
+			.	')'
+			);
+
+			if($query === false)
+				$this->on_error['callback']($this->pdo_handler->errorInfo());
 
 			if(!$query->execute([
 				':date'=>gmdate('Y-m-d H:i:s'),
@@ -425,28 +474,45 @@
 			{
 				if(file_put_contents(
 					$this->file,
-					'[["'
-						.gmdate('Y-m-d H:i:s').'","'
-						.$this->app_name.'","'
-						.$priority.'","'
-						.$message
-					.'"]]'
+					'[['
+						.'"'.gmdate('Y-m-d H:i:s').'",'
+						.'"'.$this->app_name.'",'
+						.'"'.$priority.'",'
+						.'"'.str_replace('"', '\"', $message).'"'
+					.']]'
 				) === false)
 					throw new Exception('Unable to create log file');
 			}
 			else
 			{
-				if(file_put_contents(
-					$this->file,
-					substr(file_get_contents($this->file), 0, -1)
-					.',["'
-						.gmdate('Y-m-d H:i:s').'","'
-						.$this->app_name.'","'
-						.$priority.'","'
-						.$message
-					.'"]]'
-				) === false)
-					throw new Exception('Unable to create log file');
+				$file_handler=fopen($this->file, 'r+');
+
+				if($file_handler === false)
+					throw new Exception('Unable to edit log file');
+
+				$new_log_size=fstat($file_handler)['size']-1;
+
+				$array_separator=',';
+				if($new_log_size < 0)
+					$array_separator='[';
+				else
+				{
+					ftruncate($file_handler, $new_log_size);
+					fseek($file_handler, $new_log_size);
+				}
+
+				fwrite(
+					$file_handler,
+					$array_separator
+					.'['
+						.'"'.gmdate('Y-m-d H:i:s').'",'
+						.'"'.$this->app_name.'",'
+						.'"'.$priority.'",'
+						.'"'.str_replace('"', '\"', $message).'"'
+					.']]'
+				);
+
+				fclose($file_handler);
 			}
 		}
 	}
@@ -486,17 +552,34 @@
 			}
 			else
 			{
-				if(file_put_contents(
-					$this->file,
-					substr(file_get_contents($this->file), 0, -10)
+				$file_handler=fopen($this->file, 'r+');
+
+				if($file_handler === false)
+					throw new Exception('Unable to edit log file');
+
+				$new_log_size=fstat($file_handler)['size']-10;
+
+				$xml_header='';
+				if($new_log_size < 0)
+					$xml_header='<?xml version="1.0" encoding="UTF-8" ?><journal>';
+				else
+				{
+					ftruncate($file_handler, $new_log_size);
+					fseek($file_handler, $new_log_size);
+				}
+
+				fwrite(
+					$file_handler,
+					$xml_header
 					.'<entry>'
 						.'<date>'.gmdate('Y-m-d H:i:s').'</date>'
 						.'<appname>'.$this->app_name.'</appname>'
 						.'<priority>'.$priority.'</priority>'
 						.'<message>'.$message.'</message>'
 					.'</entry></journal>'
-				) === false)
-					throw new Exception('Unable to create log file');
+				);
+
+				fclose($file_handler);
 			}
 		}
 	}

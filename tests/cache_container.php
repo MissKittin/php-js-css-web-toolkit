@@ -5,6 +5,14 @@
 	 * Note:
 	 *  looks for a library at ../lib
 	 *
+	 * Hint:
+	 *  you can setup Redis server address and port by environment variables
+	 *  variables:
+	 *   TEST_REDIS_HOST (default: 127.0.0.1)
+	 *   TEST_REDIS_PORT (default: 6379)
+	 *  to skip cleaning the Redis database,
+	 *   run the test with the --no-redis-clean parameter
+	 *
 	 * Warning:
 	 *  PDO extension is required
 	 *  pdo_sqlite extension is required
@@ -38,6 +46,8 @@
 			@unlink(__DIR__.'/tmp/'.$file);
 	echo ' [ OK ]'.PHP_EOL;
 
+	$pdo_handler=new PDO('sqlite:'.__DIR__.'/tmp/cache_container.sqlite3');
+
 	$cache_drivers=[
 		'cache_driver_none'=>null,
 		'cache_driver_file'=>[
@@ -49,13 +59,62 @@
 			'lock_file'=>__DIR__.'/tmp/cache_container_realtime.json.lock'
 		],
 		'cache_driver_pdo'=>[
-			'pdo_handler'=>new PDO('sqlite:'.__DIR__.'/tmp/cache_container.sqlite3')
-		],
-		'cache_driver_phpredis'=>[
-			'address'=>'127.0.0.1'
+			'pdo_handler'=>$pdo_handler
 		]
 	];
+	$GLOBALS['_redis_handler']=null;
+	if(extension_loaded('redis'))
+	{
+		$GLOBALS['_redis_handler']=new Redis();
+
+		$_redis_host=getenv('TEST_REDIS_HOST');
+		$_redis_port=getenv('TEST_REDIS_PORT');
+
+		if($_redis_host === false)
+			$_redis_host='127.0.0.1';
+		if($_redis_port === false)
+			$_redis_port=6379;
+
+		if(!$GLOBALS['_redis_handler']->connect($_redis_host, $_redis_port))
+		{
+			echo ' -> cache_driver_redis connection error [SKIP]'.PHP_EOL;
+			$GLOBALS['_redis_handler']=null;
+		}
+		else
+		{
+			$cache_drivers['cache_driver_redis']=[
+				'redis_handler'=>$GLOBALS['_redis_handler'],
+				'prefix'=>'cache_container_test__'
+			];
+
+			echo ' -> Removing Redis records';
+				foreach([
+					'increment_test',
+					'incrementb_test',
+					'decrement_test',
+					'timeout_test',
+					'flush_test'
+				] as $key)
+					$GLOBALS['_redis_handler']->del('cache_container_test__'.$key);
+			echo ' [ OK ]'.PHP_EOL;
+		}
+
+		unset($_redis_host);
+		unset($_redis_port);
+	}
+	else
+		echo ' -> cache_driver_redis redis extension is not loaded [SKIP]'.PHP_EOL;
+
+	if(isset($argv[1]))
+	{
+		unset($cache_drivers['cache_driver_none']);
+		unset($cache_drivers['cache_driver_file']);
+		unset($cache_drivers['cache_driver_file_realtime']);
+		unset($cache_drivers['cache_driver_redis']);
+	}
+
 	$errors=[];
+	$pdo_errors=[];
 
 	foreach(['cache_container', 'cache_container_lite'] as $cache_container)
 	{
@@ -206,10 +265,27 @@
 						echo ' [FAIL]'.PHP_EOL;
 					}
 			} catch(Throwable $error) {
-				$errors[$cache_container.' => '.$driver_name]=$error->getMessage();
 				echo '  <- Testing driver '.$driver_name.' [FAIL]'.PHP_EOL;
+				$errors[$cache_container.' => '.$driver_name]=$error->getMessage();
+				$pdo_errors[$cache_container.' => '.$driver_name]=$pdo_handler->errorInfo()[2];
 			}
 		}
+	}
+
+	if(
+		($GLOBALS['_redis_handler'] !== null) &&
+		(@$argv[1] !== '--no-redis-clean')
+	){
+		echo ' -> Removing Redis records';
+			foreach([
+				'increment_test',
+				'incrementb_test',
+				'decrement_test',
+				'timeout_test',
+				'flush_test'
+			] as $key)
+				$GLOBALS['_redis_handler']->del('cache_container_test__'.$key);
+		echo ' [ OK ]'.PHP_EOL;
 	}
 
 	if(!empty($errors))
@@ -218,6 +294,14 @@
 
 		foreach($errors as $error_class=>$error_content)
 			echo $error_class.': '.$error_content.PHP_EOL;
+
+		if(!empty($pdo_errors))
+			{
+				echo PHP_EOL;
+
+				foreach($pdo_errors as $method=>$error)
+					echo $method.': '.$error.PHP_EOL;
+			}
 
 		exit(1);
 	}

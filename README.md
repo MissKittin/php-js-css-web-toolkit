@@ -1,12 +1,11 @@
 # PHP-JS-CSS web toolkit
 A set of tools, components and libraries that you can use in your project  
-Recommended PHP version: 7
+Recommended PHP version: 7.4
 
 ## Principles
 * respect the KISS rule
 * respect the DRY rule
 * use MVC design pattern
-* avoid `chdir()`
 * PHP and CSS have a snake_case, Js - camelCase
 * if you are writing a new library, keep it independent of the other libraries
 * if you are writing a new component, keep it independent of the other components
@@ -16,21 +15,23 @@ Recommended PHP version: 7
 * `assets-compiler.php` - compile assets from app/assets
 * `autoloader-generator.php` - a toy that scans PHP files and generates an autoloader script
 * `check-easter-mkcache.php` - cache generator for `check_easter_cache()`
-* `cron.php` - interface for `cron.php`
-* `file-sign.php` - interface for `sec_file_sign.php`
+* `cron.php` - interface for `cron.php` library
+* `file-sign.php` - interface for `sec_file_sign.php` library
 * `file-watch.php` - run the command after modifying the file(s)
 * `include2blob.php` - a toy that converts inclusion to a single file blob
 * `link2file.php` - recursively convert all symbolic links to files
-* `lv-encrypter.php` - interface for `sec_lv_encrypter.php`
+* `logrotate.php` - interface for `logrotate.php` library
+* `lv-encrypter.php` - interface for `sec_lv_encrypter.php` library
 * `opcache-preload-generator.php` - opcache preload script generator
-* `pdo-connect.php` - interface for `pdo_connect.php`, `pdo_cheat.php` (optional) and `pdo_crud_builder.php` (optional) - seed databases from `app/databases`
+* `pdo-connect.php` - interface for `pdo_connect.php`, `pdo_cheat.php` (optional) and `pdo_crud_builder.php` (optional) libraries - seed databases
 * `queue-worker.php` - interface for `queue_worker.php` server
 * `run-php-components-tests.php` - run PHP components tests in batch mode
 * `run-php-lib-tests.php` - run PHP library tests in batch mode
+* `run-phtml-tests.php` - serve phtml tests (for Js and CSS libraries)
 * `serve.php` - start PHP development server
-* `sqlite3-db-dump.php` - interface for `sqlite3_db_dump.php`
+* `sqlite3-db-dump.php` - interface for `sqlite3_db_dump.php` library
 * `sqlite3-db-vacuum.php` - vacuum database
-* `webdevsh.php` - interface for `webdevsh.php`
+* `webdevsh.php` - interface for `webdevsh.php` library
 * `websockets.php` - a simple point-to-point websocket server
 
 ## PHP libraries
@@ -49,9 +50,12 @@ Recommended PHP version: 7
 * `find_php_definitions.php` - look up the definition of functions, classes, interfaces and traits in the source code
 * `getallheaders.php` - `getallheaders()` for older PHP versions
 * `global_variable_streamer.php` - a helper for functions that only support writing output to a file
+* `has_php_close_tag.php` - check if the PHP file ends with a close tag
 * `http_request_response.php` - OOP overlay for standard request-response handling
+* `include_into_namespace.php` - function that facilitates including libraries to a namespace (mainly for testing purposes)
 * `ioc_container.php` - dependency injection containers
 * `logger.php` - easily write logs
+* `logrotate.php` - journalists rotation machine
 * `maintenance_break.php` - check to send the maintenance break pattern
 * `measure_exec_time.php` - debugging
 * `ob_cache.php` - cache output buffer
@@ -86,7 +90,7 @@ Recommended PHP version: 7
 * `time_converter.php` - time converting library - convert time to human-readable form
 * `trivial_templating_engine.php`
 * `uri_router.php` - OOP routing solution
-* `webdevsh.php` - CLI functions for webdev.sh minifiers
+* `webdevsh.php` - functions for Toptal minifiers
 * `zip.php` - make ZIP file in RAM - library from PhpMyAdmin (GNU GPL2)
 
 ## Javascript libraries
@@ -98,7 +102,8 @@ Recommended PHP version: 7
 * `disableEnterOnForm.js` - disable submit by Enter behavior
 * `enableTabOnTextarea.js` - allow inserting tabs on selected textareas
 * `epilepsi.js` - nice functions for creating epileptic impressions
-* `fadeAnimations.js` - fade-in on load and fade-out before unload
+* `fadeAnimationIn.js` - fade-in on load
+* `fadeAnimationOut.js` - fade-out before unload
 * `getCookie.js` - read cookie value
 * `getCssJs.js` - apply CSS or Js at run time
 * `getJson.js` - get/send JSON data
@@ -110,7 +115,7 @@ Recommended PHP version: 7
 * `richTextEditor.js` - basic WYSIWYG editor
 * `sendNotification.js` - send notification to the browser
 * `sleep.js`
-* `sortTable.js` - adds table sort by clicking table header
+* `sortTable.js` - adds a function to sort the table by clicking on the table header
 * `time_converter.php` - `time_converter.php` in Js version
 * `titleScroller.js` - infinity title scrolling
 * `wicdPhpGuiWindows.js` - CSS window objects wrapped in Js automation
@@ -125,6 +130,7 @@ Recommended PHP version: 7
 
 ## PHP components
 * `admin_panel` - a small framework
+* `herring` - device for tracking users
 * `login` - quickly create login-restricted content
 * `middleware_form` - customizable HTML form
 * `superclosure_router` - cacheable `uri_router.php`

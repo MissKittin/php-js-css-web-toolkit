@@ -36,8 +36,8 @@
 		if(logout(check_post('logout')))
 		{
 			$GLOBALS['login']['config']['on_logout']();
-			login_refresh('file', __DIR__.'/view/reload.php');
-			exit();	
+			login_refresh('file', __DIR__.'/views/reload.php');
+			exit();
 		}
 
 		if(
@@ -82,7 +82,7 @@
 					$_SESSION['__login_remember_me']=true;
 
 				$GLOBALS['login']['config']['on_login_success']();
-				login_refresh('file', __DIR__.'/view/reload.php');
+				login_refresh('file', __DIR__.'/views/reload.php');
 				exit();
 			}
 			else
@@ -98,7 +98,7 @@
 	if(!is_logged())
 	{
 		$GLOBALS['login']['config']['on_login_prompt']();
-		include __DIR__.'/view/form.php';
+		include __DIR__.'/views/form.php';
 
 		if($GLOBALS['login']['config']['exit_after_login_prompt'])
 			exit();

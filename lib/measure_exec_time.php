@@ -38,6 +38,7 @@
 			return microtime(true)-$this->start_time;
 		}
 	}
+
 	function measure_exec_time_from_request()
 	{
 		/*

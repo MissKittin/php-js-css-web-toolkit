@@ -1,0 +1,90 @@
+<?php
+	/*
+	 * convertBytes.js library test
+	 *
+	 * Note:
+	 *  looks for a library at ../lib
+	 */
+
+	if(!is_file(__DIR__.'/../lib/'.basename(__FILE__, '.phtml')))
+	{
+		echo __DIR__.'/../lib/'.basename(__FILE__, '.phtml').' is not a file';
+		exit();
+	}
+?>
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<script>
+			document.addEventListener('DOMContentLoaded', function(){
+				<?php include __DIR__.'/../lib/'.basename(__FILE__, '.phtml'); ?>
+
+				var table=document.getElementById('convertbytes');
+
+				for(var x=0, row; row=table.rows[x]; x++)
+					for(var y=0, col; col=row.cells[y]; y++)
+						if(!isNaN(col.innerHTML))
+							col.innerHTML=convertBytes(col.innerHTML);
+			}, false);
+		</script>
+	</head>
+	<body>
+		<table id="convertbytes">
+			<tr><th>Size</th><th>Used</th><th>Avail</th></tr>
+			<tr>
+				<td>390884</td>
+				<td>42108</td>
+				<td>348776</td>
+			</tr><tr>
+				<td>1954408</td>
+				<td>708</td>
+				<td>1953700</td>
+			</tr><tr>
+				<td>5120</td>
+				<td>0</td>
+				<td>5120</td>
+			</tr><tr>
+				<td>781760</td>
+				<td>0</td>
+				<td>781760</td>
+			</tr><tr>
+				<td>1954408</td>
+				<td>0</td>
+				<td>1954408</td>
+			</tr><tr>
+				<td>1954408</td>
+				<td>0</td>
+				<td>1954408</td>
+			</tr><tr>
+				<td>1954408</td>
+				<td>8</td>
+				<td>1954400</td>
+			</tr><tr>
+				<td>1954408</td>
+				<td>36</td>
+				<td>1954372</td>
+			</tr><tr>
+				<td>1954408</td>
+				<td>4</td>
+				<td>1954404</td>
+			</tr><tr>
+				<td>1954408</td>
+				<td>0</td>
+				<td>1954408</td>
+			</tr><tr>
+				<td>1954408</td>
+				<td>0</td>
+				<td>1954408</td>
+			</tr><tr>
+				<td>1954408</td>
+				<td>18300</td>
+				<td>1936108</td>
+			</tr><tr>
+				<td>1954408</td>
+				<td>0</td>
+				<td>1954408</td>
+			</tr>
+		</table>
+	</body>
+</html>

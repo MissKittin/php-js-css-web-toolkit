@@ -6,9 +6,6 @@ Allows you to convert defined rules to PHP code
 * `superclosure.php`
 * `uri_router.php`
 
-## Required libraries for tests
-* `global_variable_streamer.php`
-
 ## Usage
 Before defining the rules, check if the cache file exists
 ```
@@ -33,6 +30,15 @@ superclosure_router::dump_cache('./tmp/routing-cache.php');
 and then
 ```
 superclosure_router::route(); // exec and flush routing table
+```
+
+## set_run_callback method
+If you want to define routing function arguments,  
+you can use the set_run_callback method, eg:
+```
+superclosure_router::set_run_callback(function($callback){
+	$callback('example-arg-1', 'example-arg-2');
+});
 ```
 
 ## Portability

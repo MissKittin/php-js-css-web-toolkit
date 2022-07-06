@@ -6,11 +6,27 @@
 	 *  looks for a library at ../lib
 	 *
 	 * Warning:
+	 *  has_php_close_tag.php library is required
+	 *  include_into_namespace.php library is required
 	 *  rmdir_recursive.php library is required
 	 */
 
 	namespace Test
 	{
+		function _include_tested_library($namespace, $file)
+		{
+			if(!is_file($file))
+				return false;
+
+			$code=file_get_contents($file);
+
+			if($code === false)
+				return false;
+
+			include_into_namespace($namespace, $code, has_php_close_tag($code));
+
+			return true;
+		}
 		function _test_cron($date_array, $input_array)
 		{
 			$success=true;
@@ -77,27 +93,31 @@
 			}
 		echo ' [ OK ]'.PHP_EOL;
 
-		echo ' -> Including rmdir_recursive.php';
-			if(@(include __DIR__.'/../lib/rmdir_recursive.php') === false)
-			{
-				echo ' [FAIL]'.PHP_EOL;
-				exit(1);
-			}
-		echo ' [ OK ]'.PHP_EOL;
+		foreach([
+			'has_php_close_tag.php',
+			'include_into_namespace.php',
+			'rmdir_recursive.php'
+		] as $library){
+			echo ' -> Including '.$library;
+				if(@(include __DIR__.'/../lib/'.$library) === false)
+				{
+					echo ' [FAIL]'.PHP_EOL;
+					exit(1);
+				}
+			echo ' [ OK ]'.PHP_EOL;
+		}
 
 		echo ' -> Including '.basename(__FILE__);
-			if(!file_exists(__DIR__.'/../lib/'.basename(__FILE__)))
+			if(_include_tested_library(
+				__NAMESPACE__,
+				__DIR__.'/../lib/'.basename(__FILE__)
+			))
+				echo ' [ OK ]'.PHP_EOL;
+			else
 			{
 				echo ' [FAIL]'.PHP_EOL;
 				exit(1);
 			}
-
-			eval(
-				'namespace Test { ?>'
-					.file_get_contents(__DIR__.'/../lib/'.basename(__FILE__))
-				.'<?php }'
-			);
-		echo ' [ OK ]'.PHP_EOL;
 
 		echo ' -> Removing temporary files';
 			rmdir_recursive(__DIR__.'/tmp/cron');
@@ -115,7 +135,7 @@
 				'0_-_-_-_-',
 				'-_-_-_-_-',
 				'32_15_26_10_-'
-			] as $hash) {
+			] as $hash){
 				mkdir(__DIR__.'/tmp/cron/crontab/'.$hash);
 
 				foreach(['a', 'b'] as $job)

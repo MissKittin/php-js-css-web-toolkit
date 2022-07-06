@@ -1,16 +1,4 @@
 <?php
-	echo ' -> Including library global_variable_streamer.php';
-		if(file_exists(__DIR__.'/lib/global_variable_streamer.php'))
-			include __DIR__.'/lib/global_variable_streamer.php';
-		else if(file_exists(__DIR__.'/../../../lib/global_variable_streamer.php'))
-			include __DIR__.'/../../../lib/global_variable_streamer.php';
-		else
-		{
-			echo ' [FAIL]'.PHP_EOL;
-			exit(1);
-		}
-	echo ' [ OK ]'.PHP_EOL;
-
 	echo ' -> Including superclosure_router.php';
 		try {
 			if(@(include __DIR__.'/../superclosure_router.php') === false)
@@ -28,20 +16,24 @@
 		}
 	echo ' [ OK ]'.PHP_EOL;
 
+	echo ' -> Removing temporary files';
+		@mkdir(__DIR__.'/tmp');
+		@unlink(__DIR__.'/tmp/'.basename(__FILE__));
+	echo ' [ OK ]'.PHP_EOL;
+
 	echo ' -> Mocking superglobals';
 		$_SERVER['REQUEST_URI']='nonerequri';
 		$_SERVER['REQUEST_METHOD']='nonereqmeth';
-	echo ' [ OK ]'.PHP_EOL;
-
-	echo ' -> Setting up global_variable_streamer';
-		global_variable_streamer::register_wrapper('gvs');
-		$GLOBALS['router_cache']='';
 	echo ' [ OK ]'.PHP_EOL;
 
 	echo ' -> Setting up router';
 		superclosure_router::set_base_path('/basepth');
 		superclosure_router::set_source(strtok($_SERVER['REQUEST_URI'], '?'));
 		superclosure_router::set_request_method($_SERVER['REQUEST_METHOD']);
+
+		superclosure_router::set_run_callback(function($callback){
+			$callback('example-arg-1', 'example-arg-2');
+		});
 
 		superclosure_router::set_default_route(function(){
 			++$GLOBALS['default_route'];
@@ -83,11 +75,12 @@
 		superclosure_router::add_to_cache('strtok', "strtok(\$_SERVER['REQUEST_URI'], '?')");
 		superclosure_router::set_source_variable(superclosure_router::read_from_cache('strtok'));
 		superclosure_router::set_request_method_variable("\$_SERVER['REQUEST_METHOD']");
-		superclosure_router::dump_cache('gvs://router_cache');
+		superclosure_router::dump_cache(__DIR__.'/tmp/'.basename(__FILE__));
 	echo ' [ OK ]'.PHP_EOL;
 
 	echo ' -> Validating cache';
-		if(md5($GLOBALS['router_cache']) === 'c0b47000caecbd6f75bcb24c589254b4')
+		//echo ' ('.md5(file_get_contents(__DIR__.'/tmp/'.basename(__FILE__))).')';
+		if(md5(file_get_contents(__DIR__.'/tmp/'.basename(__FILE__))) === '1e0e30fc21010696612458a1e3e09357')
 			echo ' [ OK ]'.PHP_EOL;
 		else
 		{

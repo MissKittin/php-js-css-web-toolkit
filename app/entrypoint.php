@@ -1,13 +1,28 @@
 <?php
-	chdir(__DIR__ . '/..');
+	chdir(__DIR__.'/..');
 
-	if(($_SERVER['REQUEST_METHOD'] !== 'GET') && ($_SERVER['REQUEST_METHOD'] !== 'POST'))
-	{
+	if(
+		(!isset($_SERVER['REQUEST_URI'])) ||
+		(!isset($_SERVER['REQUEST_METHOD']))
+	){
 		include './app/controllers/samples/http_error.php';
 		http_error(400);
 		exit();
 	}
 
+	if(
+		($_SERVER['REQUEST_METHOD'] !== 'GET') &&
+		($_SERVER['REQUEST_METHOD'] !== 'POST')
+	){
+		include './app/controllers/samples/http_error.php';
+		http_error(400);
+		exit();
+	}
+
+	/*
+	 * The X-Forwarded-Proto header is ignored by public/.htaccess
+	 * Edit public/.htaccess to get the following code to work
+	 */
 	if(
 		isset($_SERVER['HTTP_X_FORWARDED_PROTO']) &&
 		($_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https')
@@ -26,9 +41,31 @@
 		case 'login-component-test': include './app/controllers/samples/login-component-test.php'; break;
 		case 'preprocessing-test': include './app/controllers/samples/preprocessing-test.php'; break;
 
-		case 'robots.txt': include './app/controllers/samples/robots-sitemap.php'; robots(); break;
-		case 'sitemap.xml': include './app/controllers/samples/robots-sitemap.php'; sitemap(); break;
+		case 'robots.txt':
+			if(!isset($_SERVER['HTTP_HOST']))
+			{
+				include './app/controllers/samples/http_error.php';
+				http_error(400);
+				exit();
+			}
 
-		default: include './app/controllers/samples/http_error.php'; http_error(404);
+			include './app/controllers/samples/robots-sitemap.php';
+			robots();
+		break;
+		case 'sitemap.xml':
+			if(!isset($_SERVER['HTTP_HOST']))
+			{
+				include './app/controllers/samples/http_error.php';
+				http_error(400);
+				exit();
+			}
+
+			include './app/controllers/samples/robots-sitemap.php';
+			sitemap();
+		break;
+
+		default:
+			include './app/controllers/samples/http_error.php';
+			http_error(404);
 	}
 ?>

@@ -4,7 +4,6 @@
 	 *
 	 * Warning:
 	 *  all classes are interdependent
-	 *  this is alpha version - use at your own risk
 	 *  this library is not idiot-proof
 	 *
 	 * Usage/Examples:
@@ -143,10 +142,12 @@
 		protected function exec_prepared($statement, $parameters)
 		{
 			$result=$this->pdo_handler->prepare($statement);
+
 			if($result === false)
 				return false;
 
 			$result=$result->execute($parameters);
+
 			if($result === false)
 				return false;
 
@@ -155,6 +156,7 @@
 		protected function query($statement)
 		{
 			$result=$this->pdo_handler->query($statement);
+
 			if($result === false)
 				return false;
 
@@ -163,6 +165,7 @@
 		protected function query_prepared($statement, $parameters)
 		{
 			$result=$this->pdo_handler->prepare($statement);
+
 			if($result === false)
 				return false;
 
@@ -193,17 +196,29 @@
 					$this->table_schema[$column_name]=$column_name;
 			else
 			{
-				$table_schema=$this->query('SELECT * FROM '.$this->table_name.' LIMIT 1');
+				$table_schema=$this->query(''
+				.	'SELECT * '
+				.	'FROM '.$this->table_name.' '
+				.	'LIMIT 1'
+				);
+
 				if(($table_schema === false) || (!isset($table_schema[0])))
 				{
 					if(isset($params['new_table_schema']))
 					{
 						$table_schema='';
+
 						foreach($params['new_table_schema'] as $column_name=>$column_type)
 							$table_schema.=$column_name.' '.$column_type.', ';
+
 						$table_schema=substr($table_schema, 0, -2);
 
-						if($this->exec('CREATE TABLE IF NOT EXISTS '.$this->table_name.'('.$table_schema.')') === false)
+						if($this->exec(''
+						.	'CREATE TABLE IF NOT EXISTS '.$this->table_name
+						.	'('
+						.		$table_schema
+						.	')'
+						) === false)
 							throw new Exception('Unable to create table');
 
 						$this->_pdo_cheat__save_table_schema($params['table_schema']);
@@ -218,12 +233,24 @@
 		public function dump_table(int $limit=null, int $limit_offset=null)
 		{
 			if($limit === null)
-				return $this->query('SELECT * FROM '.$this->table_name);
+				return $this->query(''
+				.	'SELECT * '
+				.	'FROM '.$this->table_name
+				);
 
 			if($limit_offset === null)
-				return $this->query('SELECT * FROM '.$this->table_name.' LIMIT '.$limit);
+				return $this->query(''
+				.	'SELECT * '
+				.	'FROM '.$this->table_name.' '
+				.	'LIMIT '.$limit
+				);
 
-			return $this->query('SELECT * FROM '.$this->table_name.' LIMIT '.$limit.' OFFSET '.$limit_offset);
+			return $this->query(''
+			.	'SELECT * '
+			.	'FROM '.$this->table_name.' '
+			.	'LIMIT '.$limit.' '
+			.	'OFFSET '.$limit_offset
+			);
 		}
 		public function dump_schema()
 		{
@@ -316,11 +343,19 @@
 		public function save_table()
 		{
 			$statement='';
+
 			foreach($this->table_schema as $column_name=>$column_type)
 				$statement.=$column_name.' '.$column_type.', ';
+
 			$statement=substr($statement, 0, -2);
 
-			$result=$this->exec('CREATE TABLE IF NOT EXISTS '.$this->table_name.'('.$statement.')');
+			$result=$this->exec(''
+			.	'CREATE TABLE IF NOT EXISTS '.$this->table_name
+			.	'('
+			.		$statement
+			.	')'
+			);
+
 			if($result === false)
 				return false;
 
@@ -353,9 +388,10 @@
 		public function drop_table()
 		{
 			$result=$this->exec('DROP TABLE '.$this->table_name);
+
 			if($result === false)
 				return false;
-			
+
 			$this->pdo_cheat->_pdo_cheat__clear_table_schema();
 
 			return true;
@@ -389,6 +425,7 @@
 					throw new Exception('No column was provided');
 
 				$column_name=substr($column_name, 11);
+
 				if($column_name === '')
 					throw new Exception('get_row_by_() ???');
 
@@ -399,6 +436,7 @@
 			else if(substr($column_name, 0, 7) === 'select_')
 			{
 				$column_name=substr($column_name, 7);
+
 				if($column_name === '')
 					throw new Exception('select_() ???');
 
@@ -418,11 +456,13 @@
 
 			$statement='';
 			$parameters=[];
+
 			foreach($this->query_conditions as $column_name=>$value)
 			{
 				$statement.=$column_name.'=? AND ';
 				$parameters[]=$value;
 			}
+
 			$statement=substr($statement, 0, -5);
 
 			if(empty($this->selected_columns))
@@ -430,13 +470,17 @@
 			else
 			{
 				$selected_columns='';
+
 				foreach($this->selected_columns as $column_name)
 					$selected_columns.=$column_name.',';
+
 				$selected_columns=substr($selected_columns, 0, -1);
 			}
 
-			$this->pdo_query=$this->query_prepared(
-				'SELECT '.$selected_columns.' FROM '.$this->table_name.' WHERE '.$statement,
+			$this->pdo_query=$this->query_prepared(''
+				.' SELECT '.$selected_columns
+				.' FROM '.$this->table_name
+				.' WHERE '.$statement,
 				$parameters
 			);
 
@@ -451,6 +495,7 @@
 				throw new Exception('get_row() did not executed');
 
 			$result=$this->pdo_query->fetch(PDO::FETCH_NAMED);
+
 			if($result === false)
 				return false;
 
@@ -500,17 +545,20 @@
 
 			$statement='';
 			$parameters=[];
+
 			foreach($this->query_conditions as $column_name=>$value)
 			{
 				$statement.=$column_name.'=? AND ';
 				$parameters[]=$value;
 			}
+
 			$statement=substr($statement, 0, -5);
 
 			$this->query_conditions=[];
 
-			return $this->exec_prepared(
-				'DELETE FROM '.$this->table_name.' WHERE '.$statement,
+			return $this->exec_prepared(''
+				.' DELETE FROM '.$this->table_name
+				.' WHERE '.$statement,
 				$parameters
 			);
 		}
@@ -560,19 +608,26 @@
 			$columns='';
 			$values='';
 			$parameters=[];
+
 			foreach($this->table_row as $column_name=>$value)
 			{
 				$columns.=$column_name.', ';
 				$values.='?, ';
 				$parameters[]=$value;
 			}
+
 			$columns=substr($columns, 0, -2);
 			$values=substr($values, 0, -2);
 
 			$this->table_row=[];
 
-			return $this->exec_prepared(
-				'REPLACE INTO '.$this->table_name.'('.$columns.') VALUES('.$values.')',
+			return $this->exec_prepared(''
+				.' REPLACE INTO '.$this->table_name
+				.' ('
+				.	$columns
+				.' ) VALUES ('
+				.	$values
+				.' )',
 				$parameters
 			);
 		}

@@ -128,10 +128,10 @@ exit();
 
 ## Custom session reloader for "Remember Me"
 If you want to use session_start() with parameters other than the default,  
-you can define the function `$GLOBALS['login_config']['session_reload']`.  
+you can define the function `$GLOBALS['login']['config']['session_reload']`.  
 eg. for the `sec_lv_encrypter.php` library the function will look like this:
 ```
-$GLOBALS['login_config']['session_reload']=function($cookie_lifetime)
+$GLOBALS['login']['config']['session_reload']=function($cookie_lifetime)
 {
 	lv_cookie_session_handler::session_start([
 		'cookie_lifetime'=>$cookie_lifetime

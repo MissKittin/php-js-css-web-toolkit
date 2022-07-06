@@ -8,10 +8,27 @@
 	 * Warning:
 	 *  PDO extension is required
 	 *  pdo_sqlite extension is required
+	 *  has_php_close_tag.php library is required
+	 *  include_into_namespace.php library is required
 	 */
 
 	namespace Test
 	{
+		function _include_tested_library($namespace, $file)
+		{
+			if(!is_file($file))
+				return false;
+
+			$code=file_get_contents($file);
+
+			if($code === false)
+				return false;
+
+			include_into_namespace($namespace, $code, has_php_close_tag($code));
+
+			return true;
+		}
+
 		foreach(['PDO', 'pdo_sqlite'] as $extension)
 			if(!extension_loaded($extension))
 			{
@@ -34,19 +51,56 @@
 					unlink(__DIR__.'/tmp/logger/log.'.$log);
 		echo ' [ OK ]'.PHP_EOL;
 
+		foreach(['has_php_close_tag.php', 'include_into_namespace.php'] as $library)
+		{
+			echo ' -> Including '.$library;
+				if(@(include __DIR__.'/../lib/'.$library) === false)
+				{
+					echo ' [FAIL]'.PHP_EOL;
+					exit(1);
+				}
+			echo ' [ OK ]'.PHP_EOL;
+		}
+
 		echo ' -> Including '.basename(__FILE__);
-			if(!file_exists(__DIR__.'/../lib/'.basename(__FILE__)))
+			if(_include_tested_library(
+				__NAMESPACE__,
+				__DIR__.'/../lib/'.basename(__FILE__)
+			))
+				echo ' [ OK ]'.PHP_EOL;
+			else
 			{
 				echo ' [FAIL]'.PHP_EOL;
 				exit(1);
 			}
 
-			eval(
-				'namespace Test { ?>'
-					.file_get_contents(__DIR__.'/../lib/'.basename(__FILE__))
-				.'<?php }'
-			);
-		echo ' [ OK ]'.PHP_EOL;
+		if(isset($argv[1]))
+		{
+			switch($argv[1])
+			{
+				case 'pgsql':
+					$pdo_handler=new PDO('pgsql:'
+						.'host=127.0.0.1;'
+						.'port=5432;'
+						.'dbname=logger_test;'
+						.'user=postgres;'
+						.'password=postgres'
+					);
+				break;
+				case 'mysql':
+					$pdo_handler=new PDO('mysql:'
+						.'host=[::1];'
+						.'port=3306;'
+						.'dbname=logger-test',
+						'root',
+						''
+					);
+			}
+
+			$pdo_handler->exec('DROP TABLE log');
+		}
+		if(!isset($pdo_handler))
+			$pdo_handler=new PDO('sqlite:'.__DIR__.'/tmp/logger.sqlite3');
 
 		$failed=false;
 
@@ -64,7 +118,7 @@
 			'recipient'=>'example@example.com',
 
 			// pdo
-			'pdo_handler'=>new PDO('sqlite:'.__DIR__.'/tmp/logger.sqlite3'),
+			'pdo_handler'=>$pdo_handler,
 			'table_name'=>'log',
 			//'on_pdo_error'=>function($error){ error_log(__FILE__.' log_to_pdo: '.$error[0].' '.$error[1].' '.$error[2]); },
 
@@ -85,7 +139,7 @@
 			//'Test\log_to_syslog',
 			'Test\log_to_txt',
 			'Test\log_to_xml'
-		] as $class) {
+		] as $class){
 			echo ' -> Testing '.$class;
 
 			switch($class)
@@ -119,8 +173,7 @@
 						$test_failed=true;
 				break;
 				case 'Test\log_to_pdo':
-					$pdo_test=new PDO('sqlite:'.__DIR__.'/tmp/logger.sqlite3');
-					$pdo_fetch=$pdo_test->query('SELECT * FROM log')->fetchAll();
+					$pdo_fetch=$pdo_handler->query('SELECT * FROM log')->fetchAll();
 
 					if($pdo_fetch[0]['id'].$pdo_fetch[0]['date'].$pdo_fetch[0]['app_name'].$pdo_fetch[0]['priority'].$pdo_fetch[0]['message'] !== '10000-00-00 00:00:00test_appDEBUGdebug test')
 						$test_failed=true;

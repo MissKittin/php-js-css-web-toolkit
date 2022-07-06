@@ -5,6 +5,10 @@
 	 * Warning:
 	 *  check_var.php library is required
 	 *
+	 * Hint:
+	 *  if you want to give arguments for PHP,
+	 *  put them in the SERVE_ARGS environment variable
+	 *
 	 * lib directory path:
 	 *  __DIR__/lib
 	 *  __DIR__/../lib
@@ -57,6 +61,8 @@
 			exit();
 		}
 
+		if(!$serve_args=check_env('SERVE_ARGS'))
+			$serve_args='';
 		if(!$php_http_addr=check_argv_next_param('--ip'))
 			$php_http_addr='127.0.0.1';
 		if(!$php_http_port=check_argv_next_param('--port'))
@@ -74,9 +80,17 @@
 		else
 			chdir(__DIR__.'/../public');
 
-		echo 'Starting PHP server...'.PHP_EOL.PHP_EOL;
-		system(PHP_BINARY.' '.$php_preload.' -S '.$php_http_addr.':'.$php_http_port .' '. __FILE__);
+		echo 'Starting PHP server ('.$php_http_addr.':'.$php_http_port.')'.PHP_EOL;
+		echo ' in '.getcwd().PHP_EOL;
+		if($serve_args !== '')
+			echo 'PHP arguments: '.$serve_args.PHP_EOL;
+		echo PHP_EOL;
+
+		system(PHP_BINARY.' '.$serve_args.' '.$php_preload.' -S '.$php_http_addr.':'.$php_http_port .' '. __FILE__);
 	}
 	else
-		die('No php_sapi_name() cli or cli-server detected'.PHP_EOL);
+	{
+		echo 'No php_sapi_name() cli or cli-server detected'.PHP_EOL;
+		exit(1);
+	}
 ?>

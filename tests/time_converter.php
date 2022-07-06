@@ -35,8 +35,7 @@
 			'years'=>2.3348816273465,
 			'leap_years'=>2.3285021693483,
 			'weeks'=>121.74739914021
-		] as $format=>$result)
-		{
+		] as $format=>$result){
 			echo '  -> '.$format;
 			if(abs(convert_seconds(73632827, $format)-$result) < 0.00001)
 				echo ' [ OK ]'.PHP_EOL;

@@ -67,8 +67,9 @@
 	 *  line_segments_intersect(float_line_a_xa, float_line_a_ya, float_line_a_xb, float_line_a_yb, float_line_b_xa, float_line_b_ya, float_line_b_xb, float_line_b_yb) [returns bool]
 	 *   point_is_on_line_segment() required
 	 *    line_segment_length() required
-	 *  point_is_on_polygons_perimeter([float_point_a_x,float_point_a_y], [float_point_b_x,float_point_b_y], [float_point_c_x,float_point_c_y]) [returns bool]
-	 *   where array has vertex coordinates and vertices of the polygon can be infinity
+	 *  point_is_in_polygon(float_point_x,float_point_y, [[float_point_a_x,float_point_a_y], [float_point_b_x,float_point_b_y], [float_point_c_x,float_point_c_y], [...], [float_point_n_x,float_point_n_y]]) [returns bool]
+	 *   where array (3rd parameter) has vertex coordinates and vertices of the polygon can be infinity
+	 *   note: if the point lies on the perimeter of the polygon, the function returns false
 	 *   line_segments_intersect() required
 	 *    point_is_on_line_segment() required
 	 *     line_segment_length() required
@@ -206,7 +207,7 @@
 	{
 		if($number_b === 0)
 			return $number_a;
-		
+
 		return (__METHOD__)($number_b, $number_a%$number_b);
 	}
 	function least_common_multiple(int $number_a, int $number_b)
@@ -251,6 +252,8 @@
 			++$i;
 		}
 		--$i;
+
+		$output_int=''; // patch
 
 		while($i >= 0)
 		{
@@ -553,6 +556,8 @@
 		$string=strtolower($string); // patch
 		$size=strlen($string);
 
+		$result=''; // patch
+
 		for($i=0; $i<$size; ++$i)
 		{
 			if($string[$i] === ' ')
@@ -574,6 +579,8 @@
 		$string=strtolower($string); // patch
 		$size=strlen($string);
 
+		$result=''; // patch
+
 		for($i=0; $i<$size; ++$i)
 			if($string[$i] === ' ')
 				$result.=' ';
@@ -592,6 +599,8 @@
 	{
 		$string=strtolower($string); // patch
 		$size=strlen($string);
+
+		$output=''; // patch
 
 		for($i=0; $i<$size; ++$i)
 			switch($string[$i])
@@ -640,6 +649,8 @@
 	}
 	function morse_code_decrypt(string $string)
 	{
+		$output='';
+
 		foreach(explode('    ', $string) as $word)
 		{
 			foreach(explode(' ', $word) as $letter)
@@ -774,9 +785,9 @@
 
 		return false;
 	}
-	function point_is_on_polygons_perimeter(
-		array $point_x,
-		array $point_y,
+	function point_is_in_polygon(
+		float $point_x,
+		float $point_y,
 		array $vertex_coordinates
 	){
 		// line_segments_intersect() required
@@ -786,7 +797,7 @@
 		// coordinates of the other end of the segment
 		$pk=0; // x is from coordinates array, y is $point_y
 		for($i=0; $i<$vertices; ++$i)
-			if($vertex_coordinates[$i][0] > $max)
+			if($vertex_coordinates[$i][0] > $pk)
 				$pk=$vertex_coordinates[$i][0];
 		++$pk;
 

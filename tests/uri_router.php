@@ -206,6 +206,44 @@
 		}
 	}
 
+	echo ' -> Testing run_callback method';
+		$_SERVER['REQUEST_URI']='/basepth/arg1/arg2/arg3?getarg1=getval1&getarg2=getval2';
+		$GLOBALS['custom_router_arg_a']=0;
+		$GLOBALS['custom_router_arg_b']=0;
+
+		class custom_router extends uri_router
+		{
+			protected static function run_callback(callable $callback)
+			{
+				$callback('example-arg-1', 'example-arg-2');
+			}
+		}
+
+		custom_router::set_base_path('/basepth');
+		custom_router::set_source(strtok($_SERVER['REQUEST_URI'], '?'));
+		custom_router::set_request_method($_SERVER['REQUEST_METHOD']);
+		custom_router::add(['/arg1/arg2/arg3'], function($arg_a=null, $arg_b=null){
+			if($arg_a === 'example-arg-1')
+				++$GLOBALS['custom_router_arg_a'];
+
+			if($arg_b === 'example-arg-2')
+				++$GLOBALS['custom_router_arg_b'];
+
+			if($GLOBALS['do_echo'])
+				echo ' (executed simple_route from custom_router)';
+		});
+		custom_router::route();
+
+		foreach(['custom_router_arg_a', 'custom_router_arg_b'] as $router_arg)
+			if($GLOBALS[$router_arg] === 1)
+				echo ' [ OK ]';
+			else
+			{
+				echo ' [FAIL]';
+				$errors[]='run_callback '.$router_arg;
+			}
+		echo PHP_EOL;
+
 	if(!empty($errors))
 	{
 		echo PHP_EOL;

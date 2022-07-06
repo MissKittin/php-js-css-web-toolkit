@@ -12,7 +12,7 @@
 
 	// $GLOBALS['login']['view']['assets_path']/$GLOBALS['login']['view']['login_style']
 	if(!isset($GLOBALS['login']['view']['login_style']))
-		$GLOBALS['login']['view']['login_style']='login_dark.css';
+		$GLOBALS['login']['view']['login_style']='login_bright.css';
 
 	if(!isset($GLOBALS['login']['view']['html_headers']))
 		$GLOBALS['login']['view']['html_headers']='';

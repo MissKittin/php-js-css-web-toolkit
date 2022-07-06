@@ -1,7 +1,10 @@
 <?php
 	include './app/shared/samples/default_http_headers.php';
 
-	if(strpos($_SERVER['HTTP_ACCEPT_ENCODING'], 'gzip') !== false)
+	if(
+		isset($_SERVER['HTTP_ACCEPT_ENCODING']) &&
+		(strpos($_SERVER['HTTP_ACCEPT_ENCODING'], 'gzip') !== false)
+	)
 		ob_start('ob_gzhandler');
 
 	include './app/shared/samples/session_start.php';
@@ -28,8 +31,26 @@
 
 	include './app/models/samples/login_component_test_credentials.php';
 
-	// read configuration and define callbacks
-	include './app/shared/samples/login_config.php';
+	// configure the login component
+	$GLOBALS['login']['config']['method']='login_single';
+	$GLOBALS['login']['view']['lang']='pl';
+	$GLOBALS['login']['view']['title']='Logowanie';
+	$GLOBALS['login']['view']['login_style']='login_bright.css';
+	$GLOBALS['login']['view']['login_label']='Nazwa użytkownika';
+	$GLOBALS['login']['view']['password_label']='Hasło';
+	$GLOBALS['login']['view']['remember_me_label']='Zapamiętaj mnie';
+	$GLOBALS['login']['view']['wrong_credentials_label']='Nieprawidłowa nazwa użytkownika lub hasło';
+	$GLOBALS['login']['view']['submit_button_label']='Zaloguj';
+	$GLOBALS['login']['view']['loading_title']='Ładowanie...';
+	$GLOBALS['login']['view']['loading_label']='Ładowanie...';
+	// this cookie is from app/templates/samples/default/assets/default.js/darkTheme.js
+	if(
+		isset($_COOKIE['app_dark_theme']) &&
+		($_COOKIE['app_dark_theme'] === 'true')
+	)
+		$GLOBALS['login']['view']['login_style']='login_dark.css';
+
+	// define callbacks for the login component
 	$GLOBALS['login']['config']['on_login_prompt']=function() use($log_infos)
 	{
 		$log_infos->info('Login prompt requested');
@@ -85,8 +106,16 @@
 					->add_csp_header('style-src', '\'unsafe-hashes\'')
 					->add_csp_header('style-src', '\'sha256-N6tSydZ64AHCaOWfwKbUhxXx2fRFDxHOaL3e3CO7GPI=\'');
 
+				// this cookie is from app/templates/samples/default/assets/default.js/darkTheme.js
+				if(
+					isset($_COOKIE['app_dark_theme']) &&
+					($_COOKIE['app_dark_theme'] === 'true')
+				)
+					$captcha_form->add_config('middleware_form_style', 'middleware_form_dark.css');
+				else
+					$captcha_form->add_config('middleware_form_style', 'middleware_form_bright.css');
+
 				$captcha_form
-					->add_config('middleware_form_style', 'middleware_form_bright.css')
 					->add_config('title', 'Weryfikacja')
 					->add_config('submit_button_label', 'Dalej');
 
@@ -128,7 +157,7 @@
 		// check-update functions
 		function change_password_requested()
 		{
-			return !file_exists('./var/lib/login_component_test_new_password.php');
+			return (!file_exists('./var/lib/login_component_test_new_password.php'));
 		}
 		function are_passwords_valid($old_password, $new_password, $change_password_form)
 		{
@@ -137,11 +166,13 @@
 				$change_password_form->add_error_message('Nowe hasło nie może być takie samo jak stare');
 				return false;
 			}
+
 			if(password_verify($new_password, $GLOBALS['login']['credentials'][1]))
 			{
 				$change_password_form->add_error_message('Nowe hasło nie może być takie samo jak stare');
 				return false;
 			}
+
 			if(!password_verify($old_password, $GLOBALS['login']['credentials'][1]))
 			{
 				$change_password_form->add_error_message('Stare hasło jest nieprawidłowe');
@@ -167,8 +198,12 @@
 			$change_password_form=new middleware_form();
 
 			if(
-				($change_password_form->is_form_sent()) &&
-				are_passwords_valid($_POST['old_password'], $_POST['new_password'], $change_password_form)
+				$change_password_form->is_form_sent() &&
+				are_passwords_valid(
+					$_POST['old_password'],
+					$_POST['new_password'],
+					$change_password_form
+				)
 			){
 				save_new_password($_POST['old_password'], $_POST['new_password']);
 				$log_infos->info('Password updated');
