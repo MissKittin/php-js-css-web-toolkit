@@ -14,6 +14,9 @@
 		 *  uri_router::route() will flush routing table
 		 *  routes without request method specified applies to any request method
 		 *
+		 * Note:
+		 *  default route callback will not be cleared by uri_router::route()
+		 *
 		 * Methods:
 		 *  uri_router::set_base_path(string)
 		 *  uri_router::set_source(string)
@@ -61,6 +64,17 @@
 			}, false, 'POST');
 
 			uri_router::route(); // exec and flush routing table
+		 *
+		 * run_callback method
+		 *  if you want to define routing function arguments,
+		 *  you can override the run_callback method with extension, eg:
+			class custom_router extends uri_router
+			{
+				protected static function run_callback(callable $callback)
+				{
+					$callback('example-arg-1', 'example-arg-2');
+				}
+			}
 		 */
 
 		protected static $routing_table=[];
@@ -69,6 +83,11 @@
 		protected static $request_method;
 		protected static $default_route=null;
 		protected static $reverse_mode=false;
+
+		protected static function run_callback(callable $callback)
+		{
+			$callback();
+		}
 
 		public static function set_base_path(string $path)
 		{
@@ -137,7 +156,7 @@
 						if($path_matches)
 						{
 							static::$routing_table=[];
-							$routing_element[1]();
+							static::run_callback($routing_element[1]);
 
 							return true;
 						}
@@ -146,7 +165,7 @@
 			if(isset(static::$default_route['callback']))
 			{
 				static::$routing_table=[];
-				static::$default_route['callback']();
+				static::run_callback(static::$default_route['callback']);
 			}
 
 			return false;

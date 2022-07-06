@@ -164,7 +164,6 @@
 		 * Tasks:
 		 *  function searches for scripts by timestamp: timestamp_task-name.php
 		 *  eg. 1645732027_task-name.php
-		 *  
 		 */
 
 		if(!isset($__params['tasks']))

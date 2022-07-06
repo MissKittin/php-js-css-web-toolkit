@@ -42,7 +42,19 @@
 		exit(1);
 	}
 
-	$output=sqlite3_db_dump($argv[1]);
+	try {
+		if(class_exists('SQLite3'))
+			$output=sqlite3_db_dump($argv[1]);
+		else
+			$output=sqlite3_pdo_dump($argv[1]);
+	} catch(Exception $error) {
+		$function_used='sqlite3_pdo_dump';
+		if(class_exists('SQLite3'))
+			$function_used='sqlite3_db_dump';
+
+		echo 'Error ('.$function_used.'): '.$error->getMessage().PHP_EOL;
+		exit(1);
+	}
 
 	if($output === '')
 		echo 'Database dump is empty';

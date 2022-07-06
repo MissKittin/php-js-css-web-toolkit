@@ -22,10 +22,10 @@ The logout button action is the current URL via POST
 * `add_module(array_params)` [returns self]  
 	you can add other parameters - they will be redirected to the module  
 	reserved params:  
-	* `__args` exploded and filtered from URI (eg. `/admin/module/arg1/arg2/arg3`)  
+	* `_args` exploded and filtered from URI (eg. `/admin/module/arg1/arg2/arg3`)  
 		note: will always be an `array('')` when the requested module is not registered
-	* `__is_default` true when the module was called as default
-	* `__not_found` true when the requested module is not registered
+	* `_is_default` true when the module was called as default
+	* `_not_found` true when the requested module is not registered
 
 	params:  
 	* `'id'=>'dashboard'` must be unique
@@ -80,6 +80,7 @@ Admin router:
 ```
 <?php
 	include './components/admin_panel/admin_panel.php';
+
 	$admin_panel=new admin_panel([
 		'base_url'=>'/admin',
 		'assets_path'=>'/assets',
@@ -111,12 +112,31 @@ Admin router:
 			'id'=>'github',
 			'url'=>'https://github.com/MissKittin/php-js-css-web-toolkit',
 			'name'=>'GitHub'
-		]);
+		])
+	;
 
 	$admin_panel
 		->set_default_module('dashboard')
-		->run();
+		->run()
+	;
 ?>
+```
+
+./app/admin/dashboard/config.php:
+```
+<?php
+	$this
+		->set_lang('en')
+		->set_title('Dashboard')
+	;
+?>
+```
+
+./app/admin/dashboard/main.php:
+```
+<h1>Dashboard</h1>
+<pre><?php echo '$_module: '; var_dump($_module); ?></pre>
+<pre><?php echo '$this->registry: '; var_dump($this->registry); ?></pre>
 ```
 
 ./app/admin/posts/config.php:
@@ -124,7 +144,8 @@ Admin router:
 <?php
 	$this
 		->set_lang('en')
-		->set_title('Posts');
+		->set_title('Posts')
+	;
 ?>
 ```
 
@@ -132,27 +153,27 @@ Admin router:
 ```
 <h1>Posts</h1>
 
-<?php if(isset($__module['__is_default'])) {?>
+<?php if(isset($_module['_is_default'])) {?>
 	<h3>The module was called as default</h3>
 <?php } ?>
-<?php if(isset($__module['__not_found'])) {?>
+<?php if(isset($_module['_not_found'])) {?>
 	<h3>The requested module is not registered</h3>
 <?php } ?>
 
 <?php if(isset($this->registry['global_variable'])) {?>
 	<h3>Global variable: <?php echo $this->registry['global_variable']; ?></h3>
 <?php } ?>
-<h3>Custom variable: <?php echo $__module['custom_variable']; ?></h3>
+<h3>Custom variable: <?php echo $_module['custom_variable']; ?></h3>
 
 <h1>Select action</h1>
-<div class="button"><a href="<?php echo $__module['url']; ?>/new">New post</a></div>
-<div class="button"><a href="<?php echo $__module['url']; ?>/edit">Edit</a></div>
-<div class="button"><a href="<?php echo $__module['url']; ?>/delete">Delete post</a></div>
+<div class="button"><a href="<?php echo $_module['url']; ?>/new">New post</a></div>
+<div class="button"><a href="<?php echo $_module['url']; ?>/edit">Edit</a></div>
+<div class="button"><a href="<?php echo $_module['url']; ?>/delete">Delete post</a></div>
 
 <h1>Selected action</h1>
 <div>
 	<?php
-		switch($__module['__args'][0])
+		switch($_module['_args'][0])
 		{
 			case 'new':
 				echo 'Action: write new post';

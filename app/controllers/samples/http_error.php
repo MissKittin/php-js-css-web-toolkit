@@ -5,16 +5,18 @@
 		http_response_code($error_code);
 
 		$lang='en';
-		if(
-			isset($_SERVER['HTTP_ACCEPT_LANGUAGE']) &&
-			(substr($_SERVER['HTTP_ACCEPT_LANGUAGE'], 0, 2) === 'pl')
-		)
-			$lang='pl';
+		if(isset($_SERVER['HTTP_ACCEPT_LANGUAGE']))
+			foreach(['pl', $lang] as $lang)
+				if(substr($_SERVER['HTTP_ACCEPT_LANGUAGE'], 0, strlen($lang)) === $lang)
+					break;
+
+		if(!isset($_SERVER['HTTP_HOST']))
+			$_SERVER['HTTP_HOST']='';
 
 		include './app/shared/samples/ob_adapter.php';
 		ob_adapter::add(new ob_adapter_obminifier());
 		ob_adapter::add(new ob_adapter_gzip());
-		ob_adapter::add(new ob_adapter_filecache_mod($error_code.'_'.$lang.'.cache'));
+		ob_adapter::add(new ob_adapter_filecache_mod('http_'.$error_code.'_'.$lang.'.cache'));
 		ob_adapter::add(new ob_adapter_gunzip());
 		ob_adapter::start();
 

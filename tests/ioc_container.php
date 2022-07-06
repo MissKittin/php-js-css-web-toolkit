@@ -47,7 +47,7 @@
 		{
 			return $this->requiredclass;
 		}
-	
+
 		public static function reset_count()
 		{
 			static::$count=0;

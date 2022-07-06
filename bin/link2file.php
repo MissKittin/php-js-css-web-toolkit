@@ -41,22 +41,37 @@
 	}
 
 	$cwd=getcwd();
-	foreach(new RecursiveIteratorIterator(new RecursiveDirectoryIterator($argv[1], RecursiveDirectoryIterator::SKIP_DOTS)) as $file)
-		if(is_link($file))
-		{
-			$link_destination=readlink($file);
-			chdir($argv[1]);
-			$link_destination=realpath($link_destination);
-			chdir($cwd);
 
-			$link_destination=realpath(readlink($file));
-			if($link_destination !== false)
+	try {
+		foreach(new RecursiveIteratorIterator(
+			new RecursiveDirectoryIterator(
+				$argv[1],
+				RecursiveDirectoryIterator::SKIP_DOTS
+			)
+		) as $file)
+			if(is_link($file))
 			{
-				echo $link_destination.' => '.$file.PHP_EOL;
-				if(unlink($file) === false)
-					throw new Exception('the link cannot be removed');
-				if(copy_recursive($link_destination, $file) === false)
-					throw new Exception('file cannot be copied');
+				$link_destination=readlink($file);
+
+				chdir($argv[1]);
+				$link_destination=realpath($link_destination);
+				chdir($cwd);
+
+				$link_destination=realpath(readlink($file));
+
+				if($link_destination !== false)
+				{
+					echo $link_destination.' => '.$file.PHP_EOL;
+
+					if(unlink($file) === false)
+						throw new Exception('The link cannot be removed');
+
+					if(copy_recursive($link_destination, $file) === false)
+						throw new Exception('File cannot be copied');
+				}
 			}
-		}
+	} catch(Exception $error) {
+		echo 'Error: '.$error->getMessage().PHP_EOL;
+		exit(1);
+	}
 ?>

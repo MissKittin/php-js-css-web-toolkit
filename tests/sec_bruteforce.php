@@ -5,9 +5,18 @@
 	 * Note:
 	 *  looks for a library at ../lib
 	 *
+	 * Hint:
+	 *  you can setup Redis server address and port by environment variables
+	 *  variables:
+	 *   TEST_REDIS_HOST (default: 127.0.0.1)
+	 *   TEST_REDIS_PORT (default: 6379)
+	 *  to skip cleaning the Redis database,
+	 *   run the test with the --no-redis-clean parameter
+	 *
 	 * Warning:
 	 *  PDO extension is required
 	 *  pdo_sqlite extension is required
+	 *  redis extension is recommended
 	 */
 
 	foreach(['PDO', 'pdo_sqlite'] as $extension)
@@ -26,9 +35,6 @@
 		}
 	echo ' [ OK ]'.PHP_EOL;
 
-	$_SERVER['REMOTE_ADDR']='';
-	$errors=[];
-
 	echo ' -> Removing temporary files';
 		@mkdir(__DIR__.'/tmp');
 		foreach([
@@ -46,20 +52,152 @@
 			@unlink(__DIR__.'/tmp/'.$file);
 	echo ' [ OK ]'.PHP_EOL;
 
-	foreach([
-		'bruteforce_pdo'=>new bruteforce_pdo([
-			'pdo_handler'=>new PDO('sqlite:'.__DIR__.'/tmp/sec_bruteforce.sqlite3'),
-			'table_name'=>'sec_bruteforce',
-			'max_attempts'=>3,
-			'ip'=>'1.2.3.4'
-		]),
-		'bruteforce_json'=>new bruteforce_json([
-			'file'=>__DIR__.'/tmp/sec_bruteforce.json',
-			'lock_file'=>__DIR__.'/tmp/sec_bruteforce.json.lock',
-			'max_attempts'=>3,
-			'ip'=>'1.2.3.4'
-		])
-	] as $class_name=>$class) {
+		if(isset($argv[1]))
+	{
+		switch($argv[1])
+		{
+			case 'mysql':
+				$pdo_handler=new PDO('mysql:'
+					.'host=[::1];'
+					.'port=3306;'
+					.'dbname=sec-bruteforce-test',
+					'root',
+					''
+				);
+		}
+
+		$pdo_handler->exec('DROP TABLE sec_bruteforce');
+	}
+	if(!isset($pdo_handler))
+		$pdo_handler=new PDO('sqlite:'.__DIR__.'/tmp/sec_bruteforce.sqlite3');
+
+
+	$GLOBALS['_redis_handler']=null;
+	if(extension_loaded('redis'))
+	{
+		$GLOBALS['_redis_handler']=new Redis();
+
+		$_redis_host=getenv('TEST_REDIS_HOST');
+		$_redis_port=getenv('TEST_REDIS_PORT');
+
+		if($_redis_host === false)
+			$_redis_host='127.0.0.1';
+		if($_redis_port === false)
+			$_redis_port=6379;
+
+		if($GLOBALS['_redis_handler']->connect($_redis_host, $_redis_port))
+		{
+			echo ' -> Removing Redis records';
+				$GLOBALS['_redis_handler']->del('bruteforce_redis_test__1.2.3.4');
+				$GLOBALS['_redis_handler']->del('bruteforce_redis_test_resume__1.2.3.4');
+				$GLOBALS['_redis_handler']->del('bruteforce_redis_test_timeout__1.2.3.4');
+			echo ' [ OK ]'.PHP_EOL;
+		}
+		else
+		{
+			echo ' -> bruteforce_redis connection error [SKIP]'.PHP_EOL;
+			$GLOBALS['_redis_handler']=null;
+		}
+
+		unset($_redis_host);
+		unset($_redis_port);
+	}
+	else
+		echo ' -> bruteforce_redis redis extension is not loaded [SKIP]'.PHP_EOL;
+
+	function setup_objects()
+	{
+		global $pdo_handler;
+
+		$objects=[
+			'bruteforce_pdo'=>new bruteforce_pdo([
+				'pdo_handler'=>$pdo_handler,
+				'table_name'=>'sec_bruteforce',
+				'max_attempts'=>3,
+				'ip'=>'1.2.3.4'
+			]),
+			'bruteforce_json'=>new bruteforce_json([
+				'file'=>__DIR__.'/tmp/sec_bruteforce.json',
+				'lock_file'=>__DIR__.'/tmp/sec_bruteforce.json.lock',
+				'max_attempts'=>3,
+				'ip'=>'1.2.3.4'
+			])
+		];
+
+		if($GLOBALS['_redis_handler'] !== null)
+			$objects['bruteforce_redis']=new bruteforce_redis([
+				'redis_handler'=>$GLOBALS['_redis_handler'],
+				'prefix'=>'bruteforce_redis_test__',
+				'max_attempts'=>3,
+				'ip'=>'1.2.3.4'
+			]);
+
+		return $objects;
+	}
+	function setup_resume_objects()
+	{
+		global $pdo_handler;
+
+		$objects=[
+			'bruteforce_pdo'=>new bruteforce_pdo([
+				'pdo_handler'=>$pdo_handler,
+				'table_name'=>'sec_bruteforce',
+				'max_attempts'=>3,
+				'ip'=>'1.2.3.4'
+			]),
+			'bruteforce_json'=>new bruteforce_json([
+				'file'=>__DIR__.'/tmp/sec_bruteforce_resume.json',
+				'lock_file'=>__DIR__.'/tmp/sec_bruteforce_resume.json.lock',
+				'max_attempts'=>3,
+				'ip'=>'1.2.3.4'
+			])
+		];
+
+		if($GLOBALS['_redis_handler'] !== null)
+			$objects['bruteforce_redis']=new bruteforce_redis([
+				'redis_handler'=>$GLOBALS['_redis_handler'],
+				'prefix'=>'bruteforce_redis_test_resume__',
+				'max_attempts'=>3,
+				'ip'=>'1.2.3.4'
+			]);
+
+		return $objects;
+	}
+	function setup_timeout_objects()
+	{
+		$objects=[
+			'bruteforce_timeout_pdo'=>new bruteforce_timeout_pdo([
+				'pdo_handler'=>new PDO('sqlite:'.__DIR__.'/tmp/sec_bruteforce_timeout.sqlite3'),
+				'table_name'=>'sec_bruteforce',
+				'max_attempts'=>3,
+				'ip'=>'1.2.3.4',
+				'ban_time'=>2
+			]),
+			'bruteforce_timeout_json'=>new bruteforce_timeout_json([
+				'file'=>__DIR__.'/tmp/sec_bruteforce_timeout.json',
+				'lock_file'=>__DIR__.'/tmp/sec_bruteforce_timeout.json.lock',
+				'max_attempts'=>3,
+				'ip'=>'1.2.3.4',
+				'ban_time'=>2
+			])
+		];
+
+		if($GLOBALS['_redis_handler'] !== null)
+			$objects['bruteforce_timeout_redis']=new bruteforce_timeout_redis([
+				'redis_handler'=>$GLOBALS['_redis_handler'],
+				'prefix'=>'bruteforce_redis_test_timeout__',
+				'max_attempts'=>3,
+				'ip'=>'1.2.3.4',
+				'ban_time'=>2
+			]);
+
+		return $objects;
+	}
+
+	$errors=[];
+
+	foreach(setup_objects() as $class_name=>$class)
+	{
 		echo ' -> Testing '.$class_name.PHP_EOL;
 
 		echo '  -> add/check/get_attempts';
@@ -94,20 +232,8 @@
 	}
 
 	echo ' -> Testing save'.PHP_EOL;
-		foreach([
-			'bruteforce_pdo'=>new bruteforce_pdo([
-				'pdo_handler'=>new PDO('sqlite:'.__DIR__.'/tmp/sec_bruteforce_resume.sqlite3'),
-				'table_name'=>'sec_bruteforce',
-				'max_attempts'=>3,
-				'ip'=>'1.2.3.4'
-			]),
-			'bruteforce_json'=>new bruteforce_json([
-				'file'=>__DIR__.'/tmp/sec_bruteforce_resume.json',
-				'lock_file'=>__DIR__.'/tmp/sec_bruteforce_resume.json.lock',
-				'max_attempts'=>3,
-				'ip'=>'1.2.3.4'
-			])
-		] as $class_name=>$class) {
+		foreach(setup_resume_objects() as $class_name=>$class)
+		{
 			echo '  -> '.$class_name.PHP_EOL;
 
 			echo '   -> add/check/get_attempts';
@@ -132,20 +258,8 @@
 				unset($class);
 		}
 	echo ' -> Testing resume'.PHP_EOL;
-		foreach([
-			'bruteforce_pdo'=>new bruteforce_pdo([
-				'pdo_handler'=>new PDO('sqlite:'.__DIR__.'/tmp/sec_bruteforce_resume.sqlite3'),
-				'table_name'=>'sec_bruteforce',
-				'max_attempts'=>3,
-				'ip'=>'1.2.3.4'
-			]),
-			'bruteforce_json'=>new bruteforce_json([
-				'file'=>__DIR__.'/tmp/sec_bruteforce_resume.json',
-				'lock_file'=>__DIR__.'/tmp/sec_bruteforce_resume.json.lock',
-				'max_attempts'=>3,
-				'ip'=>'1.2.3.4'
-			])
-		] as $class_name=>$class) {
+		foreach(setup_resume_objects() as $class_name=>$class)
+		{
 			echo '  -> '.$class_name.PHP_EOL;
 
 			echo '   -> check/get_attempts';
@@ -159,22 +273,8 @@
 				echo PHP_EOL;
 		}
 
-	foreach([
-		'bruteforce_timeout_pdo'=>new bruteforce_timeout_pdo([
-			'pdo_handler'=>new PDO('sqlite:'.__DIR__.'/tmp/sec_bruteforce_timeout.sqlite3'),
-			'table_name'=>'sec_bruteforce',
-			'max_attempts'=>3,
-			'ip'=>'1.2.3.4',
-			'ban_time'=>2
-		]),
-		'bruteforce_timeout_json'=>new bruteforce_timeout_json([
-			'file'=>__DIR__.'/tmp/sec_bruteforce_timeout.json',
-			'lock_file'=>__DIR__.'/tmp/sec_bruteforce_timeout.json.lock',
-			'max_attempts'=>3,
-			'ip'=>'1.2.3.4',
-			'ban_time'=>2
-		])
-	] as $class_name=>$class) {
+	foreach(setup_timeout_objects() as $class_name=>$class)
+	{
 		echo ' -> Testing '.$class_name.PHP_EOL;
 
 		echo '  -> phase 1 '.PHP_EOL;
@@ -268,7 +368,7 @@
 				echo PHP_EOL;
 			echo '   -> sleep 3'.PHP_EOL;
 				sleep(3);
-			echo '   -> check/get_attempts';//var_dump($class->check());var_dump($class->get_attempts());
+			echo '   -> check/get_attempts';
 				if((!$class->check()) && ($class->get_attempts() === 0))
 					echo ' [ OK ]'.PHP_EOL;
 				else
@@ -357,6 +457,17 @@
 					echo ' [FAIL]'.PHP_EOL;
 					$errors[]='bruteforce_mixed perm ban phase 2/2';
 				}
+
+	if(
+		($GLOBALS['_redis_handler'] !== null) &&
+		(@$argv[1] !== '--no-redis-clean')
+	){
+		echo ' -> Removing Redis records';
+			$GLOBALS['_redis_handler']->del('bruteforce_redis_test__1.2.3.4');
+			$GLOBALS['_redis_handler']->del('bruteforce_redis_test_resume__1.2.3.4');
+			$GLOBALS['_redis_handler']->del('bruteforce_redis_test_timeout__1.2.3.4');
+		echo ' [ OK ]'.PHP_EOL;
+	}
 
 	if(!empty($errors))
 	{

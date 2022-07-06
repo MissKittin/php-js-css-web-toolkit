@@ -32,8 +32,8 @@
  * Input text:
  *  <label for="text_name">Label</label><input type="text" name="text_name">
  * Switches:
- *  Switch option 1 <label><input type="checkbox"><span class="lever"></span></label>
- *  Switch option 2 <label><input type="checkbox" checked><span class="lever"></span></label>
+ *  Switch option 1 <label><input type="checkbox"><span class="switch_lever"></span></label>
+ *  Switch option 2 <label><input type="checkbox" checked><span class="switch_lever"></span></label>
  * Buttons:
  *  <input class="button" type="submit">
  *  <div class="button"><a href="/page">Go to page</a></div>

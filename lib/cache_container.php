@@ -5,7 +5,7 @@
 	 * Note:
 	 *  timeout == 0 means infinity
 	 *  the timestamp of the variable will be refreshed with each modification
-	 *  for cache_driver_pdo and cache_driver_phpredis:
+	 *  for cache_driver_pdo and cache_driver_redis:
 	 *   if the key value is not json, the key will be deleted automatically
 	 *
 	 * Main classes:
@@ -54,14 +54,12 @@
 	 *   constructor array parameters:
 	 *    pdo_handler
 	 *    [table_name] (default: cache_container)
-	 *  cache_driver_phpredis -> use Redis as a cache
+	 *   warning: mysql and pgsql are not supported
+	 *   note: throws an Exception if query execution fails
+	 *  cache_driver_redis -> use Redis as a cache
 	 *   constructor array parameters:
-	 *    address
-	 *    [port] (default: 6379)
-	 *    [socket] (default: false)
+	 *    redis_handler
 	 *    [prefix] => adds to the name of each key (default: cache_container__)
-	 *   warning:
-	 *    phpredis extension is required
 	 *
 	 * Example initialization:
 		$cache=new cache_container(new cache_driver_pdo([
@@ -486,35 +484,60 @@
 				if(isset($params[$param]))
 					$this->$param=$params[$param];
 
-			if($this->pdo_handler->exec('
-				CREATE TABLE IF NOT EXISTS '.$this->table_name.'
-				(
-					key TEXT PRIMARY KEY,
-					value TEXT,
-					timeout INTEGER,
-					timestamp INTEGER
-				)
-			') === false)
+			if($this->pdo_handler->exec(''
+			.	'CREATE TABLE IF NOT EXISTS '.$this->table_name
+			.	'('
+			.		'key TEXT PRIMARY KEY,'
+			.		'value TEXT,'
+			.		'timeout INTEGER,'
+			.		'timestamp INTEGER'
+			.	')'
+			) === false)
 				throw new Exception('Cannot create '.$this->table_name.' table');
 		}
 
 		public function put($key, $value, $timeout)
 		{
-			$query=$this->pdo_handler->prepare('
-				REPLACE INTO '.$this->table_name.'(key, value, timeout, timestamp)
-				VALUES(:key, :value, :timeout, :timestamp)
-			');
-			$query->execute([
+			$query=$this->pdo_handler->prepare(''
+			.	'REPLACE INTO '.$this->table_name
+			.	'('
+			.		'key,'
+			.		'value,'
+			.		'timeout,'
+			.		'timestamp'
+			.	') VALUES ('
+			.		':key,'
+			.		':value,'
+			.		':timeout,'
+			.		':timestamp'
+			.	')'
+			);
+
+			if($query === false)
+				throw new Exception('PDO prepare error');
+
+			if($query->execute([
 				':key'=>$key,
 				':value'=>json_encode($value, JSON_UNESCAPED_UNICODE),
 				':timeout'=>$timeout,
 				':timestamp'=>time()
-			]);
+			]) === false)
+				throw new Exception('PDO execute error');
 		}
 		public function get($key): array
 		{
-			$result=$this->pdo_handler->prepare('SELECT value, timeout, timestamp FROM '.$this->table_name.' WHERE key=:key');
-			$result->execute([':key'=>$key]);
+			$result=$this->pdo_handler->prepare(''
+			.	'SELECT value, timeout, timestamp '
+			.	'FROM '.$this->table_name.' '
+			.	'WHERE key=:key'
+			);
+
+			if($result === false)
+				throw new Exception('PDO prepare error');
+
+			if($result->execute([':key'=>$key]) === false)
+				throw new Exception('PDO execute error');
+
 			$result=$result->fetch(PDO::FETCH_ASSOC);
 
 			if($result === false)
@@ -534,39 +557,34 @@
 		}
 		public function unset($key)
 		{
-			$query=$this->pdo_handler->prepare('DELETE FROM '.$this->table_name.' WHERE key=:key');
-			$query->execute([':key'=>$key]);
+			$query=$this->pdo_handler->prepare(''
+			.	'DELETE FROM '.$this->table_name.' '
+			.	'WHERE key=:key'
+			);
+
+			if($query === false)
+				throw new Exception('PDO prepare error');
+
+			if($query->execute([':key'=>$key]) === false)
+				throw new Exception('PDO execute error');
 		}
 		public function flush()
 		{
-			$this->pdo_handler->exec('DELETE FROM '.$this->table_name);
+			if($this->pdo_handler->exec('DELETE FROM '.$this->table_name) === false)
+				throw new Exception('PDO exec error');
 		}
 	}
-	class cache_driver_phpredis implements cache_driver
+	class cache_driver_redis implements cache_driver
 	{
 		protected $redis_handler;
 		protected $prefix='cache_container__';
 
 		public function __construct(array $params)
 		{
-			if(!extension_loaded('redis'))
-				throw new Exception('redis extension is not loaded');
-
-			if(!isset($params['address']))
+			if(!isset($params['redis_handler']))
 				throw new Exception('No redis address given');
 
-			if(!isset($params['port']))
-				$params['port']=6379;
-
-			$this->redis_handler=new Redis();
-			if((isset($params['socket'])) && ($params['socket']))
-			{
-				if(!$this->redis_handler->connect($params['address']))
-					throw new Exception('Cannot connect to the Redis');
-			}
-			else
-				if(!$this->redis_handler->connect($params['address'], $params['port']))
-					throw new Exception('Cannot connect to the Redis');
+			$this->redis_handler=$params['redis_handler'];
 
 			if(isset($params['prefix']))
 				$this->prefix=$params['prefix'];

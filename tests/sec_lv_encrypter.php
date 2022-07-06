@@ -30,6 +30,10 @@
 		}
 	echo ' [ OK ]'.PHP_EOL;
 
+	@mkdir(__DIR__.'/tmp');
+	@unlink(__DIR__.'/tmp/sec_lv_encrypter.sqlite3');
+	$pdo_handler=new PDO('sqlite:'.__DIR__.'/tmp/sec_lv_encrypter.sqlite3');
+
 	$errors=[];
 
 	echo ' -> Removing temporary files';
@@ -54,10 +58,10 @@
 
 	echo ' -> Testing lv_pdo_session_handler';
 		$lv_pdo_session_handler_key=lv_encrypter::generate_key();
-		$lv_pdo_session_handler_pdo=new PDO('sqlite:'.__DIR__.'/tmp/sec_lv_encrypter.sqlite3');
+
 		session_set_save_handler(new lv_pdo_session_handler([
 			'key'=>$lv_pdo_session_handler_key,
-			'pdo_handler'=>$lv_pdo_session_handler_pdo,
+			'pdo_handler'=>$pdo_handler,
 			'table_name'=>'lv_pdo_session_handler'
 		]), true);
 		session_id('123abc');
@@ -69,7 +73,7 @@
 		$_SESSION['test_variable_b']='test_value_b';
 		session_write_close();
 
-		$output=$lv_pdo_session_handler_pdo->query('SELECT * FROM lv_pdo_session_handler')->fetchAll();
+		$output=$pdo_handler->query('SELECT * FROM lv_pdo_session_handler')->fetchAll();
 		if(isset($output[0]['payload']))
 		{
 			$lv_pdo_session_handler_encrypter=new lv_encrypter($lv_pdo_session_handler_key);

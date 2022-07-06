@@ -10,32 +10,37 @@
 		 *  PostgreSQL
 		 *  MySQL
 		 *
-		 * Returns the PDO handler, or false if an error has occurred
+		 * Returns the PDO handler
+		 *  or false if an error has occurred
 		 *
 		 * Configuration:
 		 *  1) create a directory for database config files
 		 *  2) create a config.php file:
-				$db_type='your-db-type'; // sqlite pgsql mysql
-				$db_host='server-ip-or-sqlite-db-path';
-				//$db_socket='/path/to/socket'; // uncomment to use a unix socket
-				$db_port='server-port';
-				$db_name='database-name';
-				$db_charset='your-db-charset'; // for pgsql and mysql only, optional
-				$db_user='username';
-				$db_password='password';
-				//$db_seeded_path=$db; // uncomment this to move the database_seeded file to a different location
+				<?php
+					$db_type='your-db-type'; // sqlite pgsql mysql
+					$db_host='server-ip-or-sqlite-db-path';
+					//$db_socket='/path/to/socket'; // uncomment to use a unix socket
+					$db_port='server-port';
+					$db_name='database-name';
+					$db_charset='your-db-charset'; // for pgsql and mysql only, optional
+					$db_user='username';
+					$db_password='password';
+					//$db_seeded_path=$db; // uncomment this to move the database_seeded file to a different location
+				?>
 		 *  3) optionally you can create a seed.php file which will initialize the database, eg:
-				$pdo_handler->exec('
-					CREATE TABLE tablename(
-						id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-						sampletext VARCHAR(255),
-						sampleint INT
-					)
-				')
+				$pdo_handler->exec(''
+				.	'CREATE TABLE tablename('
+				.		'id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,' // sqlite
+				//.		'id SERIAL PRIMARY KEY,' // pgsql
+				//.		'id INT NOT NULL AUTO_INCREMENT, PRIMARY KEY(id),' // mysql
+				.		'sampletext VARCHAR(255),'
+				.		'sampleint INT'
+				.	')'
+				)
 		 *
 		 * Initialization:
 			$db=pdo_connect(
-				'./pathTo/yourDatabaseConfigDirectory',
+				'./path_to/your_database_config_directory',
 				function($error){
 					error_log('pdo_connect: '.$error->getMessage());
 				}
@@ -63,6 +68,7 @@
 
 					if(!file_exists($db_host))
 						@unlink($db.'/database_seeded');
+
 					$pdo_handler=new PDO('sqlite:'.$db_host);
 				break;
 				case 'pgsql':
@@ -75,21 +81,21 @@
 						$db_charset='';
 
 					if(isset($db_socket))
-						$pdo_handler=new PDO(
-							$db_type.':host='.$db_socket
-							.';dbname='.$db_name
-							.';user='.$db_user
-							.';password='.$db_password
-							.$db_charset
+						$pdo_handler=new PDO($db_type
+						.	':host='.$db_socket
+						.	';dbname='.$db_name
+						.	';user='.$db_user
+						.	';password='.$db_password
+						.	$db_charset
 						);
 					else
-						$pdo_handler=new PDO(
-							$db_type.':host='.$db_host
-							.';port='.$db_port
-							.';dbname='.$db_name
-							.';user='.$db_user
-							.';password='.$db_password
-							.$db_charset
+						$pdo_handler=new PDO($db_type
+						.	':host='.$db_host
+						.	';port='.$db_port
+						.	';dbname='.$db_name
+						.	';user='.$db_user
+						.	';password='.$db_password
+						.	$db_charset
 						);
 				break;
 				case 'mysql':
@@ -102,19 +108,19 @@
 						$db_charset='';
 
 					if(isset($db_socket))
-						$pdo_handler=new PDO(
-							$db_type.':unix_socket='.$db_socket
-							.';dbname='.$db_name
-							.$db_charset,
+						$pdo_handler=new PDO($db_type
+						.	':unix_socket='.$db_socket
+						.	';dbname='.$db_name
+						.	$db_charset,
 							$db_user,
 							$db_password
 						);
 					else
-						$pdo_handler=new PDO(
-							$db_type.':host='.$db_host
-							.';port='.$db_port
-							.';dbname='.$db_name
-							.$db_charset,
+						$pdo_handler=new PDO($db_type
+						.	':host='.$db_host
+						.	';port='.$db_port
+						.	';dbname='.$db_name
+						.	$db_charset,
 							$db_user,
 							$db_password
 						);
@@ -126,12 +132,14 @@
 			return false;
 		}
 
-		if((file_exists($db.'/seed.php')) && (!file_exists($db_seeded_path.'/database_seeded')))
-		{
+		if(
+			(file_exists($db.'/seed.php')) &&
+			(!file_exists($db_seeded_path.'/database_seeded'))
+		){
 			if(file_put_contents($db_seeded_path.'/database_seed_w_test', '') === false)
-				throw new Exception('Could not create database_seeded file in '.$db_seeded_path);
-			unlink($db_seeded_path.'/database_seed_w_test');
+				throw new Exception('Could not create database_seed_w_test file in '.$db_seeded_path);
 
+			unlink($db_seeded_path.'/database_seed_w_test');
 			include $db.'/seed.php';
 			file_put_contents($db_seeded_path.'/database_seeded', '');
 		}

@@ -15,7 +15,7 @@
 		foreach(new RecursiveIteratorIterator(
 			new RecursiveDirectoryIterator($directory, RecursiveDirectoryIterator::SKIP_DOTS),
 			RecursiveIteratorIterator::CHILD_FIRST
-		) as $file_info) {
+		) as $file_info){
 			$action=($file_info->isDir() ? 'rmdir' : 'unlink');
 			$action($file_info->getRealPath());
 		}

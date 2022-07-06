@@ -11,6 +11,6 @@
 
 	include __DIR__.'/config/view.php';
 
-	login_refresh('file', __DIR__.'/view/reload.php');
+	login_refresh('file', __DIR__.'/views/reload.php');
 	exit();
 ?>

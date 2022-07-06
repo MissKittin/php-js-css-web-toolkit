@@ -1,0 +1,85 @@
+<?php
+	/*
+	 * timeConverter.js library test
+	 *
+	 * Note:
+	 *  looks for a library at ../lib
+	 */
+
+	if(!is_file(__DIR__.'/../lib/'.basename(__FILE__, '.phtml')))
+	{
+		echo __DIR__.'/../lib/'.basename(__FILE__, '.phtml').' is not a file';
+		exit();
+	}
+?>
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<script>
+			var formats=[
+				'minutes',
+				'hours',
+				'days',
+				'months30',
+				'months31',
+				'years',
+				'leap_years',
+				'weeks'
+			];
+			var results=[
+				1227213.7833333,
+				20453.563055556,
+				1704.463587963,
+				56.815452932099,
+				54.982696385902,
+				2.3348816273465,
+				2.3285021693483,
+				121.74739914021
+			];
+
+			document.addEventListener('DOMContentLoaded', function(){
+				<?php include __DIR__.'/../lib/'.basename(__FILE__, '.phtml'); ?>
+
+				var calculatedSeconds=seconds2human(73632827);
+
+				if(calculatedSeconds['days'] === 12)
+					document.body.innerHTML+='seconds2human days [ OK ]<br>';
+				else
+					document.body.innerHTML+='seconds2human days [FAIL]<br>';
+				if(calculatedSeconds['hours'] === 5)
+					document.body.innerHTML+='seconds2human hours [ OK ]<br>';
+				else
+					document.body.innerHTML+='seconds2human hours [FAIL]<br>';
+				if(calculatedSeconds['minutes'] === 33)
+					document.body.innerHTML+='seconds2human minutes [ OK ]<br>';
+				else
+					document.body.innerHTML+='seconds2human minutes [FAIL]<br>';
+				if(calculatedSeconds['months'] === 4)
+					document.body.innerHTML+='seconds2human months [ OK ]<br>';
+				else
+					document.body.innerHTML+='seconds2human months [FAIL]<br>';
+				if(calculatedSeconds['seconds'] === 47)
+					document.body.innerHTML+='seconds2human seconds [ OK ]<br>';
+				else
+					document.body.innerHTML+='seconds2human seconds [FAIL]<br>';
+				if(calculatedSeconds['weeks'] === 121)
+					document.body.innerHTML+='seconds2human weeks [ OK ]<br>';
+				else
+					document.body.innerHTML+='seconds2human weeks [FAIL]<br>';
+				if(calculatedSeconds['years'] === 2)
+					document.body.innerHTML+='seconds2human years [ OK ]<br>';
+				else
+					document.body.innerHTML+='seconds2human years [FAIL]<br>';
+
+				formats.forEach(function(element, index){
+					if(Math.abs(convertSeconds(73632827, element))-results[index] < 0.00001)
+						document.body.innerHTML+='convertSeconds '+element+' [ OK ]<br>';
+					else
+						document.body.innerHTML+='convertSeconds '+element+' [FAIL]<br>';
+				});
+			});
+		</script>
+	</head>
+	<body></body>
+</html>

@@ -1,0 +1,12 @@
+#middleware_form .input_text input {
+	font-family: Roboto, Helvetica, Arial, sans-serif;
+	width: 99%;
+	height: 40px;
+	border: 1px solid #ff0000;
+	border-radius: 10px;
+	color: #ffffff;
+	background-color: transparent;
+	font-size: 18px;
+	margin-top: 5px;
+	margin-bottom: 5px;
+}

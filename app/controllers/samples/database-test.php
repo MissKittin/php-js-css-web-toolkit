@@ -1,6 +1,8 @@
 <?php
 	// select database for pdo_connect
 	$pdo_connect_db='sqlite';
+	//$pdo_connect_db='pgsql';
+	//$pdo_connect_db='mysql';
 
 	function if2switch($source_array, $param_array)
 	{
@@ -19,6 +21,7 @@
 
 	include './app/shared/samples/session_start.php';
 
+	include './lib/check_var.php';
 	include './lib/sec_csrf.php';
 	include './lib/pdo_connect.php';
 	include './lib/pdo_crud_builder.php';
@@ -71,7 +74,10 @@
 				);
 			break;
 			case 'delete':
-				if(($_POST['car_id'] === '') && ($_POST['delete_allow_db_flush'] === 'allow'))
+				if(
+					($_POST['car_id'] === '') &&
+					(check_post('delete_allow_db_flush') === 'allow')
+				)
 					$db_cars->delete();
 				else
 					$db_cars->delete($_POST['car_id']);

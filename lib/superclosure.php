@@ -1,4 +1,14 @@
 <?php
+	/*
+	 * Superclosure
+	 *
+	 * Classes:
+	 *  superclosure
+	 *   standard version
+	 *  superclosure_meta
+	 *   extended version
+	 */
+
 	class superclosure
 	{
 		/*
@@ -17,7 +27,7 @@
 		 *
 		 * Usage:
 			$closure=new superclosure(function($arg){
-				echo 'My anonymous function: ' . $arg;
+				echo 'My anonymous function: '.$arg;
 			});
 			$serialized_closure=serialize($closure);
 			$unserialized_closure=unserialize($serialized_closure);
@@ -68,11 +78,65 @@
 				else
 				{
 					eval('$this->reflection='.$data_field.';');
+
 					if(!$this->reflection instanceOf Closure)
 						throw new Exception('Closure expected in unserialized data');
 				}
 
 			$this->reflection=new ReflectionFunction($this->reflection);
+		}
+	}
+
+	class superclosure_meta extends superclosure
+	{
+		/*
+		 * An extension for superclosure
+		 * Read the parameters of an anonymous function
+		 *
+		 * Usage:
+			$closure=new superclosure(function($arg){
+				echo 'My anonymous function: '.$arg;
+			});
+			$closure_body=$closure->get_closure_body();
+			$closure_vars=$closure->get_closure_vars();
+			$closure->flush(); // free memory
+		 */
+
+		protected $sleep_called=false;
+
+		public function __sleep()
+		{
+			if($this->sleep_called)
+				return ['closure_vars', 'closure_body'];
+
+			return parent::__sleep();
+		}
+
+		public function flush()
+		{
+			$this->closure_vars=null;
+			$this->closure_body=null;
+			$this->sleep_called=false;
+		}
+		public function get_closure_vars()
+		{
+			if(!$this->sleep_called)
+			{
+				$this->__sleep();
+				$this->sleep_called=true;
+			}
+
+			return $this->closure_vars;
+		}
+		public function get_closure_body()
+		{
+			if(!$this->sleep_called)
+			{
+				$this->__sleep();
+				$this->sleep_called=true;
+			}
+
+			return $this->closure_body;
 		}
 	}
 ?>

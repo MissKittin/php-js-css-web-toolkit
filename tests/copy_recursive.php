@@ -58,17 +58,23 @@
 			exit(1);
 		}
 
+	$failed=false;
+
 	echo ' -> Checking destination directory';
-		$result='';
+		$result=[];
 		$iterator=new RecursiveIteratorIterator(new RecursiveDirectoryIterator('./copy_recursive.dest'));
 		foreach($iterator as $item)
-			$result.=$iterator->getSubPathName();
-		
-		if(strtr($result, '\\', '/') === '...1A/.A/..A/1A/2A/3B/.B/..B/1B/2B/3')
-			echo ' [ OK ]'.PHP_EOL;
-		else
+			$result[strtr($iterator->getSubPathName(), '\\', '/')]=true;
+
+		foreach(['..', '1', 'A/3', 'A/..', 'A/1', 'A/2', 'A/.', 'B/3', 'B/..', 'B/1', 'B/2', 'B/.', '.'] as $item)
+			if(!isset($result[$item]))
+				$failed=true;
+
+		if($failed)
 		{
 			echo ' [FAIL]'.PHP_EOL;
 			exit(1);
 		}
+		else
+			echo ' [ OK ]'.PHP_EOL;
 ?>

@@ -26,6 +26,7 @@
 	 *   note: use lv_cookie_session_handler::session_start() instead of PHP session_start()
 	 *  lv_pdo_session_handler
 	 *   session handler that uses a relational database to store an encrypted session
+	 *   warning: mysql and pgsql are not supported, read warning in class block
 	 */
 
 	final class lv_encrypter
@@ -459,6 +460,9 @@
 		 * Warning:
 		 *  lv_encrypter class is required
 		 *  lv_pdo_session_handler is a singleton
+		 *  mysql and pgsql are not supported
+		 *  I don't know why, but this class won't work on linuxes (PHP 7.4 and 7.3)
+		 *   sqlite throws "disk i/o error", but it works on windows (PHP 7.2)
 		 *
 		 * Hint:
 		 *  the gc() calls on_error for both the error log and notifications
@@ -466,20 +470,23 @@
 				'on_error'=>function($message, $pdo_handler)
 				{
 					$log_table_name='lv_handler_logs';
-					$pdo_handler->exec('
-						CREATE TABLE IF NOT EXISTS '.$log_table_name.'
-						(
-							id INTEGER PRIMARY KEY AUTOINCREMENT,
-							date VARCHAR(25),
-							message VARCHAR(100)
-						);
-						INSERT INTO '.$log_table_name.'(date, message)
-						VALUES
-						(
-							"'.gmdate('Y-m-d H:i:s').'",
-							"'.$message.'"
-						)
-					');
+
+					$pdo_handler->exec(''
+					.	'CREATE TABLE IF NOT EXISTS '.$log_table_name
+					.	'('
+					.		'id INTEGER PRIMARY KEY AUTOINCREMENT,'
+					.		'date VARCHAR(25),'
+					.		'message VARCHAR(100)'
+					.	');'
+					.	'INSERT INTO '.$log_table_name
+					.	'('
+					.		'date,'
+					.		'message'
+					.	') VALUES ('
+					.		'"'.gmdate('Y-m-d H:i:s').'",'
+					.		'"'.$message.'"'
+					.	')'
+					);
 				}
 		 *
 		 * Note:
@@ -539,8 +546,17 @@
 
 		protected function is_sid_available($session_id) // just for my peace of mind
 		{
-			$data=$this->pdo_handler->prepare('SELECT id FROM '.$this->table_name.' WHERE id=:id');
-			$data->execute([':id'=>$session_id]);
+			$data=$this->pdo_handler->prepare(''
+			.	'SELECT id '
+			.	'FROM '.$this->table_name.' '
+			.	'WHERE id=:id'
+			);
+
+			if($data === false)
+				$this->on_error['callback'](__CLASS__.': PDO prepare error', $this->pdo_handler);
+
+			if($data->execute([':id'=>$session_id]) === false)
+				$this->on_error['callback'](__CLASS__.': PDO execute error', $this->pdo_handler);
 
 			if(empty($data->fetchAll(PDO::FETCH_ASSOC)))
 				return true;
@@ -551,15 +567,15 @@
 		}
 
 		public function open($save_path, $session_name)
-		{ 
-			if($this->pdo_handler->exec('
-				CREATE TABLE IF NOT EXISTS '.$this->table_name.'
-				(
-					id VARCHAR(30) PRIMARY KEY,
-					payload VARCHAR(255),
-					last_activity INTEGER
-				)
-			') === false)
+		{
+			if($this->pdo_handler->exec(''
+			.	'CREATE TABLE IF NOT EXISTS '.$this->table_name
+			.	'('
+			.		'id VARCHAR(30) PRIMARY KEY,'
+			.		'payload VARCHAR(255),'
+			.		'last_activity INTEGER'
+			.	')'
+			) === false)
 				return false;
 
 			return true;
@@ -568,7 +584,7 @@
 		{
 			$SessionHandler=new SessionHandler();
 			$session_id=$SessionHandler->create_sid();
-	
+
 			while(!$this->is_sid_available($session_id))
 			{
 				$session_id=$SessionHandler->create_sid();
@@ -581,13 +597,23 @@
 		{
 			$session_data='';
 
-			$data=$this->pdo_handler->prepare('SELECT payload FROM '.$this->table_name.' WHERE id=:id');
-			$data->execute([':id'=>$session_id]);
-			$data=$data->fetch(PDO::FETCH_ASSOC);
+			$data=$this->pdo_handler->prepare(''
+			.	'SELECT payload '
+			.	'FROM '.$this->table_name.' '
+			.	'WHERE id=:id'
+			);
 
-			if($data !== false)
+			if($data === false)
+				$this->on_error['callback'](__CLASS__.': PDO prepare error', $this->pdo_handler);
+
+			if($data->execute([':id'=>$session_id]) === false)
+				$this->on_error['callback'](__CLASS__.': PDO execute error', $this->pdo_handler);
+
+			$fetch_data=$data->fetch(PDO::FETCH_ASSOC);
+
+			if($fetch_data !== false)
 				try {
-					$session_data=$this->lv_encrypter->decrypt($data['payload'], false);
+					$session_data=$this->lv_encrypter->decrypt($fetch_data['payload'], false);
 				} catch(Exception $error) {
 					$this->on_error['callback'](__CLASS__.' error: '.$error->getMessage().', new session created', $this->pdo_handler);
 					$session_data='';
@@ -597,10 +623,21 @@
 		}
 		public function write($session_id, $session_data)
 		{
-			$data=$this->pdo_handler->prepare('
-				REPLACE INTO '.$this->table_name.'(id, payload, last_activity)
-				VALUES(:id, :payload, '.time().')
-			');
+			$data=$this->pdo_handler->prepare(''
+			.	'REPLACE INTO '.$this->table_name
+			.	'('
+			.		'id,'
+			.		'payload,'
+			.		'last_activity'
+			.	') VALUES ('
+			.		':id,'
+			.		':payload,'
+			.		time()
+			.	')'
+			);
+
+			if($data === false)
+				$this->on_error['callback'](__CLASS__.': PDO prepare error', $this->pdo_handler);
 
 			return $data->execute([
 				':id'=>$session_id,
@@ -614,13 +651,23 @@
 		}
 		public function destroy($session_id)
 		{
-			$data=$this->pdo_handler->prepare('DELETE FROM '.$this->table_name.' WHERE id=:id');
+			$data=$this->pdo_handler->prepare(''
+			.	'DELETE FROM '.$this->table_name.' '
+			.	'WHERE id=:id'
+			);
+
+			if($data === false)
+				$this->on_error['callback'](__CLASS__.': PDO prepare error', $this->pdo_handler);
+
 			return $data->execute([':id'=>$session_id]);
 		}
 		public function gc($max_lifetime)
 		{
 			$max_lifetime=time()-intval($max_lifetime);
-			$result=$this->pdo_handler->exec('DELETE FROM '.$this->table_name.' WHERE last_activity<'.$max_lifetime);
+			$result=$this->pdo_handler->exec(''
+			.	'DELETE FROM '.$this->table_name.' '
+			.	'WHERE last_activity<'.$max_lifetime
+			);
 
 			if($result === false)
 			{

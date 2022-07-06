@@ -23,7 +23,7 @@
 		 *  variable=${another_variable} is not supported - ${another_variable} won't be evaluated
 		 *
 		 * Usage:
-			//$env=new dotenv('./.env', false); // false means that PHP getenv() is not allowed, false is default
+			//$env=new dotenv('./.env', false); // false means that PHP getenv() is not allowed, true is default
 			$env=new dotenv('./.env'); // if is "new dotenv()" or ./.env not exists, internal registry will be empty"
 			echo $env->getenv('my_env', 'default_value'); // default_value is optional
 		 *
@@ -35,54 +35,51 @@
 		protected $call_getenv;
 		protected $env=[];
 
-		public function __construct(string $file=null, bool $call_getenv=false)
+		public function __construct(string $file=null, bool $call_getenv=true)
 		{
 			$this->call_getenv=$call_getenv;
 
-			if($file !== null)
-				if(file_exists($file))
-				{
-					$file=fopen($file, 'r');
-					while(!feof($file))
-					{
-						$line=fgets($file);
-						$line=explode('=', $line);
-						$line[0]=trim($line[0]);
+			if(($file !== null) && file_exists($file))
+			{
+				$file=fopen($file, 'r');
 
-						if(isset($line[1]))
-						{
-							$line[1]=trim($line[1]);
+				while(!feof($file))
+				{
+					$line=fgets($file);
+					$line=explode('=', $line);
+					$line[0]=trim($line[0]);
+
+					if(isset($line[1]))
+					{
+						$line[1]=trim($line[1]);
+
+						if
+						(
+							($line[1] !== '') &&
+							($line[0][0] !== '#')
+						){
+							$line_last_char=substr($line[1], -1);
 
 							if
 							(
-								($line[1] !== '')
-								&&
-								($line[0][0] !== '#')
-							)
-							{
-								$line_last_char=substr($line[1], -1);
-								if
 								(
-									(
-										($line[1][0] === '"')
-										&&
-										($line_last_char === '"')
-									)
-									||
-									(
-										($line[1][0] === '\'')
-										&&
-										($line_last_char === '\'')
-									)
+									($line[1][0] === '"') &&
+									($line_last_char === '"')
+								) ||
+								(
+									($line[1][0] === '\'') &&
+									($line_last_char === '\'')
 								)
-									$this->env[$line[0]]=substr($line[1], 1, -1);
-								else
-									$this->env[$line[0]]=$line[1];
-							}
+							)
+								$this->env[$line[0]]=substr($line[1], 1, -1);
+							else
+								$this->env[$line[0]]=$line[1];
 						}
 					}
-					fclose($file);
 				}
+
+				fclose($file);
+			}
 		}
 
 		public function getenv(string $variable, $default_value=false)
@@ -99,6 +96,7 @@
 			if($this->call_getenv)
 			{
 				$result=getenv($variable);
+
 				if($result !== false)
 					return $result;
 			}

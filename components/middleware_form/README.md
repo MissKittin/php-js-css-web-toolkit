@@ -46,6 +46,12 @@ $middleware_form->add_field([
 	second parameter: `'type'=>'slider'`  
 	third parameter: `'slider_label'=>'Slider'`  
 	other parameters as for the checkbox tag
+* (`'type'=>'checkbox'` or `'type'=>'radio'`) and `'label'=>'Example label'`  
+	style for checkbox and radiobutton  
+	first parameter: `'tag'=>'input'`  
+	second parameter: `'type'=>'checkbox'` or `'type'=>'radio'`  
+	third parameter: `'label'=>'Check me'`  
+	other parameters as for the checkbox or radio tag
 
 ## Config options
 Set config options with the `add_config` method

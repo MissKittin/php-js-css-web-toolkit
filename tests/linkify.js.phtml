@@ -1,0 +1,30 @@
+<?php
+	/*
+	 * linkify.js library test
+	 *
+	 * Note:
+	 *  looks for a library at ../lib
+	 */
+
+	if(!is_file(__DIR__.'/../lib/'.basename(__FILE__, '.phtml')))
+	{
+		echo __DIR__.'/../lib/'.basename(__FILE__, '.phtml').' is not a file';
+		exit();
+	}
+?>
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<script>
+			document.addEventListener('DOMContentLoaded', function(){
+				<?php include __DIR__.'/../lib/'.basename(__FILE__, '.phtml'); ?>
+
+				document.body.innerHTML=linkify(document.body.innerHTML);
+			}, false);
+		</script>
+	</head>
+	<body>
+		test google.com text http://localhost/pg?dfh=689 xyz https://fb.com abc file:///tmp 123 ftp://localhost:8080/aaa.mp3
+	</body>
+</html>

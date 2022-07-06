@@ -506,7 +506,7 @@
 		public function raw_parameter($raw_param)
 		{
 			$this->sql_parameters[]=$raw_param;
-			return $this;	
+			return $this;
 		}
 
 		public function exec(bool $query=false)

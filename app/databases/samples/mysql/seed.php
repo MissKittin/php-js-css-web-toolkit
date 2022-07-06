@@ -3,43 +3,55 @@
 
 	// Use raw SQL
 	/*
-	$pdo_handler->exec('
-		CREATE TABLE cars(
-			id INT NOT NULL AUTO_INCREMENT,
-			name TEXT,
-			price INT,
-			PRIMARY KEY (id)
-		)
-	');
-	$pdo_handler->exec('
-		INSERT INTO cars(name, price) VALUES
-			("Audi", 52642),
-			("Mercedes", 57127),
-			("Skoda", 9000),
-			("Volvo", 29000),
-			("Bentley", 350000),
-			("Citroen", 21000),
-			("Hummer", 41400),
-			("Volkswagen", 21600)
-	');
-	$pdo_handler->exec('
-		INSERT INTO cars(name, price) VALUES("Single row", 1234)
-	');
+	$pdo_handler->exec(''
+	.	'CREATE TABLE cars'
+	.	'('
+	.		'id INT NOT NULL AUTO_INCREMENT, PRIMARY KEY(id),'
+	.		'name TEXT,'
+	.		'price INT'
+	.	')'
+	);
+
+	$pdo_handler->exec(''
+	.	'INSERT INTO cars'
+	.	'('
+	.		'name,'
+	.		'price'
+	.	') VALUES'
+	.		'("Audi", 52642),'
+	.		'("Mercedes", 57127),'
+	.		'("Skoda", 9000),'
+	.		'("Volvo", 29000),'
+	.		'("Bentley", 350000),'
+	.		'("Citroen", 21000),'
+	.		'("Hummer", 41400),'
+	.		'("Volkswagen", 21600)'
+	);
+
+	$pdo_handler->exec(''
+	.	'INSERT INTO cars'
+	.	'('
+	.		'name,'
+	.		'price'
+	.	') VALUES '
+	.		'("Single row", 1234)'
+	);
 	*/
 
 	// Use PDO CRUD builder (you need to import this library manually)
 	$seed_crud_builder=new pdo_crud_builder([
 		'pdo_handler'=>$pdo_handler
 	]);
+
 	$seed_crud_builder->create_table(
 		'cars',
 		[
-			'id'=>'INT NOT NULL AUTO_INCREMENT',
+			'id'=>'INT NOT NULL AUTO_INCREMENT', 'PRIMARY KEY'=>'(id)',
 			'name'=>'VARCHAR(255)',
-			'price'=>'INT',
-			'PRIMARY KEY'=>'(id)'
+			'price'=>'INT'
 		]
 	)->exec();
+
 	$seed_crud_builder->insert_into(
 		'cars',
 		'name,price',
@@ -53,6 +65,7 @@
 			['Hummer', '21600']
 		]
 	)->exec();
+
 	$seed_crud_builder->insert_into(
 		'cars',
 		'name,price',
@@ -60,5 +73,6 @@
 			['Single row', '12354']
 		]
 	)->exec();
+
 	unset($seed_crud_builder);
 ?>

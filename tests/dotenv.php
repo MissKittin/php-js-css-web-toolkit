@@ -20,7 +20,7 @@
 	echo ' [ OK ]'.PHP_EOL;
 
 	$failed=false;
-	$env=new dotenv(__DIR__.'/tmp/dotenv.env');
+	$env=new dotenv(__DIR__.'/tmp/dotenv.env', false);
 
 	echo ' -> Testing library';
 		if($env->getenv('TESTVARA', 'fail') === 'ok ok')

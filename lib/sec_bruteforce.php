@@ -5,9 +5,9 @@
 	 *
 	 * Note:
 	 *  Classes with timeout has autoclean function
-	 *   removes ip from database if is not banned anymore.
-	 *   See clas's readme.
-	 *  All classes depends on bruteforce_generic.
+	 *   removes ip from database if is not banned anymore
+	 *   See clas's readme
+	 *  All classes depends on bruteforce_generic
 	 *
 	 * Warning:
 	 *  if you create database for one class, then cannot be used in another
@@ -17,10 +17,16 @@
 	 *  bruteforce_mixed - mix timeout ban with permban
 	 *
 	 * Classes:
+	 *  bruteforce_redis
+	 *   store data in Redis (permban)
+	 *  bruteforce_timeout_redis
+	 *   store data in Redis (timeout ban)
 	 *  bruteforce_pdo
 	 *   store data in database via PDO (permban)
+	 *   warning: pgsql is not supported
 	 *  bruteforce_timeout_pdo
 	 *   store data in database via PDO (timeout ban)
+	 *   warning: pgsql is not supported
 	 *  bruteforce_json
 	 *   store data in flat file (for debugging purposes) (permban)
 	 *  bruteforce_timeout_json
@@ -28,8 +34,8 @@
 	 */
 
 	function bruteforce_mixed(
-		$timeout_hook,
-		$permban_hook,
+		bruteforce_generic $timeout_hook,
+		bruteforce_generic $permban_hook,
 		bool $iterate_permban_counter=true,
 		int $max_attempts=3
 	){
@@ -98,9 +104,70 @@
 
 	abstract class bruteforce_generic
 	{
-		protected $ip;
+		protected $constructor_params=[];
+		protected $required_constructor_params=[];
+
+		protected $ip=null;
 		protected $max_attempts=3;
 		protected $current_attempts=0;
+
+		protected $ban_time=600;
+		protected $current_timestamp=null;
+		protected $auto_clean=true;
+
+		public function __construct(array $params)
+		{
+			foreach($this->required_constructor_params as $param)
+				if(!isset($params[$param]))
+					throw new Exception('The '.$param.' parameter was not specified for the constructor');
+
+			if(isset($_SERVER['REMOTE_ADDR']))
+				$this->ip=$_SERVER['REMOTE_ADDR'];
+
+			foreach($this->constructor_params as $param)
+				if(isset($params[$param]))
+					$this->$param=$params[$param];
+
+			if($this->ip === null)
+				throw new Exception('$_SERVER["REMOTE_ADDR"] is not set and no ip was given');
+		}
+
+		protected function lock_unlock_database($action, $check=false)
+		{
+			/*
+			 * for constructor and destructor only
+			 * used in bruteforce_json and bruteforce_timeout_json
+			 *
+			 * $action [bool] true: wait and create lock file, false: check if lock file exists/remove lock file (see $check)
+			 * $check [bool] (req $action=false) true: check if lock file exists, false: remove lock file
+			 *  $check=true returns: true: lock file exists, false: lock file not exists
+			 */
+
+			if($this->lock_file !== null)
+			{
+				if($action)
+				{
+					while(file_exists($this->lock_file))
+						sleep(0.01);
+
+					file_put_contents($this->lock_file, '');
+				}
+				else
+				{
+					if($check)
+					{
+						if(file_exists($this->lock_file))
+							return true;
+
+						return false;
+					}
+
+					unlink($this->lock_file);
+				}
+			}
+
+			return true;
+		}
 
 		public function get_attempts()
 		{
@@ -108,12 +175,214 @@
 		}
 	}
 
+	class bruteforce_redis extends bruteforce_generic
+	{
+		/*
+		 * Trivial permbanning method by IP on n unsuccessful attempts
+		 * from simpleblog project
+		 * rewritten to Redis OOP
+		 *
+		 * Constructor parameters:
+		 *  redis_handler [object]
+		 *   required
+		 *  prefix [string]
+		 *   adds to the name of each key (default: bruteforce_redis__)
+		 *  max_attempts [int]
+		 *   n attempts and permban (default 3)
+		 *  ip [string]
+		 *   default $_SERVER['REMOTE_ADDR']
+		 *
+		 * Opening database:
+			$bruteforce=new bruteforce_redis([
+				'redis_handler'=>new Redis([
+					'host'=>'127.0.0.1',
+					'port'=>6379
+				])
+			])
+		 * Checking: $bruteforce->check()
+		 *  returns bool
+		 * Current attempts number: $bruteforce->get_attempts()
+		 *  returns int from 0 (0 means not added)
+		 * Banning: $bruteforce->add()
+		 *  adding to the table or iterates attempts counter
+		 * Unbanning: $bruteforce->del()
+		 *  removes from the table
+		 * Closing connection: unset($bruteforce)
+		 */
+
+		protected $constructor_params=[
+			'redis_handler',
+			'prefix',
+			'max_attempts',
+			'ip'
+		];
+		protected $required_constructor_params=['redis_handler'];
+
+		protected $redis_handler;
+		protected $prefix='bruteforce_redis__';
+
+		public function __construct(array $params)
+		{
+			parent::__construct($params);
+
+			$current_attempts=$this->redis_handler->get($this->prefix.$this->ip);
+
+			if($current_attempts !== false)
+				$this->current_attempts=(int)$current_attempts;
+		}
+
+		public function check()
+		{
+			if($this->current_attempts < $this->max_attempts)
+				return false;
+
+			return true;
+		}
+		public function add()
+		{
+			++$this->current_attempts;
+
+			if($this->current_attempts === 1)
+				$this->redis_handler->set(
+					$this->prefix.$this->ip,
+					$this->current_attempts
+				);
+			else
+				$this->redis_handler->incr($this->prefix.$this->ip);
+		}
+		public function del()
+		{
+			if($this->current_attempts !== 0)
+			{
+				$this->redis_handler->del($this->prefix.$this->ip);
+				$this->current_attempts=0;
+			}
+		}
+	}
+	class bruteforce_timeout_redis extends bruteforce_generic
+	{
+		/*
+		 * Trivial banning method by IP on x unsuccessful attempts for n seconds
+		 * from simpleblog project
+		 * rewritten to Redis OOP
+		 *
+		 * Warning:
+		 *  get_timestamp() always returns 0
+		 *
+		 * Note:
+		 *  the auto_clean functionality is performed by Redis (setex method)
+		 *  you can disable this functionality by setting the ban_time value to 0
+		 *
+		 * Constructor parameters:
+		 *  redis_handler [object]
+		 *   required
+		 *  prefix [string]
+		 *   adds to the name of each key (default: bruteforce_redis__)
+		 *  max_attempts [int]
+		 *   n attempts and ban (default 3)
+		 *  ban_time [int]
+		 *   unban after n seconds (default 600 [10min])
+		 *   if is set to 0, ip is permanently banned after max_attempts
+		 *  ip [string]
+		 *   default $_SERVER['REMOTE_ADDR']
+		 *
+		 * Opening database:
+			$bruteforce=new bruteforce_redis([
+				'redis_handler'=>new Redis([
+					'host'=>'127.0.0.1',
+					'port'=>6379
+				])
+			])
+		 * Checking: $bruteforce->check()
+		 *  returns bool
+		 * Current attempts number: $bruteforce->get_attempts()
+		 *  returns int from 0 (0 means not added)
+		 * Banning: $bruteforce->add()
+		 *  adding to the database or iterates attempts counter
+		 * Unbanning: $bruteforce->del()
+		 *  removes from database
+		 * Closing connection: unset($bruteforce)
+		 *
+		 * Changes with respect to bruteforce_redis: get_timestamp(), add()
+		 */
+
+		protected $constructor_params=[
+			'redis_handler',
+			'prefix',
+			'max_attempts',
+			'ban_time',
+			'ip'
+		];
+		protected $required_constructor_params=['redis_handler'];
+
+		protected $redis_handler;
+		protected $prefix='bruteforce_redis__';
+
+		public function __construct(array $params)
+		{
+			parent::__construct($params);
+
+			$current_attempts=$this->redis_handler->get($this->prefix.$this->ip);
+
+			if($current_attempts !== false)
+				$this->current_attempts=(int)$current_attempts;
+		}
+
+		public function get_timestamp()
+		{
+			return 0;
+		}
+		public function check()
+		{
+			if($this->current_attempts < $this->max_attempts)
+				return false;
+
+			if($this->current_timestamp !== null)
+				if($this->current_timestamp+$this->ban_time < time())
+				{
+					$this->del();
+					return false;
+				}
+
+			return true;
+		}
+		public function add()
+		{
+			++$this->current_attempts;
+			$this->current_timestamp=time();
+
+			if($this->ban_time === 0)
+				$this->redis_handler->set(
+					$this->prefix.$this->ip,
+					$this->current_attempts
+				);
+			else
+				$this->redis_handler->setex(
+					$this->prefix.$this->ip,
+					$this->ban_time,
+					$this->current_attempts
+				);
+		}
+		public function del()
+		{
+			if($this->current_attempts !== 0)
+			{
+				$this->redis_handler->del($this->prefix.$this->ip);
+
+				$this->current_attempts=0;
+				$this->current_timestamp=null;
+			}
+		}
+	}
 	class bruteforce_pdo extends bruteforce_generic
 	{
 		/*
 		 * Trivial permbanning method by IP on n unsuccessful attempts
 		 * from simpleblog project
 		 * rewritten to PDO OOP
+		 *
+		 * Warning:
+		 *  pgsql is not supported
 		 *
 		 * Constructor parameters:
 		 *  pdo_handler [object]
@@ -128,7 +397,7 @@
 		 * Opening database:
 			$bruteforce=new bruteforce_pdo([
 				'pdo_handler'=>new PDO('sqlite:./tmp/sec_bruteforce.sqlite3')
-			]);
+			])
 		 * Checking: $bruteforce->check()
 		 *  returns bool
 		 * Current attempts number: $bruteforce->get_attempts()
@@ -143,29 +412,51 @@
 		 *  id[primary key] ip[varchar(39)] attempts[int]
 		 */
 
+		protected $constructor_params=[
+			'pdo_handler',
+			'table_name',
+			'max_attempts',
+			'ip'
+		];
+		protected $required_constructor_params=['pdo_handler'];
+
 		protected $pdo_handler;
 		protected $table_name='sec_bruteforce';
 
 		public function __construct(array $params)
 		{
-			if(!isset($params['pdo_handler']))
-				throw new Exception('No PDO handler given');
+			parent::__construct($params);
 
-			$this->ip=$_SERVER['REMOTE_ADDR'];
-			foreach(['pdo_handler', 'table_name', 'max_attempts', 'ip'] as $param)
-				if(isset($params[$param]))
-					$this->$param=$params[$param];
+			switch($this->pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME))
+			{
+				case 'mysql':
+					if($this->pdo_handler->exec(''
+					.	'CREATE TABLE IF NOT EXISTS '.$this->table_name
+					.	'('
+					.		'id INT NOT NULL AUTO_INCREMENT, PRIMARY KEY(id),'
+					.		'ip VARCHAR(39),'
+					.		'attempts INT'
+					.	')'
+					) === false)
+						throw new Exception('PDO exec error');
+				break;
+				default:
+					if($this->pdo_handler->exec(''
+					.	'CREATE TABLE IF NOT EXISTS '.$this->table_name
+					.	'('
+					.		'id INTEGER PRIMARY KEY AUTOINCREMENT,'
+					.		'ip VARCHAR(39),'
+					.		'attempts INT'
+					.	')'
+					) === false)
+						throw new Exception('PDO exec error');
+			}
 
-			$this->pdo_handler->exec('
-				CREATE TABLE IF NOT EXISTS '.$this->table_name.'
-				(id INTEGER PRIMARY KEY AUTOINCREMENT, ip VARCHAR(39), attempts INT)
-			');
-
-			$ip_query=$this->pdo_handler->query('
-				SELECT *
-				FROM '.$this->table_name.'
-				WHERE ip="'.$this->ip.'"
-			')->fetch(PDO::FETCH_NAMED);
+			$ip_query=$this->pdo_handler->query(''
+			.	'SELECT * '
+			.	'FROM '.$this->table_name.' '
+			.	'WHERE ip="'.$this->ip.'"'
+			)->fetch(PDO::FETCH_NAMED);
 
 			if($ip_query !== false)
 				$this->current_attempts=$ip_query['attempts'];
@@ -183,25 +474,36 @@
 			++$this->current_attempts;
 
 			if($this->current_attempts === 1)
-				$this->pdo_handler->exec('
-					INSERT INTO '.$this->table_name.'(ip, attempts)
-					VALUES("'.$this->ip.'", 1)
-				');
+			{
+				if($this->pdo_handler->exec(''
+				.	'INSERT INTO '.$this->table_name
+				.	'('
+				.		'ip,'
+				.		'attempts'
+				.	') VALUES ('
+				.		'"'.$this->ip.'",'
+				.		'1'
+				.	')'
+				) === false)
+					throw new Exception('PDO exec error');
+			}
 			else
-				$this->pdo_handler->exec('
-					UPDATE '.$this->table_name.'
-					SET attempts='.$this->current_attempts.'
-					WHERE ip="'.$this->ip.'"
-				');
+				if($this->pdo_handler->exec(''
+				.	'UPDATE '.$this->table_name.' '
+				.	'SET attempts='.$this->current_attempts.' '
+				.	'WHERE ip="'.$this->ip.'"'
+				) === false)
+					throw new Exception('PDO exec error');
 		}
 		public function del()
 		{
 			if($this->current_attempts !== 0)
 			{
-				$this->pdo_handler->exec('
-					DELETE FROM '.$this->table_name.'
-					WHERE ip="'.$this->ip.'"
-				');
+				if($this->pdo_handler->exec(''
+				.	'DELETE FROM '.$this->table_name.' '
+				.	'WHERE ip="'.$this->ip.'"'
+				) === false)
+					throw new Exception('PDO exec error');
 
 				$this->current_attempts=0;
 			}
@@ -213,6 +515,9 @@
 		 * Trivial banning method by IP on x unsuccessful attempts for n seconds
 		 * from simpleblog project
 		 * rewritten to PDO OOP
+		 *
+		 * Warning:
+		 *  pgsql is not supported
 		 *
 		 * Constructor parameters:
 		 *  pdo_handler [object]
@@ -234,7 +539,7 @@
 		 * Opening database:
 			$bruteforce=new bruteforce_pdo([
 				'pdo_handler'=>new PDO('sqlite:./tmp/sec_bruteforce.sqlite3')
-			]);
+			])
 		 * Checking: $bruteforce->check()
 		 *  returns bool
 		 * Current attempts number: $bruteforce->get_attempts()
@@ -250,35 +555,58 @@
 		 * Table layout:
 		 *  id[primary key] ip[varchar(39)] attempts[int] timestamp[int]
 		 *
-		 * Changes with respect to bruteforce_pdo: $ban_time, $current_timestamp, $auto_clean, __construct(), get_timestamp(), check(), add()
+		 * Changes with respect to bruteforce_pdo: __construct(), get_timestamp(), check(), add()
 		 */
+
+		protected $constructor_params=[
+			'pdo_handler',
+			'table_name',
+			'max_attempts',
+			'ban_time',
+			'ip',
+			'auto_clean'
+		];
+		protected $required_constructor_params=['pdo_handler'];
 
 		protected $pdo_handler;
 		protected $table_name='sec_bruteforce';
-		protected $ban_time=600;
-		protected $current_timestamp=null;
-		protected $auto_clean=true;
 
 		public function __construct(array $params)
 		{
-			if(!isset($params['pdo_handler']))
-				throw new Exception('No PDO handler given');
+			parent::__construct($params);
 
-			$this->ip=$_SERVER['REMOTE_ADDR'];
-			foreach(['pdo_handler', 'table_name', 'max_attempts', 'ban_time', 'ip', 'auto_clean'] as $param)
-				if(isset($params[$param]))
-					$this->$param=$params[$param];
+			switch($this->pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME))
+			{
+				case 'mysql':
+					if($this->pdo_handler->exec(''
+					.	'CREATE TABLE IF NOT EXISTS '.$this->table_name
+					.	'('
+					.		'id INT NOT NULL AUTO_INCREMENT, PRIMARY KEY(id),'
+					.		'ip VARCHAR(39),'
+					.		'attempts INT,'
+					.		'timestamp INT'
+					.	')'
+					) === false)
+						throw new Exception('PDO exec error');
+				break;
+				default:
+					if($this->pdo_handler->exec(''
+					.	'CREATE TABLE IF NOT EXISTS '.$this->table_name
+					.	'('
+					.		'id INTEGER PRIMARY KEY AUTOINCREMENT,'
+					.		'ip VARCHAR(39),'
+					.		'attempts INT,'
+					.		'timestamp INT'
+					.	')'
+					) === false)
+						throw new Exception('PDO exec error');
+			}
 
-			$this->pdo_handler->exec('
-				CREATE TABLE IF NOT EXISTS '.$this->table_name.'
-				(id INTEGER PRIMARY KEY AUTOINCREMENT, ip VARCHAR(39), attempts INT, timestamp INT)
-			');
-
-			$ip_query=$this->pdo_handler->query('
-				SELECT *
-				FROM '.$this->table_name.'
-				WHERE ip="'.$this->ip.'"
-			')->fetch(PDO::FETCH_NAMED);
+			$ip_query=$this->pdo_handler->query(''
+			.	'SELECT * '
+			.	'FROM '.$this->table_name.' '
+			.	'WHERE ip="'.$this->ip.'"'
+			)->fetch(PDO::FETCH_NAMED);
 
 			if($ip_query !== false)
 			{
@@ -317,16 +645,30 @@
 			$timestamp=time();
 
 			if($this->current_attempts === 0)
-				$this->pdo_handler->exec('
-					INSERT INTO '.$this->table_name.'(ip, attempts, timestamp)
-					VALUES("'.$this->ip.'", 1, '.$timestamp.')
-				');
+			{
+				if($this->pdo_handler->exec(''
+				.	'INSERT INTO '.$this->table_name
+				.	'('
+				.		'ip,'
+				.		'attempts,'
+				.		'timestamp'
+				.	') VALUES ('
+				.		'"'.$this->ip.'",'
+				.		'1,'
+				.		$timestamp
+				.	')'
+				) === false)
+					throw new Exception('PDO exec error');
+			}
 			else
-				$this->pdo_handler->exec('
-					UPDATE '.$this->table_name.'
-					SET attempts='.$this->current_attempts.', timestamp='.$timestamp.'
-					WHERE ip="'.$this->ip.'"
-				');
+				if($this->pdo_handler->exec(''
+				.	'UPDATE '.$this->table_name.' '
+				.	'SET '
+				.		'attempts='.$this->current_attempts.','
+				.		'timestamp='.$timestamp.' '
+				.	'WHERE ip="'.$this->ip.'"'
+				) === false)
+					throw new Exception('PDO exec error');
 
 			++$this->current_attempts;
 			$this->current_timestamp=$timestamp;
@@ -335,10 +677,11 @@
 		{
 			if($this->current_attempts !== 0)
 			{
-				$this->pdo_handler->exec('
-					DELETE FROM '.$this->table_name.'
-					WHERE ip="'.$this->ip.'"
-				');
+				if($this->pdo_handler->exec(''
+				.	'DELETE FROM '.$this->table_name.' '
+				.	'WHERE ip="'.$this->ip.'"'
+				) === false)
+					throw new Exception('PDO exec error');
 
 				$this->current_attempts=0;
 				$this->current_timestamp=null;
@@ -367,7 +710,7 @@
 			$bruteforce=new bruteforce_json([
 				'file'=>'./tmp/sec_bruteforce.json',
 				'lock_file'=>'./tmp/sec_bruteforce.json.lock'
-			]);
+			])
 		 * Checking: $bruteforce->check()
 		 *  returns bool
 		 * Current attempts number: $bruteforce->get_attempts()
@@ -379,19 +722,21 @@
 		 * Saving database: unset($bruteforce)
 		 */
 
+		protected $constructor_params=[
+			'file',
+			'lock_file',
+			'max_attempts',
+			'ip'
+		];
+		protected $required_constructor_params=['file'];
+
 		protected $file;
 		protected $lock_file=null;
 		protected $database=[];
 
 		public function __construct(array $params)
 		{
-			if(!isset($params['file']))
-				throw new Exception('No file path given');
-
-			$this->ip=$_SERVER['REMOTE_ADDR'];
-			foreach(['file', 'lock_file', 'max_attempts', 'ip'] as $param)
-				if(isset($params[$param]))
-					$this->$param=$params[$param];
+			parent::__construct($params);
 
 			$this->lock_unlock_database(true);
 
@@ -408,41 +753,6 @@
 				file_put_contents($this->file, json_encode($this->database));
 				$this->lock_unlock_database(false);
 			}
-		}
-		protected function lock_unlock_database($action, $check=false)
-		{
-			/*
-			 * for constructor and destructor only
-			 *
-			 * $action [bool] true: wait and create lock file, false: check if lock file exists/remove lock file (see $check)
-			 * $check [bool] (req $action=false) true: check if lock file exists, false: remove lock file
-			 *  $check=true returns: true: lock file exists, false: lock file not exists
-			 */
-
-			if($this->lock_file !== null)
-			{
-				if($action)
-				{
-					while(file_exists($this->lock_file))
-						sleep(0.01);
-
-					file_put_contents($this->lock_file, '');
-				}
-				else
-				{
-					if($check)
-					{
-						if(file_exists($this->lock_file))
-							return true;
-
-						return false;
-					}
-
-					unlink($this->lock_file);
-				}
-			}
-
-			return true;
 		}
 
 		public function check()
@@ -494,7 +804,7 @@
 			$bruteforce=new bruteforce_json([
 				'file'=>'./tmp/sec_bruteforce.json',
 				'lock_file'=>'./tmp/sec_bruteforce.json.lock'
-			]);
+			])
 		 * Checking: $bruteforce->check()
 		 *  returns bool
 		 * Current attempts number: $bruteforce->get_attempts()
@@ -507,25 +817,26 @@
 		 *  removes from the table
 		 * Saving database: unset($bruteforce)
 		 *
-		 * Changes with respect to bruteforce_json: $ban_time, $current_timestamp, $auto_clean, __construct(), get_timestamp(), check(), add()
+		 * Changes with respect to bruteforce_json: __construct(), get_timestamp(), check(), add()
 		 */
+
+		protected $constructor_params=[
+			'file',
+			'lock_file',
+			'max_attempts',
+			'ban_time',
+			'ip',
+			'auto_clean'
+		];
+		protected $required_constructor_params=['file'];
 
 		protected $file;
 		protected $lock_file=null;
 		protected $database=[];
-		protected $ban_time=600;
-		protected $current_timestamp=null;
-		protected $auto_clean=true;
 
 		public function __construct(array $params)
 		{
-			if(!isset($params['file']))
-				throw new Exception('No file path given');
-
-			$this->ip=$_SERVER['REMOTE_ADDR'];
-			foreach(['file', 'lock_file', 'max_attempts', 'ban_time', 'ip', 'auto_clean'] as $param)
-				if(isset($params[$param]))
-					$this->$param=$params[$param];
+			parent::__construct($params);
 
 			$this->lock_unlock_database(true);
 
@@ -545,41 +856,6 @@
 				file_put_contents($this->file, json_encode($this->database));
 				$this->lock_unlock_database(false);
 			}
-		}
-		protected function lock_unlock_database($action, $check=false)
-		{
-			/*
-			 * for constructor and destructor only
-			 *
-			 * $action [bool] true: wait and create lock file, false: check if lock file exists/remove lock file (see $check)
-			 * $check [bool] (req $action=false) true: check if lock file exists, false: remove lock file
-			 *  $check=true returns: true: lock file exists, false: lock file not exists
-			 */
-
-			if($this->lock_file !== null)
-			{
-				if($action)
-				{
-					while(file_exists($this->lock_file))
-						sleep(0.01);
-
-					file_put_contents($this->lock_file, '');
-				}
-				else
-				{
-					if($check)
-					{
-						if(file_exists($this->lock_file))
-							return true;
-
-						return false;
-					}
-
-					unlink($this->lock_file);
-				}
-			}
-
-			return true;
 		}
 
 		public function get_timestamp()
