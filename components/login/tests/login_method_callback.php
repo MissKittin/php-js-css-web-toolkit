@@ -70,12 +70,12 @@
 	echo ' [ OK ]'.PHP_EOL;
 
 	echo ' -> Setting up component';
-		$GLOBALS['login']['config']['method']='login_callback';
-		$GLOBALS['login']['config']['on_login_success']=function()
+		$GLOBALS['_login']['config']['method']='login_callback';
+		$GLOBALS['_login']['config']['on_login_success']=function()
 		{
 			echo ' -> Login success'.PHP_EOL;
 		};
-		$GLOBALS['login']['callback']=function() {};
+		$GLOBALS['_login']['callback']=function() {};
 	echo ' [ OK ]'.PHP_EOL;
 
 	echo ' -> Including login.php'.PHP_EOL;

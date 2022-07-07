@@ -36,7 +36,7 @@
 
 	echo ' -> Setting up component';
 		$GLOBALS['not_logged']=false;
-		$GLOBALS['login']['config']['on_login_prompt']=function()
+		$GLOBALS['_login']['config']['on_login_prompt']=function()
 		{
 			$GLOBALS['not_logged']=true;
 		};

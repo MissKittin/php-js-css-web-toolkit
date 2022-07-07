@@ -27,7 +27,7 @@
 			isset($_GET['theme']) &&
 			($_GET['theme'] === 'dark')
 		)
-			$GLOBALS['login']['view']['login_style']='login_dark.css';
+			$GLOBALS['_login']['view']['login_style']='login_dark.css';
 
 		include __DIR__.'/../login.php';
 

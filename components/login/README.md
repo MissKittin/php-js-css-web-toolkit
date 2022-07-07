@@ -7,11 +7,11 @@ Simple middleware
 * `sec_login.php`
 
 ## Reserved variables
-* `$GLOBALS['login']`
-* `$_SESSION['__login_remember_me']`
+* `$GLOBALS['_login']`
+* `$_SESSION['_login_remember_me']`
 
 ## Config sections
-Roadmap of `$GLOBALS['login']` array
+Roadmap of `$GLOBALS['_login']` array
 * `config`
 	* `method` [string]  
 		available: login_single login_multi login_callback  
@@ -59,24 +59,24 @@ Roadmap of `$GLOBALS['login']` array
 		`views/reload.php` content
 * `csp_header`  
 	section for the CSP generator  
-	to add element to the policy, do eg `$GLOBALS['login']['csp_header']['script-src'][]='\'myhash\'';`
+	to add element to the policy, do eg `$GLOBALS['_login']['csp_header']['script-src'][]='\'myhash\'';`
 
 ## Event callbacks
 You can define functions that will be run at the right moment, eg
 ```
-$GLOBALS['login']['config']['on_login_prompt']=function()
+$GLOBALS['_login']['config']['on_login_prompt']=function()
 {
 	error_log('Login prompt requested');
 };
-$GLOBALS['login']['config']['on_login_success']=function()
+$GLOBALS['_login']['config']['on_login_success']=function()
 {
 	error_log('User logged in');
 };
-$GLOBALS['login']['config']['on_login_failed']=function()
+$GLOBALS['_login']['config']['on_login_failed']=function()
 {
 	error_log('Login failed');
 };
-$GLOBALS['login']['config']['on_logout']=function()
+$GLOBALS['_login']['config']['on_logout']=function()
 {
 	error_log('User logged out');
 };
@@ -85,16 +85,16 @@ $GLOBALS['login']['config']['on_logout']=function()
 ## Example usage
 ```
 // set credentials for single method
-$GLOBALS['login']['credentials']=['login', 'bcrypted-password'];
+$GLOBALS['_login']['credentials']=['login', 'bcrypted-password'];
 
 // set credentials for multi method
-$GLOBALS['login']['credentials']=[
+$GLOBALS['_login']['credentials']=[
 	['login1', 'bcrypted-password1'],
 	['login2', 'bcrypted-password2']
 ];
 
 // set callback for callback method
-$GLOBALS['login']['callback']=function($login)
+$GLOBALS['_login']['callback']=function($login)
 {
 	if($login === 'login')
 		return 'bcrypted-password';
@@ -102,7 +102,7 @@ $GLOBALS['login']['callback']=function($login)
 };
 
 // set method
-$GLOBALS['login']['config']['method']='login_single';
+$GLOBALS['_login']['config']['method']='login_single';
 
 // display login prompt
 include './components/login/login.php';
@@ -128,10 +128,10 @@ exit();
 
 ## Custom session reloader for "Remember Me"
 If you want to use session_start() with parameters other than the default,  
-you can define the function `$GLOBALS['login']['config']['session_reload']`.  
+you can define the function `$GLOBALS['_login']['config']['session_reload']`.  
 eg. for the `sec_lv_encrypter.php` library the function will look like this:
 ```
-$GLOBALS['login']['config']['session_reload']=function($cookie_lifetime)
+$GLOBALS['_login']['config']['session_reload']=function($cookie_lifetime)
 {
 	lv_cookie_session_handler::session_start([
 		'cookie_lifetime'=>$cookie_lifetime

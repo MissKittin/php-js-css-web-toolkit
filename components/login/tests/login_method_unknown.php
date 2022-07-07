@@ -70,8 +70,8 @@
 	echo ' [ OK ]'.PHP_EOL;
 
 	echo ' -> Setting up component';
-		$GLOBALS['login']['config']['method']='unknown_login_method';
-		$GLOBALS['login']['config']['on_login_success']=function()
+		$GLOBALS['_login']['config']['method']='unknown_login_method';
+		$GLOBALS['_login']['config']['on_login_success']=function()
 		{
 			echo ' -> Exception not caught [FAIL]'.PHP_EOL;
 			exit(1);

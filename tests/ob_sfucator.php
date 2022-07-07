@@ -15,7 +15,7 @@
 	echo ' [ OK ]'.PHP_EOL;
 
 	echo ' -> Testing library';
-		$GLOBALS['ob_sfucator']=[
+		$GLOBALS['_ob_sfucator']=[
 			'title'=>'Example title',
 			'label'=>'Enable javascript'
 		];

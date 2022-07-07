@@ -3,7 +3,7 @@
 	 * Login validation library
 	 *
 	 * Warning:
-	 *  $_SESSION['login'] is reserved
+	 *  $_SESSION['_login'] is reserved
 	 *  $_SERVER['HTTP_USER_AGENT'] is required
 	 *
 	 * Usage:
@@ -59,9 +59,9 @@
 
 		if(($input_login === $login) && (password_verify($input_password, $password)))
 		{
-			$_SESSION['login']['state']=true;
-			$_SESSION['login']['user']=$input_login;
-			$_SESSION['login']['user_agent']=md5($_SERVER['HTTP_USER_AGENT']);
+			$_SESSION['_login']['state']=true;
+			$_SESSION['_login']['user']=$input_login;
+			$_SESSION['_login']['user_agent']=md5($_SERVER['HTTP_USER_AGENT']);
 
 			return true;
 		}
@@ -82,9 +82,9 @@
 		if(isset($login_array[$input_login]))
 			if(password_verify($input_password, $login_array[$input_login]))
 			{
-				$_SESSION['login']['state']=true;
-				$_SESSION['login']['user']=$input_login;
-				$_SESSION['login']['user_agent']=md5($_SERVER['HTTP_USER_AGENT']);
+				$_SESSION['_login']['state']=true;
+				$_SESSION['_login']['user']=$input_login;
+				$_SESSION['_login']['user_agent']=md5($_SERVER['HTTP_USER_AGENT']);
 
 				return true;
 			}
@@ -107,9 +107,9 @@
 		if($password !== null)
 			if(password_verify($input_password, $password))
 			{
-				$_SESSION['login']['state']=true;
-				$_SESSION['login']['user']=$input_login;
-				$_SESSION['login']['user_agent']=md5($_SERVER['HTTP_USER_AGENT']);
+				$_SESSION['_login']['state']=true;
+				$_SESSION['_login']['user']=$input_login;
+				$_SESSION['_login']['user_agent']=md5($_SERVER['HTTP_USER_AGENT']);
 
 				return true;
 			}
@@ -142,7 +142,7 @@
 
 		if($null !== null)
 		{
-			$_SESSION['login']['state']=false;
+			$_SESSION['_login']['state']=false;
 			session_regenerate_id(false);
 			session_destroy();
 			return true;
@@ -164,14 +164,14 @@
 			return false;
 		}
 
-		if(!isset($_SESSION['login']))
+		if(!isset($_SESSION['_login']))
 			return false;
 
-		if($_SESSION['login']['state'])
+		if($_SESSION['_login']['state'])
 		{
-			if($_SESSION['login']['user_agent'] !== md5($_SERVER['HTTP_USER_AGENT']))
+			if($_SESSION['_login']['user_agent'] !== md5($_SERVER['HTTP_USER_AGENT']))
 			{
-				$on_check_fail($_SESSION['login']['user'].' user agent is invalid');
+				$on_check_fail($_SESSION['_login']['user'].' user agent is invalid');
 				logout();
 				return false;
 			}

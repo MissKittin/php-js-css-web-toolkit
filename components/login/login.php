@@ -35,8 +35,9 @@
 	{
 		if(logout(check_post('logout')))
 		{
-			$GLOBALS['login']['config']['on_logout']();
+			$GLOBALS['_login']['config']['on_logout']();
 			login_refresh('file', __DIR__.'/views/reload.php');
+
 			exit();
 		}
 
@@ -45,70 +46,71 @@
 			(check_post('login') !== null) &&
 			(check_post('password') !== null)
 		){
-			if(!isset($GLOBALS['login']['config']['method']))
+			if(!isset($GLOBALS['_login']['config']['method']))
 				throw new Exception('Login method not specified');
 
-			switch($GLOBALS['login']['config']['method'])
+			switch($GLOBALS['_login']['config']['method'])
 			{
 				case 'login_single':
-					$GLOBALS['login']['result']=login_single(
+					$GLOBALS['_login']['result']=login_single(
 						check_post('login'),
 						check_post('password'),
-						$GLOBALS['login']['credentials'][0],
-						$GLOBALS['login']['credentials'][1]
+						$GLOBALS['_login']['credentials'][0],
+						$GLOBALS['_login']['credentials'][1]
 					);
 				break;
 				case 'login_multi':
-					$GLOBALS['login']['result']=login_multi(
+					$GLOBALS['_login']['result']=login_multi(
 						check_post('login'),
 						check_post('password'),
-						$GLOBALS['login']['credentials']
+						$GLOBALS['_login']['credentials']
 					);
 				break;
 				case 'login_callback':
-					$GLOBALS['login']['result']=login_callback(
+					$GLOBALS['_login']['result']=login_callback(
 						check_post('login'),
 						check_post('password'),
-						$GLOBALS['login']['callback'](check_post('login'))
+						$GLOBALS['_login']['callback'](check_post('login'))
 					);
 				break;
 				default:
 					throw new Exception('Unknown login method');
 			}
 
-			if($GLOBALS['login']['result'])
+			if($GLOBALS['_login']['result'])
 			{
 				if(check_post('remember_me') !== null)
-					$_SESSION['__login_remember_me']=true;
+					$_SESSION['_login_remember_me']=true;
 
-				$GLOBALS['login']['config']['on_login_success']();
+				$GLOBALS['_login']['config']['on_login_success']();
 				login_refresh('file', __DIR__.'/views/reload.php');
+
 				exit();
 			}
 			else
 			{
-				$GLOBALS['login']['wrong_credentials']=true;
-				$GLOBALS['login']['config']['on_login_failed']();
+				$GLOBALS['_login']['wrong_credentials']=true;
+				$GLOBALS['_login']['config']['on_login_failed']();
 			}
 
-			unset($GLOBALS['login']['result']);
+			unset($GLOBALS['_login']['result']);
 		}
 	}
 
 	if(!is_logged())
 	{
-		$GLOBALS['login']['config']['on_login_prompt']();
+		$GLOBALS['_login']['config']['on_login_prompt']();
 		include __DIR__.'/views/form.php';
 
-		if($GLOBALS['login']['config']['exit_after_login_prompt'])
+		if($GLOBALS['_login']['config']['exit_after_login_prompt'])
 			exit();
 	}
 
-	if(check_session('__login_remember_me') === true)
+	if(check_session('_login_remember_me') === true)
 	{
 		session_write_close();
-		$GLOBALS['login']['config']['session_reload'](
-			$GLOBALS['login']['config']['remember_cookie_lifetime']
+		$GLOBALS['_login']['config']['session_reload'](
+			$GLOBALS['_login']['config']['remember_cookie_lifetime']
 		);
 	}
 ?>

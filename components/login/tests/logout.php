@@ -54,7 +54,7 @@
 	echo ' [ OK ]'.PHP_EOL;
 
 	echo ' -> Setting up component';
-		$GLOBALS['login']['config']['on_logout']=function()
+		$GLOBALS['_login']['config']['on_logout']=function()
 		{
 			echo ' -> Logged out [ OK ]'.PHP_EOL;
 			exit();
