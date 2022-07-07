@@ -62,7 +62,7 @@
 
 		echo ' -> Testing csrf_check_token'.PHP_EOL;
 		echo '  -> GET';
-			$_GET['csrf_token']=$_SESSION['csrf_token'];
+			$_GET['_csrf_token']=$_SESSION['_csrf_token'];
 			if(csrf_check_token('get'))
 				echo ' [ OK ]'.PHP_EOL;
 			else
@@ -71,7 +71,7 @@
 				$failed=true;
 			}
 		echo '  -> POST';
-			$_POST['csrf_token']=$_SESSION['csrf_token'];
+			$_POST['_csrf_token']=$_SESSION['_csrf_token'];
 			if(csrf_check_token('post'))
 				echo ' [ OK ]'.PHP_EOL;
 			else
@@ -81,7 +81,7 @@
 			}
 
 		echo ' -> Testing csrf_print_token';
-			if(csrf_print_token('value') === $_SESSION['csrf_token'])
+			if(csrf_print_token('value') === $_SESSION['_csrf_token'])
 				echo ' [ OK ]'.PHP_EOL;
 			else
 			{

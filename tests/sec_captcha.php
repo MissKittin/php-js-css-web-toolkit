@@ -73,7 +73,7 @@
 
 			echo '  -> captcha_get';
 				$image=captcha_get('Test\captcha_gd2', [$format]);
-				file_put_contents(__DIR__.'/tmp/sec_captcha-'.$_SESSION['captcha_token'].'.'.$format, $image);
+				file_put_contents(__DIR__.'/tmp/sec_captcha-'.$_SESSION['_captcha_token'].'.'.$format, $image);
 				if(!empty($image))
 					echo ' [ OK ]'.PHP_EOL;
 				else
@@ -83,7 +83,7 @@
 				}
 
 			echo '  -> captcha_check';
-				if(captcha_check($_SESSION['captcha_token']))
+				if(captcha_check($_SESSION['_captcha_token']))
 					echo ' [ OK ]'.PHP_EOL;
 				else
 				{

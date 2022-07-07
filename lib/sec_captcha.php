@@ -5,7 +5,7 @@
 	 * Warning:
 	 *  captcha_check and captcha_get requires started session
 	 *  captcha_gd2 requires gd extension
-	 *  $_SESSION['captcha_token'] is reserved
+	 *  $_SESSION['_captcha_token'] is reserved
 	 *
 	 * Functions:
 	 *  captcha_get('module_name', ['module_param_a', 'module_param_b'])
@@ -135,7 +135,7 @@
 			throw new Exception('Session not started');
 
 		$captcha=call_user_func_array($module, $module_params);
-		$_SESSION['captcha_token']=$captcha[0];
+		$_SESSION['_captcha_token']=$captcha[0];
 
 		return $captcha[1];
 	}
@@ -144,10 +144,10 @@
 		if(session_status() !== PHP_SESSION_ACTIVE)
 			throw new Exception('Session not started');
 
-		if(!isset($_SESSION['captcha_token']))
-			throw new Excaption('run captcha_get() first');
+		if(!isset($_SESSION['_captcha_token']))
+			throw new Excaption('Run captcha_get() first');
 
-		if($_SESSION['captcha_token'] === $input_token)
+		if($_SESSION['_captcha_token'] === $input_token)
 			return true;
 
 		return false;

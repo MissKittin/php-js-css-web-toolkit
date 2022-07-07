@@ -8,8 +8,8 @@
 	 *
 	 * Warning:
 	 *  you must start session before include
-	 *  $_GET['csrf_token'] and $_POST['csrf_token'] are reserved
-	 *  $_SESSION['csrf_token'] is reseved
+	 *  $_GET['_csrf_token'] and $_POST['_csrf_token'] are reserved
+	 *  $_SESSION['_csrf_token'] is reseved
 	 *
 	 * HTML form:
 	 *  <input type="hidden" name="<?php echo csrf_print_token('parameter'); ?>" value="<?php echo csrf_print_token('value'); ?>">
@@ -25,15 +25,18 @@
 		switch($method)
 		{
 			case 'get':
-				if(isset($_GET['csrf_token']))
-					if($_SESSION['csrf_token'] === $_GET['csrf_token'])
-						return true;
+				if(
+					isset($_GET['_csrf_token']) &&
+					($_SESSION['_csrf_token'] === $_GET['_csrf_token'])
+				)
+					return true;
 			break;
 			case 'post':
-				if(isset($_POST['csrf_token']))
-					if($_SESSION['csrf_token'] === $_POST['csrf_token'])
-						return true;
-			break;
+				if(
+					isset($_POST['_csrf_token']) &&
+					($_SESSION['_csrf_token'] === $_POST['_csrf_token'])
+				)
+					return true;
 		}
 
 		return false;
@@ -43,11 +46,10 @@
 		switch($parameter)
 		{
 			case 'parameter':
-				return 'csrf_token';
+				return '_csrf_token';
 			break;
 			case 'value':
-				return $_SESSION['csrf_token'];
-			break;
+				return $_SESSION['_csrf_token'];
 		}
 
 		return false;
@@ -66,5 +68,13 @@
 		throw new Exception('Session not started');
 
 	if((!csrf_checkToken('get')) && (!csrf_checkToken('post')))
-		$_SESSION['csrf_token']=substr(base_convert(sha1(uniqid(mt_rand())), 16, 36), 0, 32);
+		$_SESSION['_csrf_token']=substr(
+			base_convert(
+				sha1(
+					uniqid(mt_rand())
+				),
+				16, 36
+			),
+			0, 32
+		);
 ?>

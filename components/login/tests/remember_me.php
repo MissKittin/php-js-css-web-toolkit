@@ -58,7 +58,7 @@
 	echo ' [ OK ]'.PHP_EOL;
 
 	echo ' -> Setting up component';
-		$GLOBALS['login']['config']['session_reload']=function($lifetime)
+		$GLOBALS['_login']['config']['session_reload']=function($lifetime)
 		{
 			echo ' -> Session reloaded with lifetime '.$lifetime.' [ OK ]'.PHP_EOL;
 			exit();

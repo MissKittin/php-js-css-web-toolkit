@@ -10,7 +10,7 @@
 	include './app/shared/samples/session_start.php';
 	// set custom session reloader
 	if(class_exists('lv_cookie_session_handler'))
-		$GLOBALS['login']['config']['session_reload']=function($lifetime)
+		$GLOBALS['_login']['config']['session_reload']=function($lifetime)
 		{
 			lv_cookie_session_handler::session_start([
 				'cookie_lifetime'=>$lifetime
@@ -32,38 +32,38 @@
 	include './app/models/samples/login_component_test_credentials.php';
 
 	// configure the login component
-	$GLOBALS['login']['config']['method']='login_single';
-	$GLOBALS['login']['view']['lang']='pl';
-	$GLOBALS['login']['view']['title']='Logowanie';
-	$GLOBALS['login']['view']['login_style']='login_bright.css';
-	$GLOBALS['login']['view']['login_label']='Nazwa użytkownika';
-	$GLOBALS['login']['view']['password_label']='Hasło';
-	$GLOBALS['login']['view']['remember_me_label']='Zapamiętaj mnie';
-	$GLOBALS['login']['view']['wrong_credentials_label']='Nieprawidłowa nazwa użytkownika lub hasło';
-	$GLOBALS['login']['view']['submit_button_label']='Zaloguj';
-	$GLOBALS['login']['view']['loading_title']='Ładowanie...';
-	$GLOBALS['login']['view']['loading_label']='Ładowanie...';
+	$GLOBALS['_login']['config']['method']='login_single';
+	$GLOBALS['_login']['view']['lang']='pl';
+	$GLOBALS['_login']['view']['title']='Logowanie';
+	$GLOBALS['_login']['view']['login_style']='login_bright.css';
+	$GLOBALS['_login']['view']['login_label']='Nazwa użytkownika';
+	$GLOBALS['_login']['view']['password_label']='Hasło';
+	$GLOBALS['_login']['view']['remember_me_label']='Zapamiętaj mnie';
+	$GLOBALS['_login']['view']['wrong_credentials_label']='Nieprawidłowa nazwa użytkownika lub hasło';
+	$GLOBALS['_login']['view']['submit_button_label']='Zaloguj';
+	$GLOBALS['_login']['view']['loading_title']='Ładowanie...';
+	$GLOBALS['_login']['view']['loading_label']='Ładowanie...';
 	// this cookie is from app/templates/samples/default/assets/default.js/darkTheme.js
 	if(
 		isset($_COOKIE['app_dark_theme']) &&
 		($_COOKIE['app_dark_theme'] === 'true')
 	)
-		$GLOBALS['login']['view']['login_style']='login_dark.css';
+		$GLOBALS['_login']['view']['login_style']='login_dark.css';
 
 	// define callbacks for the login component
-	$GLOBALS['login']['config']['on_login_prompt']=function() use($log_infos)
+	$GLOBALS['_login']['config']['on_login_prompt']=function() use($log_infos)
 	{
 		$log_infos->info('Login prompt requested');
 	};
-	$GLOBALS['login']['config']['on_login_success']=function() use($log_infos)
+	$GLOBALS['_login']['config']['on_login_success']=function() use($log_infos)
 	{
 		$log_infos->info('User logged in');
 	};
-	$GLOBALS['login']['config']['on_login_failed']=function() use($log_fails)
+	$GLOBALS['_login']['config']['on_login_failed']=function() use($log_fails)
 	{
 		$log_fails->info($_SERVER['REMOTE_ADDR'].' login failed');
 	};
-	$GLOBALS['login']['config']['on_logout']=function() use($log_infos)
+	$GLOBALS['_login']['config']['on_logout']=function() use($log_infos)
 	{
 		$log_infos->info('User logged out');
 	};
@@ -167,13 +167,13 @@
 				return false;
 			}
 
-			if(password_verify($new_password, $GLOBALS['login']['credentials'][1]))
+			if(password_verify($new_password, $GLOBALS['_login']['credentials'][1]))
 			{
 				$change_password_form->add_error_message('Nowe hasło nie może być takie samo jak stare');
 				return false;
 			}
 
-			if(!password_verify($old_password, $GLOBALS['login']['credentials'][1]))
+			if(!password_verify($old_password, $GLOBALS['_login']['credentials'][1]))
 			{
 				$change_password_form->add_error_message('Stare hasło jest nieprawidłowe');
 				return false;
@@ -188,7 +188,7 @@
 
 			file_put_contents(
 				'./var/lib/login_component_test_new_password.php',
-				"<?php \$GLOBALS['login']['credentials'][1]='".password_hash($new_password, PASSWORD_BCRYPT)."' ?>"
+				"<?php \$GLOBALS['_login']['credentials'][1]='".password_hash($new_password, PASSWORD_BCRYPT)."' ?>"
 			);
 		}
 

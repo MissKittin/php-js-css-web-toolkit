@@ -6,7 +6,7 @@
 		 *
 		 * Usage:
 			// this is optional
-			$GLOBALS['ob_sfucator']=[
+			$GLOBALS['_ob_sfucator']=[
 				'title'=>'Nice title',
 				'label'=>'<h1>Enable javascript to view content</h1>'
 			];
@@ -21,24 +21,24 @@
 			$hex_string.='%'.bin2hex($buffer[$i]);
 
 		$title='';
-		if(isset($GLOBALS['ob_sfucator']['title']))
-			$title='<title>'.$GLOBALS['ob_sfucator']['title'].'</title>';
+		if(isset($GLOBALS['_ob_sfucator']['title']))
+			$title='<title>'.$GLOBALS['_ob_sfucator']['title'].'</title>';
 
 		$label='';
-		if(isset($GLOBALS['ob_sfucator']['label']))
-			$label='<noscript>'.$GLOBALS['ob_sfucator']['label'].'</noscript>';
+		if(isset($GLOBALS['_ob_sfucator']['label']))
+			$label='<noscript>'.$GLOBALS['_ob_sfucator']['label'].'</noscript>';
 
 		return ''
-			.'<!DOCTYPE html>'
-			.'<html>'
-			.	'<head>'
-			.		$title
-			.		'<meta charset="utf-8">'
-			.	'</head>'
-			.	'<body onload="document.write(unescape(\''.$hex_string.'\'));">'
-			.		$label
-			.	'</body>'
-			.'</html>'
+		.	'<!DOCTYPE html>'
+		.	'<html>'
+		.		'<head>'
+		.			$title
+		.			'<meta charset="utf-8">'
+		.		'</head>'
+		.		'<body onload="document.write(unescape(\''.$hex_string.'\'));">'
+		.			$label
+		.		'</body>'
+		.	'</html>'
 		;
 	}
 ?>

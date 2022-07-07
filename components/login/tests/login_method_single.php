@@ -70,8 +70,8 @@
 	echo ' [ OK ]'.PHP_EOL;
 
 	echo ' -> Setting up component';
-		$GLOBALS['login']['config']['method']='login_single';
-		$GLOBALS['login']['config']['on_login_success']=function()
+		$GLOBALS['_login']['config']['method']='login_single';
+		$GLOBALS['_login']['config']['on_login_success']=function()
 		{
 			echo ' -> Login success'.PHP_EOL;
 		};
