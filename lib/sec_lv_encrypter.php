@@ -26,7 +26,8 @@
 	 *   note: use lv_cookie_session_handler::session_start() instead of PHP session_start()
 	 *  lv_pdo_session_handler
 	 *   session handler that uses a relational database to store an encrypted session
-	 *   warning: mysql and pgsql are not supported, read warning in class block
+	 *   supported databases: PostgreSQL, MySQL, SQLite3
+	 *   read warning in class block
 	 */
 
 	final class lv_encrypter
@@ -460,9 +461,13 @@
 		 * Warning:
 		 *  lv_encrypter class is required
 		 *  lv_pdo_session_handler is a singleton
-		 *  mysql and pgsql are not supported
-		 *  I don't know why, but this class won't work on linuxes (PHP 7.4 and 7.3)
+		 *  I don't know why, but this class won't work on linuxes with sqlite (PHP 7.4 and 7.3)
 		 *   sqlite throws "disk i/o error", but it works on windows (PHP 7.2)
+		 *
+		 * Supported databases:
+		 *  PostgreSQL
+		 *  MySQL
+		 *  SQLite3
 		 *
 		 * Hint:
 		 *  the gc() calls on_error for both the error log and notifications
@@ -537,6 +542,12 @@
 			$this->on_error['callback']=function(){};
 			if(isset($params['on_error']))
 				$this->on_error['callback']=$params['on_error'];
+
+			if(!in_array(
+				$this->pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME),
+				['pgsql', 'mysql', 'sqlite']
+			))
+				throw new Exception($this->pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME).' driver is not supported');
 		}
 		public function __destruct()
 		{
@@ -555,7 +566,7 @@
 			if($data === false)
 				$this->on_error['callback'](__CLASS__.': PDO prepare error', $this->pdo_handler);
 
-			if($data->execute([':id'=>$session_id]) === false)
+			if(!$data->execute([':id'=>$session_id]))
 				$this->on_error['callback'](__CLASS__.': PDO execute error', $this->pdo_handler);
 
 			if(empty($data->fetchAll(PDO::FETCH_ASSOC)))
@@ -568,15 +579,31 @@
 
 		public function open($save_path, $session_name)
 		{
-			if($this->pdo_handler->exec(''
-			.	'CREATE TABLE IF NOT EXISTS '.$this->table_name
-			.	'('
-			.		'id VARCHAR(30) PRIMARY KEY,'
-			.		'payload VARCHAR(255),'
-			.		'last_activity INTEGER'
-			.	')'
-			) === false)
-				return false;
+			switch($this->pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME))
+			{
+				case 'mysql':
+					if($this->pdo_handler->exec(''
+					.	'CREATE TABLE IF NOT EXISTS '.$this->table_name
+					.	'('
+					.		'id VARCHAR(30), PRIMARY KEY(id),'
+					.		'payload TEXT,'
+					.		'last_activity INTEGER'
+					.	')'
+					) === false)
+						return false;
+				break;
+				case 'pgsql':
+				case 'sqlite':
+					if($this->pdo_handler->exec(''
+					.	'CREATE TABLE IF NOT EXISTS '.$this->table_name
+					.	'('
+					.		'id VARCHAR(30) PRIMARY KEY,'
+					.		'payload TEXT,'
+					.		'last_activity INTEGER'
+					.	')'
+					) === false)
+						return false;
+			}
 
 			return true;
 		}
@@ -606,7 +633,7 @@
 			if($data === false)
 				$this->on_error['callback'](__CLASS__.': PDO prepare error', $this->pdo_handler);
 
-			if($data->execute([':id'=>$session_id]) === false)
+			if(!$data->execute([':id'=>$session_id]))
 				$this->on_error['callback'](__CLASS__.': PDO execute error', $this->pdo_handler);
 
 			$fetch_data=$data->fetch(PDO::FETCH_ASSOC);
@@ -623,18 +650,40 @@
 		}
 		public function write($session_id, $session_data)
 		{
-			$data=$this->pdo_handler->prepare(''
-			.	'REPLACE INTO '.$this->table_name
-			.	'('
-			.		'id,'
-			.		'payload,'
-			.		'last_activity'
-			.	') VALUES ('
-			.		':id,'
-			.		':payload,'
-			.		time()
-			.	')'
-			);
+			switch($this->pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME))
+			{
+				case 'pgsql':
+					$data=$this->pdo_handler->prepare(''
+					.	'INSERT INTO '.$this->table_name
+					.	'('
+					.		'id,'
+					.		'payload,'
+					.		'last_activity'
+					.	') VALUES ('
+					.		':id,'
+					.		':payload,'
+					.		time()
+					.	')'
+					.	'ON CONFLICT(id) DO UPDATE SET '
+					.		'payload=:payload,'
+					.		'last_activity='.time()
+					);
+				break;
+				case 'mysql':
+				case 'sqlite':
+					$data=$this->pdo_handler->prepare(''
+					.	'REPLACE INTO '.$this->table_name
+					.	'('
+					.		'id,'
+					.		'payload,'
+					.		'last_activity'
+					.	') VALUES ('
+					.		':id,'
+					.		':payload,'
+					.		time()
+					.	')'
+					);
+			}
 
 			if($data === false)
 				$this->on_error['callback'](__CLASS__.': PDO prepare error', $this->pdo_handler);

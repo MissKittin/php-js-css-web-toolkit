@@ -10,6 +10,9 @@ a, a:hover, a:visited {
 a:after {
 	content: " \2500\25B6";
 }
+.link_no_arrow:after {
+	content: "";
+}
 input {
 	border-radius: 10px;
 	margin: 5px;

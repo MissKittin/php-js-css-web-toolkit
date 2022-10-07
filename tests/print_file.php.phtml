@@ -1,0 +1,24 @@
+<?php
+	/*
+	 * print_file.php library test
+	 *
+	 * Note:
+	 *  looks for a library at ../lib
+	 */
+
+	if(!is_file(__DIR__.'/../lib/'.basename(__FILE__, '.phtml')))
+	{
+		echo __DIR__.'/../lib/'.basename(__FILE__, '.phtml').' is not a file';
+		exit();
+	}
+
+	if(!is_file(__DIR__.'/tmp/print_file.png'))
+	{
+		echo 'Put file in '.__DIR__.'/tmp/print_file.png';
+		exit();
+	}
+
+	include __DIR__.'/../lib/'.basename(__FILE__, '.phtml');
+
+	print_file(__DIR__.'/tmp/print_file.png', 3600);
+?>

@@ -8,6 +8,7 @@
 	 * Warning:
 	 *  has_php_close_tag.php library is required
 	 *  include_into_namespace.php library is required
+	 *  var_export_contains.php library is required
 	 */
 
 	namespace Test
@@ -88,8 +89,11 @@
 			}
 		echo ' [ OK ]'.PHP_EOL;
 
-		foreach(['has_php_close_tag.php', 'include_into_namespace.php'] as $library)
-		{
+		foreach([
+			'has_php_close_tag.php',
+			'include_into_namespace.php',
+			'var_export_contains.php'
+		] as $library){
 			echo ' -> Including '.$library;
 				if(@(include __DIR__.'/../lib/'.$library) === false)
 				{
@@ -117,7 +121,10 @@
 			$request=new http_request();
 		echo '  -> accept';
 			$_SERVER['HTTP_ACCEPT']='text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9';
-			if(str_replace(["\n", ' '], '', var_export($request->accept(), true)) === "array('text/html'=>1,'image/webp'=>1,'image/avif'=>1,'image/apng'=>1,'application/xml'=>'0.9','application/xhtml+xml'=>1,'application/signed-exchange'=>'0.9','*/*'=>'0.8',)")
+			if(var_export_contains(
+				$request->accept(),
+				"array('text/html'=>1,'image/webp'=>1,'image/avif'=>1,'image/apng'=>1,'application/xml'=>'0.9','application/xhtml+xml'=>1,'application/signed-exchange'=>'0.9','*/*'=>'0.8',)"
+			))
 				echo ' [ OK ]'.PHP_EOL;
 			else
 			{
@@ -126,7 +133,10 @@
 			}
 		echo '  -> cache_control';
 			$_SERVER['HTTP_CACHE_CONTROL']='public, max-age=604800, immutable';
-			if(str_replace(["\n", ' '], '', var_export($request->cache_control(), true)) === "array('public'=>true,'max-age'=>'604800','immutable'=>true,)")
+			if(var_export_contains(
+				$request->cache_control(),
+				"array('public'=>true,'max-age'=>'604800','immutable'=>true,)"
+			))
 				echo ' [ OK ]'.PHP_EOL;
 			else
 			{
@@ -171,7 +181,10 @@
 			}
 		echo '  -> charset';
 			$_SERVER['HTTP_ACCEPT_CHARSET']='utf-8, iso-8859-1;q=0.7, *;q=0.9';
-			if(str_replace(["\n", ' '], '', var_export($request->charset(), true)) === "array('utf-8'=>1,'iso-8859-1'=>'0.7','*'=>'0.9',)")
+			if(var_export_contains(
+				$request->charset(),
+				"array('utf-8'=>1,'iso-8859-1'=>'0.7','*'=>'0.9',)"
+			))
 				echo ' [ OK ]'.PHP_EOL;
 			else
 			{
@@ -215,7 +228,10 @@
 			}
 		echo '  -> encoding';
 			$_SERVER['HTTP_ACCEPT_ENCODING']='gzip, deflate;q=0.9, br';
-			if(str_replace(["\n", ' '], '', var_export($request->encoding(), true)) === "array('gzip'=>1,'deflate'=>'0.9','br'=>1,)")
+			if(var_export_contains(
+				$request->encoding(),
+				"array('gzip'=>1,'deflate'=>'0.9','br'=>1,)"
+			))
 				echo ' [ OK ]'.PHP_EOL;
 			else
 			{
@@ -269,7 +285,10 @@
 			}
 		echo '  -> language';
 			$_SERVER['HTTP_ACCEPT_LANGUAGE']='pl-PL,pl;q=0.9,en-US;q=0.8,en;q=0.7';
-			if(str_replace(["\n", ' '], '', var_export($request->language(), true)) === "array('pl-PL'=>1,'pl'=>'0.9','en-US'=>'0.8','en'=>'0.7',)")
+			if(var_export_contains(
+				$request->language(),
+				"array('pl-PL'=>1,'pl'=>'0.9','en-US'=>'0.8','en'=>'0.7',)"
+			))
 				echo ' [ OK ]'.PHP_EOL;
 			else
 			{
@@ -442,7 +461,10 @@
 				'allowed_mimes'=>['text/plain']
 			]);
 		echo '  -> list_uploaded_files';
-			if(str_replace(["\n", ' '], '', var_export($files->list_uploaded_files(), true)) === "array(0=>'uploaded_file',1=>'bad_filesize',2=>'bad_mime',)")
+			if(var_export_contains(
+				$files->list_uploaded_files(),
+				"array(0=>'uploaded_file',1=>'bad_filesize',2=>'bad_mime',)"
+			))
 				echo ' [ OK ]'.PHP_EOL;
 			else
 			{
@@ -487,7 +509,10 @@
 				$errors[]='http_files move_uploaded_file bad mime';
 			}
 		echo '  -> list_moved_files';
-			if(str_replace(["\n", ' '], '', var_export($files->list_moved_files(), true)) === "array('uploaded_file'=>array('name'=>'filename.txt','tmp_name'=>'/tmp/php/php1h4j1o-uploaded_file','file_name'=>'filename.txt','destination'=>'testfile.txt','moved_file'=>false,),)")
+			if(var_export_contains(
+				$files->list_moved_files(),
+				"array('uploaded_file'=>array('name'=>'filename.txt','tmp_name'=>'/tmp/php/php1h4j1o-uploaded_file','file_name'=>'filename.txt','destination'=>'testfile.txt','moved_file'=>false,),)"
+			))
 				echo ' [ OK ]'.PHP_EOL;
 			else
 			{
@@ -507,7 +532,10 @@
 				$response->send_response();
 			$response_content=ob_get_clean();
 		echo '  -> cookie';
-			if(str_replace(["\n", ' '], '', var_export($GLOBALS['http_response_cookies'], true)) === "array(0=>array(0=>'testcookie',1=>'testvalue',2=>2,3=>'testpath',4=>'testdomain',5=>true,6=>true,),)")
+			if(var_export_contains(
+				$GLOBALS['http_response_cookies'],
+				"array(0=>array(0=>'testcookie',1=>'testvalue',2=>2,3=>'testpath',4=>'testdomain',5=>true,6=>true,),)"
+			))
 				echo ' [ OK ]'.PHP_EOL;
 			else
 			{

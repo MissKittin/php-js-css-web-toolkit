@@ -19,7 +19,7 @@
 		if(
 			(file_exists($_SERVER['SCRIPT_FILENAME'])) &&
 			($_SERVER['SCRIPT_FILENAME'] !== __FILE__) &&
-			($_SERVER['SCRIPT_NAME'] !== '/.htaccess')
+			(basename($_SERVER['SCRIPT_NAME']) !== '.htaccess')
 		)
 			return false;
 

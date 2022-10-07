@@ -34,7 +34,7 @@
 			document.addEventListener('DOMContentLoaded', function(){
 				<?php include __DIR__.'/../lib/'.basename(__FILE__, '.phtml'); ?>
 
-				richTextEditor('richTextEditorBox', 'richTextEditorOutput', {
+				richTextEditor(document.getElementById('richTextEditorBox'), 'richTextEditorOutput', {
 					'sourceId':'richTextEditorOutput', // textarea id
 					'content':'Initial content', // JSON encoded string
 					'height':'400px', // same as in styles
@@ -59,7 +59,7 @@
 					}
 				});
 
-				richTextEditor('richTextEditorBoxWithoutCallbacks', 'richTextEditorOutputWithoutCallbacks', {
+				richTextEditor(document.getElementById('richTextEditorBoxWithoutCallbacks'), 'richTextEditorOutputWithoutCallbacks', {
 					'sourceId':'richTextEditorOutputWithoutCallbacks', // textarea id
 					'height':'400px' // same as in styles
 				});

@@ -2,6 +2,10 @@
 	/*
 	 * The cron
 	 *
+	 * Warning:
+	 *  this library has no daemon functions
+	 *  the tool is responsible for that
+	 *
 	 * Note:
 	 *  it can be used both from the command line and from the application
 	 *  but remember that the application time is limited
@@ -13,9 +17,12 @@
 	 * cron_timestamp -> oneshot, based on unix timestamp
 	 *  task: 1645732027_task-name.php
 	 *  parameters: 'tasks' 'debug' 'log_callback' 'debug_callback'
+	 *
+	 * cron_closure -> call functions instead of including files
+	 *  (new cron_closure)->add(string_hash, callable_function)->add(string_hash, callable_function)->run()
 	 */
 
-	function cron(array $__params)
+	function cron(array $_params)
 	{
 		/*
 		 * Basic cron implementation
@@ -53,47 +60,47 @@
 		 *   cron will search the crontab directory
 		 */
 
-		if(!isset($__params['crontab']))
+		if(!isset($_params['crontab']))
 			throw new Exception('The crontab parameter was not specified');
 
-		if(!isset($__params['debug']))
-			$__params['debug']=false;
+		if(!isset($_params['debug']))
+			$_params['debug']=false;
 
-		if(!isset($__params['log_callback']))
-			$__params['log_callback']=function(){};
+		if(!isset($_params['log_callback']))
+			$_params['log_callback']=function(){};
 
-		if(!isset($__params['debug_callback']))
-			$__params['debug_callback']=function(){};
+		if(!isset($_params['debug_callback']))
+			$_params['debug_callback']=function(){};
 
-		if(!is_dir($__params['crontab']))
-			throw new Exception($__params['crontab'].' is not a directory');
+		if(!is_dir($_params['crontab']))
+			throw new Exception($_params['crontab'].' is not a directory');
 
-		if(isset($__params['directory']))
+		if(isset($_params['directory']))
 		{
-			if($__params['debug'])
-				$__params['debug_callback']('Requested directory: '.$__params['directory']);
+			if($_params['debug'])
+				$_params['debug_callback']('Requested directory: '.$_params['directory']);
 
-			if(is_dir($__params['crontab'].'/'.$__params['directory']))
+			if(is_dir($_params['crontab'].'/'.$_params['directory']))
 			{
-				foreach(scandir($__params['crontab'].'/'.$__params['directory']) as $__job)
-					if(!is_dir($__params['crontab'].'/'.$__params['directory'].'/'.$__job))
+				foreach(scandir($_params['crontab'].'/'.$_params['directory']) as $_job)
+					if(!is_dir($_params['crontab'].'/'.$_params['directory'].'/'.$_job))
 					{
-						$__params['log_callback']('Executing job '.$__params['directory'].'/'.$__job);
+						$_params['log_callback']('Executing job '.$_params['directory'].'/'.$_job);
 
-						if((include $__params['crontab'].'/'.$__params['directory'].'/'.$__job) === false)
-							$__params['log_callback']('Job '.$__params['directory'].'/'.$__job.' inclusion error');
+						if((include $_params['crontab'].'/'.$_params['directory'].'/'.$_job) === false)
+							$_params['log_callback']('Job '.$_params['directory'].'/'.$_job.' inclusion error');
 						else
-							if($__params['debug'])
-								$__params['debug_callback']('Job '.$__params['directory'].'/'.$__job.' ended');
+							if($_params['debug'])
+								$_params['debug_callback']('Job '.$_params['directory'].'/'.$_job.' ended');
 					}
 			}
 			else
-				$__params['log_callback']($__params['crontab'].'/'.$__params['directory'].' is not a directory');
+				$_params['log_callback']($_params['crontab'].'/'.$_params['directory'].' is not a directory');
 
 			return null;
 		}
 
-		$__current_hash=[
+		$_current_hash=[
 			'minute'=>(string)intval(date('i')),
 			'hour'=>date('G'),
 			'day'=>date('j'),
@@ -101,46 +108,45 @@
 			'weekday'=>date('w')
 		];
 
-		if($__params['debug'])
-			$__params['debug_callback'](
-				'Current hash: '
-				.$__current_hash['minute'].'_'
-				.$__current_hash['hour'].'_'
-				.$__current_hash['day'].'_'
-				.$__current_hash['month'].'_'
-				.$__current_hash['weekday']
+		if($_params['debug'])
+			$_params['debug_callback'](''
+			.	'Current hash: '
+			.	$_current_hash['minute'].'_'
+			.	$_current_hash['hour'].'_'
+			.	$_current_hash['day'].'_'
+			.	$_current_hash['month'].'_'
+			.	$_current_hash['weekday']
 			);
 
-		foreach
-		(
-			preg_grep('/^'
-				.'('.$__current_hash['minute'].'|-)_'
-				.'('.$__current_hash['hour'].'|-)_'
-				.'('.$__current_hash['day'].'|-)_'
-				.'('.$__current_hash['month'].'|-)_'
-				.'('.$__current_hash['weekday'].'|-)'
-			.'$/', scandir($__params['crontab']))
-			as $__match
-		)
-			if(is_dir($__params['crontab'].'/'.$__match))
+		foreach(preg_grep(''
+		.	'/^'
+		.	'('.$_current_hash['minute'].'|-)_'
+		.	'('.$_current_hash['hour'].'|-)_'
+		.	'('.$_current_hash['day'].'|-)_'
+		.	'('.$_current_hash['month'].'|-)_'
+		.	'('.$_current_hash['weekday'].'|-)'
+		.	'$/'
+		,	scandir($_params['crontab']))
+		as $_match)
+			if(is_dir($_params['crontab'].'/'.$_match))
 			{
-				if($__params['debug'])
-					$__params['debug_callback']('Found hash '.$__match);
+				if($_params['debug'])
+					$_params['debug_callback']('Found hash '.$_match);
 
-				foreach(array_slice(scandir($__params['crontab'].'/'.$__match), 2) as $__job)
-					if(!is_dir($__params['crontab'].'/'.$__match.'/'.$__job))
+				foreach(array_slice(scandir($_params['crontab'].'/'.$_match), 2) as $_job)
+					if(!is_dir($_params['crontab'].'/'.$_match.'/'.$_job))
 					{
-						$__params['log_callback']('Executing job '.$__match.'/'.$__job);
+						$_params['log_callback']('Executing job '.$_match.'/'.$_job);
 
-						if((include $__params['crontab'].'/'.$__match.'/'.$__job) === false)
-							$__params['log_callback']('Job '.$__match.'/'.$__job.' inclusion error');
+						if((include $_params['crontab'].'/'.$_match.'/'.$_job) === false)
+							$_params['log_callback']('Job '.$_match.'/'.$_job.' inclusion error');
 						else
-							if($__params['debug'])
-								$__params['debug_callback']('Job '.$__match.'/'.$__job.' ended');
+							if($_params['debug'])
+								$_params['debug_callback']('Job '.$_match.'/'.$_job.' ended');
 					}
 			}
 	}
-	function cron_timestamp(array $__params)
+	function cron_timestamp(array $_params)
 	{
 		/*
 		 * Oneshot cron implementation
@@ -166,49 +172,128 @@
 		 *  eg. 1645732027_task-name.php
 		 */
 
-		if(!isset($__params['tasks']))
+		if(!isset($_params['tasks']))
 			throw new Exception('The tasks parameter was not specified');
 
-		if(!isset($__params['debug']))
-			$__params['debug']=false;
+		if(!isset($_params['debug']))
+			$_params['debug']=false;
 
-		if(!isset($__params['log_callback']))
-			$__params['log_callback']=function(){};
+		if(!isset($_params['log_callback']))
+			$_params['log_callback']=function(){};
 
-		if(!isset($__params['debug_callback']))
-			$__params['debug_callback']=function(){};
+		if(!isset($_params['debug_callback']))
+			$_params['debug_callback']=function(){};
 
-		if(!is_dir($__params['tasks']))
-			throw new Exception($__params['tasks'].' is not a directory');
+		if(!is_dir($_params['tasks']))
+			throw new Exception($_params['tasks'].' is not a directory');
 
-		$__current_timestamp=time();
-		if($__params['debug'])
-			$__params['debug_callback']('Current timestamp: '.$__current_timestamp);
+		$_current_timestamp=time();
+		if($_params['debug'])
+			$_params['debug_callback']('Current timestamp: '.$_current_timestamp);
 
-		foreach(scandir($__params['tasks']) as $__job)
+		foreach(scandir($_params['tasks']) as $_job)
 		{
-			$__job_timestamp=substr($__job, 0, strpos($__job, '_'));
+			$_job_timestamp=substr($_job, 0, strpos($_job, '_'));
 
-			if((!empty($__job_timestamp)) && ($__job_timestamp <= $__current_timestamp))
+			if((!empty($_job_timestamp)) && ($_job_timestamp <= $_current_timestamp))
 			{
-				$__params['log_callback']('Executing job '.$__job);
+				$_params['log_callback']('Executing job '.$_job);
 
-				if((include $__params['tasks'].'/'.$__job) === false)
-					$__params['log_callback']('Job '.$__job.' inclusion error');
+				if((include $_params['tasks'].'/'.$_job) === false)
+					$_params['log_callback']('Job '.$_job.' inclusion error');
 				else
 				{
-					if($__params['debug'])
-						$__params['debug_callback']('Job '.$__job.' ended');
+					if($_params['debug'])
+						$_params['debug_callback']('Job '.$_job.' ended');
 
-					if(@unlink($__params['tasks'].'/'.$__job))
+					if(@unlink($_params['tasks'].'/'.$_job))
 					{
-						if($__params['debug'])
-							$__params['debug_callback']('Job '.$__job.' removed');
+						if($_params['debug'])
+							$_params['debug_callback']('Job '.$_job.' removed');
 					}
 					else
-						$__params['log_callback']('Fatal error: cannot remove '.$__params['tasks'].'/'.$__job);
+						$_params['log_callback']('Fatal error: cannot remove '.$_params['tasks'].'/'.$_job);
 				}
 			}
+		}
+	}
+
+	class cron_closure
+	{
+		/*
+		 * Closure cron implementation
+		 * Call functions instead of including files
+		 *
+		 * Note:
+		 *  you can define functions once and run them multiple times
+		 *
+		 * Cheat sheet:
+		 *  0_0_1_1_- => run yearly (1 January, 00:00)
+		 *  0_0_1_-_- => run monthly (1 any month, 00:00)
+		 *  0_0_-_-_0 => weekly (sunday, 00:00)
+		 *  0_0_-_-_- => daily (00:00)
+		 *  0_-_-_-_- => hourly (a full hour)
+		 *  -_-_-_-_- => run every minute
+		 *
+		 * Methods:
+		 *  add(string_cron_hash, callable_function) [returns self]
+		 *   add a function to the registry
+		 *  run()
+		 *   perform the appropriate functions
+		 *
+		 * Usage (short way):
+			(new cron_closure)
+				->add('0_0_1_1_-', function(){
+					echo 'yearly';
+				})
+				->add('0_0_1_-_-', function(){
+					echo 'monthly';
+				})
+				->add('0_0_-_-_0', function(){
+					echo 'weekly';
+				})
+				->add('0_0_-_-_-', function(){
+					echo 'daily';
+				})
+				->add('0_-_-_-_-', function(){
+					echo 'hourly';
+				})
+				->add('-_-_-_-_-', function(){
+					echo 'every minute';
+				})
+				->run();
+		 */
+
+		protected $closures=[];
+
+		public function add(string $hash, callable $function)
+		{
+			$this->closures[$hash][]=$function;
+			return $this;
+		}
+
+		public function run()
+		{
+			$_current_hash=[
+				'minute'=>(string)intval(date('i')),
+				'hour'=>date('G'),
+				'day'=>date('j'),
+				'month'=>date('n'),
+				'weekday'=>date('w')
+			];
+
+			foreach(preg_grep(''
+			.	'/^'
+			.	'('.$_current_hash['minute'].'|-)_'
+			.	'('.$_current_hash['hour'].'|-)_'
+			.	'('.$_current_hash['day'].'|-)_'
+			.	'('.$_current_hash['month'].'|-)_'
+			.	'('.$_current_hash['weekday'].'|-)'
+			.	'$/'
+			,	array_keys($this->closures))
+			as $hash)
+				foreach($this->closures[$hash] as $closure)
+					$closure();
 		}
 	}
 ?>

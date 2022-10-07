@@ -3,7 +3,7 @@
 		'lang'=>'en',
 		'title'=>'Middleware form',
 		'assets_path'=>'/assets',
-		'middleware_form_style'=>'middleware_form_dark.css',
+		'middleware_form_style'=>'middleware_form_bright.css',
 		'submit_button_label'=>'Next',
 		'csp_header'=>[
 			'default-src'=>['\'none\''],

@@ -32,7 +32,7 @@
 			$success=true;
 
 			foreach($input_array as $hash=>$alias)
-				foreach(['a', 'b'] as $job)
+				foreach(['a', 'b'] as $job) // two jobs per hash
 					$GLOBALS['job__'.$hash.'_job_'.$job]=false;
 
 			$GLOBALS['mocked_date']=$date_array;
@@ -59,6 +59,48 @@
 						echo ' [FAIL]';
 						$success=false;
 					}
+				}
+
+				echo PHP_EOL;
+			}
+
+			return $success;
+		}
+		function _test_cron_closure($date_array, $input_array)
+		{
+			$GLOBALS['_test_cron_closure_jobs']=[];
+			$success=true;
+
+			$cron_closure=new cron_closure();
+
+			foreach($input_array as $hash=>$alias)
+			{
+				$cron_closure->add($hash, function() use($hash){
+					$GLOBALS['_test_cron_closure_jobs'][$hash]['result']=true;
+				});
+					$GLOBALS['_test_cron_closure_jobs'][$hash]['alias']=$alias[0];
+				$GLOBALS['_test_cron_closure_jobs'][$hash]['expected_result']=$alias[1];
+				$GLOBALS['_test_cron_closure_jobs'][$hash]['result']=false;
+			}
+
+			$GLOBALS['mocked_date']=$date_array;
+
+			$cron_closure->run();
+
+			foreach($GLOBALS['_test_cron_closure_jobs'] as $hash=>$params)
+			{
+				echo '   -> '.$params['alias'];
+				if($params['expected_result'])
+					echo ' (true) ';
+				else
+					echo ' (false)';
+
+				if($params['result'] === $params['expected_result'])
+					echo ' [ OK ]';
+				else
+				{
+					echo ' [FAIL]';
+					$success=false;
 				}
 
 				echo PHP_EOL;
@@ -249,6 +291,85 @@
 				else
 					echo ' [ OK ]'.PHP_EOL;
 			}
+
+		echo ' -> Testing cron_closure'.PHP_EOL;
+				echo '  -> test 1'.PHP_EOL;
+			if(!_test_cron_closure([0,0,1,1,0], [
+				'0_0_1_1_-'=>['yearly ', true],
+				'0_0_1_-_-'=>['monthly', true],
+				'0_0_-_-_0'=>['weekly ', true],
+				'0_0_-_-_-'=>['daily  ', true],
+				'0_-_-_-_-'=>['hourly ', true],
+				'-_-_-_-_-'=>['every  ', true],
+				'32_15_26_10_-'=>['certain', false]
+			]))
+				$errors[]='cron_closure test 1';
+		echo '  -> test 2'.PHP_EOL;
+			if(!_test_cron_closure([0,0,1,0,0], [
+				'0_0_1_1_-'=>['yearly ', false],
+				'0_0_1_-_-'=>['monthly', true],
+				'0_0_-_-_0'=>['weekly ', true],
+				'0_0_-_-_-'=>['daily  ', true],
+				'0_-_-_-_-'=>['hourly ', true],
+				'-_-_-_-_-'=>['every  ', true],
+				'32_15_26_10_-'=>['certain', false]
+			]))
+				$errors[]='cron_closure test 2';
+		echo '  -> test 3'.PHP_EOL;
+			if(!_test_cron_closure([0,0,0,0,0], [
+				'0_0_1_1_-'=>['yearly ', false],
+				'0_0_1_-_-'=>['monthly', false],
+				'0_0_-_-_0'=>['weekly ', true],
+				'0_0_-_-_-'=>['daily  ', true],
+				'0_-_-_-_-'=>['hourly ', true],
+				'-_-_-_-_-'=>['every  ', true],
+				'32_15_26_10_-'=>['certain', false]
+			]))
+				$errors[]='cron_closure test 3';
+		echo '  -> test 4'.PHP_EOL;
+			if(!_test_cron_closure([0,0,9,9,9], [
+				'0_0_1_1_-'=>['yearly ', false],
+				'0_0_1_-_-'=>['monthly', false],
+				'0_0_-_-_0'=>['weekly ', false],
+				'0_0_-_-_-'=>['daily  ', true],
+				'0_-_-_-_-'=>['hourly ', true],
+				'-_-_-_-_-'=>['every  ', true],
+				'32_15_26_10_-'=>['certain', false]
+			]))
+				$errors[]='cron_closure test 4';
+		echo '  -> test 5'.PHP_EOL;
+			if(!_test_cron_closure([0,9,9,9,9], [
+				'0_0_1_1_-'=>['yearly ', false],
+				'0_0_1_-_-'=>['monthly', false],
+				'0_0_-_-_0'=>['weekly ', false],
+				'0_0_-_-_-'=>['daily  ', false],
+				'0_-_-_-_-'=>['hourly ', true],
+				'-_-_-_-_-'=>['every  ', true],
+				'32_15_26_10_-'=>['certain', false]
+			]))
+				$errors[]='cron_closure test 5';
+		echo '  -> test 6'.PHP_EOL;
+			if(!_test_cron_closure([9,9,9,9,9], [
+				'0_0_1_1_-'=>['yearly ', false],
+				'0_0_1_-_-'=>['monthly', false],
+				'0_0_-_-_0'=>['weekly ', false],
+				'0_0_-_-_-'=>['daily  ', false],
+				'0_-_-_-_-'=>['hourly ', false],
+				'-_-_-_-_-'=>['every  ', true],
+				'32_15_26_10_-'=>['certain', false]
+			]))
+				$errors[]='cron_closure test 6';
+		echo '  -> test 7'.PHP_EOL;
+			if(!_test_cron_closure([32,15,26,10,9], [
+				'0_0_1_1_-'=>['yearly ', false],
+				'0_0_1_-_-'=>['monthly', false],
+				'0_0_-_-_0'=>['weekly ', false],
+				'0_0_-_-_-'=>['daily  ', false],
+				'0_-_-_-_-'=>['hourly ', false],
+				'-_-_-_-_-'=>['every  ', true],
+				'32_15_26_10_-'=>['certain', true]
+			]))
+				$errors[]='cron_closure test 7';
 
 		if(!empty($errors))
 		{

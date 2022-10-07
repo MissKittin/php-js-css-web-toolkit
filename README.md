@@ -1,6 +1,7 @@
 # PHP-JS-CSS web toolkit
 A set of tools, components and libraries that you can use in your project  
-Recommended PHP version: 7.4
+Recommended PHP version: 7.4  
+Supported relational databases: SQLite3, PostgreSQL, MySQL
 
 ## Principles
 * respect the KISS rule
@@ -18,10 +19,12 @@ Recommended PHP version: 7.4
 * `cron.php` - interface for `cron.php` library
 * `file-sign.php` - interface for `sec_file_sign.php` library
 * `file-watch.php` - run the command after modifying the file(s)
+* `get-composer.php` - easily add composer to your project
 * `include2blob.php` - a toy that converts inclusion to a single file blob
 * `link2file.php` - recursively convert all symbolic links to files
 * `logrotate.php` - interface for `logrotate.php` library
 * `lv-encrypter.php` - interface for `sec_lv_encrypter.php` library
+* `matthiasmullie-minify.php` - interface for the `matthiasmullie/minify` package
 * `opcache-preload-generator.php` - opcache preload script generator
 * `pdo-connect.php` - interface for `pdo_connect.php`, `pdo_cheat.php` (optional) and `pdo_crud_builder.php` (optional) libraries - seed databases
 * `queue-worker.php` - interface for `queue_worker.php` server
@@ -54,6 +57,7 @@ Recommended PHP version: 7.4
 * `http_request_response.php` - OOP overlay for standard request-response handling
 * `include_into_namespace.php` - function that facilitates including libraries to a namespace (mainly for testing purposes)
 * `ioc_container.php` - dependency injection containers
+* `is_float_equal.php` - for older PHP versions it defines an `PHP_FLOAT_EPSILON` constant
 * `logger.php` - easily write logs
 * `logrotate.php` - journalists rotation machine
 * `maintenance_break.php` - check to send the maintenance break pattern
@@ -90,6 +94,7 @@ Recommended PHP version: 7.4
 * `time_converter.php` - time converting library - convert time to human-readable form
 * `trivial_templating_engine.php`
 * `uri_router.php` - OOP routing solution
+* `var_export_contains.php` - check if the content of the variable is correct (mainly for testing purposes)
 * `webdevsh.php` - functions for Toptal minifiers
 * `zip.php` - make ZIP file in RAM - library from PhpMyAdmin (GNU GPL2)
 

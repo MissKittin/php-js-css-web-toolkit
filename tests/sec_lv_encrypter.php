@@ -5,6 +5,21 @@
 	 * Note:
 	 *  looks for a library at ../lib
 	 *
+	 * Hint:
+	 *  you can setup database credentials by environment variables
+	 *  variables:
+	 *   TEST_DB_TYPE (pgsql, mysql, sqlite, overrides first argument)
+	 *   TEST_PGSQL_HOST (default: 127.0.0.1)
+	 *   TEST_PGSQL_PORT (default: 5432)
+	 *   TEST_PGSQL_DBNAME (default: php_toolkit_tests)
+	 *   TEST_PGSQL_USER (default: postgres)
+	 *   TEST_PGSQL_PASSWORD (default: postgres)
+	 *   TEST_MYSQL_HOST (default: [::1])
+	 *   TEST_MYSQL_PORT (default: 3306)
+	 *   TEST_MYSQL_DBNAME (default: php-toolkit-tests)
+	 *   TEST_MYSQL_USER (default: root)
+	 *   TEST_MYSQL_PASSWORD
+	 *
 	 * Warning:
 	 *  openssl extension is required
 	 *  mbstring extensions is required
@@ -31,8 +46,76 @@
 	echo ' [ OK ]'.PHP_EOL;
 
 	@mkdir(__DIR__.'/tmp');
-	@unlink(__DIR__.'/tmp/sec_lv_encrypter.sqlite3');
-	$pdo_handler=new PDO('sqlite:'.__DIR__.'/tmp/sec_lv_encrypter.sqlite3');
+	//@unlink(__DIR__.'/tmp/sec_lv_encrypter.sqlite3');
+
+	if(getenv('TEST_DB_TYPE') !== false)
+		$argv[1]=getenv('TEST_DB_TYPE');
+	if(isset($argv[1]))
+	{
+		$_db_type=$argv[1];
+		$_db_credentials=[
+			'pgsql'=>[
+				'host'=>'127.0.0.1',
+				'port'=>'5432',
+				'dbname'=>'php_toolkit_tests',
+				'user'=>'postgres',
+				'password'=>'postgres'
+			],
+			'mysql'=>[
+				'host'=>'[::1]',
+				'port'=>'3306',
+				'dbname'=>'php-toolkit-tests',
+				'user'=>'root',
+				'password'=>''
+			]
+		];
+		foreach(['pgsql', 'mysql'] as $database)
+			foreach(['host', 'port', 'dbname', 'user', 'password'] as $parameter)
+			{
+				$variable='TEST_'.strtoupper($database.'_'.$parameter);
+				$value=getenv($variable);
+
+				if($value !== false)
+				{
+					echo '  -> Using '.$variable.'="'.$value.'" as '.$database.' '.$parameter.PHP_EOL;
+					$_db_credentials[$database][$parameter]=$value;
+				}
+			}
+
+		try {
+			switch($_db_type)
+			{
+				case 'pgsql':
+					if(!extension_loaded('pdo_pgsql'))
+						throw new Exception('pdo_pgsql extension is not loaded');
+
+					$pdo_handler=new PDO('pgsql:'
+						.'host='.$_db_credentials[$_db_type]['host'].';'
+						.'port='.$_db_credentials[$_db_type]['port'].';'
+						.'dbname='.$_db_credentials[$_db_type]['dbname'].';'
+						.'user='.$_db_credentials[$_db_type]['user'].';'
+						.'password='.$_db_credentials[$_db_type]['password'].''
+					);
+				break;
+				case 'mysql':
+					if(!extension_loaded('pdo_mysql'))
+						throw new Exception('pdo_mysql extension is not loaded');
+
+					$pdo_handler=new PDO('mysql:'
+						.'host='.$_db_credentials[$_db_type]['host'].';'
+						.'port='.$_db_credentials[$_db_type]['port'].';'
+						.'dbname='.$_db_credentials[$_db_type]['dbname'],
+						$_db_credentials[$_db_type]['user'],
+						$_db_credentials[$_db_type]['password']
+					);
+			}
+		} catch(Throwable $error) {
+			echo ' Error: '.$error->getMessage().PHP_EOL;
+			exit(1);
+		}
+	}
+	if(!isset($pdo_handler))
+		$pdo_handler=new PDO('sqlite:'.__DIR__.'/tmp/sec_lv_encrypter.sqlite3');
 
 	$errors=[];
 
@@ -57,7 +140,17 @@
 	echo ' -> Testing lv_cookie_session_handler [SKIP]'.PHP_EOL;
 
 	echo ' -> Testing lv_pdo_session_handler';
-		$lv_pdo_session_handler_key=lv_encrypter::generate_key();
+		if(is_file(__DIR__.'/tmp/sec_lv_encrypter_pdo_handler_key'))
+		{
+			$lv_pdo_session_handler_key=file_get_contents(__DIR__.'/tmp/sec_lv_encrypter_pdo_handler_key');
+			$lv_pdo_session_handler_do_save=false;
+		}
+		else
+		{
+			$lv_pdo_session_handler_key=lv_encrypter::generate_key();
+			file_put_contents(__DIR__.'/tmp/sec_lv_encrypter_pdo_handler_key', $lv_pdo_session_handler_key);
+			$lv_pdo_session_handler_do_save=true;
+		}
 
 		session_set_save_handler(new lv_pdo_session_handler([
 			'key'=>$lv_pdo_session_handler_key,
@@ -69,8 +162,31 @@
 			'use_cookies'=>0,
 			'cache_limiter'=>''
 		]);
-		$_SESSION['test_variable_a']='test_value_a';
-		$_SESSION['test_variable_b']='test_value_b';
+		if($lv_pdo_session_handler_do_save)
+		{
+			echo PHP_EOL.'  -> the $_SESSION will be saved to the database [SKIP]';
+
+			$_SESSION['test_variable_a']='test_value_a';
+			$_SESSION['test_variable_b']='test_value_b';
+		}
+		else
+		{
+			echo PHP_EOL.'  -> the $_SESSION was fetched from the database';
+				if(isset($_SESSION['test_variable_a']))
+					echo ' [ OK ]';
+				else
+				{
+					echo ' [FAIL]';
+					$errors[]='lv_pdo_session_handler fetch check phase 1';
+				}
+				if(isset($_SESSION['test_variable_b']))
+					echo ' [ OK ]';
+				else
+				{
+					echo ' [FAIL]';
+					$errors[]='lv_pdo_session_handler fetch check phase 2';
+				}
+		}
 		session_write_close();
 
 		$output=$pdo_handler->query('SELECT * FROM lv_pdo_session_handler')->fetchAll();

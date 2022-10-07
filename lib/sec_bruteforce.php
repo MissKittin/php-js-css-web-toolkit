@@ -23,10 +23,10 @@
 	 *   store data in Redis (timeout ban)
 	 *  bruteforce_pdo
 	 *   store data in database via PDO (permban)
-	 *   warning: pgsql is not supported
+	 *   supported databases: PostgreSQL, MySQL, SQLite3
 	 *  bruteforce_timeout_pdo
 	 *   store data in database via PDO (timeout ban)
-	 *   warning: pgsql is not supported
+	 *   supported databases: PostgreSQL, MySQL, SQLite3
 	 *  bruteforce_json
 	 *   store data in flat file (for debugging purposes) (permban)
 	 *  bruteforce_timeout_json
@@ -381,9 +381,11 @@
 		 * from simpleblog project
 		 * rewritten to PDO OOP
 		 *
-		 * Warning:
-		 *  pgsql is not supported
-		 *
+		 * Supported databases:
+		 *  PostgreSQL
+		 *  MySQL
+		 *  SQLite3
+	 	 *
 		 * Constructor parameters:
 		 *  pdo_handler [object]
 		 *   required
@@ -427,39 +429,73 @@
 		{
 			parent::__construct($params);
 
+			if(!in_array(
+				$this->pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME),
+				['pgsql', 'mysql', 'sqlite']
+			))
+				throw new Exception($this->pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME).' driver is not supported');
+
 			switch($this->pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME))
 			{
-				case 'mysql':
+				case 'pgsql':
 					if($this->pdo_handler->exec(''
 					.	'CREATE TABLE IF NOT EXISTS '.$this->table_name
 					.	'('
-					.		'id INT NOT NULL AUTO_INCREMENT, PRIMARY KEY(id),'
+					.		'id SERIAL PRIMARY KEY,'
 					.		'ip VARCHAR(39),'
-					.		'attempts INT'
+					.		'attempts INTEGER'
 					.	')'
 					) === false)
 						throw new Exception('PDO exec error');
 				break;
-				default:
+				case 'mysql':
+					if($this->pdo_handler->exec(''
+					.	'CREATE TABLE IF NOT EXISTS '.$this->table_name
+					.	'('
+					.		'id INTEGER NOT NULL AUTO_INCREMENT, PRIMARY KEY(id),'
+					.		'ip VARCHAR(39),'
+					.		'attempts INTEGER'
+					.	')'
+					) === false)
+						throw new Exception('PDO exec error');
+				break;
+				case 'sqlite':
 					if($this->pdo_handler->exec(''
 					.	'CREATE TABLE IF NOT EXISTS '.$this->table_name
 					.	'('
 					.		'id INTEGER PRIMARY KEY AUTOINCREMENT,'
 					.		'ip VARCHAR(39),'
-					.		'attempts INT'
+					.		'attempts INTEGER'
 					.	')'
 					) === false)
 						throw new Exception('PDO exec error');
 			}
 
-			$ip_query=$this->pdo_handler->query(''
-			.	'SELECT * '
-			.	'FROM '.$this->table_name.' '
-			.	'WHERE ip="'.$this->ip.'"'
-			)->fetch(PDO::FETCH_NAMED);
+			switch($this->pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME))
+			{
+				case 'pgsql':
+					$ip_query=$this->pdo_handler->query(''
+					.	'SELECT * '
+					.	'FROM '.$this->table_name.' '
+					.	"WHERE ip='".$this->ip."'"
+					);
+				break;
+				case 'mysql':
+				case 'sqlite':
+					$ip_query=$this->pdo_handler->query(''
+					.	'SELECT * '
+					.	'FROM '.$this->table_name.' '
+					.	'WHERE ip="'.$this->ip.'"'
+					);
+			}
 
 			if($ip_query !== false)
-				$this->current_attempts=$ip_query['attempts'];
+			{
+				$ip_query=$ip_query->fetch(PDO::FETCH_NAMED);
+
+				if($ip_query !== false)
+					$this->current_attempts=$ip_query['attempts'];
+			}
 		}
 
 		public function check()
@@ -474,36 +510,77 @@
 			++$this->current_attempts;
 
 			if($this->current_attempts === 1)
-			{
-				if($this->pdo_handler->exec(''
-				.	'INSERT INTO '.$this->table_name
-				.	'('
-				.		'ip,'
-				.		'attempts'
-				.	') VALUES ('
-				.		'"'.$this->ip.'",'
-				.		'1'
-				.	')'
-				) === false)
-					throw new Exception('PDO exec error');
-			}
+				switch($this->pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME))
+				{
+					case 'pgsql':
+						if($this->pdo_handler->exec(''
+						.	'INSERT INTO '.$this->table_name
+						.	'('
+						.		'ip,'
+						.		'attempts'
+						.	') VALUES ('
+						.		"'".$this->ip."',"
+						.		'1'
+						.	')'
+						) === false)
+							throw new Exception('PDO exec error');
+					break;
+					case 'mysql':
+					case 'sqlite':
+						if($this->pdo_handler->exec(''
+						.	'INSERT INTO '.$this->table_name
+						.	'('
+						.		'ip,'
+						.		'attempts'
+						.	') VALUES ('
+						.		'"'.$this->ip.'",'
+						.		'1'
+						.	')'
+						) === false)
+							throw new Exception('PDO exec error');
+				}
 			else
-				if($this->pdo_handler->exec(''
-				.	'UPDATE '.$this->table_name.' '
-				.	'SET attempts='.$this->current_attempts.' '
-				.	'WHERE ip="'.$this->ip.'"'
-				) === false)
-					throw new Exception('PDO exec error');
+				switch($this->pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME))
+				{
+					case 'pgsql':
+						if($this->pdo_handler->exec(''
+						.	'UPDATE '.$this->table_name.' '
+						.	'SET attempts='.$this->current_attempts.' '
+						.	"WHERE ip='".$this->ip."'"
+						) === false)
+							throw new Exception('PDO exec error');
+					break;
+					case 'mysql':
+					case 'sqlite':
+						if($this->pdo_handler->exec(''
+						.	'UPDATE '.$this->table_name.' '
+						.	'SET attempts='.$this->current_attempts.' '
+						.	'WHERE ip="'.$this->ip.'"'
+						) === false)
+							throw new Exception('PDO exec error');
+				}
 		}
 		public function del()
 		{
 			if($this->current_attempts !== 0)
 			{
-				if($this->pdo_handler->exec(''
-				.	'DELETE FROM '.$this->table_name.' '
-				.	'WHERE ip="'.$this->ip.'"'
-				) === false)
-					throw new Exception('PDO exec error');
+				switch($this->pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME))
+				{
+					case 'pgsql':
+						if($this->pdo_handler->exec(''
+						.	'DELETE FROM '.$this->table_name.' '
+						.	"WHERE ip='".$this->ip."'"
+						) === false)
+							throw new Exception('PDO exec error');
+					break;
+					case 'mysql':
+					case 'sqlite':
+						if($this->pdo_handler->exec(''
+						.	'DELETE FROM '.$this->table_name.' '
+						.	'WHERE ip="'.$this->ip.'"'
+						) === false)
+							throw new Exception('PDO exec error');
+				}
 
 				$this->current_attempts=0;
 			}
@@ -516,9 +593,11 @@
 		 * from simpleblog project
 		 * rewritten to PDO OOP
 		 *
-		 * Warning:
-		 *  pgsql is not supported
-		 *
+		 * Supported databases:
+		 *  PostgreSQL
+		 *  MySQL
+		 *  SQLite3
+	 	 *
 		 * Constructor parameters:
 		 *  pdo_handler [object]
 		 *   required
@@ -575,43 +654,78 @@
 		{
 			parent::__construct($params);
 
+			if(!in_array(
+				$this->pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME),
+				['pgsql', 'mysql', 'sqlite']
+			))
+				throw new Exception($this->pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME).' driver is not supported');
+
 			switch($this->pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME))
 			{
-				case 'mysql':
+				case 'pgsql':
 					if($this->pdo_handler->exec(''
 					.	'CREATE TABLE IF NOT EXISTS '.$this->table_name
 					.	'('
-					.		'id INT NOT NULL AUTO_INCREMENT, PRIMARY KEY(id),'
+					.		'id SERIAL PRIMARY KEY,'
 					.		'ip VARCHAR(39),'
-					.		'attempts INT,'
-					.		'timestamp INT'
+					.		'attempts INTEGER,'
+					.		'timestamp INTEGER'
 					.	')'
 					) === false)
 						throw new Exception('PDO exec error');
 				break;
-				default:
+				case 'mysql':
+					if($this->pdo_handler->exec(''
+					.	'CREATE TABLE IF NOT EXISTS '.$this->table_name
+					.	'('
+					.		'id INTEGER NOT NULL AUTO_INCREMENT, PRIMARY KEY(id),'
+					.		'ip VARCHAR(39),'
+					.		'attempts INTEGER,'
+					.		'timestamp INTEGER'
+					.	')'
+					) === false)
+						throw new Exception('PDO exec error');
+				break;
+				case 'sqlite':
 					if($this->pdo_handler->exec(''
 					.	'CREATE TABLE IF NOT EXISTS '.$this->table_name
 					.	'('
 					.		'id INTEGER PRIMARY KEY AUTOINCREMENT,'
 					.		'ip VARCHAR(39),'
-					.		'attempts INT,'
-					.		'timestamp INT'
+					.		'attempts INTEGER,'
+					.		'timestamp INTEGER'
 					.	')'
 					) === false)
 						throw new Exception('PDO exec error');
 			}
 
-			$ip_query=$this->pdo_handler->query(''
-			.	'SELECT * '
-			.	'FROM '.$this->table_name.' '
-			.	'WHERE ip="'.$this->ip.'"'
-			)->fetch(PDO::FETCH_NAMED);
+			switch($this->pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME))
+			{
+				case 'pgsql':
+					$ip_query=$this->pdo_handler->query(''
+					.	'SELECT * '
+					.	'FROM '.$this->table_name.' '
+					.	"WHERE ip='".$this->ip."'"
+					);
+				break;
+				case 'mysql':
+				case 'sqlite':
+					$ip_query=$this->pdo_handler->query(''
+					.	'SELECT * '
+					.	'FROM '.$this->table_name.' '
+					.	'WHERE ip="'.$this->ip.'"'
+					);
+			}
 
 			if($ip_query !== false)
 			{
-				$this->current_attempts=$ip_query['attempts'];
-				$this->current_timestamp=$ip_query['timestamp'];
+				$ip_query=$ip_query->fetch(PDO::FETCH_NAMED);
+
+				if($ip_query !== false)
+				{
+					$this->current_attempts=$ip_query['attempts'];
+					$this->current_timestamp=$ip_query['timestamp'];
+				}
 			}
 		}
 
@@ -645,30 +759,63 @@
 			$timestamp=time();
 
 			if($this->current_attempts === 0)
-			{
-				if($this->pdo_handler->exec(''
-				.	'INSERT INTO '.$this->table_name
-				.	'('
-				.		'ip,'
-				.		'attempts,'
-				.		'timestamp'
-				.	') VALUES ('
-				.		'"'.$this->ip.'",'
-				.		'1,'
-				.		$timestamp
-				.	')'
-				) === false)
-					throw new Exception('PDO exec error');
-			}
+				switch($this->pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME))
+				{
+					case 'pgsql':
+						if($this->pdo_handler->exec(''
+						.	'INSERT INTO '.$this->table_name
+						.	'('
+						.		'ip,'
+						.		'attempts,'
+						.		'timestamp'
+						.	') VALUES ('
+						.		"'".$this->ip."',"
+						.		'1,'
+						.		$timestamp
+						.	')'
+						) === false)
+							throw new Exception('PDO exec error');
+					break;
+					case 'mysql':
+					case 'sqlite':
+						if($this->pdo_handler->exec(''
+						.	'INSERT INTO '.$this->table_name
+						.	'('
+						.		'ip,'
+						.		'attempts,'
+						.		'timestamp'
+						.	') VALUES ('
+						.		'"'.$this->ip.'",'
+						.		'1,'
+						.		$timestamp
+						.	')'
+						) === false)
+							throw new Exception('PDO exec error');
+				}
 			else
-				if($this->pdo_handler->exec(''
-				.	'UPDATE '.$this->table_name.' '
-				.	'SET '
-				.		'attempts='.$this->current_attempts.','
-				.		'timestamp='.$timestamp.' '
-				.	'WHERE ip="'.$this->ip.'"'
-				) === false)
-					throw new Exception('PDO exec error');
+				switch($this->pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME))
+				{
+					case 'pgsql':
+						if($this->pdo_handler->exec(''
+						.	'UPDATE '.$this->table_name.' '
+						.	'SET '
+						.		'attempts='.$this->current_attempts.','
+						.		'timestamp='.$timestamp.' '
+						.	"WHERE ip='".$this->ip."'"
+						) === false)
+							throw new Exception('PDO exec error');
+					break;
+					case 'mysql':
+					case 'sqlite':
+						if($this->pdo_handler->exec(''
+						.	'UPDATE '.$this->table_name.' '
+						.	'SET '
+						.		'attempts='.$this->current_attempts.','
+						.		'timestamp='.$timestamp.' '
+						.	'WHERE ip="'.$this->ip.'"'
+						) === false)
+							throw new Exception('PDO exec error');
+				}
 
 			++$this->current_attempts;
 			$this->current_timestamp=$timestamp;
@@ -677,11 +824,23 @@
 		{
 			if($this->current_attempts !== 0)
 			{
-				if($this->pdo_handler->exec(''
-				.	'DELETE FROM '.$this->table_name.' '
-				.	'WHERE ip="'.$this->ip.'"'
-				) === false)
-					throw new Exception('PDO exec error');
+				switch($this->pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME))
+				{
+					case 'pgsql':
+						if($this->pdo_handler->exec(''
+						.	'DELETE FROM '.$this->table_name.' '
+						.	"WHERE ip='".$this->ip."'"
+						) === false)
+							throw new Exception('PDO exec error');
+					break;
+					case 'mysql':
+					case 'sqlite':
+						if($this->pdo_handler->exec(''
+						.	'DELETE FROM '.$this->table_name.' '
+						.	'WHERE ip="'.$this->ip.'"'
+						) === false)
+							throw new Exception('PDO exec error');
+				}
 
 				$this->current_attempts=0;
 				$this->current_timestamp=null;

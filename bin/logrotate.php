@@ -80,12 +80,14 @@
 	if(!isset($argv[1]))
 	{
 		echo 'Usage: '.$argv[0].' path/to/logrotate_config.php'.PHP_EOL;
+		echo 'For more info see this file and logrotate.php library'.PHP_EOL;
 		exit(1);
 	}
 
 	if(($argv[1] === '--help') || ($argv[1] === '-h'))
 	{
 		echo 'Usage: '.$argv[0].' path/to/logrotate_config.php'.PHP_EOL;
+		echo 'For more info see this file and logrotate.php library'.PHP_EOL;
 		exit();
 	}
 

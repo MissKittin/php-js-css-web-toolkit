@@ -4,7 +4,18 @@
 	 *
 	 * Note:
 	 *  looks for a library at ../lib
+	 *
+	 * Warning:
+	 *  var_export_contains.php library is required
 	 */
+
+	echo ' -> Including var_export_contains.php';
+		if(@(include __DIR__.'/../lib/var_export_contains.php') === false)
+		{
+			echo ' [FAIL]'.PHP_EOL;
+			exit(1);
+		}
+	echo ' [ OK ]'.PHP_EOL;
 
 	echo ' -> Including '.basename(__FILE__);
 		if(@(include __DIR__.'/../lib/'.basename(__FILE__)) === false)
@@ -39,7 +50,10 @@
 			null
 		);
 
-		if(str_replace(["\n", ' '], '', var_export($nested_array, true)) === "array('content0|description0'=>array(),'content1|description1'=>array(),'content3|description3'=>array('content2|description2'=>array('content4|description4'=>array('content6|description6'=>array(),),'content8|description8'=>array(),),),'content5|description5'=>array('content9|description9'=>array(),),'content7|description7'=>array(),)")
+		if(var_export_contains(
+			$nested_array,
+			"array('content0|description0'=>array(),'content1|description1'=>array(),'content3|description3'=>array('content2|description2'=>array('content4|description4'=>array('content6|description6'=>array(),),'content8|description8'=>array(),),),'content5|description5'=>array('content9|description9'=>array(),),'content7|description7'=>array(),)"
+		))
 			echo ' [ OK ]'.PHP_EOL;
 		else
 		{

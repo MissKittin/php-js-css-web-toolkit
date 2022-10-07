@@ -22,7 +22,7 @@
 				return new class_a();
 			});
 			$container->share('class_b', function($container){
-				return new class_b($container->get('class_b'));
+				return new class_b($container->get('class_a'));
 			});
 			$myclassb=$container->get('class_b');
 			$myclassb->do_someting();

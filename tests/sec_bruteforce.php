@@ -13,6 +13,21 @@
 	 *  to skip cleaning the Redis database,
 	 *   run the test with the --no-redis-clean parameter
 	 *
+	 * Hint:
+	 *  you can setup database credentials by environment variables
+	 *  variables:
+	 *   TEST_DB_TYPE (pgsql, mysql, sqlite, overrides first argument)
+	 *   TEST_PGSQL_HOST (default: 127.0.0.1)
+	 *   TEST_PGSQL_PORT (default: 5432)
+	 *   TEST_PGSQL_DBNAME (default: php_toolkit_tests)
+	 *   TEST_PGSQL_USER (default: postgres)
+	 *   TEST_PGSQL_PASSWORD (default: postgres)
+	 *   TEST_MYSQL_HOST (default: [::1])
+	 *   TEST_MYSQL_PORT (default: 3306)
+	 *   TEST_MYSQL_DBNAME (default: php-toolkit-tests)
+	 *   TEST_MYSQL_USER (default: root)
+	 *   TEST_MYSQL_PASSWORD
+	 *
 	 * Warning:
 	 *  PDO extension is required
 	 *  pdo_sqlite extension is required
@@ -52,21 +67,74 @@
 			@unlink(__DIR__.'/tmp/'.$file);
 	echo ' [ OK ]'.PHP_EOL;
 
-		if(isset($argv[1]))
+	if(getenv('TEST_DB_TYPE') !== false)
+		$argv[1]=getenv('TEST_DB_TYPE');
+	if(isset($argv[1]))
 	{
-		switch($argv[1])
-		{
-			case 'mysql':
-				$pdo_handler=new PDO('mysql:'
-					.'host=[::1];'
-					.'port=3306;'
-					.'dbname=sec-bruteforce-test',
-					'root',
-					''
-				);
+		$_db_type=$argv[1];
+		$_db_credentials=[
+			'pgsql'=>[
+				'host'=>'127.0.0.1',
+				'port'=>'5432',
+				'dbname'=>'php_toolkit_tests',
+				'user'=>'postgres',
+				'password'=>'postgres'
+			],
+			'mysql'=>[
+				'host'=>'[::1]',
+				'port'=>'3306',
+				'dbname'=>'php-toolkit-tests',
+				'user'=>'root',
+				'password'=>''
+			]
+		];
+		foreach(['pgsql', 'mysql'] as $database)
+			foreach(['host', 'port', 'dbname', 'user', 'password'] as $parameter)
+			{
+				$variable='TEST_'.strtoupper($database.'_'.$parameter);
+				$value=getenv($variable);
+
+				if($value !== false)
+				{
+					echo '  -> Using '.$variable.'="'.$value.'" as '.$database.' '.$parameter.PHP_EOL;
+					$_db_credentials[$database][$parameter]=$value;
+				}
+			}
+
+		try {
+			switch($_db_type)
+			{
+				case 'pgsql':
+					if(!extension_loaded('pdo_pgsql'))
+						throw new Exception('pdo_pgsql extension is not loaded');
+
+					$pdo_handler=new PDO('pgsql:'
+						.'host='.$_db_credentials[$_db_type]['host'].';'
+						.'port='.$_db_credentials[$_db_type]['port'].';'
+						.'dbname='.$_db_credentials[$_db_type]['dbname'].';'
+						.'user='.$_db_credentials[$_db_type]['user'].';'
+						.'password='.$_db_credentials[$_db_type]['password'].''
+					);
+				break;
+				case 'mysql':
+					if(!extension_loaded('pdo_mysql'))
+						throw new Exception('pdo_mysql extension is not loaded');
+
+					$pdo_handler=new PDO('mysql:'
+						.'host='.$_db_credentials[$_db_type]['host'].';'
+						.'port='.$_db_credentials[$_db_type]['port'].';'
+						.'dbname='.$_db_credentials[$_db_type]['dbname'],
+						$_db_credentials[$_db_type]['user'],
+						$_db_credentials[$_db_type]['password']
+					);
+			}
+		} catch(Throwable $error) {
+			echo ' Error: '.$error->getMessage().PHP_EOL;
+			exit(1);
 		}
 
-		$pdo_handler->exec('DROP TABLE sec_bruteforce');
+		if(isset($pdo_handler))
+			$pdo_handler->exec('DROP TABLE sec_bruteforce');
 	}
 	if(!isset($pdo_handler))
 		$pdo_handler=new PDO('sqlite:'.__DIR__.'/tmp/sec_bruteforce.sqlite3');

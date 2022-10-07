@@ -42,8 +42,7 @@
 			->add('/preprocessing-test')
 			->get();
 
-		@mkdir('./var');
-		@mkdir('./var/lib');
+		@mkdir('./var/lib', 0777, true);
 		file_put_contents('./var/lib/sitemap.xml', $xml);
 
 		echo $xml;

@@ -24,4 +24,7 @@ if(window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matche
 	setBodyOpacity();
 }
 else
+{
 	console.log('Dark theme disabled');
+	document.body.style.opacity=1;
+}

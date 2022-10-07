@@ -8,6 +8,7 @@
 	 * Warning:
 	 *  has_php_close_tag.php library is required
 	 *  include_into_namespace.php library is required
+	 *  var_export_contains.php library is required
 	 */
 
 	namespace Test
@@ -44,8 +45,11 @@
 			class Exception extends \Exception {}
 		echo ' [ OK ]'.PHP_EOL;
 
-		foreach(['has_php_close_tag.php', 'include_into_namespace.php'] as $library)
-		{
+		foreach([
+			'has_php_close_tag.php',
+			'include_into_namespace.php',
+			'var_export_contains.php'
+		] as $library){
 			echo ' -> Including '.$library;
 				if(@(include __DIR__.'/../lib/'.$library) === false)
 				{
@@ -219,7 +223,10 @@
 
 		echo ' -> Testing response methods'.PHP_EOL;
 		echo '  -> get_response_headers';
-			if(str_replace(["\n", ' '], '', var_export($request_response->get_response_headers(), true)) === "array('Date'=>array(0=>'Sat,12Apr200817:30:38GMT',),'Server'=>array(0=>'Apache/2.2.3(CentOS)',),'Last-Modified'=>array(0=>'Tue,15Nov200513:24:10GMT',),'ETag'=>array(0=>'\"280100-1b6-80bfd280\"',),'Accept-Ranges'=>array(0=>'bytes',),'Content-Length'=>array(0=>'438',),'Connection'=>array(0=>'close',),'Content-Type'=>array(0=>'text/html;charset=UTF-8',),'Set-Cookie'=>array(0=>'mycookie=goodvalue;Domain=somecompany.co.uk;Path=/;Expires=Wed,21Oct201507:28:00GMT',1=>'mysecondcookie=goodvaluee;Domain=somecompanyy.co.uk;Path=/;Expires=Weed,21Oct201507:28:00GMT',),)")
+			if(var_export_contains(
+				$request_response->get_response_headers(),
+				"array('Date'=>array(0=>'Sat,12Apr200817:30:38GMT',),'Server'=>array(0=>'Apache/2.2.3(CentOS)',),'Last-Modified'=>array(0=>'Tue,15Nov200513:24:10GMT',),'ETag'=>array(0=>'\"280100-1b6-80bfd280\"',),'Accept-Ranges'=>array(0=>'bytes',),'Content-Length'=>array(0=>'438',),'Connection'=>array(0=>'close',),'Content-Type'=>array(0=>'text/html;charset=UTF-8',),'Set-Cookie'=>array(0=>'mycookie=goodvalue;Domain=somecompany.co.uk;Path=/;Expires=Wed,21Oct201507:28:00GMT',1=>'mysecondcookie=goodvaluee;Domain=somecompanyy.co.uk;Path=/;Expires=Weed,21Oct201507:28:00GMT',),)"
+			))
 				echo ' [ OK ]'.PHP_EOL;
 			else
 			{
@@ -243,14 +250,20 @@
 				$errors[]='get_response_status';
 			}
 		echo '  -> get_response_cookie';
-			if(str_replace(["\n", ' '], '', var_export($request_response->get_response_cookie('mycookie'), true)) === "array('value'=>'goodvalue','Domain'=>'somecompany.co.uk','Path'=>'/','Expires'=>'Wed,21Oct201507:28:00GMT',)")
+			if(var_export_contains(
+				$request_response->get_response_cookie('mycookie'),
+				"array('value'=>'goodvalue','Domain'=>'somecompany.co.uk','Path'=>'/','Expires'=>'Wed,21Oct201507:28:00GMT',)"
+			))
 				echo ' [ OK ]';
 			else
 			{
 				echo ' [FAIL]';
 				$errors[]='get_response_cookie phase 1';
 			}
-			if(str_replace(["\n", ' '], '', var_export($request_response->get_response_cookie('mysecondcookie'), true)) === "array('value'=>'goodvaluee','Domain'=>'somecompanyy.co.uk','Path'=>'/','Expires'=>'Weed,21Oct201507:28:00GMT',)")
+			if(var_export_contains(
+				$request_response->get_response_cookie('mysecondcookie'),
+				"array('value'=>'goodvaluee','Domain'=>'somecompanyy.co.uk','Path'=>'/','Expires'=>'Weed,21Oct201507:28:00GMT',)"
+			))
 				echo ' [ OK ]'.PHP_EOL;
 			else
 			{

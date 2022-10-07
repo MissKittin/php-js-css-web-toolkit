@@ -1,22 +1,43 @@
 <?php
-	$db_type='sqlite'; // sqlite pgsql mysql
-	$db_host=$db.'/database.sqlite3';
-	//$db_socket='';
-	//$db_port='';
-	//$db_name='';
-	//$db_charset='';
-	//$db_user='';
-	//$db_password='';
-	//$db_seeded_path=$db;
+	if(getenv('DB_IGNORE_ENV') === 'true')
+		$db_getenv=function($env, $default_value)
+		{
+			return $default_value;
+		};
+	else
+		$db_getenv=function($env, $default_value)
+		{
+			$value=getenv($env);
 
-	// you can implement the var/databases hierarchy
-	$var_databases=__DIR__.'/../../../..';
-	if(!file_exists($var_databases.'/var/databases/sqlite'))
+			if($value === false)
+				return $default_value;
+
+			return $value;
+		};
+
+	$db_config=[
+		'db_type'=>'sqlite', // sqlite pgsql mysql
+		'host'=>$db_getenv('SQLITE_PATH', $db.'/database.sqlite3')
+		//'port'=>'',
+		//,'socket'=>'',
+		//'db_name'=>'',
+		//'charset'=>'',
+		//'user'=>'',
+		//'password'=>'',
+		//'seeded_path'=>$db
+	];
+
+	if(getenv('SQLITE_PATH') === false)
 	{
-		@mkdir($var_databases.'/var');
-		@mkdir($var_databases.'/var/databases');
-		mkdir($var_databases.'/var/databases/sqlite');
+		// you can implement the var/databases hierarchy
+
+		$var_databases=__DIR__.'/../../../../var/lib/databases';
+		$var_databases_db_name=$db_config['db_type'];
+
+		if(!file_exists($var_databases.'/'.$var_databases_db_name))
+			@mkdir($var_databases.'/'.$var_databases_db_name, 0777, true);
+
+		$db_host=$var_databases.'/'.$var_databases_db_name.'/database.sqlite3';
+		$db_seeded_path=$var_databases.'/'.$var_databases_db_name;
 	}
-	$db_host=$var_databases.'/var/databases/sqlite/database.sqlite3';
-	$db_seeded_path=$var_databases.'/var/databases/sqlite';
 ?>

@@ -6,9 +6,9 @@
 	$pdo_handler->exec(''
 	.	'CREATE TABLE cars'
 	.	'('
-	.		'id INT NOT NULL AUTO_INCREMENT, PRIMARY KEY(id),'
+	.		'id INTEGER NOT NULL AUTO_INCREMENT, PRIMARY KEY(id),'
 	.		'name TEXT,'
-	.		'price INT'
+	.		'price INTEGER'
 	.	')'
 	);
 
@@ -46,9 +46,9 @@
 	$seed_crud_builder->create_table(
 		'cars',
 		[
-			'id'=>'INT NOT NULL AUTO_INCREMENT', 'PRIMARY KEY'=>'(id)',
+			'id'=>'INTEGER NOT NULL AUTO_INCREMENT', 'PRIMARY KEY'=>'(id)',
 			'name'=>'VARCHAR(255)',
-			'price'=>'INT'
+			'price'=>'INTEGER'
 		]
 	)->exec();
 

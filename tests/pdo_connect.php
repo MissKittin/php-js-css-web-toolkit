@@ -10,12 +10,12 @@
 	 *  variables:
 	 *   TEST_PGSQL_HOST (default: 127.0.0.1)
 	 *   TEST_PGSQL_PORT (default: 5432)
-	 *   TEST_PGSQL_DBNAME (default: test_database)
+	 *   TEST_PGSQL_DBNAME (default: php_toolkit_tests)
 	 *   TEST_PGSQL_USER (default: postgres)
 	 *   TEST_PGSQL_PASSWORD (default: postgres)
 	 *   TEST_MYSQL_HOST (default: [::1])
 	 *   TEST_MYSQL_PORT (default: 3306)
-	 *   TEST_MYSQL_DBNAME (default: test-database)
+	 *   TEST_MYSQL_DBNAME (default: php-toolkit-tests)
 	 *   TEST_MYSQL_USER (default: root)
 	 *   TEST_MYSQL_PASSWORD
 	 *
@@ -56,14 +56,14 @@
 			'pgsql'=>[
 				'host'=>'127.0.0.1',
 				'port'=>'5432',
-				'dbname'=>'test_database',
+				'dbname'=>'php_toolkit_tests',
 				'user'=>'postgres',
 				'password'=>'postgres'
 			],
 			'mysql'=>[
 				'host'=>'[::1]',
 				'port'=>'3306',
-				'dbname'=>'test-database',
+				'dbname'=>'php-toolkit-tests',
 				'user'=>'root',
 				'password'=>''
 			]
@@ -90,8 +90,10 @@
 		mkdir(__DIR__.'/tmp/pdo_connect');
 		mkdir(__DIR__.'/tmp/pdo_connect/db_sqlite');
 		file_put_contents(__DIR__.'/tmp/pdo_connect/db_sqlite/config.php', '<?php
-			$db_type="sqlite";
-			$db_host=$db."/database.sqlite3";
+			$db_config=[
+				"db_type"=>"sqlite",
+				"host"=>$db."/database.sqlite3"
+			];
 		?>');
 		file_put_contents(__DIR__.'/tmp/pdo_connect/db_sqlite/seed.php', '<?php
 			$pdo_handler->exec(\'
@@ -109,13 +111,15 @@
 		?>');
 		mkdir(__DIR__.'/tmp/pdo_connect/db_pgsql');
 		file_put_contents(__DIR__.'/tmp/pdo_connect/db_pgsql/config.php', '<?php
-			$db_type="pgsql";
-			$db_host="'.$db_credentials['pgsql']['host'].'";
-			$db_port="'.$db_credentials['pgsql']['port'].'";
-			$db_name="'.$db_credentials['pgsql']['dbname'].'";
-			$db_charset="UTF8";
-			$db_user="'.$db_credentials['pgsql']['user'].'";
-			$db_password="'.$db_credentials['pgsql']['password'].'";
+			$db_config=[
+				"db_type"=>"pgsql",
+				"host"=>"'.$db_credentials['pgsql']['host'].'",
+				"port"=>"'.$db_credentials['pgsql']['port'].'",
+				"db_name"=>"'.$db_credentials['pgsql']['dbname'].'",
+				"charset"=>"UTF8",
+				"user"=>"'.$db_credentials['pgsql']['user'].'",
+				"password"=>"'.$db_credentials['pgsql']['password'].'"
+			];
 		?>');
 		file_put_contents(__DIR__.'/tmp/pdo_connect/db_pgsql/seed.php', '<?php
 			$pdo_handler->exec(\'DROP TABLE test_table\');
@@ -134,19 +138,21 @@
 		?>');
 		mkdir(__DIR__.'/tmp/pdo_connect/db_mysql');
 		file_put_contents(__DIR__.'/tmp/pdo_connect/db_mysql/config.php', '<?php
-			$db_type="mysql";
-			$db_host="'.$db_credentials['mysql']['host'].'";
-			$db_port="'.$db_credentials['mysql']['port'].'";
-			$db_name="'.$db_credentials['mysql']['dbname'].'";
-			$db_charset="utf8mb4";
-			$db_user="'.$db_credentials['mysql']['user'].'";
-			$db_password="'.$db_credentials['mysql']['password'].'";
+			$db_config=[
+				"type"=>"mysql",
+				"host"=>"'.$db_credentials['mysql']['host'].'",
+				"port"=>"'.$db_credentials['mysql']['port'].'",
+				"db_name"=>"'.$db_credentials['mysql']['dbname'].'",
+				"charset"=>"utf8mb4",
+				"user"=>"'.$db_credentials['mysql']['user'].'",
+				"password"=>"'.$db_credentials['mysql']['password'].'"
+			];
 		?>');
 		file_put_contents(__DIR__.'/tmp/pdo_connect/db_mysql/seed.php', '<?php
 			$pdo_handler->exec(\'DROP TABLE test_table\');
 			$pdo_handler->exec(\'
 				CREATE TABLE test_table(
-					id INT NOT NULL AUTO_INCREMENT,
+					id INTEGER NOT NULL AUTO_INCREMENT,
 					a TEXT,
 					b TEXT,
 					PRIMARY KEY (id)

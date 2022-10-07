@@ -183,6 +183,7 @@
 		$result=[];
 
 		$sqrt_number=sqrt($number);
+
 		for($i=1; $i<=$sqrt_number; ++$i)
 			if($number%$i === 0)
 				$result[]=$i;
@@ -234,9 +235,11 @@
 				$output_array[]=$i;
 				$number/=$i;
 			}
+
 			if($number === 1)
 				break;
 		}
+
 		$output_array[]=$number;
 
 		return $output_array;
@@ -244,6 +247,7 @@
 	function dec2bin(int $number)
 	{
 		$i=0;
+
 		while($number > 0)
 		{
 			$bin[]=$number%2;
@@ -251,6 +255,7 @@
 			$number=(int)$number; // patch
 			++$i;
 		}
+
 		--$i;
 
 		$output_int=''; // patch
@@ -323,6 +328,7 @@
 
 		$number_a_divided=$number_a/2;
 		$sum_a=0;
+
 		for($i=1; $i<=$number_a_divided; ++$i)
 			if($number_a%$i === 0)
 				$sum_a+=$i;
@@ -330,6 +336,7 @@
 		$number_b=$sum_a-1;
 		$number_b_divided=$number_b/2;
 		$sum_b=0;
+
 		for($i=1; $i<=$number_b_divided; ++$i)
 			if($number_b%$i === 0)
 				$sum_b+=$i;
@@ -367,6 +374,7 @@
 	function newton_sqrt(float $number, int $precission)
 	{
 		$approx_number=$number*0.5;
+
 		for($i=0; $i<$precission; ++$i)
 			$approx_number=0.5*($approx_number+($number/$approx_number));
 
@@ -375,6 +383,7 @@
 	function fibonacci_sequence(int $length)
 	{
 		--$length;
+
 		$a=0;
 		$b=1;
 		$result[]=$b;
@@ -393,6 +402,7 @@
 		$degree=count($coefficients);
 
 		$result=$coefficients[0];
+
 		for($i=1; $i<$degree; ++$i)
 			$result=$result*$argument+$coefficients[$i];
 
@@ -486,8 +496,8 @@
 		$sort_string=function($string)
 		{
 			$size=strlen($string)-1;
-
 			$change=true;
+
 			while($change)
 			{
 				$change=false;
@@ -525,6 +535,7 @@
 		$result=0;
 
 		$i=0;
+
 		while($i < $string_size)
 		{
 			$indicator=0;
@@ -566,8 +577,10 @@
 			{
 				$letter=ord($string[$i]); // patch: added
 				$letter+=$offset;
+
 				if($letter > 122)
 					$letter-=26;
+
 				$result.=chr($letter); // patch: chr()
 			}
 		}
@@ -588,8 +601,10 @@
 			{
 				$letter=ord($string[$i]); // patch: added
 				$letter-=$offset;
+
 				if($letter < 97)
 					$letter+=26;
+
 				$result.=chr($letter); // patch: chr()
 			}
 
@@ -724,7 +739,7 @@
 		$x=$xb-$xa;
 		$y=$yb-$ya;
 
-		return sqrt(($x*$x) + ($y*$y));
+		return sqrt(($x*$x)+($y*$y));
 	}
 	function point_is_on_line_segment(
 		float $point_x,
@@ -796,13 +811,16 @@
 
 		// coordinates of the other end of the segment
 		$pk=0; // x is from coordinates array, y is $point_y
+
 		for($i=0; $i<$vertices; ++$i)
 			if($vertex_coordinates[$i][0] > $pk)
 				$pk=$vertex_coordinates[$i][0];
+
 		++$pk;
 
 		$vertices-=1; // optimization
 		$common_vertices=0;
+
 		for($i=0; $i<$vertices; ++$i)
 			if(line_segments_intersect(
 				$point_x,
@@ -906,6 +924,7 @@
 		$array_size=count($array)-1;
 
 		$i=0;
+
 		do
 			if($array[$i] > $array[$i+1])
 			{
@@ -925,8 +944,8 @@
 	function bubble_sort(array $array)
 	{
 		$array_size=count($array)-1;
-
 		$change=true;
+
 		while($change)
 		{
 			$change=false;
@@ -1057,6 +1076,7 @@
 		$array[$i]=$array[$end];
 
 		$j=$begin; // patch (was $i=$j=$begin in for loop)
+
 		for($i=$begin; $i<$end; ++$i)
 			if($array[$i] < $divider)
 			{
@@ -1083,6 +1103,7 @@
 
 		// patch
 		$buckets_range=0;
+
 		for($i=0; $i<$array_size; ++$i)
 			if($array[$i] > $buckets_range)
 				$buckets_range=$array[$i];
@@ -1094,6 +1115,7 @@
 			++$buckets[$array[$i]];
 
 		$index=0;
+
 		for($i=0; $i<=$buckets_range; ++$i)
 			for($j=0; $j<$buckets[$i]; ++$j)
 			{
@@ -1114,6 +1136,7 @@
 
 		// patch
 		$buckets_range=0;
+
 		for($i=0; $i<$array_size; ++$i)
 			if($array[$i] > $buckets_range)
 				$buckets_range=$array[$i];
@@ -1125,6 +1148,7 @@
 			++$buckets[$array[$i]];
 
 		$index=0;
+
 		for($i=$buckets_range; $i>=0; --$i)
 			for($j=0; $j<$buckets[$i]; ++$j)
 			{
@@ -1139,6 +1163,7 @@
 		$array_size=count($array);
 
 		$buckets_range=0;
+
 		for($i=0; $i<$array_size; ++$i)
 		{
 			if($array[$i] > $buckets_range)
@@ -1151,6 +1176,7 @@
 		}
 
 		$index=0;
+
 		for($i=0; $i<=$buckets_range; ++$i)
 			if(isset($buckets[$i]))
 				for($j=0; $j<$buckets[$i]; ++$j)

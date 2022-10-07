@@ -8,7 +8,7 @@
 	.	'('
 	.		'id SERIAL PRIMARY KEY,'
 	.		'name TEXT,'
-	.		'price INT'
+	.		'price INTEGER'
 	.	')'
 	);
 
@@ -48,7 +48,7 @@
 		[
 			'id'=>'SERIAL PRIMARY KEY',
 			'name'=>'VARCHAR(255)',
-			'price'=>'INT'
+			'price'=>'INTEGER'
 		]
 	)->exec();
 

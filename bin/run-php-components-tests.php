@@ -22,7 +22,7 @@
 					system(PHP_BINARY.' '.__DIR__.'/../components/'.$component.'/tests/'.$test, $test_result);
 
 					if($test_result !== 0)
-						$failed_tests[]=$test;
+						$failed_tests[]=$component.'/'.$test;
 
 					echo PHP_EOL;
 				}

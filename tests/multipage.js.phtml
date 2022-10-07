@@ -20,10 +20,19 @@
 			#app {
 				display: none;
 			}
+
+			#switch_container div {
+				display: none;
+			}
+			#switch_container #switch_container_a {
+				display: block;
+			}
 		</style>
 		<script>
+			<?php include __DIR__.'/../lib/'.basename(__FILE__, '.phtml'); ?>
+
 			document.addEventListener('DOMContentLoaded', function(){
-				<?php include __DIR__.'/../lib/'.basename(__FILE__, '.phtml'); ?>
+				<?php /* include __DIR__.'/../lib/'.basename(__FILE__, '.phtml'); */ /* multipage() can be here */ ?>
 
 				multipage('app', 'home', 'not_found');
 			}, false)
@@ -49,6 +58,17 @@
 			</div>
 			<div id="home">
 				<h1>HOME PAGE</h1>
+				<hr>
+				<h3>switchElement() test</h3>
+				<a onclick="switchElement('switch_container', 'switch_container_a');">Switch to element A</a><br>
+				<a onclick="switchElement('switch_container', 'switch_container_b');">Switch to element B</a><br>
+				<a onclick="switchElement('switch_container', 'switch_container_c');">Switch to element C</a>
+				<hr>
+				<div id="switch_container">
+					<div id="switch_container_a">Element A (default)</div>
+					<div id="switch_container_b">Element B</div>
+					<div id="switch_container_c">Element C</div>
+				</div>
 			</div>
 			<div id="page_a">
 				<h1>PAGE A</h1>

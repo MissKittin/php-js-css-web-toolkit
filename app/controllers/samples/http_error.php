@@ -13,13 +13,22 @@
 		if(!isset($_SERVER['HTTP_HOST']))
 			$_SERVER['HTTP_HOST']='';
 
-		include './app/shared/samples/ob_adapter.php';
-		ob_adapter::add(new ob_adapter_obminifier());
-		ob_adapter::add(new ob_adapter_gzip());
-		ob_adapter::add(new ob_adapter_filecache_mod('http_'.$error_code.'_'.$lang.'.cache'));
-		ob_adapter::add(new ob_adapter_gunzip());
-		ob_adapter::start();
+		// this cookie is from app/templates/samples/default/assets/default.js/darkTheme.js
+		$theme='bright';
+		if(
+			isset($_COOKIE['app_dark_theme']) &&
+			($_COOKIE['app_dark_theme'] === 'true')
+		)
+			$theme='dark';
 
-		include './app/views/samples/http_error/'.$lang.'/'.$error_code.'.php';
+		include './app/shared/samples/ob_adapter.php';
+		ob_adapter
+			::add(new ob_adapter_obminifier())
+			->add(new ob_adapter_gzip())
+			->add(new ob_adapter_filecache_mod('http_error_'.$error_code.'_'.$theme.'_'.$lang.'.cache'))
+			->add(new ob_adapter_gunzip())
+			->start();
+
+		include './app/views/samples/http_error/'.$lang.'/'.$theme.'/'.$error_code.'.php';
 	}
 ?>

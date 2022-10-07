@@ -29,7 +29,7 @@
 
 			if($connected)
 			{
-				if(ob_phpredis_cache($redis, $url, $expire, true) === 0)
+				if(ob_redis_cache($redis, $url, $expire, true) === 0)
 					exit();
 
 				return true;
