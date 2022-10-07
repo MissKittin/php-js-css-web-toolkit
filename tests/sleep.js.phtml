@@ -1,0 +1,30 @@
+<?php
+	/*
+	 * sleep.js library test
+	 *
+	 * Note:
+	 *  looks for a library at ../lib
+	 */
+
+	if(!is_file(__DIR__.'/../lib/'.basename(__FILE__, '.phtml')))
+	{
+		echo __DIR__.'/../lib/'.basename(__FILE__, '.phtml').' is not a file';
+		exit();
+	}
+?>
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<script>
+			document.addEventListener('DOMContentLoaded', async function(){
+				<?php include __DIR__.'/../lib/'.basename(__FILE__, '.phtml'); ?>
+
+				document.body.innerHTML+='Waiting 3 seconds...';
+				await sleep(3000);
+				document.body.innerHTML+=' OK';
+			});
+		</script>
+	</head>
+	<body></body>
+</html>

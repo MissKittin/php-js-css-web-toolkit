@@ -39,6 +39,12 @@
 				if(isset($params[$param]))
 					$this->$param=$params[$param];
 
+			if(!in_array(
+				$this->pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME),
+				['pgsql', 'mysql', 'sqlite']
+			))
+				throw new Exception($this->pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME).' driver is not supported');
+
 			if($this->maintenance_mode === true)
 				return;
 
@@ -176,27 +182,12 @@
 
 			switch($this->pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME))
 			{
-				case 'mysql':
-					if($this->pdo_handler->exec(''
-					.	'CREATE TABLE IF NOT EXISTS '.$this->table_name_prefix.'visitors'
-					.	'('
-					.		'id INT NOT NULL AUTO_INCREMENT, PRIMARY KEY(id),'
-					.		'timestamp INT,'
-					.		'ip VARCHAR(39),'
-					.		'user_agent TEXT,'
-					.		'cookie_id VARCHAR(40),'
-					.		'referer VARCHAR(2083),'
-					.		'uri TEXT'
-					.	')'
-					) === false)
-						throw new Exception('PDO exec error (CREATE TABLE)');
-				break;
 				case 'pgsql':
 					if($this->pdo_handler->exec(''
 					.	'CREATE TABLE IF NOT EXISTS '.$this->table_name_prefix.'visitors'
 					.	'('
 					.		'id SERIAL PRIMARY KEY,'
-					.		'timestamp INT,'
+					.		'timestamp INTEGER,'
 					.		'ip VARCHAR(39),'
 					.		'user_agent TEXT,'
 					.		'cookie_id VARCHAR(40),'
@@ -206,12 +197,28 @@
 					) === false)
 						throw new Exception('PDO exec error (CREATE TABLE)');
 				break;
-				default:
+				case 'mysql':
+					if($this->pdo_handler->exec(''
+					.	'CREATE TABLE IF NOT EXISTS '.$this->table_name_prefix.'visitors'
+					.	'('
+					.		'id INTEGER NOT NULL AUTO_INCREMENT, PRIMARY KEY(id),'
+					.		'timestamp INTEGER,'
+					.		'timestamp INTEGER,'
+					.		'ip VARCHAR(39),'
+					.		'user_agent TEXT,'
+					.		'cookie_id VARCHAR(40),'
+					.		'referer VARCHAR(2083),'
+					.		'uri TEXT'
+					.	')'
+					) === false)
+						throw new Exception('PDO exec error (CREATE TABLE)');
+				break;
+				case 'sqlite':
 					if($this->pdo_handler->exec(''
 					.	'CREATE TABLE IF NOT EXISTS '.$this->table_name_prefix.'visitors'
 					.	'('
 					.		'id INTEGER PRIMARY KEY AUTOINCREMENT,'
-					.		'timestamp INT,'
+					.		'timestamp INTEGER,'
 					.		'ip VARCHAR(39),'
 					.		'user_agent TEXT,'
 					.		'cookie_id VARCHAR(40),'
@@ -244,14 +251,14 @@
 			if($query === false)
 				throw new Exception('PDO prepare error');
 
-			if($query->execute([
+			if(!$query->execute([
 				':timestamp'=>$this->timestamp,
 				':ip'=>$this->ip,
 				':user_agent'=>$this->user_agent,
 				':cookie_value'=>$this->cookie_value,
 				':referer'=>$this->referer,
 				':uri'=>$this->uri
-			]) === false)
+			]))
 				throw new Exception('PDO execute error');
 		}
 		public function move_to_archive(int $days)
@@ -268,28 +275,12 @@
 
 			switch($this->pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME))
 			{
-				case 'mysql':
-					if($this->pdo_handler->exec(''
-					.	'CREATE TABLE IF NOT EXISTS '.$this->table_name_prefix.'archive'
-					.	'('
-					.		'id INT NOT NULL AUTO_INCREMENT, PRIMARY KEY(id),'
-					.		'timestamp INT,'
-					.		'date VARCHAR(10),'
-					.		'ip VARCHAR(39),'
-					.		'user_agent TEXT,'
-					.		'cookie_id VARCHAR(40),'
-					.		'referer VARCHAR(2083),'
-					.		'uri TEXT'
-					.	')'
-					) === false)
-						throw new Exception('PDO exec error (CREATE TABLE)');
-				break;
 				case 'pgsql':
 					if($this->pdo_handler->exec(''
 					.	'CREATE TABLE IF NOT EXISTS '.$this->table_name_prefix.'archive'
 					.	'('
 					.		'id SERIAL PRIMARY KEY,'
-					.		'timestamp INT,'
+					.		'timestamp INTEGER,'
 					.		'date VARCHAR(10),'
 					.		'ip VARCHAR(39),'
 					.		'user_agent TEXT,'
@@ -300,12 +291,28 @@
 					) === false)
 						throw new Exception('PDO exec error (CREATE TABLE)');
 				break;
-				default:
+				case 'mysql':
+					if($this->pdo_handler->exec(''
+					.	'CREATE TABLE IF NOT EXISTS '.$this->table_name_prefix.'archive'
+					.	'('
+					.		'id INTEGER NOT NULL AUTO_INCREMENT, PRIMARY KEY(id),'
+					.		'timestamp INTEGER,'
+					.		'date VARCHAR(10),'
+					.		'ip VARCHAR(39),'
+					.		'user_agent TEXT,'
+					.		'cookie_id VARCHAR(40),'
+					.		'referer VARCHAR(2083),'
+					.		'uri TEXT'
+					.	')'
+					) === false)
+						throw new Exception('PDO exec error (CREATE TABLE)');
+				break;
+				case 'sqlite':
 					if($this->pdo_handler->exec(''
 					.	'CREATE TABLE IF NOT EXISTS '.$this->table_name_prefix.'archive'
 					.	'('
 					.		'id INTEGER PRIMARY KEY AUTOINCREMENT,'
-					.		'timestamp INT,'
+					.		'timestamp INTEGER,'
 					.		'date VARCHAR(10),'
 					.		'ip VARCHAR(39),'
 					.		'user_agent TEXT,'
@@ -352,7 +359,7 @@
 				if($insert_query === false)
 					throw new Exception('PDO prepare error (INSERT INTO '.$this->table_name_prefix.'archive)');
 
-				if($insert_query->execute([
+				if(!$insert_query->execute([
 					':timestamp'=>$row['timestamp'],
 					':date'=>gmdate('Y-m-d', $row['timestamp']),
 					':ip'=>$row['ip'],
@@ -360,7 +367,7 @@
 					':cookie_value'=>$row['cookie_id'],
 					':referer'=>$row['referer'],
 					':uri'=>$row['uri']
-				]) === false)
+				]))
 					throw new Exception('PDO execute error (INSERT INTO '.$this->table_name_prefix.'archive)');
 
 				if($this->pdo_handler->exec(''
@@ -417,33 +424,33 @@
 			}
 
 			$query=$this->pdo_handler->query(''
-				.	'SELECT * '
-				.	'FROM '.$this->table_name_prefix.'archive'
-				);
+			.	'SELECT * '
+			.	'FROM '.$this->table_name_prefix.'archive'
+			);
 
-				if($query === false)
-					throw new Exception('PDO query error (SELECT * FROM '.$this->table_name_prefix.'archive)');
+			if($query === false)
+				throw new Exception('PDO query error (SELECT * FROM '.$this->table_name_prefix.'archive)');
 
-				$save_report($output, ''
-				.	'"id",'
-				.	'"timestamp",'
-				.	'"date",'
-				.	'"ip",'
-				.	'"user_agent",'
-				.	'"cookie_id",'
-				.	'"referer",'
-				.	'"uri"'
-				."\n");
+			$save_report($output, ''
+			.	'"id",'
+			.	'"timestamp",'
+			.	'"date",'
+			.	'"ip",'
+			.	'"user_agent",'
+			.	'"cookie_id",'
+			.	'"referer",'
+			.	'"uri"'
+			."\n");
 
-				while($row=$query->fetch(PDO::FETCH_ASSOC))
-				{
-					$row_output='';
+			while($row=$query->fetch(PDO::FETCH_ASSOC))
+			{
+				$row_output='';
 
-					foreach($row as $cell)
-						$row_output.='"'.str_replace('"', '""', $cell).'",';
+				foreach($row as $cell)
+					$row_output.='"'.str_replace('"', '""', $cell).'",';
 
-					$save_report($output, substr($row_output, 0, -1)."\n");
-				}
+				$save_report($output, substr($row_output, 0, -1)."\n");
+			}
 
 			if($output_file === null)
 				return $output;
@@ -521,7 +528,8 @@
 						.	'GROUP BY date'
 						);
 					break;
-					default:
+					case 'mysql':
+					case 'sqlite':
 						$query=$this->pdo_handler->query(''
 						.	'SELECT date, ip, user_agent, cookie_id '
 						.	'FROM '.$this->table_name_prefix.'archive '
@@ -621,7 +629,8 @@
 						.	'ORDER BY date, uri'
 						);
 					break;
-					default:
+					case 'mysql':
+					case 'sqlite':
 						$query=$this->pdo_handler->query(''
 						.	'SELECT date, uri, ip, user_agent, cookie_id '
 						.	'FROM '.$this->table_name_prefix.'archive '

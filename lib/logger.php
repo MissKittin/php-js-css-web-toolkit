@@ -54,6 +54,7 @@
 	 *   input array keys: string_app_name pdo_handler [string_table_name] [callable_on_pdo_error]
 	 *    on_pdo_error is callback function with one arg and is executed on pdo's execute() error
 	 *     eg: function($error){ error_log(__FILE__.' logger.php: '.$error[0].' '.$error[1].' '.$error[2]); }
+	 *   supported databases: PostgreSQL, MySQL, SQLite3
 	 *  log_to_txt
 	 *   input array keys: string_app_name string_file [string_lock_file]
 	 *   throws an Exception on error
@@ -334,6 +335,12 @@
 			if(isset($params['on_error']))
 				$this->on_error['callback']=$params['on_pdo_error'];
 
+			if(!in_array(
+				$this->pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME),
+				['pgsql', 'mysql', 'sqlite']
+			))
+				throw new Exception($this->pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME).' driver is not supported');
+
 			switch($this->pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME))
 			{
 				case 'pgsql':
@@ -353,7 +360,7 @@
 					if($this->pdo_handler->exec(''
 					.	'CREATE TABLE IF NOT EXISTS '.$this->table_name
 					.	'('
-					.		'id INT NOT NULL AUTO_INCREMENT, PRIMARY KEY(id),'
+					.		'id INTEGER NOT NULL AUTO_INCREMENT, PRIMARY KEY(id),'
 					.		'date VARCHAR(25),'
 					.		'app_name VARCHAR(30),'
 					.		'priority VARCHAR(10),'
@@ -362,7 +369,7 @@
 					) === false)
 						$this->on_error['callback']($this->pdo_handler->errorInfo());
 				break;
-				default:
+				case 'sqlite':
 					if($this->pdo_handler->exec(''
 					.	'CREATE TABLE IF NOT EXISTS '.$this->table_name
 					.	'('

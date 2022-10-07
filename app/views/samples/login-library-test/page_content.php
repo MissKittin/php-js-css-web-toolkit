@@ -75,6 +75,6 @@
 	<input type="submit" value="Generate hash">
 	<?php
 		if(isset($_POST['passwdhash']))
-			echo 'Generated hash: ' . password_hash($_POST['passwdhash'], PASSWORD_BCRYPT);
+			echo 'Generated hash: '.string2bcrypt($_POST['passwdhash']);
 	?>
 </form>

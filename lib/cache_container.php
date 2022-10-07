@@ -54,8 +54,8 @@
 	 *   constructor array parameters:
 	 *    pdo_handler
 	 *    [table_name] (default: cache_container)
-	 *   warning: mysql and pgsql are not supported
 	 *   note: throws an Exception if query execution fails
+	 *   supported databases: PostgreSQL, MySQL, SQLite3
 	 *  cache_driver_redis -> use Redis as a cache
 	 *   constructor array parameters:
 	 *    redis_handler
@@ -484,58 +484,106 @@
 				if(isset($params[$param]))
 					$this->$param=$params[$param];
 
-			if($this->pdo_handler->exec(''
-			.	'CREATE TABLE IF NOT EXISTS '.$this->table_name
-			.	'('
-			.		'key TEXT PRIMARY KEY,'
-			.		'value TEXT,'
-			.		'timeout INTEGER,'
-			.		'timestamp INTEGER'
-			.	')'
-			) === false)
-				throw new Exception('Cannot create '.$this->table_name.' table');
+			if(!in_array(
+				$this->pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME),
+				['pgsql', 'mysql', 'sqlite']
+			))
+				throw new Exception($this->pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME).' driver is not supported');
+
+			switch($this->pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME))
+			{
+				case 'mysql':
+					if($this->pdo_handler->exec(''
+					.	'CREATE TABLE IF NOT EXISTS '.$this->table_name
+					.	'('
+					.		'cachekey VARCHAR(255), PRIMARY KEY(cachekey),'
+					.		'cachevalue TEXT,'
+					.		'timeout INTEGER,'
+					.		'timestamp INTEGER'
+					.	')'
+					) === false)
+						throw new Exception('Cannot create '.$this->table_name.' table');
+				break;
+				case 'pgsql':
+				case 'sqlite':
+					if($this->pdo_handler->exec(''
+					.	'CREATE TABLE IF NOT EXISTS '.$this->table_name
+					.	'('
+					.		'cachekey TEXT PRIMARY KEY,'
+					.		'cachevalue TEXT,'
+					.		'timeout INTEGER,'
+					.		'timestamp INTEGER'
+					.	')'
+					) === false)
+						throw new Exception('Cannot create '.$this->table_name.' table');
+			}
 		}
 
 		public function put($key, $value, $timeout)
 		{
-			$query=$this->pdo_handler->prepare(''
-			.	'REPLACE INTO '.$this->table_name
-			.	'('
-			.		'key,'
-			.		'value,'
-			.		'timeout,'
-			.		'timestamp'
-			.	') VALUES ('
-			.		':key,'
-			.		':value,'
-			.		':timeout,'
-			.		':timestamp'
-			.	')'
-			);
+			switch($this->pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME))
+			{
+				case 'pgsql':
+					$query=$this->pdo_handler->prepare(''
+					.	'INSERT INTO '.$this->table_name
+					.	'('
+					.		'cachekey,'
+					.		'cachevalue,'
+					.		'timeout,'
+					.		'timestamp'
+					.	') VALUES ('
+					.		':key,'
+					.		':value,'
+					.		':timeout,'
+					.		':timestamp'
+					.	')'
+					.	'ON CONFLICT(cachekey) DO UPDATE SET '
+					.		'cachevalue=:value,'
+					.		'timeout=:timeout,'
+					.		'timestamp=:timestamp'
+					);
+				break;
+				case 'mysql':
+				case 'sqlite':
+					$query=$this->pdo_handler->prepare(''
+					.	'REPLACE INTO '.$this->table_name
+					.	'('
+					.		'cachekey,'
+					.		'cachevalue,'
+					.		'timeout,'
+					.		'timestamp'
+					.	') VALUES ('
+					.		':key,'
+					.		':value,'
+					.		':timeout,'
+					.		':timestamp'
+					.	')'
+					);
+			}
 
 			if($query === false)
 				throw new Exception('PDO prepare error');
 
-			if($query->execute([
+			if(!$query->execute([
 				':key'=>$key,
 				':value'=>json_encode($value, JSON_UNESCAPED_UNICODE),
 				':timeout'=>$timeout,
 				':timestamp'=>time()
-			]) === false)
+			]))
 				throw new Exception('PDO execute error');
 		}
 		public function get($key): array
 		{
 			$result=$this->pdo_handler->prepare(''
-			.	'SELECT value, timeout, timestamp '
+			.	'SELECT cachevalue, timeout, timestamp '
 			.	'FROM '.$this->table_name.' '
-			.	'WHERE key=:key'
+			.	'WHERE cachekey=:key'
 			);
 
 			if($result === false)
 				throw new Exception('PDO prepare error');
 
-			if($result->execute([':key'=>$key]) === false)
+			if(!$result->execute([':key'=>$key]))
 				throw new Exception('PDO execute error');
 
 			$result=$result->fetch(PDO::FETCH_ASSOC);
@@ -543,8 +591,9 @@
 			if($result === false)
 				return [];
 
-			$result['value']=json_decode($result['value'], true);
-			if($result['value'] === false)
+			$result['cachevalue']=json_decode($result['cachevalue'], true);
+
+			if($result['cachevalue'] === false)
 			{
 				$this->unset($key);
 				return [];
@@ -552,6 +601,7 @@
 
 			$result['timeout']=(int)$result['timeout'];
 			$result['timestamp']=(int)$result['timestamp'];
+			$result['value']=&$result['cachevalue'];
 
 			return $result;
 		}
@@ -559,13 +609,13 @@
 		{
 			$query=$this->pdo_handler->prepare(''
 			.	'DELETE FROM '.$this->table_name.' '
-			.	'WHERE key=:key'
+			.	'WHERE cachekey=:key'
 			);
 
 			if($query === false)
 				throw new Exception('PDO prepare error');
 
-			if($query->execute([':key'=>$key]) === false)
+			if(!$query->execute([':key'=>$key]))
 				throw new Exception('PDO execute error');
 		}
 		public function flush()

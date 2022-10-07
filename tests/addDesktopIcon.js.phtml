@@ -24,14 +24,14 @@
 			document.addEventListener('DOMContentLoaded', function(){
 				<?php include __DIR__.'/../lib/'.basename(__FILE__, '.phtml'); ?>
 
-				addDesktopIcon('horizontal', '/tmp/adddesktopicon.png', '/desktop.html', 'Icon label', '#000');
-				addDesktopIcon('horizontal', '/tmp/adddesktopicon.png', null, 'Icon label', '#000');
-				addDesktopIcon('vertical', '/tmp/adddesktopicon.png', '/desktop.html', 'Icon label', '#000');
-				addDesktopIcon('vertical', '/tmp/adddesktopicon.png', null, 'Icon label', '#000');
-				addDesktopSpriteIcon('sprite_horizontal', '/tmp/adddesktopiconsprite.png', '33px', '/desktop.html', 'Icon label', '#000');
-				addDesktopSpriteIcon('sprite_horizontal', '/tmp/adddesktopiconsprite.png', '66px', null, 'Icon label', '#000');
-				addDesktopSpriteIcon('sprite_vertical', '/tmp/adddesktopiconsprite.png', '33px', '/desktop.html', 'Icon label', '#000');
-				addDesktopSpriteIcon('sprite_vertical', '/tmp/adddesktopiconsprite.png', '66px', null, 'Icon label', '#000');
+				addDesktopIcon(document.getElementById('horizontal'), '/tmp/adddesktopicon.png', '/desktop.html', 'Icon label', '#000');
+				addDesktopIcon(document.getElementById('horizontal'), '/tmp/adddesktopicon.png', null, 'Icon label', '#000');
+				addDesktopIcon(document.getElementById('vertical'), '/tmp/adddesktopicon.png', '/desktop.html', 'Icon label', '#000');
+				addDesktopIcon(document.getElementById('vertical'), '/tmp/adddesktopicon.png', null, 'Icon label', '#000');
+				addDesktopSpriteIcon(document.getElementById('sprite_horizontal'), '/tmp/adddesktopiconsprite.png', '33px', '/desktop.html', 'Icon label', '#000');
+				addDesktopSpriteIcon(document.getElementById('sprite_horizontal'), '/tmp/adddesktopiconsprite.png', '66px', null, 'Icon label', '#000');
+				addDesktopSpriteIcon(document.getElementById('sprite_vertical'), '/tmp/adddesktopiconsprite.png', '33px', '/desktop.html', 'Icon label', '#000');
+				addDesktopSpriteIcon(document.getElementById('sprite_vertical'), '/tmp/adddesktopiconsprite.png', '66px', null, 'Icon label', '#000');
 			});
 		</script>
 	</head>

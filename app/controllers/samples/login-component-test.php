@@ -30,6 +30,7 @@
 	]);
 
 	include './app/models/samples/login_component_test_credentials.php';
+	$GLOBALS['_login']['credentials']=login_component_test_credentials::read_password();
 
 	// configure the login component
 	$GLOBALS['_login']['config']['method']='login_single';
@@ -122,7 +123,7 @@
 				$captcha_form
 					->add_field([
 						'tag'=>'img',
-						'src'=>'data:image/jpeg;base64,'.base64_encode(captcha_get('captcha_gd2')),
+						'src'=>'data:image/jpeg;base64,'.base64_encode(captcha_get_once('captcha_gd2')),
 						'style'=>'width: 100%;'
 					])
 					->add_field([
@@ -154,11 +155,7 @@
 
 		// captcha test passed, change password on first login
 
-		// check-update functions
-		function change_password_requested()
-		{
-			return (!file_exists('./var/lib/login_component_test_new_password.php'));
-		}
+		// validate passwords
 		function are_passwords_valid($old_password, $new_password, $change_password_form)
 		{
 			if($old_password === $new_password)
@@ -181,18 +178,8 @@
 
 			return true;
 		}
-		function save_new_password($old_password, $new_password)
-		{
-			@mkdir('./var');
-			@mkdir('./var/lib');
 
-			file_put_contents(
-				'./var/lib/login_component_test_new_password.php',
-				"<?php \$GLOBALS['_login']['credentials'][1]='".password_hash($new_password, PASSWORD_BCRYPT)."' ?>"
-			);
-		}
-
-		if(change_password_requested())
+		if(login_component_test_credentials::change_password_requested())
 		{
 			include './components/middleware_form/middleware_form.php';
 			$change_password_form=new middleware_form();
@@ -205,7 +192,7 @@
 					$change_password_form
 				)
 			){
-				save_new_password($_POST['old_password'], $_POST['new_password']);
+				login_component_test_credentials::save_new_password($_POST['new_password']);
 				$log_infos->info('Password updated');
 
 				include './components/login/reload.php'; // display reload page
@@ -213,6 +200,15 @@
 			}
 			else
 			{
+				// this cookie is from app/templates/samples/default/assets/default.js/darkTheme.js
+				if(
+					isset($_COOKIE['app_dark_theme']) &&
+					($_COOKIE['app_dark_theme'] === 'true')
+				)
+					$change_password_form->add_config('middleware_form_style', 'middleware_form_dark.css');
+				else
+					$change_password_form->add_config('middleware_form_style', 'middleware_form_bright.css');
+
 				$change_password_form
 					->add_config('title', 'Zmiana hasła')
 					->add_config('submit_button_label', 'Zmień hasło');
@@ -236,7 +232,7 @@
 			}
 		}
 
-		// password changed, you can see the content
+		// password updated, you can see the content
 
 		include './app/templates/samples/default/default_template.php';
 		default_template::quick_view('./app/views/samples/login-component-test');

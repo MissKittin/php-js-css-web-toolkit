@@ -47,18 +47,24 @@
 			preg_replace_callback(
 				'/{((?:[^{}]*|(?R))*)}/x',
 				function($match){
-					if(strpos($match[0], 'case') !== false)
+					if(substr(ltrim($match[1]), 0, 10) === '$exec_time')
 						return ''
-							.'{'
-								."\n\t\t".'//'
-							."\n\t".'}'
+						.	'{'
+						.		"\n\t\t".'//'
+						.	"\n\t".'}'
+						;
+					else if(strpos($match[0], 'case') !== false)
+						return ''
+						.	'{'
+						.		"\n\t\t".'//'
+						.	"\n\t".'}'
 						;
 
 					return ''
-						.'{'
-							."\n\t\t".'//'
-							."\n\t\t".'exit();'
-						."\n\t".'}'
+					.	'{'
+					.		"\n\t\t".'//'
+					.		"\n\t\t".'exit();'
+					.	"\n\t".'}'
 					;
 				},
 				$entrypoint
@@ -77,6 +83,12 @@
 
 	echo ' -> Removing bin directory';
 		if(@rmdir('./bin'))
+			echo ' [ OK ]'.PHP_EOL;
+		else
+			echo ' [FAIL]'.PHP_EOL;
+
+	echo ' -> Removing README.md'
+		if(@unlink('./README.md'))
 			echo ' [ OK ]'.PHP_EOL;
 		else
 			echo ' [FAIL]'.PHP_EOL;

@@ -1,9 +1,10 @@
 <?php
 	/*
 	 * Usage:
-		ob_adapter::add(new ob_adapter_module1());
-		ob_adapter::add(new ob_adapter_module2());
-		ob_adapter::start();
+		ob_adapter
+			::add(new ob_adapter_module1())
+			->add(new ob_adapter_module2())
+			->start();
 	 *
 	 * Modules:
 	 *  ob_adapter_obminifier - adapter for ob_minifier.php library
@@ -18,13 +19,14 @@
 	 *  controllers/samples/obsfucate-html.php
 	 */
 
-	abstract class ob_adapter
+	class ob_adapter
 	{
 		private static $instances=[];
 
 		public static function add($instance)
 		{
 			(__CLASS__)::$instances[]=$instance;
+			return new static();
 		}
 		public static function start()
 		{
@@ -136,8 +138,7 @@
 
 		public function __construct($output_file)
 		{
-			@mkdir('./var');
-			@mkdir('./var/cache');
+			@mkdir('./var/cache', 0777, true);
 
 			parent::__construct('./var/cache/'.$output_file);
 		}

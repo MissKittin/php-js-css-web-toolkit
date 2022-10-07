@@ -1,7 +1,19 @@
 <?php
 	/*
-	 * Warning:
-	 *  the html_sum will change if the sortTable.js library is updated
+	 * Hint:
+	 *  you can setup database credentials by environment variables
+	 *  variables:
+	 *   TEST_DB_TYPE (pgsql, mysql, sqlite, overrides first argument)
+	 *   TEST_PGSQL_HOST (default: 127.0.0.1)
+	 *   TEST_PGSQL_PORT (default: 5432)
+	 *   TEST_PGSQL_DBNAME (default: php_toolkit_tests)
+	 *   TEST_PGSQL_USER (default: postgres)
+	 *   TEST_PGSQL_PASSWORD (default: postgres)
+	 *   TEST_MYSQL_HOST (default: [::1])
+	 *   TEST_MYSQL_PORT (default: 3306)
+	 *   TEST_MYSQL_DBNAME (default: php-toolkit-tests)
+	 *   TEST_MYSQL_USER (default: root)
+	 *   TEST_MYSQL_PASSWORD
 	 */
 
 	namespace Test
@@ -10,17 +22,17 @@
 			'short'=>[
 				'clients'=>32, // 256 records
 				'csv_sum'=>'5be6b7824f183f86c39d9e64a44e036e',
-				'html_sum'=>'6346b52e60aba3ec2fe37fa54a248901'
+				'html_sum'=>'960940ab4968b2c13a7d1db8c4d7def7'
 			],
 			'long'=>[
 				'clients'=>255, // 2040 records
 				'csv_sum'=>'e85f1f8d3de5b5e8be6523c98360a05e',
-				'html_sum'=>'80d20ee289797c164c10a681e72b7b9e'
+				'html_sum'=>'e85f1f8d3de5b5e8be6523c98360a05e'
 			],
 			'longlong'=>[
 				'clients'=>125000, // 1000000 records
 				'csv_sum'=>'58f6e1c28c92fa400e42f0f8ad16a70e',
-				'html_sum'=>'fe9c35113f165730e966a2d9e78e5a9c'
+				'html_sum'=>'7f49e39dba1c7dfc0b03b2fbb1901c2c'
 			]
 		];
 
@@ -126,15 +138,7 @@
 				{
 					foreach($libraries as $library=>$opts)
 					{
-						if($library !== 'sortTable.js')
-							return true;
-
-						if(file_exists(__DIR__.'/../lib/'.$library))
-							include __DIR__.'/../lib/'.$library;
-						else if(file_exists(__DIR__.'/../../../lib/'.$library))
-							include __DIR__.'/../../../lib/'.$library;
-						else
-							throw new Exception($library.' library not found');
+						return true;
 					}
 				}
 
@@ -173,31 +177,77 @@
 			return ++$GLOBALS['current_timestamp'];
 		}
 
+		if(getenv('TEST_DB_TYPE') !== false)
+			$argv[2]=getenv('TEST_DB_TYPE');
 		if(isset($argv[2]))
 		{
-			switch($argv[2])
-			{
-				case 'pgsql':
-					$pdo_handler=new PDO('pgsql:'
-						.'host=127.0.0.1;'
-						.'port=5432;'
-						.'dbname=herring_test;'
-						.'user=postgres;'
-						.'password=postgres'
-					);
-				break;
-				case 'mysql':
-					$pdo_handler=new PDO('mysql:'
-						.'host=[::1];'
-						.'port=3306;'
-						.'dbname=herring-test',
-						'root',
-						''
-					);
+			$_db_type=$argv[2];
+			$_db_credentials=[
+				'pgsql'=>[
+					'host'=>'127.0.0.1',
+					'port'=>'5432',
+					'dbname'=>'php_toolkit_tests',
+					'user'=>'postgres',
+					'password'=>'postgres'
+				],
+				'mysql'=>[
+					'host'=>'[::1]',
+					'port'=>'3306',
+					'dbname'=>'php-toolkit-tests',
+					'user'=>'root',
+					'password'=>''
+				]
+			];
+			foreach(['pgsql', 'mysql'] as $database)
+				foreach(['host', 'port', 'dbname', 'user', 'password'] as $parameter)
+				{
+					$variable='TEST_'.strtoupper($database.'_'.$parameter);
+					$value=getenv($variable);
+
+					if($value !== false)
+					{
+						echo '  -> Using '.$variable.'="'.$value.'" as '.$database.' '.$parameter.PHP_EOL;
+						$db_credentials[$database][$parameter]=$value;
+					}
+				}
+
+			try {
+				switch($_db_type)
+				{
+					case 'pgsql':
+						if(!extension_loaded('pdo_pgsql'))
+							throw new Exception('pdo_pgsql extension is not loaded');
+
+						$pdo_handler=new PDO('pgsql:'
+							.'host='.$_db_credentials[$_db_type]['host'].';'
+							.'port='.$_db_credentials[$_db_type]['port'].';'
+							.'dbname='.$_db_credentials[$_db_type]['dbname'].';'
+							.'user='.$_db_credentials[$_db_type]['user'].';'
+							.'password='.$_db_credentials[$_db_type]['password'].''
+						);
+					break;
+					case 'mysql':
+						if(!extension_loaded('pdo_mysql'))
+							throw new Exception('pdo_mysql extension is not loaded');
+
+						$pdo_handler=new PDO('mysql:'
+							.'host='.$_db_credentials[$_db_type]['host'].';'
+							.'port='.$_db_credentials[$_db_type]['port'].';'
+							.'dbname='.$_db_credentials[$_db_type]['dbname'],
+							$_db_credentials[$_db_type]['user'],
+							$_db_credentials[$_db_type]['password']
+						);
+				}
+			} catch(Throwable $error) {
+				echo ' Error: '.$error->getMessage().PHP_EOL;
+				exit(1);
 			}
 
-			$pdo_handler->exec('DROP TABLE herring_test_visitors');
-			$pdo_handler->exec('DROP TABLE herring_test_archive');
+			if(isset($pdo_handler))
+			{
+				$pdo_handler->exec('DROP TABLE herring_test_visitors');
+				$pdo_handler->exec('DROP TABLE herring_test_archive');
+			}
 		}
 		if(!isset($pdo_handler))
 			$pdo_handler=new PDO('sqlite:'.__DIR__.'/tmp/herring.sqlite3');

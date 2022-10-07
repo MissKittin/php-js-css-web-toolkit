@@ -59,6 +59,8 @@
 		echo 'Eg:'.PHP_EOL;
 		echo ' php ./bin/opcache-preload-generator.php . ./app ./var/lib/app_preload.php'.PHP_EOL;
 		echo ' php ./opcache-preload-generator.php .. ./app ./var/lib/app_preload.php'.PHP_EOL;
+		echo PHP_EOL;
+		echo 'For more info see this file'.PHP_EOL;
 		exit(1);
 	}
 

@@ -8,6 +8,7 @@
 	 * Warning:
 	 *  PDO extension is required
 	 *  pdo_sqlite extension is required
+	 *  var_export_contains.php library is required
 	 */
 
 	foreach(['PDO', 'pdo_sqlite'] as $extension)
@@ -16,6 +17,14 @@
 			echo $extension.' extension is not loaded'.PHP_EOL;
 			exit(1);
 		}
+
+	echo ' -> Including var_export_contains.php';
+		if(@(include __DIR__.'/../lib/var_export_contains.php') === false)
+		{
+			echo ' [FAIL]'.PHP_EOL;
+			exit(1);
+		}
+	echo ' [ OK ]'.PHP_EOL;
 
 	echo ' -> Including '.basename(__FILE__);
 		if(@(include __DIR__.'/../lib/'.basename(__FILE__)) === false)
@@ -49,7 +58,10 @@
 		]);
 		if(
 			($pdo_builder->print_exec() === 'CREATE TABLE exampletable(id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, a TEXT, b TEXT, c TEXT) ') &&
-			(str_replace(["\n", ' '], '', var_export($pdo_builder->print_parameters(), true)) === "array()")
+			var_export_contains(
+				$pdo_builder->print_parameters(),
+				"array()"
+			)
 		)
 			echo ' [ OK ]'.PHP_EOL;
 		else
@@ -62,7 +74,10 @@
 		$pdo_builder->drop_table('exampletable');
 		if(
 			($pdo_builder->print_exec() === 'DROP TABLE IF EXISTS exampletable ') &&
-			(str_replace(["\n", ' '], '', var_export($pdo_builder->print_parameters(), true)) === "array()")
+			var_export_contains(
+				$pdo_builder->print_parameters(),
+				"array()"
+			)
 		)
 			echo ' [ OK ]'.PHP_EOL;
 		else
@@ -75,7 +90,10 @@
 		$pdo_builder->truncate_table('exampletable');
 		if(
 			($pdo_builder->print_exec() === 'TRUNCATE TABLE exampletable ') &&
-			(str_replace(["\n", ' '], '', var_export($pdo_builder->print_parameters(), true)) === "array()")
+			var_export_contains(
+				$pdo_builder->print_parameters(),
+				"array()"
+			)
 		)
 			echo ' [ OK ]'.PHP_EOL;
 		else
@@ -91,7 +109,10 @@
 		]);
 		if(
 			($pdo_builder->print_exec() === 'INSERT INTO exampletable(a,b) VALUES(?, ?), (?, ?) ') &&
-			(str_replace(["\n", ' '], '', var_export($pdo_builder->print_parameters(), true)) === "array(0=>'aa',1=>'ba',2=>'ba',3=>'bb',)")
+			var_export_contains(
+				$pdo_builder->print_parameters(),
+				"array(0=>'aa',1=>'ba',2=>'ba',3=>'bb',)"
+			)
 		)
 			echo ' [ OK ]'.PHP_EOL;
 		else
@@ -104,7 +125,10 @@
 		$pdo_builder->select('asterisk');
 		if(
 			($pdo_builder->print_exec() === 'SELECT asterisk ') &&
-			(str_replace(["\n", ' '], '', var_export($pdo_builder->print_parameters(), true)) === "array()")
+			var_export_contains(
+				$pdo_builder->print_parameters(),
+				"array()"
+			)
 		)
 			echo ' [ OK ]'.PHP_EOL;
 		else
@@ -117,7 +141,10 @@
 		$pdo_builder->select_top(20, 'asterisk');
 		if(
 			($pdo_builder->print_exec() === 'SELECT TOP 20 asterisk ') &&
-			(str_replace(["\n", ' '], '', var_export($pdo_builder->print_parameters(), true)) === "array()")
+			var_export_contains(
+				$pdo_builder->print_parameters(),
+				"array()"
+			)
 		)
 			echo ' [ OK ]'.PHP_EOL;
 		else
@@ -130,7 +157,10 @@
 		$pdo_builder->select_top_percent(20, 'asterisk');
 		if(
 			($pdo_builder->print_exec() === 'SELECT TOP 20 PERCENT asterisk ') &&
-			(str_replace(["\n", ' '], '', var_export($pdo_builder->print_parameters(), true)) === "array()")
+			var_export_contains(
+				$pdo_builder->print_parameters(),
+				"array()"
+			)
 		)
 			echo ' [ OK ]'.PHP_EOL;
 		else
@@ -143,7 +173,10 @@
 		$pdo_builder->as('aaa');
 		if(
 			($pdo_builder->print_exec() === 'AS aaa ') &&
-			(str_replace(["\n", ' '], '', var_export($pdo_builder->print_parameters(), true)) === "array()")
+			var_export_contains(
+				$pdo_builder->print_parameters(),
+				"array()"
+			)
 		)
 			echo ' [ OK ]'.PHP_EOL;
 		else
@@ -156,7 +189,10 @@
 		$pdo_builder->group_by('parameter');
 		if(
 			($pdo_builder->print_exec() === 'GROUP BY parameter ') &&
-			(str_replace(["\n", ' '], '', var_export($pdo_builder->print_parameters(), true)) === "array()")
+			var_export_contains(
+				$pdo_builder->print_parameters(),
+				"array()"
+			)
 		)
 			echo ' [ OK ]'.PHP_EOL;
 		else
@@ -169,7 +205,10 @@
 		$pdo_builder->order_by('parameter');
 		if(
 			($pdo_builder->print_exec() === 'ORDER BY parameter ') &&
-			(str_replace(["\n", ' '], '', var_export($pdo_builder->print_parameters(), true)) === "array()")
+			var_export_contains(
+				$pdo_builder->print_parameters(),
+				"array()"
+			)
 		)
 			echo ' [ OK ]'.PHP_EOL;
 		else
@@ -182,7 +221,10 @@
 		$pdo_builder->join('full', 'parameter', 'onn');
 		if(
 			($pdo_builder->print_exec() === 'FULL OUTER JOIN parameter ON onn ') &&
-			(str_replace(["\n", ' '], '', var_export($pdo_builder->print_parameters(), true)) === "array()")
+			var_export_contains(
+				$pdo_builder->print_parameters(),
+				"array()"
+			)
 		)
 			echo ' [ OK ]'.PHP_EOL;
 		else
@@ -195,7 +237,10 @@
 		$pdo_builder->union();
 		if(
 			($pdo_builder->print_exec() === 'UNION ') &&
-			(str_replace(["\n", ' '], '', var_export($pdo_builder->print_parameters(), true)) === "array()")
+			var_export_contains(
+				$pdo_builder->print_parameters(),
+				"array()"
+			)
 		)
 			echo ' [ OK ]'.PHP_EOL;
 		else
@@ -208,7 +253,10 @@
 		$pdo_builder->union_all();
 		if(
 			($pdo_builder->print_exec() === 'UNION ALL ') &&
-			(str_replace(["\n", ' '], '', var_export($pdo_builder->print_parameters(), true)) === "array()")
+			var_export_contains(
+				$pdo_builder->print_parameters(),
+				"array()"
+			)
 		)
 			echo ' [ OK ]'.PHP_EOL;
 		else
@@ -221,7 +269,10 @@
 		$pdo_builder->asc();
 		if(
 			($pdo_builder->print_exec() === 'ASC ') &&
-			(str_replace(["\n", ' '], '', var_export($pdo_builder->print_parameters(), true)) === "array()")
+			var_export_contains(
+				$pdo_builder->print_parameters(),
+				"array()"
+			)
 		)
 			echo ' [ OK ]'.PHP_EOL;
 		else
@@ -234,7 +285,10 @@
 		$pdo_builder->desc();
 		if(
 			($pdo_builder->print_exec() === 'DESC ') &&
-			(str_replace(["\n", ' '], '', var_export($pdo_builder->print_parameters(), true)) === "array()")
+			var_export_contains(
+				$pdo_builder->print_parameters(),
+				"array()"
+			)
 		)
 			echo ' [ OK ]'.PHP_EOL;
 		else
@@ -247,7 +301,10 @@
 		$pdo_builder->limit(3, 2);
 		if(
 			($pdo_builder->print_exec() === 'LIMIT 3 OFFSET 2 ') &&
-			(str_replace(["\n", ' '], '', var_export($pdo_builder->print_parameters(), true)) === "array()")
+			var_export_contains(
+				$pdo_builder->print_parameters(),
+				"array()"
+			)
 		)
 			echo ' [ OK ]'.PHP_EOL;
 		else
@@ -260,7 +317,10 @@
 		$pdo_builder->fetch_first(3, 'ROWS ONLY', 2, 'ROWS');
 		if(
 			($pdo_builder->print_exec() === 'OFFSET 2 ROWS FETCH FIRST 3 ROWS ONLY ') &&
-			(str_replace(["\n", ' '], '', var_export($pdo_builder->print_parameters(), true)) === "array()")
+			var_export_contains(
+				$pdo_builder->print_parameters(),
+				"array()"
+			)
 		)
 			echo ' [ OK ]'.PHP_EOL;
 		else
@@ -273,7 +333,10 @@
 		$pdo_builder->fetch_first_percent(3, 'ROWS ONLY', 2, 'ROWS');
 		if(
 			($pdo_builder->print_exec() === 'OFFSET 2 ROWS FETCH FIRST 3 PERCENT ROWS ONLY ') &&
-			(str_replace(["\n", ' '], '', var_export($pdo_builder->print_parameters(), true)) === "array()")
+			var_export_contains(
+				$pdo_builder->print_parameters(),
+				"array()"
+			)
 		)
 			echo ' [ OK ]'.PHP_EOL;
 		else
@@ -286,7 +349,10 @@
 		$pdo_builder->fetch_next(3, 'ROWS ONLY', 2, 'ROWS');
 		if(
 			($pdo_builder->print_exec() === 'OFFSET 2 ROWS FETCH NEXT 3 ROWS ONLY ') &&
-			(str_replace(["\n", ' '], '', var_export($pdo_builder->print_parameters(), true)) === "array()")
+			var_export_contains(
+				$pdo_builder->print_parameters(),
+				"array()"
+			)
 		)
 			echo ' [ OK ]'.PHP_EOL;
 		else
@@ -299,7 +365,10 @@
 		$pdo_builder->fetch_next_percent(3, 'ROWS ONLY', 2, 'ROWS');
 		if(
 			($pdo_builder->print_exec() === 'OFFSET 2 ROWS FETCH NEXT 3 PERCENT ROWS ONLY ') &&
-			(str_replace(["\n", ' '], '', var_export($pdo_builder->print_parameters(), true)) === "array()")
+			var_export_contains(
+				$pdo_builder->print_parameters(),
+				"array()"
+			)
 		)
 			echo ' [ OK ]'.PHP_EOL;
 		else
@@ -315,7 +384,10 @@
 		]);
 		if(
 			($pdo_builder->print_exec() === 'REPLACE INTO exampletable(a,b) VALUES(?, ?), (?, ?) ') &&
-			(str_replace(["\n", ' '], '', var_export($pdo_builder->print_parameters(), true)) === "array(0=>'aa',1=>'ab',2=>'ba',3=>'bb',)")
+			var_export_contains(
+				$pdo_builder->print_parameters(),
+				"array(0=>'aa',1=>'ab',2=>'ba',3=>'bb',)"
+			)
 		)
 			echo ' [ OK ]'.PHP_EOL;
 		else
@@ -328,7 +400,10 @@
 		$pdo_builder->update('exampletable');
 		if(
 			($pdo_builder->print_exec() === 'UPDATE exampletable ') &&
-			(str_replace(["\n", ' '], '', var_export($pdo_builder->print_parameters(), true)) === "array()")
+			var_export_contains(
+				$pdo_builder->print_parameters(),
+				"array()"
+			)
 		)
 			echo ' [ OK ]'.PHP_EOL;
 		else
@@ -344,7 +419,10 @@
 		]);
 		if(
 			($pdo_builder->print_exec() === 'SET aa = ?, ba = ? ') &&
-			(str_replace(["\n", ' '], '', var_export($pdo_builder->print_parameters(), true)) === "array(0=>'ab',1=>'bb',)")
+			var_export_contains(
+				$pdo_builder->print_parameters(),
+				"array(0=>'ab',1=>'bb',)"
+			)
 		)
 			echo ' [ OK ]'.PHP_EOL;
 		else
@@ -357,7 +435,10 @@
 		$pdo_builder->delete('exampletable');
 		if(
 			($pdo_builder->print_exec() === 'DELETE FROM exampletable ') &&
-			(str_replace(["\n", ' '], '', var_export($pdo_builder->print_parameters(), true)) === "array()")
+			var_export_contains(
+				$pdo_builder->print_parameters(),
+				"array()"
+			)
 		)
 			echo ' [ OK ]'.PHP_EOL;
 		else
@@ -370,7 +451,10 @@
 		$pdo_builder->from('exampletable');
 		if(
 			($pdo_builder->print_exec() === 'FROM exampletable ') &&
-			(str_replace(["\n", ' '], '', var_export($pdo_builder->print_parameters(), true)) === "array()")
+			var_export_contains(
+				$pdo_builder->print_parameters(),
+				"array()"
+			)
 		)
 			echo ' [ OK ]'.PHP_EOL;
 		else
@@ -383,7 +467,10 @@
 		$pdo_builder->where('a', '=', 'b');
 		if(
 			($pdo_builder->print_exec() === 'WHERE a=? ') &&
-			(str_replace(["\n", ' '], '', var_export($pdo_builder->print_parameters(), true)) === "array(0=>'b',)")
+			var_export_contains(
+				$pdo_builder->print_parameters(),
+				"array(0=>'b',)"
+			)
 		)
 			echo ' [ OK ]'.PHP_EOL;
 		else
@@ -396,7 +483,10 @@
 		$pdo_builder->and('a', '=', 'b');
 		if(
 			($pdo_builder->print_exec() === 'AND a=? ') &&
-			(str_replace(["\n", ' '], '', var_export($pdo_builder->print_parameters(), true)) === "array(0=>'b',)")
+			var_export_contains(
+				$pdo_builder->print_parameters(),
+				"array(0=>'b',)"
+			)
 		)
 			echo ' [ OK ]'.PHP_EOL;
 		else
@@ -409,7 +499,10 @@
 		$pdo_builder->or('a', '=', 'b');
 		if(
 			($pdo_builder->print_exec() === 'OR a=? ') &&
-			(str_replace(["\n", ' '], '', var_export($pdo_builder->print_parameters(), true)) === "array(0=>'b',)")
+			var_export_contains(
+				$pdo_builder->print_parameters(),
+				"array(0=>'b',)"
+			)
 		)
 			echo ' [ OK ]'.PHP_EOL;
 		else
@@ -422,7 +515,10 @@
 		$pdo_builder->where_like('a', 'b');
 		if(
 			($pdo_builder->print_exec() === 'WHERE a LIKE ? ') &&
-			(str_replace(["\n", ' '], '', var_export($pdo_builder->print_parameters(), true)) === "array(0=>'b',)")
+			var_export_contains(
+				$pdo_builder->print_parameters(),
+				"array(0=>'b',)"
+			)
 		)
 			echo ' [ OK ]'.PHP_EOL;
 		else
@@ -435,7 +531,10 @@
 		$pdo_builder->where_not_like('a', 'b');
 		if(
 			($pdo_builder->print_exec() === 'WHERE a NOT LIKE ? ') &&
-			(str_replace(["\n", ' '], '', var_export($pdo_builder->print_parameters(), true)) === "array(0=>'b',)")
+			var_export_contains(
+				$pdo_builder->print_parameters(),
+				"array(0=>'b',)"
+			)
 		)
 			echo ' [ OK ]'.PHP_EOL;
 		else
@@ -448,7 +547,10 @@
 		$pdo_builder->where_is('a', 'b');
 		if(
 			($pdo_builder->print_exec() === 'WHERE a IS b ') &&
-			(str_replace(["\n", ' '], '', var_export($pdo_builder->print_parameters(), true)) === "array()")
+			var_export_contains(
+				$pdo_builder->print_parameters(),
+				"array()"
+			)
 		)
 			echo ' [ OK ]'.PHP_EOL;
 		else
@@ -461,7 +563,10 @@
 		$pdo_builder->where_not('a', '=', 'b');
 		if(
 			($pdo_builder->print_exec() === 'WHERE NOT a=? ') &&
-			(str_replace(["\n", ' '], '', var_export($pdo_builder->print_parameters(), true)) === "array(0=>'b',)")
+			var_export_contains(
+				$pdo_builder->print_parameters(),
+				"array(0=>'b',)"
+			)
 		)
 			echo ' [ OK ]'.PHP_EOL;
 		else
@@ -474,7 +579,10 @@
 		$pdo_builder->output_into('a', 'b');
 		if(
 			($pdo_builder->print_exec() === 'OUTPUT a INTO b ') &&
-			(str_replace(["\n", ' '], '', var_export($pdo_builder->print_parameters(), true)) === "array()")
+			var_export_contains(
+				$pdo_builder->print_parameters(),
+				"array()"
+			)
 		)
 			echo ' [ OK ]'.PHP_EOL;
 		else
@@ -487,7 +595,10 @@
 		$pdo_builder->raw_sql('CUSTOM SQL');
 		if(
 			($pdo_builder->print_exec() === 'CUSTOM SQL ') &&
-			(str_replace(["\n", ' '], '', var_export($pdo_builder->print_parameters(), true)) === "array()")
+			var_export_contains(
+				$pdo_builder->print_parameters(),
+				"array()"
+			)
 		)
 			echo ' [ OK ]'.PHP_EOL;
 		else
@@ -500,7 +611,10 @@
 		$pdo_builder->raw_parameter('b');
 		if(
 			($pdo_builder->print_exec() === '') &&
-			(str_replace(["\n", ' '], '', var_export($pdo_builder->print_parameters(), true)) === "array(0=>'b',)")
+			var_export_contains(
+				$pdo_builder->print_parameters(),
+				"array(0=>'b',)"
+			)
 		)
 			echo ' [ OK ]'.PHP_EOL;
 		else
@@ -532,7 +646,10 @@
 			['aa', 'ba'],
 			['ba', 'bb']
 		])->exec();
-		if(str_replace(["\n", ' '], '', var_export($pdo_handler->query('SELECT * FROM exampletable')->fetchAll(PDO::FETCH_NAMED), true)) === "array(0=>array('id'=>'1','a'=>'aa','b'=>'ba',),1=>array('id'=>'2','a'=>'ba','b'=>'bb',),)")
+		if(var_export_contains(
+			$pdo_handler->query('SELECT * FROM exampletable')->fetchAll(PDO::FETCH_NAMED),
+			"array(0=>array('id'=>'1','a'=>'aa','b'=>'ba',),1=>array('id'=>'2','a'=>'ba','b'=>'bb',),)"
+		))
 			echo ' [ OK ]'.PHP_EOL;
 		else
 		{
@@ -544,7 +661,10 @@
 			->select('*')
 			->from('exampletable')
 		->query();
-		if(str_replace(["\n", ' '], '', var_export($result, true)) === "array(0=>array('id'=>'1','a'=>'aa','b'=>'ba',),1=>array('id'=>'2','a'=>'ba','b'=>'bb',),)")
+		if(var_export_contains(
+			$result,
+			"array(0=>array('id'=>'1','a'=>'aa','b'=>'ba',),1=>array('id'=>'2','a'=>'ba','b'=>'bb',),)"
+		))
 			echo ' [ OK ]'.PHP_EOL;
 		else
 		{
@@ -556,21 +676,30 @@
 			->select('*')
 			->from('exampletable')
 		->exec(true);
-		if(str_replace(["\n", ' '], '', var_export($pdo_builder->fetch_row($result), true)) === "array('id'=>'1','a'=>'aa','b'=>'ba',)")
+		if(var_export_contains(
+			$pdo_builder->fetch_row($result),
+			"array('id'=>'1','a'=>'aa','b'=>'ba',)"
+		))
 			echo ' [ OK ]';
 		else
 		{
 			echo ' [FAIL]';
 			$errors[]='select/from/exec/fetch_row 1';
 		}
-		if(str_replace(["\n", ' '], '', var_export($pdo_builder->fetch_row($result), true)) === "array('id'=>'2','a'=>'ba','b'=>'bb',)")
+		if(var_export_contains(
+			$pdo_builder->fetch_row($result),
+			"array('id'=>'2','a'=>'ba','b'=>'bb',)"
+		))
 			echo ' [ OK ]';
 		else
 		{
 			echo ' [FAIL]';
 			$errors[]='select/from/exec/fetch_row 2';
 		}
-		if(str_replace(["\n", ' '], '', var_export($pdo_builder->fetch_row($result), true)) === "false")
+		if(var_export_contains(
+			$pdo_builder->fetch_row($result),
+			"false"
+		))
 			echo ' [ OK ]'.PHP_EOL;
 		else
 		{

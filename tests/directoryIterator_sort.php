@@ -8,6 +8,7 @@
 	 * Warning:
 	 *  has_php_close_tag.php library is required
 	 *  include_into_namespace.php library is required
+	 *  var_export_contains.php library is required
 	 */
 
 	namespace Test
@@ -77,8 +78,11 @@
 			}
 		echo ' [ OK ]'.PHP_EOL;
 
-		foreach(['has_php_close_tag.php', 'include_into_namespace.php'] as $library)
-		{
+		foreach([
+			'has_php_close_tag.php',
+			'include_into_namespace.php',
+			'var_export_contains.php'
+		] as $library){
 			echo ' -> Including '.$library;
 				if(@(include __DIR__.'/../lib/'.$library) === false)
 				{
@@ -101,7 +105,10 @@
 			}
 
 		echo ' -> Testing library';
-			if(str_replace(["\n", ' '], '', var_export(directoryIterator_sort('none', ['get_filesize', 'is_compressed'], 'get_filename'), true)) === "array('aa'=>array('get_filesize'=>538,'is_compressed'=>false,),'hd'=>array('get_filesize'=>2873,'is_compressed'=>true,),'ku'=>array('get_filesize'=>6262,'is_compressed'=>true,),'ue'=>array('get_filesize'=>4142,'is_compressed'=>false,),'zz'=>array('get_filesize'=>14173,'is_compressed'=>true,),)")
+			if(var_export_contains(
+				directoryIterator_sort('none', ['get_filesize', 'is_compressed'], 'get_filename'),
+				"array('aa'=>array('get_filesize'=>538,'is_compressed'=>false,),'hd'=>array('get_filesize'=>2873,'is_compressed'=>true,),'ku'=>array('get_filesize'=>6262,'is_compressed'=>true,),'ue'=>array('get_filesize'=>4142,'is_compressed'=>false,),'zz'=>array('get_filesize'=>14173,'is_compressed'=>true,),)"
+			))
 				echo ' [ OK ]'.PHP_EOL;
 			else
 			{

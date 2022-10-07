@@ -8,7 +8,7 @@
 	.	'('
 	.		'id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,'
 	.		'name TEXT,'
-	.		'price INT'
+	.		'price INTEGER'
 	.	')'
 	);
 
@@ -48,7 +48,7 @@
 		[
 			'id'=>'INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL',
 			'name'=>'TEXT',
-			'price'=>'INT'
+			'price'=>'INTEGER'
 		]
 	)->exec();
 

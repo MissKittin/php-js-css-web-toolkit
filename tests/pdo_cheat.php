@@ -5,9 +5,25 @@
 	 * Note:
 	 *  looks for a library at ../lib
 	 *
+	 * Hint:
+	 *  you can setup database credentials by environment variables
+	 *  variables:
+	 *   TEST_DB_TYPE (pgsql, mysql, sqlite, overrides first argument)
+	 *   TEST_PGSQL_HOST (default: 127.0.0.1)
+	 *   TEST_PGSQL_PORT (default: 5432)
+	 *   TEST_PGSQL_DBNAME (default: php_toolkit_tests)
+	 *   TEST_PGSQL_USER (default: postgres)
+	 *   TEST_PGSQL_PASSWORD (default: postgres)
+	 *   TEST_MYSQL_HOST (default: [::1])
+	 *   TEST_MYSQL_PORT (default: 3306)
+	 *   TEST_MYSQL_DBNAME (default: php-toolkit-tests)
+	 *   TEST_MYSQL_USER (default: root)
+	 *   TEST_MYSQL_PASSWORD
+	 *
 	 * Warning:
 	 *  PDO extension is required
 	 *  pdo_sqlite extension is required
+	 *  var_export_contains.php library is required
 	 */
 
 	foreach(['PDO', 'pdo_sqlite'] as $extension)
@@ -16,6 +32,14 @@
 			echo $extension.' extension is not loaded'.PHP_EOL;
 			exit(1);
 		}
+
+	echo ' -> Including var_export_contains.php';
+		if(@(include __DIR__.'/../lib/var_export_contains.php') === false)
+		{
+			echo ' [FAIL]'.PHP_EOL;
+			exit(1);
+		}
+	echo ' [ OK ]'.PHP_EOL;
 
 	echo ' -> Including '.basename(__FILE__);
 		if(@(include __DIR__.'/../lib/'.basename(__FILE__)) === false)
@@ -32,13 +56,82 @@
 		@unlink(__DIR__.'/tmp/pdo_cheat.sqlite3');
 	echo ' [ OK ]'.PHP_EOL;
 
-	echo ' -> Initializing database handler';
+	if(getenv('TEST_DB_TYPE') !== false)
+		$argv[1]=getenv('TEST_DB_TYPE');
+	if(isset($argv[1]))
+	{
+		$_db_type=$argv[1];
+		$_db_credentials=[
+			'pgsql'=>[
+				'host'=>'127.0.0.1',
+				'port'=>'5432',
+				'dbname'=>'php_toolkit_tests',
+				'user'=>'postgres',
+				'password'=>'postgres'
+			],
+			'mysql'=>[
+				'host'=>'[::1]',
+				'port'=>'3306',
+				'dbname'=>'php-toolkit-tests',
+				'user'=>'root',
+				'password'=>''
+			]
+		];
+		foreach(['pgsql', 'mysql'] as $database)
+			foreach(['host', 'port', 'dbname', 'user', 'password'] as $parameter)
+			{
+				$variable='TEST_'.strtoupper($database.'_'.$parameter);
+				$value=getenv($variable);
+
+				if($value !== false)
+				{
+					echo '  -> Using '.$variable.'="'.$value.'" as '.$database.' '.$parameter.PHP_EOL;
+					$_db_credentials[$database][$parameter]=$value;
+				}
+			}
+
+		try {
+			switch($_db_type)
+			{
+				case 'pgsql':
+					if(!extension_loaded('pdo_pgsql'))
+						throw new Exception('pdo_pgsql extension is not loaded');
+
+					$pdo_handler=new PDO('pgsql:'
+						.'host='.$_db_credentials[$_db_type]['host'].';'
+						.'port='.$_db_credentials[$_db_type]['port'].';'
+						.'dbname='.$_db_credentials[$_db_type]['dbname'].';'
+						.'user='.$_db_credentials[$_db_type]['user'].';'
+						.'password='.$_db_credentials[$_db_type]['password'].''
+					);
+				break;
+				case 'mysql':
+					if(!extension_loaded('pdo_mysql'))
+						throw new Exception('pdo_mysql extension is not loaded');
+
+					$pdo_handler=new PDO('mysql:'
+						.'host='.$_db_credentials[$_db_type]['host'].';'
+						.'port='.$_db_credentials[$_db_type]['port'].';'
+						.'dbname='.$_db_credentials[$_db_type]['dbname'],
+						$_db_credentials[$_db_type]['user'],
+						$_db_credentials[$_db_type]['password']
+					);
+			}
+		} catch(Throwable $error) {
+			echo ' Error: '.$error->getMessage().PHP_EOL;
+			exit(1);
+		}
+
+		if(isset($pdo_handler))
+			$pdo_handler->exec('DROP TABLE pdo_cheat_test_table');
+	}
+	if(!isset($pdo_handler))
 		$pdo_handler=new PDO('sqlite:'.__DIR__.'/tmp/pdo_cheat.sqlite3');
-		$pdo_cheat=new pdo_cheat([
-			'pdo_handler'=>$pdo_handler,
-			'table_name'=>'test_table'
-		]);
-	echo ' [ OK ]'.PHP_EOL;
+
+	$pdo_cheat=new pdo_cheat([
+		'pdo_handler'=>$pdo_handler,
+		'table_name'=>'pdo_cheat_test_table'
+	]);
 
 	echo ' -> Creating table';
 		$pdo_cheat->new_table()
@@ -47,7 +140,7 @@
 			->surname('VARCHAR(30)')
 			->personal_id('INTEGER')
 			->save_table();
-		if($pdo_handler->query('SELECT * FROM test_table') === false)
+		if($pdo_handler->query('SELECT * FROM pdo_cheat_test_table') === false)
 		{
 			echo ' [FAIL]'.PHP_EOL;
 			$errors[]='Creating table';
@@ -66,7 +159,10 @@
 			->surname('tseT')
 			->personal_id(30)
 			->save_row();
-		if(str_replace(["\n", ' '], '', var_export($pdo_handler->query('SELECT * FROM test_table')->fetchAll(PDO::FETCH_NAMED), true)) === "array(0=>array('id'=>'1','name'=>'Test1','surname'=>'tseT','personal_id'=>'20',),1=>array('id'=>'2','name'=>'Test2','surname'=>'tseT','personal_id'=>'30',),)")
+		if(var_export_contains(
+			$pdo_handler->query('SELECT * FROM pdo_cheat_test_table')->fetchAll(PDO::FETCH_NAMED),
+			"array(0=>array('id'=>'1','name'=>'Test1','surname'=>'tseT','personal_id'=>'20',),1=>array('id'=>'2','name'=>'Test2','surname'=>'tseT','personal_id'=>'30',),)"
+		))
 			echo ' [ OK ]'.PHP_EOL;
 		else
 		{
@@ -88,7 +184,10 @@
 			echo ' [FAIL]';
 			$errors[]='Reading rows first result/dump row phase 1';
 		}
-		if(str_replace(["\n", ' '], '', var_export($test_person->dump_row(), true)) === "array('id'=>'1','personal_id'=>'20',)")
+		if(var_export_contains(
+			$test_person->dump_row(),
+			"array('id'=>'1','personal_id'=>'20',)"
+		))
 			echo ' [ OK ]'.PHP_EOL;
 		else
 		{
@@ -110,7 +209,10 @@
 			echo ' [FAIL]';
 			$errors[]='Reading rows second result/dump row phase 1';
 		}
-		if(str_replace(["\n", ' '], '', var_export($test_person->dump_row(), true)) === "array('id'=>'2','personal_id'=>'30',)")
+		if(var_export_contains(
+			$test_person->dump_row(),
+			"array('id'=>'2','personal_id'=>'30',)"
+		))
 			echo ' [ OK ]'.PHP_EOL;
 		else
 		{
@@ -123,7 +225,10 @@
 			->get_row_by_name('Test1')
 			->get_row();
 		$test_person->personal_id(50)->save_row();
-		if(str_replace(["\n", ' '], '', var_export($pdo_handler->query('SELECT * FROM test_table')->fetchAll(PDO::FETCH_NAMED), true)) === "array(0=>array('id'=>'1','name'=>'Test1','surname'=>'tseT','personal_id'=>'50',),1=>array('id'=>'2','name'=>'Test2','surname'=>'tseT','personal_id'=>'30',),)")
+		if(var_export_contains(
+			$pdo_handler->query('SELECT * FROM pdo_cheat_test_table')->fetchAll(PDO::FETCH_NAMED),
+			"array(0=>array('id'=>'1','name'=>'Test1','surname'=>'tseT','personal_id'=>'50',),1=>array('id'=>'2','name'=>'Test2','surname'=>'tseT','personal_id'=>'30',),)"
+		))
 			echo ' [ OK ]'.PHP_EOL;
 		else
 		{
@@ -132,7 +237,10 @@
 		}
 
 	echo ' -> Dumping table';
-		if(str_replace(["\n", ' '], '', var_export($pdo_cheat->dump_table(), true)) === "array(0=>array('id'=>'1','name'=>'Test1','surname'=>'tseT','personal_id'=>'50',),1=>array('id'=>'2','name'=>'Test2','surname'=>'tseT','personal_id'=>'30',),)")
+		if(var_export_contains(
+			$pdo_cheat->dump_table(),
+			"array(0=>array('id'=>'1','name'=>'Test1','surname'=>'tseT','personal_id'=>'50',),1=>array('id'=>'2','name'=>'Test2','surname'=>'tseT','personal_id'=>'30',),)"
+		))
 			echo ' [ OK ]'.PHP_EOL;
 		else
 		{
@@ -141,7 +249,10 @@
 		}
 
 	echo ' -> Dumping schema';
-		if(str_replace(["\n", ' '], '', var_export($pdo_cheat->dump_schema(), true)) === "array('id'=>'id','name'=>'name','surname'=>'surname','personal_id'=>'personal_id',)")
+		if(var_export_contains(
+			$pdo_cheat->dump_schema(),
+			"array('id'=>'id','name'=>'name','surname'=>'surname','personal_id'=>'personal_id',)"
+		))
 			echo ' [ OK ]'.PHP_EOL;
 		else
 		{
@@ -153,7 +264,10 @@
 		$pdo_cheat->delete_row()
 			->name('Test1')
 			->delete_row();
-		if(str_replace(["\n", ' '], '', var_export($pdo_handler->query('SELECT * FROM test_table')->fetchAll(PDO::FETCH_NAMED), true)) === "array(0=>array('id'=>'2','name'=>'Test2','surname'=>'tseT','personal_id'=>'30',),)")
+		if(var_export_contains(
+			$pdo_handler->query('SELECT * FROM pdo_cheat_test_table')->fetchAll(PDO::FETCH_NAMED),
+			"array(0=>array('id'=>'2','name'=>'Test2','surname'=>'tseT','personal_id'=>'30',),)"
+		))
 			echo ' [ OK ]'.PHP_EOL;
 		else
 		{
@@ -168,7 +282,10 @@
 			->surname('tseT')
 			->personal_id(20)
 			->save_row();
-		if(str_replace(["\n", ' '], '', var_export($pdo_handler->query('SELECT * FROM test_table')->fetchAll(PDO::FETCH_NAMED), true)) === "array(0=>array('id'=>'3','name'=>'Test1','surname'=>'tseT','personal_id'=>'20',),)")
+		if(var_export_contains(
+			$pdo_handler->query('SELECT * FROM pdo_cheat_test_table')->fetchAll(PDO::FETCH_NAMED),
+			"array(0=>array('id'=>'3','name'=>'Test1','surname'=>'tseT','personal_id'=>'20',),)"
+		))
 			echo ' [ OK ]'.PHP_EOL;
 		else
 		{
@@ -178,7 +295,7 @@
 
 	echo ' -> Dropping table';
 		$pdo_cheat->clear_table()->drop_table();
-		if($pdo_handler->query('SELECT * FROM test_table') === false)
+		if($pdo_handler->query('SELECT * FROM pdo_cheat_test_table') === false)
 			echo ' [ OK ]'.PHP_EOL;
 		else
 		{

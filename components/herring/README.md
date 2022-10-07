@@ -13,6 +13,11 @@ Device for tracking users
 * `has_php_close_tag.php` (for tests)
 * `include_into_namespace.php` (for tests)
 
+## Supported databases
+* PostgreSQL
+* MySQL
+* SQLite3
+
 ## Methods
 * `add()`  
 	add a record to the database
@@ -66,7 +71,6 @@ Device for tracking users
 	arguments: `$cookie_name, $cookie_value`
 
 ## How it works
-This device works with PDO interface and databases: SQLite3, MySQL and PostgreSQL (other databases have not been tested).  
 Herring works on two tables: visitors and archive.  
 The latest logs are loaded into the visitors table.  
 The archive table contains entries older than n days, processed and ready for dump or report generation.  

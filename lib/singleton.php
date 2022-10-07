@@ -2,11 +2,11 @@
 	trait singleton
 	{
 		/*
-		 * Each time you use a singleton, one little kitten dies.
-		 * Don't be indifferent - pets need love too.
+		 * Each time you use a singleton, one little kitten dies
+		 * Don't be indifferent - pets need love too
 		 *
 		 * Usage:
-		    class my_singleton
+			class my_singleton
 			{
 				use singleton;
 
@@ -26,7 +26,7 @@
 			$my_singleton_object_b->my_method();
 		 * or you can use getInstance() if you prefer camelCase
 		 *
-		 * Note: the "final" keyword for methods is prepared if you want to change this trait to an abstract class.
+		 * Note: the "final" keyword for methods is prepared if you want to change this trait to an abstract class
 		 */
 
 		protected static $instance=null;

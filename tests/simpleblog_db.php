@@ -7,15 +7,21 @@
 	 *
 	 * Warning:
 	 *  rmdir_recursive.php library is required
+	 *  var_export_contains.php library is required
 	 */
 
-	echo ' -> Including rmdir_recursive.php';
-		if(@(include __DIR__.'/../lib/rmdir_recursive.php') === false)
-		{
-			echo ' [FAIL]'.PHP_EOL;
-			exit(1);
-		}
-	echo ' [ OK ]'.PHP_EOL;
+	foreach([
+		'rmdir_recursive.php',
+		'var_export_contains.php'
+	] as $library){
+		echo ' -> Including '.$library;
+			if(@(include __DIR__.'/../lib/'.$library) === false)
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				exit(1);
+			}
+		echo ' [ OK ]'.PHP_EOL;
+	}
 
 	echo ' -> Including '.basename(__FILE__);
 		if(@(include __DIR__.'/../lib/'.basename(__FILE__)) === false)
@@ -139,7 +145,10 @@
 			}
 
 		echo '  -> find';
-			if(str_replace(["\n", ' '], '', var_export($db->find('subrecord/subrecord_name_BULK'), true)) === "array(0=>'sample-record-bulk/subrecord/subrecord_name_BULK',)")
+			if(var_export_contains(
+				$db->find('subrecord/subrecord_name_BULK'),
+				"array(0=>'sample-record-bulk/subrecord/subrecord_name_BULK',)"
+			))
 				echo ' [ OK ]'.PHP_EOL;
 			else
 			{
@@ -162,8 +171,14 @@
 
 		echo '  -> list';
 			if(
-				(str_replace(["\n", ' '], '', var_export($db->list(), true)) === "array(0=>'sample-record-bulk',1=>'renamed-record',)") ||
-				(str_replace(["\n", ' '], '', var_export($db->list(), true)) === "array(0=>'renamed-record',1=>'sample-record-bulk',)")
+				var_export_contains(
+					$db->list(),
+					"array(0=>'sample-record-bulk',1=>'renamed-record',)"
+				) ||
+				var_export_contains(
+					$db->list(),
+					"array(0=>'renamed-record',1=>'sample-record-bulk',)"
+				)
 			)
 				echo ' [ OK ]'.PHP_EOL;
 			else

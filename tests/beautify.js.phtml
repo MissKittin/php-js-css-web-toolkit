@@ -20,8 +20,8 @@
 			document.addEventListener('DOMContentLoaded', function(){
 				<?php include __DIR__.'/../lib/'.basename(__FILE__, '.phtml'); ?>
 
-				beautify('ass', '@$$');
-				beautify('cunt', ['c*t', 'c***', '@#$%']);
+				beautify(document.body, 'ass', '@$$');
+				beautify(document.body, 'cunt', ['c*t', 'c***', '@#$%']);
 			});
 		</script>
 	</head>

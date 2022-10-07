@@ -60,15 +60,16 @@
 		exit(1);
 	}
 
-	foreach(new RecursiveIteratorIterator(new RecursiveDirectoryIterator($input_directory, RecursiveDirectoryIterator::SKIP_DOTS)) as $asset)
-	{
-		$file_extension=pathinfo($asset, PATHINFO_EXTENSION);
-		switch($file_extension)
+	foreach(new RecursiveIteratorIterator(
+		new RecursiveDirectoryIterator($input_directory, RecursiveDirectoryIterator::SKIP_DOTS)
+	) as $asset)
+		switch(pathinfo($asset, PATHINFO_EXTENSION))
 		{
 			case 'css':
 				if($minify_styles)
 				{
 					echo 'Processing '.$asset.PHP_EOL;
+
 					try {
 						if(file_put_contents(
 							$asset,
@@ -87,6 +88,7 @@
 				if($minify_scripts)
 				{
 					echo 'Processing '.$asset.PHP_EOL;
+
 					try {
 						if(file_put_contents(
 							$asset,
@@ -100,7 +102,5 @@
 						echo ' failed: '.$error->getMessage().PHP_EOL;
 					}
 				}
-			break;
 		}
-	}
 ?>

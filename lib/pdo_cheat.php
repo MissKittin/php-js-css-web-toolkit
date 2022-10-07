@@ -4,7 +4,10 @@
 	 *
 	 * Warning:
 	 *  all classes are interdependent
-	 *  this library is not idiot-proof
+	 *
+	 * Supported databases:
+	 *  MySQL
+	 *  SQLite3
 	 *
 	 * Usage/Examples:
 	 *  Creating the pdo_cheat handler:
@@ -146,12 +149,7 @@
 			if($result === false)
 				return false;
 
-			$result=$result->execute($parameters);
-
-			if($result === false)
-				return false;
-
-			return true;
+			return $result->execute($parameters);
 		}
 		protected function query($statement)
 		{
@@ -177,7 +175,7 @@
 
 	class pdo_cheat extends pdo_cheat__exec
 	{
-		const default_id_type='INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL';
+		const default_id_type='_PDO_CHEAT__DEFAULT_ID_TYPE';
 
 		protected $table_schema=[];
 
@@ -190,6 +188,12 @@
 			foreach(['pdo_handler', 'table_name'] as $param)
 				if(isset($params[$param]))
 					$this->$param=$params[$param];
+
+			if(!in_array(
+				$this->pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME),
+				['pgsql', 'mysql', 'sqlite']
+			))
+				throw new Exception($this->pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME).' driver is not supported');
 
 			if(isset($params['table_schema']))
 				foreach($params['table_schema'] as $column_name)
@@ -209,7 +213,22 @@
 						$table_schema='';
 
 						foreach($params['new_table_schema'] as $column_name=>$column_type)
+						{
+							if($column_type === pdo_cheat::default_id_type)
+								switch($this->pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME))
+								{
+									case 'pgsql':
+										$column_type='SERIAL PRIMARY KEY';
+									break;
+									case 'mysql':
+										$column_type='INTEGER NOT NULL AUTO_INCREMENT, PRIMARY KEY('.$column_name.')';
+									break;
+									case 'sqlite':
+										$column_type='INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL';
+								}
+
 							$table_schema.=$column_name.' '.$column_type.', ';
+						}
 
 						$table_schema=substr($table_schema, 0, -2);
 
@@ -345,18 +364,31 @@
 			$statement='';
 
 			foreach($this->table_schema as $column_name=>$column_type)
+			{
+				if($column_type === pdo_cheat::default_id_type)
+					switch($this->pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME))
+					{
+						case 'pgsql':
+							$column_type='SERIAL PRIMARY KEY';
+						break;
+						case 'mysql':
+							$column_type='INTEGER NOT NULL AUTO_INCREMENT, PRIMARY KEY('.$column_name.')';
+						break;
+						case 'sqlite':
+							$column_type='INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL';
+					}
+
 				$statement.=$column_name.' '.$column_type.', ';
+			}
 
 			$statement=substr($statement, 0, -2);
 
-			$result=$this->exec(''
+			if($this->exec(''
 			.	'CREATE TABLE IF NOT EXISTS '.$this->table_name
 			.	'('
 			.		$statement
 			.	')'
-			);
-
-			if($result === false)
+			) === false)
 				return false;
 
 			$this->pdo_cheat->_pdo_cheat__save_table_schema($this->table_schema);
@@ -387,9 +419,7 @@
 		}
 		public function drop_table()
 		{
-			$result=$this->exec('DROP TABLE '.$this->table_name);
-
-			if($result === false)
+			if($this->exec('DROP TABLE '.$this->table_name) === false)
 				return false;
 
 			$this->pdo_cheat->_pdo_cheat__clear_table_schema();
@@ -594,8 +624,6 @@
 			{
 				if(isset($this->table_row[$column_name]))
 					return $this->table_row[$column_name];
-
-				return null;
 			}
 		}
 

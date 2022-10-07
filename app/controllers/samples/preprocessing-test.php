@@ -33,8 +33,7 @@
 	$view['cache_created']=false;
 	if(!file_exists('./var/lib/preprocessing-test.php'))
 	{
-		@mkdir('./var');
-		@mkdir('./var/lib');
+		@mkdir('./var/lib', 0777, true);
 
 		$cache_object=new preprocessed_cache('./var/lib/preprocessing-test.php');
 

@@ -43,6 +43,9 @@
 	 *   and on_check_fail is used to log validation errors
 	 *    eg function($message){ error_log('sec_login.php: '.$message); }
 	 *   if(is_logged()) { do logged stuff } else { do not logged stuff }
+	 *
+	 *  string2bcrypt(string_password)
+	 *   convert string to bcrypt hash
 	 */
 
 	function login_single(
@@ -183,5 +186,9 @@
 		}
 
 		return false;
+	}
+	function string2bcrypt(string $string)
+	{
+		return password_hash($string, PASSWORD_BCRYPT);
 	}
 ?>

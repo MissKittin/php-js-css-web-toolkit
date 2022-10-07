@@ -63,9 +63,9 @@
 	}
 
 	echo ' -> Creating client test directory';
-			@mkdir(__DIR__.'/tmp/curl_file_updown/client');
-			file_put_contents(__DIR__.'/tmp/curl_file_updown/client/file-to-be-uploaded.txt', 'upload me');
-		echo ' [ OK ]'.PHP_EOL;
+		@mkdir(__DIR__.'/tmp/curl_file_updown/client');
+		file_put_contents(__DIR__.'/tmp/curl_file_updown/client/file-to-be-uploaded.txt', 'upload me');
+	echo ' [ OK ]'.PHP_EOL;
 
 	$failed=false;
 

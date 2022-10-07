@@ -1,7 +1,7 @@
 <!DOCTYPE html>
-<html lang="pl">
+<html lang="pl-PL">
 	<head>
-		<title>HTTP 400 - Bad Request</title>
+		<title>HTTP 400 - Niewłaściwe żądanie</title>
 		<meta charset="utf-8">
 		<meta http-equiv="Content-Security-Policy" content="
 			default-src 'none';
@@ -17,6 +17,7 @@
 			img-src data:;
 		">
 		<meta name="robots" content="noindex,nofollow">
+		<meta name="viewport" content="width=device-width,initial-scale=1">
 		<style>
 			body {
 				color: #000000;
@@ -79,25 +80,25 @@
 					<img alt="i" src="data:image/bmp;base64,Qk3yAwAAAAAAAFYAAAAoAAAAGQAAACEAAAABAAgAAAAAAJwDAAAAAAAAAAAAAAgAAAAIAAAA////AMzMzACAgIAA/wAAAAAAAAAAAAAAAAAAAAAAAAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEAAYAAgEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBBABDAAIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQQA3QACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEEAOIAAgAAAAAAAAAAAAAAAAAAAAAAAAAAAAABBAFaAQIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQQABAACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEEAAQAAgAAAAAAAAAAAAAAAAAAAAAAAAAAAAABBAFaAQIAAAAAAAAAAwMDAwMDAwMDAAAAAAAAAQQABAACAAAAAAAAAAABAwMDAwMBAAAAAAAAAAEEAVoBAgAAAAAAAAAAAAMDAwMDAAAAAAAAAAABBIAuggIAAAAAAAAAAAADAwMDAwAAAAAAAAAAAQSALoICAAAAAAAAAAAAAwMDAwMAAAAAAAAAAAEE1N0AAgAAAAAAAAAAAAMDAwMDAAAAAAAAAAABBHdxdwIAAAAAAAAAAAADAwMDAwAAAAAAAAAAAQR3d3cCAAAAAAAAAAABAwMDAwMAAAAAAAAAAAEE3d3QAgAAAAAAAAADAwMDAwMDAAAAAAAAAAABBN3d3QIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQQHtwcCAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEE3d3dAgAAAAAAAAAAAQIDAwIBAAAAAAAAAAABBAAN0AIAAAAAAAAAAAIDAwMDAgAAAAAAAAAAAQTd3dQCAAAAAAAAAAACAwMDAwIAAAAAAAAAAAEEd3d3AgAAAAAAAAAAAQIDAwIBAAAAAAAAAAABBITQDQIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQR3cXcCAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEEcNDXAgAAAAAAAAAAAAAAAAAAAAAAAAAAAAABBETd0AIAAAAAAAAAAAAAAAAAAAAAAAQEBAQEBAR3d3cCAAAAAAAAAAAAAAAAAAAAAAACAAABAgQAR3F3AgAAAAAAAAAAAAAAAAAAAAAAAgABAgQAALe3twIAAAAAAAAAAAAAAAAAAAAAAAIBAgQAAABN3dACAAAAAAAAAAAAAAAAAAAAAAACAgQAAAAARN1NAgAAAAAAAAAAAAAAAAAAAAAAAgQAAAAAAAAAAAICAgICAgICAgICAgICAgICAgIAAAAAAADYTQA=">
 				</td>
 				<td id="td_header">
-					<h1>The page cannot be found</h1>
+					<h1>Nie można odnaleźć strony</h1>
 				</td>
 			</tr>
 			<tr>
 				<td colspan="2">
-					The page you are looking for might have been removed, had its name changed, or is temporarily unavailable.
+					Strona, której szukasz, mogła zostać usunięta, zmieniono jej nazwę lub jest tymczasowo niedostępna.
 				</td>
 			</tr>
 			<tr>
 				<td colspan="2">
 					<hr>
-					<p id="try_steps">Please try the following:</p>
+					<p id="try_steps">Spróbuj wykonać następujące zadania:</p>
 					<ul>
-						<li>If you typed the page address in the Address bar, make sure that it is spelled correctly.<br></li>
-						<li>Open the <a href="/"><?php echo $_SERVER['HTTP_HOST']; ?></a> home page, and then look for links to the information you want.</li>
-						<li>Click the <a href="javascript:history.back(1)"><img id="img_back" alt="back" src="data:image/bmp;base64,Qk3+AAAAAAAAAD4AAAAoAAAADAAAABAAAAABAAgAAAAAAMAAAAAAAAAAAAAAAAIAAAACAAAA////AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAABAQAAAAAAAAAAAAEAAQAAAAAAAAAAAQAAAQEBAQEBAQEBAAAAAAAAAAAAAAEBAAAAAAAAAAAAAAEAAQAAAQEBAQEBAQEAAAEAAQAAAAAAAAAAAAABAQAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="> Back</a> button to try another link.</li>
+						<li>Jeśli adres strony został wpisany na pasku adresu, upewnij się, czy jest on wpisany poprawnie.<br></li>
+						<li>Otwórz stronę główną <a href="/"><?php echo $_SERVER['HTTP_HOST']; ?></a> i poszukaj tam łączy do potrzebnych informacji.</li>
+						<li>Kliknij przycisk <a href="javascript:history.back(1)"><img id="img_back" alt="back" src="data:image/bmp;base64,Qk3+AAAAAAAAAD4AAAAoAAAADAAAABAAAAABAAgAAAAAAMAAAAAAAAAAAAAAAAIAAAACAAAA////AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAABAQAAAAAAAAAAAAEAAQAAAAAAAAAAAQAAAQEBAQEBAQEBAAAAAAAAAAAAAAEBAAAAAAAAAAAAAAEAAQAAAQEBAQEBAQEAAAEAAQAAAAAAAAAAAAABAQAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="> Wstecz</a>, aby wypróbować inne łącze.</li>
 					</ul>
 					<p><br></p>
-					<h2>HTTP 400 - Bad Request</h2>
+					<h2>HTTP 400 - Niewłaściwe żądanie</h2>
 				</td>
 			</tr>
 		</table>

@@ -1,6 +1,7 @@
 <?php
 	/*
 	 * Interface for cron.php library
+	 * For more info, see cron.php library
 	 *
 	 * Warning:
 	 *  check_var.php library is required
@@ -49,24 +50,27 @@
 		exit(1);
 	}
 
-	$__cron_tab=check_argv_next_param('--crontab');
-	$__cron_timestamps=check_argv_next_param('--timestamps');
-	$__cron_functions=check_argv_next_param('--functions');
+	$_cron_tab=check_argv_next_param('--crontab');
+	$_cron_timestamps=check_argv_next_param('--timestamps');
+	$_cron_functions=check_argv_next_param('--functions');
 
-	$__cron_boot=true;
+	$_cron_boot=true;
 	if(check_argv('--no-boot'))
-		$__cron_boot=false;
+		$_cron_boot=false;
 
-	$__cron_once=false;
+	$_cron_once=false;
 	if(check_argv('--once'))
-		$__cron_once=true;
+		$_cron_once=true;
 
-	$__debug=false;
+	$_debug=false;
 	if(check_argv('--debug'))
-		$__debug=true;
+		$_debug=true;
 
 	if(
-		(($__cron_tab === null) && ($__cron_timestamps === null)) ||
+		(
+			($_cron_tab === null) &&
+			($_cron_timestamps === null)
+		) ||
 		check_argv('--help') ||
 		check_argv('-h')
 	){
@@ -84,23 +88,23 @@
 		exit(1);
 	}
 
-	if((!$__cron_once) && (!extension_loaded('pcntl')))
+	if((!$_cron_once) && (!extension_loaded('pcntl')))
 	{
 		echo 'pcntl extension is not loaded'.PHP_EOL;
 		exit(1);
 	}
 
-	if($__cron_functions !== null)
+	if($_cron_functions !== null)
 	{
-		if(!file_exists($__cron_functions))
+		if(!file_exists($_cron_functions))
 		{
-			echo $__cron_functions.' not exists'.PHP_EOL;
+			echo $_cron_functions.' not exists'.PHP_EOL;
 			exit(1);
 		}
 
-		if((include $__cron_functions) === false)
+		if((include $_cron_functions) === false)
 		{
-			echo $__cron_functions.' inclusion error'.PHP_EOL;
+			echo $_cron_functions.' inclusion error'.PHP_EOL;
 			exit(1);
 		}
 	}
@@ -111,125 +115,125 @@
 	if((!isset($debug_callback)) || (!is_callable($debug_callback)))
 		$debug_callback=function(){};
 
-	if($__cron_boot && ($__cron_tab !== null))
+	if($_cron_boot && ($_cron_tab !== null))
 		try {
-			if($__debug)
+			if($_debug)
 				$debug_callback('Executing cron()');
 
 			cron([
-				'crontab'=>$__cron_tab,
+				'crontab'=>$_cron_tab,
 				'directory'=>'boot',
-				'debug'=>$__debug,
+				'debug'=>$_debug,
 				'log_callback'=>$log_callback,
 				'debug_callback'=>$debug_callback
 			]);
 
-			if($__debug)
+			if($_debug)
 				$debug_callback('cron() done');
 		} catch(Exception $error) {
 			$log_callback('Error: '.$error->getMessage());
 		}
 	else
-		if($__debug)
+		if($_debug)
 			$debug_callback('--no-boot applied or --crontab not specified');
 
-	if($__cron_once)
+	if($_cron_once)
 	{
-		if($__debug)
+		if($_debug)
 			$debug_callback('--once enabled');
 
 		try {
-			if($__cron_tab !== null)
+			if($_cron_tab !== null)
 			{
-				if($__debug)
+				if($_debug)
 					$debug_callback('Executing cron()');
 
 				cron([
-					'crontab'=>$__cron_tab,
-					'debug'=>$__debug,
+					'crontab'=>$_cron_tab,
+					'debug'=>$_debug,
 					'log_callback'=>$log_callback,
 					'debug_callback'=>$debug_callback
 				]);
 
-				if($__debug)
+				if($_debug)
 					$debug_callback('cron() done');
 			}
 
-			if($__cron_timestamps !== null)
+			if($_cron_timestamps !== null)
 			{
-				if($__debug)
+				if($_debug)
 					$debug_callback('Executing cron_timestamp()');
 
 				cron_timestamp([
-					'tasks'=>$__cron_timestamps,
-					'debug'=>$__debug,
+					'tasks'=>$_cron_timestamps,
+					'debug'=>$_debug,
 					'log_callback'=>$log_callback,
 					'debug_callback'=>$debug_callback
 				]);
 
-				if($__debug)
+				if($_debug)
 					$debug_callback('cron_timestamp() done');
 			}
 		} catch(Exception $error) {
 			$log_callback('Error: '.$error->getMessage());
 		}
 
-		if($__debug)
+		if($_debug)
 			$debug_callback('Exiting');
 
 		exit();
 	}
 
-	$GLOBALS['__children_pids']=[];
+	$GLOBALS['_children_pids']=[];
 	declare(ticks=1);
 	pcntl_signal(SIGCHLD, function($signal){
 		if($signal === SIGCHLD)
-			foreach($GLOBALS['__children_pids'] as $pid)
+			foreach($GLOBALS['_children_pids'] as $pid)
 				if(pcntl_waitpid($pid, $status, WNOHANG|WUNTRACED) !== 0)
-					unset($GLOBALS['__children_pids'][$pid]);
+					unset($GLOBALS['_children_pids'][$pid]);
 	});
 
 	while(true)
 	{
-		if($__debug)
+		if($_debug)
 			$debug_callback('Woke up');
 
-		$__child_pid=pcntl_fork();
+		$_child_pid=pcntl_fork();
 
-		if($__child_pid === -1)
+		if($_child_pid === -1)
 			$log_callback('Fork error');
-		else if($__child_pid === 0)
+		else if($_child_pid === 0)
 		{
 			try {
-				if($__cron_tab !== null)
+				if($_cron_tab !== null)
 				{
-					if($__debug)
+					if($_debug)
 						$debug_callback('Executing cron()');
 
 					cron([
-						'crontab'=>$__cron_tab,
-						'debug'=>$__debug,
+						'crontab'=>$_cron_tab,
+						'debug'=>$_debug,
 						'log_callback'=>$log_callback,
 						'debug_callback'=>$debug_callback
 					]);
 
-					if($__debug)
+					if($_debug)
 						$debug_callback('cron() done');
 				}
 
-				if($__cron_timestamps !== null)
+				if($_cron_timestamps !== null)
 				{
-					if($__debug)
+					if($_debug)
 						$debug_callback('Executing cron_timestamp()');
 
 					cron_timestamp([
-						'tasks'=>$__cron_timestamps,
-						'debug'=>$__debug,
+						'tasks'=>$_cron_timestamps,
+						'debug'=>$_debug,
 						'log_callback'=>$log_callback,
 						'debug_callback'=>$debug_callback
 					]);
 
-					if($__debug)
+					if($_debug)
 						$debug_callback('cron_timestamp() done');
 				}
 			} catch(Exception $error) {
@@ -240,27 +244,27 @@
 			exit();
 		}
 		else
-			$GLOBALS['__children_pids'][$__child_pid]=$__child_pid;
+			$GLOBALS['_children_pids'][$_child_pid]=$_child_pid;
 
-		for($__sleep=60; $__sleep>0; --$__sleep)
-			if(!empty($GLOBALS['__children_pids']))
+		for($_sleep=60; $_sleep>0; --$_sleep)
+			if(!empty($GLOBALS['_children_pids']))
 			{
-				if($__debug)
-					$debug_callback('Waiting for children: '.$__sleep);
+				if($_debug)
+					$debug_callback('Waiting for children: '.$_sleep);
 
 				sleep(1);
 			}
 			else
 				break;
 
-		if($__sleep !== 0)
+		if($_sleep !== 0)
 		{
-			++$__sleep;
+			++$_sleep;
 
-			if($__debug)
-				$debug_callback('Child processes terminated, waiting '.$__sleep.' seconds');
+			if($_debug)
+				$debug_callback('Child processes terminated, waiting '.$_sleep.' seconds');
 
-			sleep($__sleep);
+			sleep($_sleep);
 		}
 	}
 ?>

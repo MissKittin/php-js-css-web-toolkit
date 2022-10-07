@@ -34,6 +34,10 @@
 				{
 					return OriginalDate.parse(...args);
 				}
+				Date.now=function()
+				{
+					return timestamp;
+				}
 
 				document.body.innerHTML+='Testing checkDate<br>';
 				document.body.innerHTML+='&nbsp;one year<br>';

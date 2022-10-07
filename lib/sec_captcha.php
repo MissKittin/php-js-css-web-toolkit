@@ -5,19 +5,30 @@
 	 * Warning:
 	 *  captcha_check and captcha_get requires started session
 	 *  captcha_gd2 requires gd extension
-	 *  $_SESSION['_captcha_token'] is reserved
+	 *  captcha_imagick and captcha_imagick2 requires imagick extension
+	 *  $_SESSION['_captcha'] is reserved
 	 *
 	 * Functions:
 	 *  captcha_get('module_name', ['module_param_a', 'module_param_b'])
 	 *   where the second parameter is optional
 	 *   saves the token from the module and returns the image
 	 *   the module must return [string_token, bin_image]
+	 *  captcha_get_once('module_name', ['module_param_a', 'module_param_b'])
+	 *    additionally saves the image to the session to save cpu
+	 *    in case of wrongly given token
 	 *  captcha_check('captcha_token_from_user')
 	 *   checks if the token from the session is the same as that from the user
+	 *   note: removes the $_SESSION['_captcha'] array when the token is entered correctly
 	 *
 	 * Modules:
 	 *  captcha_gd2
-	 *   uses the GD2 extension to generate the captcha image
+	 *   uses GD2 to generate the captcha image
+	 *  captcha_imagick
+	 *   uses ImageMagick to generate the captcha image
+	 *   Imagick version of captcha_gd2
+	 *  captcha_imagick2
+	 *   A very primitive captcha implementation
+	 *   License: The PHP License, version 3.01
 	 *
 	 * Example code:
 		if((!isset($_POST['captcha'])) || (!captcha_check($_POST['captcha'])))
@@ -39,7 +50,7 @@
 		 * Warning:
 		 *  gd extension is required
 		 *
-		 * Usage: image_captcha(string_image_format)
+		 * Usage: captcha_gd2(string_image_format)
 		 *  where string_image_format is optional and can be bmp gif png or jpeg (default)
 		 *
 		 * Source: https://stackoverflow.com/questions/5274563/php-imagecreate-error
@@ -128,6 +139,142 @@
 
 		return [$token_string, $token_image];
 	}
+	function captcha_imagick(
+		string $encoding='jpeg',
+		string $token_image_font=null,
+		int $token_image_font_size=null
+	){
+		/*
+		 * Generates a token and a 100x20px image
+		 * Imagick version of captcha_gd2
+		 *
+		 * Warning:
+		 *  imagick extension is required
+		 *
+		 * Usage: captcha_imagick(string_image_format, string_token_font_name, int_token_font_size)
+		 *  where all args are optional
+		 *  and string_image_format can be bmp gif png or jpeg (default)
+		 */
+
+		if(!extension_loaded('imagick'))
+			throw new Exception('imagick extension is not loaded');
+
+		if(empty(Imagick::queryFonts()))
+			throw new Exception('Imagick::queryFonts - no fonts found');
+
+		$token_string=substr(md5(rand(0, 999)), 15, 5);
+
+		if($token_image_font === null)
+			$token_image_font=Imagick::queryFonts()[0];
+
+		$token_image=new Imagick();
+
+		$token_image_background=new ImagickPixel();
+		$token_image_background->setColor('black');
+
+		$token_image_foreground=new ImagickDraw();
+		$token_image_foreground->setFont($token_image_font);
+
+		if($token_image_font_size !== null)
+			$token_image_foreground->setFontSize($token_image_font_size);
+
+		$token_image_foreground->setFillColor('#ffffff');
+		$token_image_foreground->setFontWeight('600');
+
+		$token_image->newImage(98, 18, $token_image_background);
+		$token_image->annotateImage($token_image_foreground, 29, 13, 0, $token_string);
+
+		$token_image_foreground->line(50, 0, 50, 98);
+		$token_image_foreground->line(0, 10, 100, 10);
+
+		$token_image->borderImage('#ffffff', 1, 1);
+		$token_image->drawImage($token_image_foreground);
+
+		switch($encoding)
+		{
+			case 'bmp':
+				$token_image->setImageFormat('bmp');
+			break;
+			case 'gif':
+				$token_image->setImageFormat('gif');
+			break;
+			case 'png':
+				$token_image->setImageFormat('png');
+			break;
+			default:
+				$token_image->setImageFormat('jpg');
+		}
+
+		return [$token_string, $token_image];
+	}
+	function captcha_imagick2(
+		string $encoding='jpeg',
+		string $token_image_font=null,
+		int $token_image_font_size=20
+	){
+		/*
+		 * Generates a token and a 85x30px image
+		 *
+		 * Warning:
+		 *  imagick extension is required
+		 *
+		 * Usage: captcha_imagick(string_image_format, string_token_font_name, int_token_font_size)
+		 *  where all args are optional
+		 *  and string_image_format can be bmp gif png or jpeg (default)
+		 *
+		 * Source: https://github.com/Imagick/imagick/blob/master/examples/captcha.php
+		 * License: The PHP License, version 3.01
+		 */
+
+		if(!extension_loaded('imagick'))
+			throw new Exception('imagick extension is not loaded');
+
+		if(empty(Imagick::queryFonts()))
+			throw new Exception('Imagick::queryFonts - no fonts found');
+
+		$token_string=substr(md5(rand(0, 999)), 15, 5);
+
+		if($token_image_font === null)
+			$token_image_font=Imagick::queryFonts()[0];
+
+		$token_image=new Imagick();
+
+		$token_image_background=new ImagickPixel();
+		$token_image_background->setColor('#ffffff');
+
+		$token_image_foreground=new ImagickDraw();
+		$token_image_foreground->setFont($token_image_font);
+		$token_image_foreground->setFontSize($token_image_font_size);
+
+		$token_image->newImage(85, 30, $token_image_background);
+		$token_image->annotateImage($token_image_foreground, 4, 20, 0, $token_string);
+		$token_image->swirlImage(20);
+
+		$token_image_foreground->line(rand(0,70), rand(0,30), rand(0,70), rand(0,30));
+		$token_image_foreground->line(rand(0,70), rand(0,30), rand(0,70), rand(0,30));
+		$token_image_foreground->line(rand(0,70), rand(0,30), rand(0,70), rand(0,30));
+		$token_image_foreground->line(rand(0,70), rand(0,30), rand(0,70), rand(0,30));
+		$token_image_foreground->line(rand(0,70), rand(0,30), rand(0,70), rand(0,30));
+
+		$token_image->drawImage($token_image_foreground);
+
+		switch($encoding)
+		{
+			case 'bmp':
+				$token_image->setImageFormat('bmp');
+			break;
+			case 'gif':
+				$token_image->setImageFormat('gif');
+			break;
+			case 'png':
+				$token_image->setImageFormat('png');
+			break;
+			default:
+				$token_image->setImageFormat('jpg');
+		}
+
+		return [$token_string, $token_image];
+	}
 
 	function captcha_get(callable $module, array $module_params=[])
 	{
@@ -135,20 +282,30 @@
 			throw new Exception('Session not started');
 
 		$captcha=call_user_func_array($module, $module_params);
-		$_SESSION['_captcha_token']=$captcha[0];
+		$_SESSION['_captcha']['token']=$captcha[0];
 
 		return $captcha[1];
+	}
+	function captcha_get_once(callable $module, array $module_params=[])
+	{
+		if(!isset($_SESSION['_captcha']['image']))
+			$_SESSION['_captcha']['image']=captcha_get($module, $module_params);
+
+		return $_SESSION['_captcha']['image'];
 	}
 	function captcha_check(string $input_token)
 	{
 		if(session_status() !== PHP_SESSION_ACTIVE)
 			throw new Exception('Session not started');
 
-		if(!isset($_SESSION['_captcha_token']))
-			throw new Excaption('Run captcha_get() first');
+		if(!isset($_SESSION['_captcha']['token']))
+			throw new Excaption('Run captcha_get() or captcha_get_once() first');
 
-		if($_SESSION['_captcha_token'] === $input_token)
+		if($_SESSION['_captcha']['token'] === $input_token)
+		{
+			unset($_SESSION['_captcha']);
 			return true;
+		}
 
 		return false;
 	}

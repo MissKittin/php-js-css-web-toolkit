@@ -20,7 +20,7 @@
 			document.addEventListener('DOMContentLoaded', function(){
 				<?php include __DIR__.'/../lib/'.basename(__FILE__, '.phtml'); ?>
 
-				enableTabOnTextarea('example_textarea');
+				enableTabOnTextarea(document.getElementById('example_textarea'));
 			});
 		</script>
 	</head>

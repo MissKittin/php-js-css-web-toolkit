@@ -4,7 +4,18 @@
 	 *
 	 * Note:
 	 *  looks for a library at ../lib
+	 *
+	 * Warning:
+	 *  var_export_contains.php library is required
 	 */
+
+	echo ' -> Including var_export_contains.php';
+		if(@(include __DIR__.'/../lib/var_export_contains.php') === false)
+		{
+			echo ' [FAIL]'.PHP_EOL;
+			exit(1);
+		}
+	echo ' [ OK ]'.PHP_EOL;
 
 	echo ' -> Including '.basename(__FILE__);
 		if(@(include __DIR__.'/../lib/'.basename(__FILE__)) === false)
@@ -71,7 +82,10 @@
 			$GLOBALS['superclosure_meta_executed']=true;
 		});
 	echo '  -> get_closure_vars';
-		if(str_replace(["\n", ' '], '', var_export($superclosure_meta->get_closure_vars(), true)) === "array('use_var'=>'use_var_value',)")
+		if(var_export_contains(
+			$superclosure_meta->get_closure_vars(),
+			"array('use_var'=>'use_var_value',)"
+		))
 			echo ' [ OK ]'.PHP_EOL;
 		else
 		{

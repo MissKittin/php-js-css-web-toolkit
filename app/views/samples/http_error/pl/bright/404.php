@@ -1,7 +1,7 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pl-PL">
 	<head>
-		<title>The address does not exist</title>
+		<title>Adres nie istnieje</title>
 		<meta charset="utf-8">
 		<meta http-equiv="Content-Security-Policy" content="
 			default-src 'none';
@@ -17,6 +17,7 @@
 			img-src data:;
 		">
 		<meta name="robots" content="noindex,nofollow">
+		<meta name="viewport" content="width=device-width,initial-scale=1">
 		<style>
 			body {
 				color: #000000;
@@ -79,28 +80,28 @@
 					<img alt="i" src="data:image/bmp;base64,Qk3yAwAAAAAAAFYAAAAoAAAAGQAAACEAAAABAAgAAAAAAJwDAAAAAAAAAAAAAAgAAAAIAAAA////AMzMzACAgIAA/wAAAAAAAAAAAAAAAAAAAAAAAAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEAAYAAgEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBBABDAAIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQQA3QACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEEAOIAAgAAAAAAAAAAAAAAAAAAAAAAAAAAAAABBAFaAQIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQQABAACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEEAAQAAgAAAAAAAAAAAAAAAAAAAAAAAAAAAAABBAFaAQIAAAAAAAAAAwMDAwMDAwMDAAAAAAAAAQQABAACAAAAAAAAAAABAwMDAwMBAAAAAAAAAAEEAVoBAgAAAAAAAAAAAAMDAwMDAAAAAAAAAAABBIAuggIAAAAAAAAAAAADAwMDAwAAAAAAAAAAAQSALoICAAAAAAAAAAAAAwMDAwMAAAAAAAAAAAEE1N0AAgAAAAAAAAAAAAMDAwMDAAAAAAAAAAABBHdxdwIAAAAAAAAAAAADAwMDAwAAAAAAAAAAAQR3d3cCAAAAAAAAAAABAwMDAwMAAAAAAAAAAAEE3d3QAgAAAAAAAAADAwMDAwMDAAAAAAAAAAABBN3d3QIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQQHtwcCAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEE3d3dAgAAAAAAAAAAAQIDAwIBAAAAAAAAAAABBAAN0AIAAAAAAAAAAAIDAwMDAgAAAAAAAAAAAQTd3dQCAAAAAAAAAAACAwMDAwIAAAAAAAAAAAEEd3d3AgAAAAAAAAAAAQIDAwIBAAAAAAAAAAABBITQDQIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQR3cXcCAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEEcNDXAgAAAAAAAAAAAAAAAAAAAAAAAAAAAAABBETd0AIAAAAAAAAAAAAAAAAAAAAAAAQEBAQEBAR3d3cCAAAAAAAAAAAAAAAAAAAAAAACAAABAgQAR3F3AgAAAAAAAAAAAAAAAAAAAAAAAgABAgQAALe3twIAAAAAAAAAAAAAAAAAAAAAAAIBAgQAAABN3dACAAAAAAAAAAAAAAAAAAAAAAACAgQAAAAARN1NAgAAAAAAAAAAAAAAAAAAAAAAAgQAAAAAAAAAAAICAgICAgICAgICAgICAgICAgIAAAAAAADYTQA=">
 				</td>
 				<td id="td_header">
-					<h1>The page cannot be displayed</h1>
+					<h1>Nie można wyświetlić strony</h1>
 				</td>
 			</tr>
 			<tr>
 				<td colspan="2">
-					The page you are looking for is currently unavailable. <!-- mod -->This address does not exist.<!-- /mod -->
+					Strona której szukasz jest w tej chwili niedostępna. <!-- mod -->Taki adres nie istnieje.<!-- /mod -->
 				</td>
 			</tr>
 			<tr>
 				<td colspan="2">
 					<hr>
-					<p id="try_steps">Please try the following:</p>
+					<p id="try_steps">Spróbuj wykonać następujące zadania:</p>
 					<ul>
-						<li>Click the <a href="javascript:location.reload()" target="_self"><img id="img_refresh" src="data:image/bmp;base64,Qk1GAQAAAAAAAEYAAAAoAAAADQAAABAAAAABAAgAAAAAAAABAAAAAAAAAAAAAAQAAAAEAAAA////AICAgAAAAAAAAAAAAAICAgICAgICAgICAgIANAACAAAAAAAAAAAAAAACAEEAAgAAAAAAAQAAAAAAAgAEAAIAAAAAAQEAAAAAAAIABAACAAAAAQEBAQEAAAACAAIAAgAAAAABAQAAAQAAAgDeAAIAAAAAAAEAAAEAAAIA4gACAAABAAAAAAABAAACAAYAAgAAAQAAAQAAAAAAAgGxAQIAAAEAAAEBAAAAAAIBWgECAAAAAQEBAQEAAAACAFoBAgAAAAAAAQEAAAAAAgCxAQIAAAAAAAEAAAICAgIBsQECAAAAAAAAAAACAAIAAVoBAgAAAAAAAAAAAgIAAABUAAICAgICAgICAgIAAAABDAE=" alt="refresh.bmp (82 bytes)"></a> <a href="javascript:location.reload()" target="_self">Refresh</a> button, <!-- mod -->but it won't help you anyway<!-- /mod -->.<br></li>
-						<li>If you typed the page address in the Address bar, make sure that it is spelled correctly.<br></li>
-						<li>To check your connection settings, click the <b>Tools</b> menu, and then click <b>Internet Options</b>. On the <b>Connections</b> tab, click <b>Settings</b>. The settings should match those provided by your local area network (LAN) administrator or Internet service provider (ISP).</li>
-						<li>Some sites require 128-bit connection security. Click the <b>Help</b>, menu and then click <b><!-- mod -->About Internal Exploiter<!-- /mod --></b>, to determine what strength security you have installed.</li>
-						<li>If you are trying to reach a secure site, make sure your Security settings can support it. Click the <B>Tools</b> menu, and then click <b>Internet Options</b>. On the Advanced tab, scroll to the Security section and check settings for SSL 2.0, SSL 3.0, TLS 1.0, PCT 1.0.</li>
-						<li>Click the <a href="javascript:history.back(1)"><img id="img_back" alt="back" src="data:image/bmp;base64,Qk3+AAAAAAAAAD4AAAAoAAAADAAAABAAAAABAAgAAAAAAMAAAAAAAAAAAAAAAAIAAAACAAAA////AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAABAQAAAAAAAAAAAAEAAQAAAAAAAAAAAQAAAQEBAQEBAQEBAAAAAAAAAAAAAAEBAAAAAAAAAAAAAAEAAQAAAQEBAQEBAQEAAAEAAQAAAAAAAAAAAAABAQAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="> Back</a> button to try another link.</li>
+						<li>Kliknij przycisk <a href="javascript:location.reload()" target="_self"><img id="img_refresh" src="data:image/bmp;base64,Qk1GAQAAAAAAAEYAAAAoAAAADQAAABAAAAABAAgAAAAAAAABAAAAAAAAAAAAAAQAAAAEAAAA////AICAgAAAAAAAAAAAAAICAgICAgICAgICAgIANAACAAAAAAAAAAAAAAACAEEAAgAAAAAAAQAAAAAAAgAEAAIAAAAAAQEAAAAAAAIABAACAAAAAQEBAQEAAAACAAIAAgAAAAABAQAAAQAAAgDeAAIAAAAAAAEAAAEAAAIA4gACAAABAAAAAAABAAACAAYAAgAAAQAAAQAAAAAAAgGxAQIAAAEAAAEBAAAAAAIBWgECAAAAAQEBAQEAAAACAFoBAgAAAAAAAQEAAAAAAgCxAQIAAAAAAAEAAAICAgIBsQECAAAAAAAAAAACAAIAAVoBAgAAAAAAAAAAAgIAAABUAAICAgICAgICAgIAAAABDAE=" alt="refresh.bmp (82 bajty)"></a> <a href="javascript:location.reload()" target="_self">Odśwież</a>, <!-- mod -->ale i tak nic Ci to nie da<!-- /mod -->.<br></li>
+						<li>Jeśli adres strony został wpisany do paska adresów, upewnij się, czy jest on wpisany poprawnie.<br></li>
+						<li>Aby sprawdzić ustawienia połączenia, kliknij menu <b>Narzędzia</b>, a następnie kliknij polecenie <b>Opcje internetowe</b>. Na karcie <b>Połączenie</b> kliknij przycisk <b>Ustawienia</b>. Ustawienia powinny się zgadzać z tymi dostarczonymi przez Twojego administratora sieci lokalnej (LAN) lub usługodawcę internetowego (ISP).</li>
+						<li>Niektóre witryny wymagają 128-bitowego połączenia zabezpieczeń. Kliknij menu <b>Pomoc</b>, a następnie kliknij polecenie <b><!-- mod -->Internal Exploiter<!-- /mod --> - informacje</b>, aby określić, jak mocne zabezpieczenia są zainstalowane.</li>
+						<li>Jeśli próbujesz przeglądać bezpieczną witrynę, upewnij się, czy ustawienia Zabezpieczeń obsługują ją. Kliknij menu <B>Narzędzia</b>, a następnie kliknij polecenie <b>Opcje internetowe</b>. Na karcie Zaawansowane przejdź do sekcji Zabezpieczenia i sprawdź ustawienia dla protokołów SSL 2.0, SSL 3.0, TLS 1.0, PCT 1.0.</li>
+						<li>Kliknij przycisk <a href="javascript:history.back(1)"><img id="img_back" alt="back" src="data:image/bmp;base64,Qk3+AAAAAAAAAD4AAAAoAAAADAAAABAAAAABAAgAAAAAAMAAAAAAAAAAAAAAAAIAAAACAAAA////AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAABAQAAAAAAAAAAAAEAAQAAAAAAAAAAAQAAAQEBAQEBAQEBAAAAAAAAAAAAAAEBAAAAAAAAAAAAAAEAAQAAAQEBAQEBAQEAAAEAAQAAAAAAAAAAAAABAQAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="> Wstecz</a>, aby wypróbować inne łącze.</li>
 					</ul>
 					<p><br></p>
-					<h2><!-- mod -->The address does not exist<!-- /mod --></h2>
+					<h2><!-- mod -->Adres nie istnieje<!-- /mod --></h2>
 				</td>
 			</tr>
 		</table>

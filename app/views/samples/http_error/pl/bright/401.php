@@ -1,7 +1,7 @@
 <!DOCTYPE html>
-<html lang="pl">
+<html lang="pl-PL">
 	<head>
-		<title>HTTP 403 - Dostęp zabroniony</title>
+		<title>HTTP 401 - Nieautoryzowany dostęp</title>
 		<meta charset="utf-8">
 		<meta http-equiv="Content-Security-Policy" content="
 			default-src 'none';
@@ -17,6 +17,7 @@
 			img-src data:;
 		">
 		<meta name="robots" content="noindex,nofollow">
+		<meta name="viewport" content="width=device-width,initial-scale=1">
 		<style>
 			body {
 				color: #000000;
@@ -92,12 +93,13 @@
 					<hr>
 					<p id="try_steps">Spróbuj wykonać następujące zadania:</p>
 					<ul>
+						<li>Kliknij przycisk <a href="javascript:location.reload()" target="_self"><img id="img_refresh" src="data:image/bmp;base64,Qk1GAQAAAAAAAEYAAAAoAAAADQAAABAAAAABAAgAAAAAAAABAAAAAAAAAAAAAAQAAAAEAAAA////AICAgAAAAAAAAAAAAAICAgICAgICAgICAgIANAACAAAAAAAAAAAAAAACAEEAAgAAAAAAAQAAAAAAAgAEAAIAAAAAAQEAAAAAAAIABAACAAAAAQEBAQEAAAACAAIAAgAAAAABAQAAAQAAAgDeAAIAAAAAAAEAAAEAAAIA4gACAAABAAAAAAABAAACAAYAAgAAAQAAAQAAAAAAAgGxAQIAAAEAAAEBAAAAAAIBWgECAAAAAQEBAQEAAAACAFoBAgAAAAAAAQEAAAAAAgCxAQIAAAAAAAEAAAICAgIBsQECAAAAAAAAAAACAAIAAVoBAgAAAAAAAAAAAgIAAABUAAICAgICAgICAgIAAAABDAE=" alt="refresh.bmp (82 bajty)"></a> <a href="javascript:location.reload()" target="_self">Odśwież</a>.<br></li>
 						<li>Jeśli adres strony został wpisany na pasku adresu, upewnij się, czy jest on wpisany poprawnie.<br></li>
 						<li>Otwórz stronę główną <a href="/"><?php echo $_SERVER['HTTP_HOST']; ?></a> i poszukaj tam łączy do potrzebnych informacji.</li>
 						<li>Kliknij przycisk <a href="javascript:history.back(1)"><img id="img_back" alt="back" src="data:image/bmp;base64,Qk3+AAAAAAAAAD4AAAAoAAAADAAAABAAAAABAAgAAAAAAMAAAAAAAAAAAAAAAAIAAAACAAAA////AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAABAQAAAAAAAAAAAAEAAQAAAAAAAAAAAQAAAQEBAQEBAQEBAAAAAAAAAAAAAAEBAAAAAAAAAAAAAAEAAQAAAQEBAQEBAQEAAAEAAQAAAAAAAAAAAAABAQAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="> Wstecz</a>, aby wypróbować inne łącze.</li>
 					</ul>
 					<p><br></p>
-					<h2>HTTP 403 - Dostęp zabroniony</h2>
+					<h2>HTTP 401 - Nieautoryzowany dostęp</h2>
 				</td>
 			</tr>
 		</table>

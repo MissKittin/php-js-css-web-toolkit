@@ -4,7 +4,23 @@
 	 *
 	 * Note:
 	 *  looks for a library at ../lib
+	 *
+	 * Warning:
+	 *  var_export_contains.php library is required
 	 */
+
+	foreach([
+		//'is_float_equal.php',
+		'var_export_contains.php'
+	] as $library){
+		echo ' -> Including '.$library;
+			if(@(include __DIR__.'/../lib/'.$library) === false)
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				exit(1);
+			}
+		echo ' [ OK ]'.PHP_EOL;
+	}
 
 	echo ' -> Including '.basename(__FILE__);
 		if(@(include __DIR__.'/../lib/'.basename(__FILE__)) === false)
@@ -17,7 +33,10 @@
 	$failed=false;
 
 	echo ' -> Testing seconds2human';
-		if(str_replace(["\n", ' '], '', var_export(seconds2human(73632827), true)) === "array('seconds'=>47,'minutes'=>33,'hours'=>5,'days'=>12,'months'=>4,'years'=>2,'weeks'=>121,)")
+		if(var_export_contains(
+			seconds2human(73632827),
+			"array('seconds'=>47,'minutes'=>33,'hours'=>5,'days'=>12,'months'=>4,'years'=>2,'weeks'=>121,)"
+		))
 			echo ' [ OK ]'.PHP_EOL;
 		else
 		{
@@ -37,6 +56,7 @@
 			'weeks'=>121.74739914021
 		] as $format=>$result){
 			echo '  -> '.$format;
+			//if(is_float_equal(convert_seconds(73632827, $format), $result))
 			if(abs(convert_seconds(73632827, $format)-$result) < 0.00001)
 				echo ' [ OK ]'.PHP_EOL;
 			else

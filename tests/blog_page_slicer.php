@@ -14,8 +14,6 @@
 		}
 	echo ' [ OK ]'.PHP_EOL;
 
-	$failed=false;
-
 	foreach(['blog_page_slicer', 'blog_page_slicer_old'] as $function)
 	{
 		echo ' -> Testing '.$function.PHP_EOL;
@@ -55,11 +53,8 @@
 			else
 			{
 				echo ' [FAIL]'.PHP_EOL;
-				$failed=true;
+				exit(1);
 			}
 		}
 	}
-
-	if($failed)
-		exit(1);
 ?>

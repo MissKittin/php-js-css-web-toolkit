@@ -1,6 +1,12 @@
 RewriteEngine on
+
+# Disallow directory listing
 Options -Indexes
-RewriteCond %{REQUEST_FILENAME} !-d
+
+# Allow directory listing
+#RewriteCond %{REQUEST_FILENAME} !-d
+#RewriteCond %{REQUEST_FILENAME} !-l
+
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteRule . index.php [L]
 
@@ -9,4 +15,7 @@ RewriteRule . index.php [L]
 # behind a proxy server
 <IfModule mod_headers.c>
 	RequestHeader unset X-Forwarded-Proto
+	RequestHeader unset X-Forwarded-Host
+	RequestHeader unset X-Forwarded-Port
+	RequestHeader unset X-Real-IP
 </IfModule>

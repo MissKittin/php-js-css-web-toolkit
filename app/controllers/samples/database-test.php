@@ -1,9 +1,4 @@
 <?php
-	// select database for pdo_connect
-	$pdo_connect_db='sqlite';
-	//$pdo_connect_db='pgsql';
-	//$pdo_connect_db='mysql';
-
 	function if2switch($source_array, $param_array)
 	{
 		foreach($param_array as $param)
@@ -23,28 +18,21 @@
 
 	include './lib/check_var.php';
 	include './lib/sec_csrf.php';
-	include './lib/pdo_connect.php';
-	include './lib/pdo_crud_builder.php';
 
 	include './app/templates/samples/default/default_template.php';
 	$view=new default_template();
 
-	include './app/models/samples/database_abstract.php';
+	include './app/models/samples/database_test_abstract.php';
 	try {
-		$db_cars=new database_abstract(
+		$db_cars=new database_test_abstract(
 			'cars',
 			'id',
 			'name,price',
-			new pdo_crud_builder([
-				'pdo_handler'=>pdo_connect(
-					'./app/databases/samples/'.$pdo_connect_db,
-					function($error)
-					{
-						echo 'Database connection error: '.$error->getMessage();
-						exit();
-					}
-				)
-			])
+			function($error)
+			{
+				echo 'Database connection error: '.$error->getMessage();
+				exit();
+			}
 		);
 	} catch(Exception $error) {
 		echo 'pdo_connect() error: '.$error->getMessage();
