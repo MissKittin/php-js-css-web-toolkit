@@ -42,6 +42,18 @@
 						'n_column_name'=>'n column type'
 					]
 				)
+		 *   Altering table:
+				alter_table('table_name')
+				alter_table_if_exists('table_name')
+				add_column('column_name', 'data_type')
+				drop_column('column_name')
+				rename_column('old_column_name', 'new_column_name')
+				alter_column_type('column_name', 'data_type')
+				alter_column('column_name', 'data_type')
+				modify_column('column_name', 'data_type')
+				modify('column_name', 'data_type')
+				rename('new_table_name')
+				rename_to('new_table_name')
 		 *   Dropping table:
 		 *    drop_table('table_name')
 		 *   Truncating table:
@@ -312,6 +324,62 @@
 
 			$this->sql_query.='INSERT INTO '.$where.'('.$columns.') VALUES'.$sql_what.' ';
 
+			return $this;
+		}
+
+		public function alter_table(string $table_name)
+		{
+			$this->sql_query.='ALTER TABLE '.$table_name.' ';
+			return $this;
+		}
+		public function alter_table_if_exists(string $table_name)
+		{
+			$this->sql_query.='ALTER TABLE IF EXISTS '.$table_name.' ';
+			return $this;
+		}
+		public function add_column(string $column_name, string $data_type)
+		{
+			$this->sql_query.='ADD '.$column_name.' '.$data_type.' ';
+			return $this;
+		}
+		public function drop_column(string $column_name)
+		{
+			$this->sql_query.='DROP COLUMN '.$column_name.' ';
+			return $this;
+		}
+		public function rename_column(string $old_name, string $new_name)
+		{
+			$this->sql_query.='RENAME COLUMN '.$old_name.' TO '.$new_name.' ';
+			return $this;
+		}
+		public function alter_column(string $column_name, string $data_type)
+		{
+			$this->sql_query.='ALTER COLUMN '.$column_name.' '.$data_type.' ';
+			return $this;
+		}
+		public function alter_column_type(string $column_name, string $data_type)
+		{
+			$this->sql_query.='ALTER COLUMN '.$column_name.' TYPE '.$data_type.' ';
+			return $this;
+		}
+		public function modify_column(string $column_name, string $data_type)
+		{
+			$this->sql_query.='MODIFY COLUMN '.$column_name.' '.$data_type.' ';
+			return $this;
+		}
+		public function modify(string $column_name, string $data_type)
+		{
+			$this->sql_query.='MODIFY '.$column_name.' '.$data_type.' ';
+			return $this;
+		}
+		public function rename(string $new_name)
+		{
+			$this->sql_query.='RENAME '.$new_name.' ';
+			return $this;
+		}
+		public function rename_to(string $new_name)
+		{
+			$this->sql_query.='RENAME TO '.$new_name.' ';
 			return $this;
 		}
 

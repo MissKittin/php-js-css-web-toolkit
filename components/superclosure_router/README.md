@@ -42,5 +42,6 @@ superclosure_router::set_run_callback(function($callback){
 ```
 
 ## Portability
-Create a directory `./components/superclosure_router/lib`  
-and copy the required libraries to this directory.
+Create a `./lib` directory  
+and copy the required libraries to this directory.  
+Libraries in this directory have priority over `../../lib`.

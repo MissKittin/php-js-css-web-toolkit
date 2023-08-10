@@ -46,13 +46,29 @@ Roadmap of `$GLOBALS['_login']` array
 		login input box placeholder
 	* `password_label` [string]  
 		password input box placeholder
+	* `login_default_value` [string]  
+		set default text for login box  
+		note: this string will be escaped
+	* `login_box_disabled` [bool]  
+		set login input status to disabled state  
+		default: `false`
+	* `password_box_disabled` [bool]  
+		set password input status to disabled state  
+		default: `false`
 	* `display_remember_me_checkbox` [bool]  
 		enable (default) or disable "remember me" switch
 	* `remember_me_label` [string]  
 		switch label
+	* `remember_me_box_disabled` [bool]  
+		set "remember me" switch status to disabled state  
+		default: `false`
 	* `wrong_credentials_label` [string]  
-		message about bad credentials
+		message about bad credentials  
+		to force display use `$GLOBALS['_login']['wrong_credentials']=true`
 	* `submit_button_label` [string]
+	* `submit_button_disabled` [bool]  
+		set submit button status to disabled state  
+		default: `false`
 	* `loading_title` [string]  
 		`<title>` for `views/reload.php`
 	* `loading_label` [string]  
@@ -152,5 +168,6 @@ mklink /d app\assets\login_dark.css ..\..\components\login\assets\login_dark.css
 ```
 
 ## Portability
-Create a directory `./components/login/lib`  
-and copy the required libraries to this directory.
+Create a `./lib` directory  
+and copy the required libraries to this directory.  
+Libraries in this directory have priority over `../../lib`.

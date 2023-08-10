@@ -45,6 +45,24 @@
 	 *     -param value1 -param value2
 	 *     -param "long value 1" -param "long value 2"
 	 *
+	 *   argv2array()
+	 *   argv2array('-')
+	 *   argv2array('--')
+	 *   argv2array('=')
+	 *   argv2array(':')
+	 *    [returns an array with all arguments with a delimiter if present, null if not]
+	 *    eg:
+	 *     param value1 param value2
+	 *     -param value1 -param value2
+	 *     -param "long value 1" -param "long value 2"
+	 *     param=value1 param=value2
+	 *     param:value1 param:value2
+	 *     "param=long value 1" "param=long value 2"
+	 *     param="long value 1" param="long value 2"
+	 *    example output array:
+	 *     ['arg1'=>['val1', 'val2'], 'arg2'=>['valA', 'valB'], 'arg_empty'=>[]]
+	 *     ['-arg1'=>['val1', 'val2'], '-arg2'=>['valA', 'valB'], 'arg_empty'=>[]]
+	 *
 	 *   check_argc() [returns $_SERVER['argc'] or null]
 	 *
 	 *  $_COOKIE:
@@ -160,6 +178,45 @@
 			if($arg === $param_name)
 				$arg_found=true;
 		}
+
+		if(empty($output_array))
+			return null;
+
+		return $output_array;
+	}
+	function argv2array(string $delimiter=null)
+	{
+		$output_array=[];
+
+		$argv=$_SERVER['argv'];
+		array_shift($argv);
+
+		if($delimiter === null)
+		{
+			$current_arg=null;
+
+			foreach($argv as $arg)
+				if($current_arg === null)
+					$current_arg=$arg;
+				else
+				{
+					$output_array[$current_arg][]=$arg;
+					$current_arg=null;
+				}
+
+			if($current_arg !== null)
+				$output_array[$current_arg]=[];
+		}
+		else
+			foreach($argv as $arg)
+			{
+				$arg=explode($delimiter, $arg);
+
+				if(isset($arg[1]))
+					$output_array[$arg[0]][]=$arg[1];
+				else
+					$output_array[$arg[0]]=[];
+			}
 
 		if(empty($output_array))
 			return null;

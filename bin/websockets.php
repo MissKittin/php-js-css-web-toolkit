@@ -80,17 +80,17 @@
 	 *  https://nomadphp.com/blog/92/build-a-chat-system-with-php-sockets-and-w3c-web-sockets-apis
 	 *
 	 * lib directory path:
-	 *  _DIR_/lib
-	 *  _DIR_/../lib
+	 *  __DIR__/lib
+	 *  __DIR__/../lib
 	 */
 
 	function load_library($libraries, $required=true)
 	{
 		foreach($libraries as $library)
-			if(file_exists(_DIR_.'/lib/'.$library))
-				include _DIR_.'/lib/'.$library;
-			else if(file_exists(_DIR_.'/../lib/'.$library))
-				include _DIR_.'/../lib/'.$library;
+			if(file_exists(__DIR__.'/lib/'.$library))
+				include __DIR__.'/lib/'.$library;
+			else if(file_exists(__DIR__.'/../lib/'.$library))
+				include __DIR__.'/../lib/'.$library;
 			else
 				if($required)
 					throw new Exception($library.' library not found');

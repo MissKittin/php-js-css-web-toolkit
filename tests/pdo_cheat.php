@@ -85,7 +85,7 @@
 
 				if($value !== false)
 				{
-					echo '  -> Using '.$variable.'="'.$value.'" as '.$database.' '.$parameter.PHP_EOL;
+					echo ' -> Using '.$variable.'="'.$value.'" as '.$database.' '.$parameter.PHP_EOL;
 					$_db_credentials[$database][$parameter]=$value;
 				}
 			}
@@ -123,7 +123,11 @@
 		}
 
 		if(isset($pdo_handler))
+		{
 			$pdo_handler->exec('DROP TABLE pdo_cheat_test_table');
+			$pdo_handler->exec('DROP TABLE pdo_cheat_alter_test_table');
+			$pdo_handler->exec('DROP TABLE pdo_cheat_alter_test_table_r');
+		}
 	}
 	if(!isset($pdo_handler))
 		$pdo_handler=new PDO('sqlite:'.__DIR__.'/tmp/pdo_cheat.sqlite3');
@@ -132,6 +136,189 @@
 		'pdo_handler'=>$pdo_handler,
 		'table_name'=>'pdo_cheat_test_table'
 	]);
+	$pdo_cheat_alter=new pdo_cheat([
+		'pdo_handler'=>$pdo_handler,
+		'table_name'=>'pdo_cheat_alter_test_table'
+	]);
+
+	echo ' -> Creating alter table';
+		$pdo_cheat_alter->new_table()
+			->id(pdo_cheat::default_id_type)
+			->name('VARCHAR(30)')
+			->surname('VARCHAR(30)')
+			->personal_id('INTEGER')
+			->save_table();
+		if($pdo_handler->query('SELECT * FROM pdo_cheat_alter_test_table') === false)
+		{
+			echo ' [FAIL]'.PHP_EOL;
+			$errors[]='Creating table';
+		}
+		else
+			echo ' [ OK ]'.PHP_EOL;
+	echo ' -> Altering the table (add)';
+		$pdo_cheat_alter->alter_table()
+			->add_column('alter_test', 'INTEGER');
+		$pdo_handler->exec('INSERT INTO pdo_cheat_alter_test_table(alter_test) VALUES(2)');
+		switch($pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME))
+		{
+			case 'pgsql':
+				$output_string="array(0=>array('id'=>1,'name'=>NULL,'surname'=>NULL,'personal_id'=>NULL,'alter_test'=>2,),)";
+			break;
+			case 'mysql':
+			case 'sqlite':
+				$output_string="array(0=>array('id'=>'1','name'=>NULL,'surname'=>NULL,'personal_id'=>NULL,'alter_test'=>'2',),)";
+		}
+		if(var_export_contains(
+			$pdo_handler->query('SELECT * FROM pdo_cheat_alter_test_table')->fetchAll(PDO::FETCH_NAMED),
+			$output_string
+		))
+			echo ' [ OK ]'.PHP_EOL;
+		else
+		{
+			echo ' [FAIL]'.PHP_EOL;
+			$errors[]='Altering the table (add)';
+		}
+	echo ' -> Altering the table (rename_column)';
+		if($pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME) === 'sqlite')
+			echo ' [SKIP]'.PHP_EOL;
+		else
+		{
+			$pdo_cheat_alter->alter_table()
+				->rename_column('alter_test', 'alter_test_a');
+			switch($pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME))
+			{
+				case 'pgsql':
+					$output_string="array(0=>array('id'=>1,'name'=>NULL,'surname'=>NULL,'personal_id'=>NULL,'alter_test_a'=>2,),)";
+				break;
+				case 'mysql':
+					$output_string="array(0=>array('id'=>'1','name'=>NULL,'surname'=>NULL,'personal_id'=>NULL,'alter_test_a'=>'2',),)";
+			}
+			if(var_export_contains(
+				$pdo_handler->query('SELECT * FROM pdo_cheat_alter_test_table')->fetchAll(PDO::FETCH_NAMED),
+				$output_string
+			))
+				echo ' [ OK ]';
+			else
+			{
+				echo ' [FAIL]';
+				$errors[]='Altering the table (rename_column phase 1)';
+			}
+
+			$pdo_cheat_alter->alter_table()
+				->rename_column('alter_test_a', 'alter_test');
+			switch($pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME))
+			{
+				case 'pgsql':
+					$output_string="array(0=>array('id'=>1,'name'=>NULL,'surname'=>NULL,'personal_id'=>NULL,'alter_test'=>2,),)";
+				break;
+				case 'mysql':
+					$output_string="array(0=>array('id'=>'1','name'=>NULL,'surname'=>NULL,'personal_id'=>NULL,'alter_test'=>'2',),)";
+			}
+			if(var_export_contains(
+				$pdo_handler->query('SELECT * FROM pdo_cheat_alter_test_table')->fetchAll(PDO::FETCH_NAMED),
+				$output_string
+			))
+				echo ' [ OK ]'.PHP_EOL;
+			else
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				$errors[]='Altering the table (rename_column phase 2)';
+			}
+		}
+	echo ' -> Altering the table (modify)';
+		if($pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME) === 'sqlite')
+			echo ' [SKIP]'.PHP_EOL;
+		else
+		{
+			$pdo_cheat_alter->alter_table()
+				->modify_column('alter_test', 'VARCHAR(30)');
+			switch($pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME))
+			{
+				case 'pgsql':
+					$pdo_handler->exec("INSERT INTO pdo_cheat_alter_test_table(alter_test) VALUES('asd')");
+					$output_string="array(0=>array('id'=>1,'name'=>NULL,'surname'=>NULL,'personal_id'=>NULL,'alter_test'=>'2',),1=>array('id'=>2,'name'=>NULL,'surname'=>NULL,'personal_id'=>NULL,'alter_test'=>'asd',),)";
+				break;
+				case 'mysql':
+					$pdo_handler->exec('INSERT INTO pdo_cheat_alter_test_table(alter_test) VALUES("asd")');
+					$output_string="array(0=>array('id'=>'1','name'=>NULL,'surname'=>NULL,'personal_id'=>NULL,'alter_test'=>'2',),1=>array('id'=>'2','name'=>NULL,'surname'=>NULL,'personal_id'=>NULL,'alter_test'=>'asd',),)";
+			}
+			if(var_export_contains(
+				$pdo_handler->query('SELECT * FROM pdo_cheat_alter_test_table')->fetchAll(PDO::FETCH_NAMED),
+				$output_string
+			))
+				echo ' [ OK ]'.PHP_EOL;
+			else
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				$errors[]='Altering the table (modify)';
+			}
+			switch($pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME))
+			{
+				case 'pgsql':
+					$pdo_handler->exec("DELETE FROM pdo_cheat_alter_test_table WHERE alter_test='asd'");
+				break;
+				case 'mysql':
+					$pdo_handler->exec('DELETE FROM pdo_cheat_alter_test_table WHERE alter_test="asd"');
+			}
+		}
+	echo ' -> Altering the table (drop)';
+		if($pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME) === 'sqlite')
+			echo ' [SKIP]'.PHP_EOL;
+		else
+		{
+			$pdo_cheat_alter->alter_table()
+				->drop_column('alter_test');
+			switch($pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME))
+			{
+				case 'pgsql':
+					$output_string="array(0=>array('id'=>1,'name'=>NULL,'surname'=>NULL,'personal_id'=>NULL,),)";
+				break;
+				case 'mysql':
+					$output_string="array(0=>array('id'=>'1','name'=>NULL,'surname'=>NULL,'personal_id'=>NULL,),)";
+			}
+			if(var_export_contains(
+				$pdo_handler->query('SELECT * FROM pdo_cheat_alter_test_table')->fetchAll(PDO::FETCH_NAMED),
+				$output_string
+			))
+				echo ' [ OK ]'.PHP_EOL;
+			else
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				$errors[]='Altering the table (drop)';
+			}
+		}
+	echo ' -> Altering the table (rename_table)';
+		if($pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME) !== 'sqlite')
+			$pdo_handler->exec('INSERT INTO pdo_cheat_alter_test_table(alter_test) VALUES(2)');
+		$pdo_cheat_alter->alter_table()
+			->rename_table('pdo_cheat_alter_test_table_r');
+		switch($pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME))
+		{
+			case 'pgsql':
+				$output_string_a="array(0=>array('id'=>1,'name'=>NULL,'surname'=>NULL,'personal_id'=>NULL,'alter_test'=>2,),)";
+				$output_string_b="array(0=>array('id'=>1,'name'=>NULL,'surname'=>NULL,'personal_id'=>NULL,),)";
+			break;
+			case 'mysql':
+			case 'sqlite':
+				$output_string_a="array(0=>array('id'=>'1','name'=>NULL,'surname'=>NULL,'personal_id'=>NULL,'alter_test'=>'2',),)";
+				$output_string_b="array(0=>array('id'=>'1','name'=>NULL,'surname'=>NULL,'personal_id'=>NULL,),)";
+		}
+		if(
+			var_export_contains(
+				$pdo_handler->query('SELECT * FROM pdo_cheat_alter_test_table_r')->fetchAll(PDO::FETCH_NAMED),
+				$output_string_a
+			) ||
+			var_export_contains(
+				$pdo_handler->query('SELECT * FROM pdo_cheat_alter_test_table_r')->fetchAll(PDO::FETCH_NAMED),
+				$output_string_b
+			)
+		)
+			echo ' [ OK ]'.PHP_EOL;
+		else
+		{
+			echo ' [FAIL]'.PHP_EOL;
+			$errors[]='Altering the table (rename_table)';
+		}
 
 	echo ' -> Creating table';
 		$pdo_cheat->new_table()
@@ -159,9 +346,18 @@
 			->surname('tseT')
 			->personal_id(30)
 			->save_row();
+		switch($pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME))
+		{
+			case 'pgsql':
+				$output_string="array(0=>array('id'=>1,'name'=>'Test1','surname'=>'tseT','personal_id'=>20,),1=>array('id'=>2,'name'=>'Test2','surname'=>'tseT','personal_id'=>30,),)";
+			break;
+			case 'mysql':
+			case 'sqlite':
+				$output_string="array(0=>array('id'=>'1','name'=>'Test1','surname'=>'tseT','personal_id'=>'20',),1=>array('id'=>'2','name'=>'Test2','surname'=>'tseT','personal_id'=>'30',),)";
+		}
 		if(var_export_contains(
 			$pdo_handler->query('SELECT * FROM pdo_cheat_test_table')->fetchAll(PDO::FETCH_NAMED),
-			"array(0=>array('id'=>'1','name'=>'Test1','surname'=>'tseT','personal_id'=>'20',),1=>array('id'=>'2','name'=>'Test2','surname'=>'tseT','personal_id'=>'30',),)"
+			$output_string
 		))
 			echo ' [ OK ]'.PHP_EOL;
 		else
@@ -177,16 +373,25 @@
 			->select_personal_id()
 			->get_row_by_surname('tseT')
 			->get_row();
-		if(($test_person !== false) && ($test_person->id() === '1') && ($test_person->personal_id() === '20'))
+		if(($test_person !== false) && ($test_person->id() == '1') /*int*/ && ($test_person->personal_id() == '20'))
 			echo ' [ OK ]';
 		else
 		{
 			echo ' [FAIL]';
 			$errors[]='Reading rows first result/dump row phase 1';
 		}
+		switch($pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME))
+		{
+			case 'pgsql':
+				$output_string="array('id'=>1,'personal_id'=>20,)";
+			break;
+			case 'mysql':
+			case 'sqlite':
+				$output_string="array('id'=>'1','personal_id'=>'20',)";
+		}
 		if(var_export_contains(
 			$test_person->dump_row(),
-			"array('id'=>'1','personal_id'=>'20',)"
+			$output_string
 		))
 			echo ' [ OK ]'.PHP_EOL;
 		else
@@ -202,16 +407,25 @@
 			->get_row_by_surname('tseT')
 			->get_row();
 		$test_person=$test_person->get_next_row();
-		if(($test_person !== false) && ($test_person->id() === '2') && ($test_person->personal_id() === '30'))
+		if(($test_person !== false) && ($test_person->id() == '2') /* int */ && ($test_person->personal_id() == '30'))
 			echo ' [ OK ]';
 		else
 		{
 			echo ' [FAIL]';
 			$errors[]='Reading rows second result/dump row phase 1';
 		}
+		switch($pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME))
+		{
+			case 'pgsql':
+				$output_string="array('id'=>2,'personal_id'=>30,)";
+			break;
+			case 'mysql':
+			case 'sqlite':
+				$output_string="array('id'=>'2','personal_id'=>'30',)";
+		}
 		if(var_export_contains(
 			$test_person->dump_row(),
-			"array('id'=>'2','personal_id'=>'30',)"
+			$output_string
 		))
 			echo ' [ OK ]'.PHP_EOL;
 		else
@@ -225,9 +439,18 @@
 			->get_row_by_name('Test1')
 			->get_row();
 		$test_person->personal_id(50)->save_row();
+		switch($pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME))
+		{
+			case 'pgsql':
+				$output_string="array(0=>array('id'=>2,'name'=>'Test2','surname'=>'tseT','personal_id'=>30,),1=>array('id'=>1,'name'=>'Test1','surname'=>'tseT','personal_id'=>50,),)";
+			break;
+			case 'mysql':
+			case 'sqlite':
+				$output_string="array(0=>array('id'=>'1','name'=>'Test1','surname'=>'tseT','personal_id'=>'50',),1=>array('id'=>'2','name'=>'Test2','surname'=>'tseT','personal_id'=>'30',),)";
+		}
 		if(var_export_contains(
 			$pdo_handler->query('SELECT * FROM pdo_cheat_test_table')->fetchAll(PDO::FETCH_NAMED),
-			"array(0=>array('id'=>'1','name'=>'Test1','surname'=>'tseT','personal_id'=>'50',),1=>array('id'=>'2','name'=>'Test2','surname'=>'tseT','personal_id'=>'30',),)"
+			$output_string
 		))
 			echo ' [ OK ]'.PHP_EOL;
 		else
@@ -237,9 +460,18 @@
 		}
 
 	echo ' -> Dumping table';
+		switch($pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME))
+		{
+			case 'pgsql':
+				$output_string="array(0=>array('id'=>2,'name'=>'Test2','surname'=>'tseT','personal_id'=>30,),1=>array('id'=>1,'name'=>'Test1','surname'=>'tseT','personal_id'=>50,),)";
+			break;
+			case 'mysql':
+			case 'sqlite':
+				$output_string="array(0=>array('id'=>'1','name'=>'Test1','surname'=>'tseT','personal_id'=>'50',),1=>array('id'=>'2','name'=>'Test2','surname'=>'tseT','personal_id'=>'30',),)";
+		}
 		if(var_export_contains(
 			$pdo_cheat->dump_table(),
-			"array(0=>array('id'=>'1','name'=>'Test1','surname'=>'tseT','personal_id'=>'50',),1=>array('id'=>'2','name'=>'Test2','surname'=>'tseT','personal_id'=>'30',),)"
+			$output_string
 		))
 			echo ' [ OK ]'.PHP_EOL;
 		else
@@ -264,9 +496,18 @@
 		$pdo_cheat->delete_row()
 			->name('Test1')
 			->delete_row();
+		switch($pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME))
+		{
+			case 'pgsql':
+				$output_string="array(0=>array('id'=>2,'name'=>'Test2','surname'=>'tseT','personal_id'=>30,),)";
+			break;
+			case 'mysql':
+			case 'sqlite':
+				$output_string="array(0=>array('id'=>'2','name'=>'Test2','surname'=>'tseT','personal_id'=>'30',),)";
+		}
 		if(var_export_contains(
 			$pdo_handler->query('SELECT * FROM pdo_cheat_test_table')->fetchAll(PDO::FETCH_NAMED),
-			"array(0=>array('id'=>'2','name'=>'Test2','surname'=>'tseT','personal_id'=>'30',),)"
+			$output_string
 		))
 			echo ' [ OK ]'.PHP_EOL;
 		else
@@ -282,9 +523,18 @@
 			->surname('tseT')
 			->personal_id(20)
 			->save_row();
+		switch($pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME))
+		{
+			case 'pgsql':
+				$output_string="array(0=>array('id'=>3,'name'=>'Test1','surname'=>'tseT','personal_id'=>20,),)";
+			break;
+			case 'mysql':
+			case 'sqlite':
+				$output_string="array(0=>array('id'=>'3','name'=>'Test1','surname'=>'tseT','personal_id'=>'20',),)";
+		}
 		if(var_export_contains(
 			$pdo_handler->query('SELECT * FROM pdo_cheat_test_table')->fetchAll(PDO::FETCH_NAMED),
-			"array(0=>array('id'=>'3','name'=>'Test1','surname'=>'tseT','personal_id'=>'20',),)"
+			$output_string
 		))
 			echo ' [ OK ]'.PHP_EOL;
 		else

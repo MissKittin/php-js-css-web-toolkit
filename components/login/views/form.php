@@ -20,12 +20,12 @@
 	<body>
 		<div id="login_form">
 			<form method="post" action="">
-				<div class="input_text"><input type="text" name="login" placeholder="<?php echo $GLOBALS['_login']['view']['login_label']; ?>"></div>
-				<div class="input_text"><input type="password" name="password" placeholder="<?php echo $GLOBALS['_login']['view']['password_label']; ?>"></div>
+				<div class="input_text"><input type="text" name="login" placeholder="<?php echo $GLOBALS['_login']['view']['login_label']; ?>"<?php if($GLOBALS['_login']['view']['login_box_disabled']) echo ' disabled'; ?><?php if(isset($GLOBALS['_login']['view']['login_default_value'])) echo ' value="'.htmlspecialchars($GLOBALS['_login']['view']['login_default_value'], ENT_QUOTES, 'UTF-8').'"'; ?>></div>
+				<div class="input_text"><input type="password" name="password" placeholder="<?php echo $GLOBALS['_login']['view']['password_label']; ?>"<?php if($GLOBALS['_login']['view']['password_box_disabled']) echo ' disabled'; ?>></div>
 				<?php if($GLOBALS['_login']['view']['display_remember_me_checkbox']) { ?>
 					<div class="input_checkbox">
 						<label class="switch">
-							<input type="checkbox" name="remember_me" value="true">
+							<input type="checkbox" name="remember_me" value="true"<?php if($GLOBALS['_login']['view']['remember_me_box_disabled']) echo ' disabled'; ?>>
 							<span class="slider"></span>
 						</label>
 						<div class="input_checkbox_text"><?php echo $GLOBALS['_login']['view']['remember_me_label']; ?></div>
@@ -36,7 +36,7 @@
 						<?php echo $GLOBALS['_login']['view']['wrong_credentials_label']; ?>
 					</div>
 				<?php } ?>
-				<div class="input_button"><input type="submit" value="<?php echo $GLOBALS['_login']['view']['submit_button_label']; ?>"></div>
+				<div class="input_button"><input type="submit" value="<?php echo $GLOBALS['_login']['view']['submit_button_label']; ?>"<?php if($GLOBALS['_login']['view']['submit_button_disabled']) echo ' disabled'; ?>></div>
 				<input type="hidden" name="<?php echo csrf_print_token('parameter'); ?>" value="<?php echo csrf_print_token('value'); ?>">
 				<input type="hidden" name="login_prompt">
 			</form>

@@ -121,7 +121,7 @@ Supported relational databases: SQLite3, PostgreSQL, MySQL
 * `sendNotification.js` - send notification to the browser
 * `sleep.js`
 * `sortTable.js` - adds a function to sort the table by clicking on the table header
-* `time_converter.php` - `time_converter.php` in Js version
+* `timeConverter.js` - `time_converter.php` in Js
 * `titleScroller.js` - infinity title scrolling
 * `wicdPhpGuiWindows.js` - CSS window objects wrapped in Js automation
 

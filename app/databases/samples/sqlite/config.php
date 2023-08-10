@@ -37,7 +37,7 @@
 		if(!file_exists($var_databases.'/'.$var_databases_db_name))
 			@mkdir($var_databases.'/'.$var_databases_db_name, 0777, true);
 
-		$db_host=$var_databases.'/'.$var_databases_db_name.'/database.sqlite3';
-		$db_seeded_path=$var_databases.'/'.$var_databases_db_name;
+		$db_config['host']=$var_databases.'/'.$var_databases_db_name.'/database.sqlite3';
+		$db_config['seeded_path']=$var_databases.'/'.$var_databases_db_name;
 	}
 ?>

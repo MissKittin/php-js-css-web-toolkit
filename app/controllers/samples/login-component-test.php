@@ -51,6 +51,44 @@
 	)
 		$GLOBALS['_login']['view']['login_style']='login_dark.css';
 
+	// add bruteforce protection
+	include './lib/pdo_connect.php';
+	include './lib/pdo_crud_builder.php'; // in ./app/databases/samples/$db/seed.php
+	include './lib/sec_bruteforce.php';
+
+	if(getenv('DB_IGNORE_ENV') === 'true')
+		$pdo_connect_db='sqlite';
+	else
+		$pdo_connect_db=getenv('DB_TYPE');
+
+	if($pdo_connect_db === false)
+		$pdo_connect_db='sqlite';
+
+	$sec_bruteforce=new bruteforce_timeout_pdo([
+		'pdo_handler'=>pdo_connect('./app/databases/samples/'.$pdo_connect_db)
+	]);
+
+	if($sec_bruteforce->check())
+	{
+		// disabled login prompt
+
+		$log_infos->info('IP '.$_SERVER['REMOTE_ADDR'].' is banned');
+
+		$_GET=[];
+		$_POST=[];
+
+		// remove this block to hide from the user any info that has been banned
+		$GLOBALS['_login']['view']['login_box_disabled']=true;
+		$GLOBALS['_login']['view']['password_box_disabled']=true;
+		$GLOBALS['_login']['view']['remember_me_box_disabled']=true;
+		$GLOBALS['_login']['view']['submit_button_disabled']=true;
+		$GLOBALS['_login']['wrong_credentials']=true;
+		$GLOBALS['_login']['view']['wrong_credentials_label']='Zostałeś zbanowany. Wróć później.';
+
+		include './components/login/login.php';
+		exit();
+	}
+
 	// define callbacks for the login component
 	$GLOBALS['_login']['config']['on_login_prompt']=function() use($log_infos)
 	{
@@ -60,9 +98,10 @@
 	{
 		$log_infos->info('User logged in');
 	};
-	$GLOBALS['_login']['config']['on_login_failed']=function() use($log_fails)
+	$GLOBALS['_login']['config']['on_login_failed']=function() use($log_fails, $sec_bruteforce)
 	{
 		$log_fails->info($_SERVER['REMOTE_ADDR'].' login failed');
+		$sec_bruteforce->add();
 	};
 	$GLOBALS['_login']['config']['on_logout']=function() use($log_infos)
 	{
