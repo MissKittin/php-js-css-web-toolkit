@@ -207,7 +207,7 @@
 					if($value !== false)
 					{
 						echo '  -> Using '.$variable.'="'.$value.'" as '.$database.' '.$parameter.PHP_EOL;
-						$db_credentials[$database][$parameter]=$value;
+						$_db_credentials[$database][$parameter]=$value;
 					}
 				}
 

@@ -87,7 +87,7 @@ The way of using `./bin/matthiasmullie-minify.php` is the same as in the webdevs
 Note: before use, you need to install the composer and minifier package:
 ```
 mkdir ./bin/composer
-php ./bin/composer.phar --working-dir=./bin/composer require matthiasmullie/minify
+php ./bin/composer.phar --optimize-autoloader --no-cache --working-dir=./bin/composer require matthiasmullie/minify
 ```
 
 ### Seeding database offline with pdo_connect() (optional)

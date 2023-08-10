@@ -127,5 +127,6 @@ and long (with a large amount of data).
 To run long mode, run the test with the `long` parameter.
 
 ## Portability
-Create a directory `./components/herring/lib`  
-and copy the required libraries to this directory.
+Create a `./lib` directory  
+and copy the required libraries to this directory.  
+Libraries in this directory have priority over `../../lib`.

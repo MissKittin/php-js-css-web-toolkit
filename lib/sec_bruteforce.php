@@ -8,6 +8,7 @@
 	 *   removes ip from database if is not banned anymore
 	 *   See clas's readme
 	 *  All classes depends on bruteforce_generic
+	 *  The json_ondemand classes require their counterparts for composition
 	 *
 	 * Warning:
 	 *  if you create database for one class, then cannot be used in another
@@ -31,6 +32,10 @@
 	 *   store data in flat file (for debugging purposes) (permban)
 	 *  bruteforce_timeout_json
 	 *   store data in flat file (for debugging purposes) (timeout ban)
+	 *  bruteforce_json_ondemand
+	 *   store data in flat file, open on access (for debugging purposes) (permban)
+	 *  bruteforce_timeout_json_ondemand
+	 *   store data in flat file, open on access (for debugging purposes) (timeout ban)
 	 */
 
 	function bruteforce_mixed(
@@ -104,19 +109,28 @@
 
 	abstract class bruteforce_generic
 	{
+		/*
+		 * This class only contains common code
+		 * Go ahead
+		 */
+
 		protected $constructor_params=[];
 		protected $required_constructor_params=[];
 
 		protected $ip=null;
 		protected $max_attempts=3;
 		protected $current_attempts=0;
+		protected $on_ban;
 
+		// bruteforce_*_timeout
 		protected $ban_time=600;
 		protected $current_timestamp=null;
 		protected $auto_clean=true;
 
 		public function __construct(array $params)
 		{
+			$this->on_ban['callback']=function(){};
+
 			foreach($this->required_constructor_params as $param)
 				if(!isset($params[$param]))
 					throw new Exception('The '.$param.' parameter was not specified for the constructor');
@@ -127,6 +141,9 @@
 			foreach($this->constructor_params as $param)
 				if(isset($params[$param]))
 					$this->$param=$params[$param];
+
+			if(isset($params['on_ban']))
+				$this->on_ban['callback']=$params['on_ban'];
 
 			if($this->ip === null)
 				throw new Exception('$_SERVER["REMOTE_ADDR"] is not set and no ip was given');
@@ -191,6 +208,10 @@
 		 *   n attempts and permban (default 3)
 		 *  ip [string]
 		 *   default $_SERVER['REMOTE_ADDR']
+		 *  expire [int]
+		 *   delete record after n seconds (default: 2592000 [30 days], 0 - disable)
+		 *  on_ban [callback]
+		 *   the add method runs the specified callback if a ban occurs
 		 *
 		 * Opening database:
 			$bruteforce=new bruteforce_redis([
@@ -214,12 +235,14 @@
 			'redis_handler',
 			'prefix',
 			'max_attempts',
-			'ip'
+			'ip',
+			'expire'
 		];
 		protected $required_constructor_params=['redis_handler'];
 
 		protected $redis_handler;
 		protected $prefix='bruteforce_redis__';
+		protected $expire=2592000;
 
 		public function __construct(array $params)
 		{
@@ -242,13 +265,27 @@
 		{
 			++$this->current_attempts;
 
-			if($this->current_attempts === 1)
-				$this->redis_handler->set(
+			if($this->expire > 0)
+			{
+				$this->redis_handler->setex(
 					$this->prefix.$this->ip,
+					$this->expire,
 					$this->current_attempts
 				);
+			}
 			else
-				$this->redis_handler->incr($this->prefix.$this->ip);
+			{
+				if($this->current_attempts === 1)
+					$this->redis_handler->set(
+						$this->prefix.$this->ip,
+						$this->current_attempts
+					);
+				else
+					$this->redis_handler->incr($this->prefix.$this->ip);
+			}
+
+			if($this->current_attempts === $this->max_attempts)
+				$this->on_ban['callback']();
 		}
 		public function del()
 		{
@@ -258,6 +295,7 @@
 				$this->current_attempts=0;
 			}
 		}
+		public function clean_database() {}
 	}
 	class bruteforce_timeout_redis extends bruteforce_generic
 	{
@@ -282,9 +320,14 @@
 		 *   n attempts and ban (default 3)
 		 *  ban_time [int]
 		 *   unban after n seconds (default 600 [10min])
-		 *   if is set to 0, ip is permanently banned after max_attempts
+		 *   if is lower than 1, ip is permanently banned after max_attempts (see "expire" below)
 		 *  ip [string]
 		 *   default $_SERVER['REMOTE_ADDR']
+		 *  expire [int]
+		 *   delete record after n seconds (default: 2592000 [30 days], 0 - disable)
+		 *   ignored when ban_time is higher than 1
+		 *  on_ban [callback]
+		 *   the add method runs the specified callback if a ban occurs
 		 *
 		 * Opening database:
 			$bruteforce=new bruteforce_redis([
@@ -311,12 +354,14 @@
 			'prefix',
 			'max_attempts',
 			'ban_time',
-			'ip'
+			'ip',
+			'expire'
 		];
 		protected $required_constructor_params=['redis_handler'];
 
 		protected $redis_handler;
 		protected $prefix='bruteforce_redis__';
+		protected $expire=2592000;
 
 		public function __construct(array $params)
 		{
@@ -351,17 +396,29 @@
 			++$this->current_attempts;
 			$this->current_timestamp=time();
 
-			if($this->ban_time === 0)
-				$this->redis_handler->set(
-					$this->prefix.$this->ip,
-					$this->current_attempts
-				);
+			if($this->ban_time < 1)
+			{
+				if($this->expire > 0)
+					$this->redis_handler->setex(
+						$this->prefix.$this->ip,
+						$this->expire,
+						$this->current_attempts
+					);
+				else
+					$this->redis_handler->set(
+						$this->prefix.$this->ip,
+						$this->current_attempts
+					);
+			}
 			else
 				$this->redis_handler->setex(
 					$this->prefix.$this->ip,
 					$this->ban_time,
 					$this->current_attempts
 				);
+
+			if($this->current_attempts === $this->max_attempts)
+				$this->on_ban['callback']();
 		}
 		public function del()
 		{
@@ -373,6 +430,7 @@
 				$this->current_timestamp=null;
 			}
 		}
+		public function clean_database() {}
 	}
 	class bruteforce_pdo extends bruteforce_generic
 	{
@@ -395,6 +453,8 @@
 		 *   n attempts and ban (default 3)
 		 *  ip [string]
 		 *   default $_SERVER['REMOTE_ADDR']
+		 *  on_ban [callback]
+		 *   the add method runs the specified callback if a ban occurs
 		 *
 		 * Opening database:
 			$bruteforce=new bruteforce_pdo([
@@ -408,10 +468,12 @@
 		 *  adding to the table or iterates attempts counter
 		 * Unbanning: $bruteforce->del()
 		 *  removes from the table
+		 * Database cleaning: $bruteforce->clean_database(int_seconds)
+		 *  removes stale records (older than 2592000 seconds [30 days] by default)
 		 * Closing connection: unset($bruteforce)
 		 *
 		 * Table layout:
-		 *  id[primary key] ip[varchar(39)] attempts[int]
+		 *  id[primary key] ip[varchar(39)] attempts[int] timestamp[int]
 		 */
 
 		protected $constructor_params=[
@@ -443,7 +505,8 @@
 					.	'('
 					.		'id SERIAL PRIMARY KEY,'
 					.		'ip VARCHAR(39),'
-					.		'attempts INTEGER'
+					.		'attempts INTEGER,'
+					.		'timestamp INTEGER'
 					.	')'
 					) === false)
 						throw new Exception('PDO exec error');
@@ -454,7 +517,8 @@
 					.	'('
 					.		'id INTEGER NOT NULL AUTO_INCREMENT, PRIMARY KEY(id),'
 					.		'ip VARCHAR(39),'
-					.		'attempts INTEGER'
+					.		'attempts INTEGER,'
+					.		'timestamp INTEGER'
 					.	')'
 					) === false)
 						throw new Exception('PDO exec error');
@@ -465,7 +529,8 @@
 					.	'('
 					.		'id INTEGER PRIMARY KEY AUTOINCREMENT,'
 					.		'ip VARCHAR(39),'
-					.		'attempts INTEGER'
+					.		'attempts INTEGER,'
+					.		'timestamp INTEGER'
 					.	')'
 					) === false)
 						throw new Exception('PDO exec error');
@@ -517,10 +582,12 @@
 						.	'INSERT INTO '.$this->table_name
 						.	'('
 						.		'ip,'
-						.		'attempts'
+						.		'attempts,'
+						.		'timestamp'
 						.	') VALUES ('
 						.		"'".$this->ip."',"
-						.		'1'
+						.		'1,'
+						.		time()
 						.	')'
 						) === false)
 							throw new Exception('PDO exec error');
@@ -531,10 +598,12 @@
 						.	'INSERT INTO '.$this->table_name
 						.	'('
 						.		'ip,'
-						.		'attempts'
+						.		'attempts,'
+						.		'timestamp'
 						.	') VALUES ('
 						.		'"'.$this->ip.'",'
-						.		'1'
+						.		'1,'
+						.		time()
 						.	')'
 						) === false)
 							throw new Exception('PDO exec error');
@@ -545,7 +614,9 @@
 					case 'pgsql':
 						if($this->pdo_handler->exec(''
 						.	'UPDATE '.$this->table_name.' '
-						.	'SET attempts='.$this->current_attempts.' '
+						.	'SET '
+						.		'attempts='.$this->current_attempts.', '
+						.		'timestamp='.time().' '
 						.	"WHERE ip='".$this->ip."'"
 						) === false)
 							throw new Exception('PDO exec error');
@@ -554,11 +625,16 @@
 					case 'sqlite':
 						if($this->pdo_handler->exec(''
 						.	'UPDATE '.$this->table_name.' '
-						.	'SET attempts='.$this->current_attempts.' '
+						.	'SET '
+						.		'attempts='.$this->current_attempts.', '
+						.		'timestamp='.time().' '
 						.	'WHERE ip="'.$this->ip.'"'
 						) === false)
 							throw new Exception('PDO exec error');
 				}
+
+			if($this->current_attempts === $this->max_attempts)
+				$this->on_ban['callback']();
 		}
 		public function del()
 		{
@@ -583,6 +659,28 @@
 				}
 
 				$this->current_attempts=0;
+			}
+		}
+		public function clean_database(int $seconds=2592000)
+		{
+			$timestamp=time()-$seconds;
+
+			switch($this->pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME))
+			{
+				case 'pgsql':
+					if($this->pdo_handler->exec(''
+					.	'DELETE FROM '.$this->table_name.' '
+					.	'WHERE timestamp<'.$timestamp
+					) === false)
+						throw new Exception('PDO exec error');
+				break;
+				case 'mysql':
+				case 'sqlite':
+					if($this->pdo_handler->exec(''
+					.	'DELETE FROM '.$this->table_name.' '
+					.	'WHERE timestamp<"'.$timestamp.'"'
+					) === false)
+						throw new Exception('PDO exec error');
 			}
 		}
 	}
@@ -614,6 +712,8 @@
 		 *   if exists in database, remove in check() if not banned anymore (defualt true)
 		 *   if is enabled and ban timeout > 0, ip has max_attempts after ban, if disabled - one attempt after every ban
 		 *   if ban timeout === 0, auto_clean functionality will not work
+		 *  on_ban [callback]
+		 *   the add method runs the specified callback if a ban occurs
 		 *
 		 * Opening database:
 			$bruteforce=new bruteforce_pdo([
@@ -629,6 +729,8 @@
 		 *  adding to the table or iterates attempts counter
 		 * Unbanning: $bruteforce->del()
 		 *  removes from the table
+		 * Database cleaning: $bruteforce->clean_database(int_seconds)
+		 *  removes stale records (older than 2592000 seconds [30 days] by default)
 		 * Closing connection: unset($bruteforce)
 		 *
 		 * Table layout:
@@ -758,7 +860,10 @@
 		{
 			$timestamp=time();
 
-			if($this->current_attempts === 0)
+			++$this->current_attempts;
+			$this->current_timestamp=$timestamp;
+
+			if($this->current_attempts === 1)
 				switch($this->pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME))
 				{
 					case 'pgsql':
@@ -817,8 +922,8 @@
 							throw new Exception('PDO exec error');
 				}
 
-			++$this->current_attempts;
-			$this->current_timestamp=$timestamp;
+			if($this->current_attempts === $this->max_attempts)
+				$this->on_ban['callback']();
 		}
 		public function del()
 		{
@@ -846,6 +951,28 @@
 				$this->current_timestamp=null;
 			}
 		}
+		public function clean_database(int $seconds=2592000)
+		{
+			$timestamp=time()-$seconds;
+
+			switch($this->pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME))
+			{
+				case 'pgsql':
+					if($this->pdo_handler->exec(''
+					.	'DELETE FROM '.$this->table_name.' '
+					.	'WHERE timestamp<'.$timestamp
+					) === false)
+						throw new Exception('PDO exec error');
+				break;
+				case 'mysql':
+				case 'sqlite':
+					if($this->pdo_handler->exec(''
+					.	'DELETE FROM '.$this->table_name.' '
+					.	'WHERE timestamp<"'.$timestamp.'"'
+					) === false)
+						throw new Exception('PDO exec error');
+			}
+		}
 	}
 	class bruteforce_json extends bruteforce_generic
 	{
@@ -864,6 +991,8 @@
 		 *   n attempts and permban (default 3)
 		 *  ip [string]
 		 *   default $_SERVER['REMOTE_ADDR']
+		 *  on_ban [callback]
+		 *   the add method runs the specified callback if a ban occurs
 		 *
 		 * Opening database:
 			$bruteforce=new bruteforce_json([
@@ -878,7 +1007,12 @@
 		 *  adding to the table or iterates attempts counter
 		 * Unbanning: $bruteforce->del()
 		 *  removes from the table
+		 * Database cleaning: $bruteforce->clean_database(int_seconds)
+		 *  removes stale records (older than 2592000 seconds [30 days] by default)
 		 * Saving database: unset($bruteforce)
+		 *
+		 * JSON layout:
+		 *  {"string_ip":[int_attempts, int_timestamp]}
 		 */
 
 		protected $constructor_params=[
@@ -903,7 +1037,7 @@
 				$this->database=json_decode(file_get_contents($this->file), true);
 
 			if(isset($this->database[$this->ip]))
-				$this->current_attempts=$this->database[$this->ip];
+				$this->current_attempts=$this->database[$this->ip][0];
 		}
 		public function __destruct()
 		{
@@ -924,7 +1058,11 @@
 		public function add()
 		{
 			++$this->current_attempts;
-			$this->database[$this->ip]=$this->current_attempts;
+			$this->database[$this->ip][0]=$this->current_attempts;
+			$this->database[$this->ip][1]=time();
+
+			if($this->current_attempts === $this->max_attempts)
+				$this->on_ban['callback']();
 		}
 		public function del()
 		{
@@ -933,6 +1071,12 @@
 				unset($this->database[$this->ip]);
 				$this->current_attempts=0;
 			}
+		}
+		public function clean_database(int $seconds=2592000)
+		{
+			foreach($this->database as $ip=>$data)
+				if($data[1] < time()-$seconds)
+					unset($this->database[$ip]);
 		}
 	}
 	class bruteforce_timeout_json extends bruteforce_generic
@@ -958,6 +1102,8 @@
 		 *   if exists in database, remove in check() if not banned anymore (defualt true)
 		 *   if is enabled and ban timeout > 0, ip has max_attempts after ban, if disabled - one attempt after every ban
 		 *   if ban timeout === 0, auto_clean functionality will not work
+		 *  on_ban [callback]
+		 *   the add method runs the specified callback if a ban occurs
 		 *
 		 * Opening database:
 			$bruteforce=new bruteforce_json([
@@ -974,9 +1120,14 @@
 		 *  adding to the table or iterates attempts counter and refreshes timestamp
 		 * Unbanning: $bruteforce->del()
 		 *  removes from the table
+		 * Database cleaning: $bruteforce->clean_database(int_seconds)
+		 *  removes stale records (older than 2592000 seconds [30 days] by default)
 		 * Saving database: unset($bruteforce)
 		 *
 		 * Changes with respect to bruteforce_json: __construct(), get_timestamp(), check(), add()
+		 *
+		 * JSON layout:
+		 *  {"string_ip":[int_attempts, int_timestamp]}
 		 */
 
 		protected $constructor_params=[
@@ -1004,8 +1155,8 @@
 
 			if(isset($this->database[$this->ip]))
 			{
-				$this->current_attempts=$this->database[$this->ip]['attempts'];
-				$this->current_timestamp=$this->database[$this->ip]['timestamp'];
+				$this->current_attempts=$this->database[$this->ip][0];
+				$this->current_timestamp=$this->database[$this->ip][1];
 			}
 		}
 		public function __destruct()
@@ -1047,8 +1198,11 @@
 			++$this->current_attempts;
 			$this->current_timestamp=time();
 
-			$this->database[$this->ip]['attempts']=$this->current_attempts;
-			$this->database[$this->ip]['timestamp']=$this->current_timestamp;
+			$this->database[$this->ip][0]=$this->current_attempts;
+			$this->database[$this->ip][1]=$this->current_timestamp;
+
+			if($this->current_attempts === $this->max_attempts)
+				$this->on_ban['callback']();
 		}
 		public function del()
 		{
@@ -1059,5 +1213,57 @@
 				$this->current_timestamp=null;
 			}
 		}
+		public function clean_database(int $seconds=2592000)
+		{
+			foreach($this->database as $ip=>$data)
+				if($data[1] < time()-$seconds)
+					unset($this->database[$ip]);
+		}
+	}
+	class bruteforce_json_ondemand
+	{
+		/*
+		 * Trivial banning method by IP on x unsuccessful attempts for n seconds
+		 * from simpleblog project
+		 * rewritten to PDO OOP
+		 *
+		 * This is a simple wrapper that opens the database only on access
+		 * Usage: see bruteforce_json
+		 */
+
+		protected $class_name='bruteforce_json';
+		protected $params;
+
+		public function __construct(array $params)
+		{
+			$this->params=$params;
+		}
+
+		public function __call($method, $args)
+		{
+			$bruteforce=new $this->class_name($this->params);
+
+			if(isset($args[0]))
+				$output=$bruteforce->$method($args[0]);
+			else
+				$output=$bruteforce->$method();
+
+			unset($bruteforce);
+
+			return $output;
+		}
+	}
+	class bruteforce_timeout_json_ondemand extends bruteforce_json_ondemand
+	{
+		/*
+		 * Trivial banning method by IP on x unsuccessful attempts for n seconds
+		 * from simpleblog project
+		 * rewritten to PDO OOP
+		 *
+		 * This is a simple wrapper that opens the database only on access
+		 * Usage: see bruteforce_timeout_json
+		 */
+
+		protected $class_name='bruteforce_timeout_json';
 	}
 ?>

@@ -23,17 +23,29 @@
 	if(!isset($GLOBALS['_login']['view']['password_label']))
 		$GLOBALS['_login']['view']['password_label']='Password';
 
+	if(!isset($GLOBALS['_login']['view']['login_box_disabled']))
+		$GLOBALS['_login']['view']['login_box_disabled']=false;
+
+	if(!isset($GLOBALS['_login']['view']['password_box_disabled']))
+		$GLOBALS['_login']['view']['password_box_disabled']=false;
+
 	if(!isset($GLOBALS['_login']['view']['display_remember_me_checkbox']))
 		$GLOBALS['_login']['view']['display_remember_me_checkbox']=true;
 
 	if(!isset($GLOBALS['_login']['view']['remember_me_label']))
 		$GLOBALS['_login']['view']['remember_me_label']='Remember me';
 
+	if(!isset($GLOBALS['_login']['view']['remember_me_box_disabled']))
+		$GLOBALS['_login']['view']['remember_me_box_disabled']=false;
+
 	if(!isset($GLOBALS['_login']['view']['wrong_credentials_label']))
 		$GLOBALS['_login']['view']['wrong_credentials_label']='Invalid username or password';
 
 	if(!isset($GLOBALS['_login']['view']['submit_button_label']))
 		$GLOBALS['_login']['view']['submit_button_label']='Login';
+
+	if(!isset($GLOBALS['_login']['view']['submit_button_disabled']))
+		$GLOBALS['_login']['view']['submit_button_disabled']=false;
 
 	// <title> for reload.php
 	if(!isset($GLOBALS['_login']['view']['loading_title']))

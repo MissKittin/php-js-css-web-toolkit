@@ -204,5 +204,6 @@ mklink /d app\assets\admin_panel.js ..\..\components\admin_panel\assets\admin_pa
 ```
 
 ## Portability
-Create a directory `./components/admin_panel/lib`  
-and copy the required libraries to this directory.
+Create a `./lib` directory  
+and copy the required libraries to this directory.  
+Libraries in this directory have priority over `../../lib`.

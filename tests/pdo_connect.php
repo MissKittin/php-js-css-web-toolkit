@@ -52,7 +52,7 @@
 	$errors=[];
 
 	echo ' -> Setting up database credentials'.PHP_EOL;
-		$db_credentials=[
+		$_db_credentials=[
 			'pgsql'=>[
 				'host'=>'127.0.0.1',
 				'port'=>'5432',
@@ -77,7 +77,7 @@
 				if($value !== false)
 				{
 					echo '  -> Using '.$variable.'="'.$value.'" as '.$database.' '.$parameter.PHP_EOL;
-					$db_credentials[$database][$parameter]=$value;
+					$_db_credentials[$database][$parameter]=$value;
 				}
 			}
 
@@ -97,14 +97,14 @@
 		?>');
 		file_put_contents(__DIR__.'/tmp/pdo_connect/db_sqlite/seed.php', '<?php
 			$pdo_handler->exec(\'
-				CREATE TABLE test_table(
+				CREATE TABLE pdo_connect_test_table(
 					id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
 					a TEXT,
 					b TEXT
 				)
 			\');
 			$pdo_handler->exec(\'
-				INSERT INTO test_table(a, b) VALUES
+				INSERT INTO pdo_connect_test_table(a, b) VALUES
 					("aa", "ab"),
 					("ba", "bb")
 			\');
@@ -113,25 +113,25 @@
 		file_put_contents(__DIR__.'/tmp/pdo_connect/db_pgsql/config.php', '<?php
 			$db_config=[
 				"db_type"=>"pgsql",
-				"host"=>"'.$db_credentials['pgsql']['host'].'",
-				"port"=>"'.$db_credentials['pgsql']['port'].'",
-				"db_name"=>"'.$db_credentials['pgsql']['dbname'].'",
+				"host"=>"'.$_db_credentials['pgsql']['host'].'",
+				"port"=>"'.$_db_credentials['pgsql']['port'].'",
+				"db_name"=>"'.$_db_credentials['pgsql']['dbname'].'",
 				"charset"=>"UTF8",
-				"user"=>"'.$db_credentials['pgsql']['user'].'",
-				"password"=>"'.$db_credentials['pgsql']['password'].'"
+				"user"=>"'.$_db_credentials['pgsql']['user'].'",
+				"password"=>"'.$_db_credentials['pgsql']['password'].'"
 			];
 		?>');
 		file_put_contents(__DIR__.'/tmp/pdo_connect/db_pgsql/seed.php', '<?php
-			$pdo_handler->exec(\'DROP TABLE test_table\');
+			$pdo_handler->exec(\'DROP TABLE pdo_connect_test_table\');
 			$pdo_handler->exec(\'
-				CREATE TABLE test_table(
+				CREATE TABLE pdo_connect_test_table(
 					id SERIAL PRIMARY KEY,
 					a TEXT,
 					b TEXT
 				)
 			\');
 			$pdo_handler->exec("
-				INSERT INTO test_table(a, b) VALUES
+				INSERT INTO pdo_connect_test_table(a, b) VALUES
 					(\'aa\', \'ab\'),
 					(\'ba\', \'bb\')
 			");
@@ -139,19 +139,19 @@
 		mkdir(__DIR__.'/tmp/pdo_connect/db_mysql');
 		file_put_contents(__DIR__.'/tmp/pdo_connect/db_mysql/config.php', '<?php
 			$db_config=[
-				"type"=>"mysql",
-				"host"=>"'.$db_credentials['mysql']['host'].'",
-				"port"=>"'.$db_credentials['mysql']['port'].'",
-				"db_name"=>"'.$db_credentials['mysql']['dbname'].'",
+				"db_type"=>"mysql",
+				"host"=>"'.$_db_credentials['mysql']['host'].'",
+				"port"=>"'.$_db_credentials['mysql']['port'].'",
+				"db_name"=>"'.$_db_credentials['mysql']['dbname'].'",
 				"charset"=>"utf8mb4",
-				"user"=>"'.$db_credentials['mysql']['user'].'",
-				"password"=>"'.$db_credentials['mysql']['password'].'"
+				"user"=>"'.$_db_credentials['mysql']['user'].'",
+				"password"=>"'.$_db_credentials['mysql']['password'].'"
 			];
 		?>');
 		file_put_contents(__DIR__.'/tmp/pdo_connect/db_mysql/seed.php', '<?php
-			$pdo_handler->exec(\'DROP TABLE test_table\');
+			$pdo_handler->exec(\'DROP TABLE pdo_connect_test_table\');
 			$pdo_handler->exec(\'
-				CREATE TABLE test_table(
+				CREATE TABLE pdo_connect_test_table(
 					id INTEGER NOT NULL AUTO_INCREMENT,
 					a TEXT,
 					b TEXT,
@@ -159,7 +159,7 @@
 				)
 			\');
 			$pdo_handler->exec(\'
-				INSERT INTO test_table(a, b) VALUES
+				INSERT INTO pdo_connect_test_table(a, b) VALUES
 					("aa", "ab"),
 					("ba", "bb")
 			\');
@@ -191,7 +191,7 @@
 						echo ' [FAIL]'.PHP_EOL;
 						$errors[]=$database.' database_seeded file not exists';
 					}
-					$query=$pdo_handler->query('SELECT * FROM test_table');
+					$query=$pdo_handler->query('SELECT * FROM pdo_connect_test_table');
 					if($query === false)
 					{
 						echo ' [FAIL]'.PHP_EOL;

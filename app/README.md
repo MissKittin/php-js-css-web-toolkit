@@ -1,11 +1,11 @@
 # Things to do after clone
 1) `public/index.php` just imports another php file - this is stupid thing if your OS allows you to use softlinks.  
 	You can remove this file and create link to `../app/entrypoint.php`.  
-	Run in this directory:  
+	Run in parent directory:  
 	```
 	php ./app/bin/replace-public-index-with-link.php
 	```
-2) to install assets for default template, run in this directory:  
+2) to install assets for default template, run in parent directory:  
 	```
 	php ./app/bin/install-assets.php
 	```
@@ -49,6 +49,7 @@ you can select a database via the `DB_TYPE` environment variable (default: `sqli
 * `pgsql` (127.0.0.1:5432 sampledb postgres postgres)
 * `mysql` ([::1]:3306 sampledb root (no password))
 * `sqlite` (`./var/lib/databases/sqlite/database.sqlite3`)
+
 You can configure the database connection through the following environment variables:
 * `PGSQL_HOST`
 * `PGSQL_PORT`

@@ -203,7 +203,6 @@
 					.	'('
 					.		'id INTEGER NOT NULL AUTO_INCREMENT, PRIMARY KEY(id),'
 					.		'timestamp INTEGER,'
-					.		'timestamp INTEGER,'
 					.		'ip VARCHAR(39),'
 					.		'user_agent TEXT,'
 					.		'cookie_id VARCHAR(40),'

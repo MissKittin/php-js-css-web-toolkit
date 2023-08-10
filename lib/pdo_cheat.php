@@ -6,6 +6,7 @@
 	 *  all classes are interdependent
 	 *
 	 * Supported databases:
+	 *  PostgreSQL
 	 *  MySQL
 	 *  SQLite3
 	 *
@@ -39,6 +40,20 @@
 				->surname('VARCHAR(30)')
 				->personal_id('INTEGER')
 				->save_table()
+	 *  Alter the table (if_exists() is optional):
+			$my_table->alter_table()->if_exists()
+				->add_column('examplename', 'INTEGER')
+			$my_table->alter_table()->if_exists()
+				->drop_column('examplename')
+				// not supported by SQLite3
+			$my_table->alter_table()->if_exists()
+				->rename_column('examplename', 'newname')
+				// not supported by SQLite3
+			$my_table->alter_table()->if_exists()
+				->modify_column('examplename', 'VARCHAR(30)')
+				// not supported by SQLite3
+			$my_table->alter_table()->if_exists()
+				->rename_table('newname')
 	 *  Create a new row:
 			$my_table->new_row()
 				->name('Test')
@@ -98,6 +113,7 @@
 	 *  pdo_cheat -> main controller
 	 *  pdo_cheat__exec -> handling PDO queries
 	 *  pdo_cheat__new_table -> create a table
+	 *  pdo_cheat__alter_table -> alter the table
 	 *  pdo_cheat__clear_table -> dropping table
 	 *  pdo_cheat__get_row -> row selection
 	 *  pdo_cheat__delete_row -> delete row
@@ -108,6 +124,13 @@
 	 *  new_table() -> pdo_cheat__new_table
 	 *  	__call() // column_name(column_type)
 	 *  	save_table() [returns bool]
+	 *  alter_table() -> pdo_cheat__new_table
+	 *  	if_exists() [returns pdo_cheat__new_table]
+	 *  	add_column() [returns bool]
+	 *  	drop_column() [returns bool]
+	 *  	rename_column() [returns bool]
+	 *  	modify_column() [returns bool]
+	 *  	rename_table() [returns bool]
 	 *  clear_table() -> pdo_cheat__clear_table
 	 *  	flush_table() [returns bool]
 	 *  	drop_table() [returns bool]
@@ -288,6 +311,14 @@
 				$this->table_name
 			);
 		}
+		public function alter_table()
+		{
+			return new pdo_cheat__alter_table(
+				$this,
+				$this->pdo_handler,
+				$this->table_name
+			);
+		}
 		public function clear_table()
 		{
 			return new pdo_cheat__clear_table(
@@ -392,6 +423,118 @@
 				return false;
 
 			$this->pdo_cheat->_pdo_cheat__save_table_schema($this->table_schema);
+
+			return true;
+		}
+	}
+	class pdo_cheat__alter_table extends pdo_cheat__exec
+	{
+		protected $if_exists=false;
+		protected $pdo_query='ALTER TABLE ';
+
+		protected $pdo_cheat;
+
+		public function __construct(
+			pdo_cheat $pdo_cheat,
+			$pdo_handler,
+			$table_name
+		){
+			$this->pdo_cheat_exec__construct($pdo_handler, $table_name);
+
+			$this->pdo_cheat=$pdo_cheat;
+		}
+
+		public function if_exists()
+		{
+			if(!$this->if_exists)
+			{
+				$this->pdo_query.='IF EXISTS ';
+				$this->if_exists=true;
+			}
+
+			return $this;
+		}
+		public function add_column(string $column_name, string $data_type)
+		{
+			if($this->exec($this->pdo_query.$this->table_name.' ADD '.$column_name.' '.$data_type) === false)
+				return false;
+
+			return true;
+		}
+		public function drop_column(string $column_name)
+		{
+			switch($this->pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME))
+			{
+				case 'pgsql':
+				case 'mysql':
+					if($this->exec($this->pdo_query.$this->table_name.' DROP COLUMN '.$column_name) === false)
+						return false;
+				break;
+				case 'sqlite':
+					throw new Exception('You can not use the ALTER TABLE statement to drop a column in a table (in SQLite)');
+			}
+
+			return true;
+		}
+		public function rename_column(string $old_name, string $new_name)
+		{
+			switch($this->pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME))
+			{
+				case 'pgsql':
+					if($this->exec($this->pdo_query.$this->table_name.' RENAME COLUMN '.$old_name.' TO '.$new_name) === false)
+						return false;
+				break;
+				case 'mysql':
+					if($this->exec($this->pdo_query.$this->table_name.' RENAME COLUMN '.$old_name.' TO '.$new_name) === false)
+					{
+						// for old mysqls
+
+						$column_type=$this->query('DESCRIBE '.$this->table_name.' '.$old_name);
+
+						if(!isset($column_type[0]['Type']))
+							return false;
+
+						if($this->exec($this->pdo_query.$this->table_name.' CHANGE '.$old_name.' '.$new_name.' '.$column_type[0]['Type']) === false)
+							return false;
+					}
+				break;
+				case 'sqlite':
+					throw new Exception('You can not use the ALTER TABLE statement to rename a column in SQLite');
+			}
+
+			return true;
+		}
+		public function modify_column(string $column_name, string $data_type)
+		{
+			switch($this->pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME))
+			{
+				case 'pgsql':
+					if($this->exec($this->pdo_query.$this->table_name.' ALTER COLUMN '.$column_name.' TYPE '.$data_type) === false)
+						return false;
+				break;
+				case 'mysql':
+					if($this->exec($this->pdo_query.$this->table_name.' MODIFY COLUMN '.$column_name.' '.$data_type) === false)
+						return false;
+				break;
+				case 'sqlite':
+					throw new Exception('You can not use the ALTER TABLE statement to modify a column in SQLite');
+			}
+
+			return true;
+		}
+		public function rename_table(string $new_name)
+		{
+			switch($this->pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME))
+			{
+				case 'pgsql':
+				case 'sqlite':
+					if($this->exec($this->pdo_query.$this->table_name.' RENAME TO '.$new_name) === false)
+						return false;
+				break;
+				case 'mysql':
+					if($this->exec($this->pdo_query.$this->table_name.' RENAME '.$new_name) === false)
+						return false;
+			}
 
 			return true;
 		}
@@ -595,6 +738,8 @@
 	}
 	class pdo_cheat__new_row extends pdo_cheat__exec
 	{
+		protected $new_row=true;
+
 		protected $pdo_cheat;
 		protected $table_row;
 		protected $table_schema;
@@ -637,31 +782,88 @@
 			$values='';
 			$parameters=[];
 
-			foreach($this->table_row as $column_name=>$value)
-			{
-				$columns.=$column_name.', ';
-				$values.='?, ';
-				$parameters[]=$value;
+			if(
+				(!$this->new_row) &&
+				($this->pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME) === 'pgsql')
+			){
+				$pgsql_first_column=null;
+				$pgsql_update_columns='';
+				$pgsql_update_values=[];
+
+				foreach($this->table_row as $column_name=>$value)
+				{
+					if($pgsql_first_column === null)
+						$pgsql_first_column=$column_name;
+					else
+					{
+						$pgsql_update_columns.=$column_name.'=?, ';
+						$pgsql_update_values[]=$value;
+					}
+
+					$columns.=$column_name.', ';
+					$values.='?, ';
+					$parameters[]=$value;
+				}
+
+				$pgsql_update_columns=substr($pgsql_update_columns, 0, -2);
 			}
+			else
+				foreach($this->table_row as $column_name=>$value)
+				{
+					$columns.=$column_name.', ';
+					$values.='?, ';
+					$parameters[]=$value;
+				}
 
 			$columns=substr($columns, 0, -2);
 			$values=substr($values, 0, -2);
 
 			$this->table_row=[];
 
-			return $this->exec_prepared(''
-				.' REPLACE INTO '.$this->table_name
-				.' ('
-				.	$columns
-				.' ) VALUES ('
-				.	$values
-				.' )',
-				$parameters
-			);
+			switch($this->pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME))
+			{
+				case 'pgsql':
+					if($this->new_row)
+						return $this->exec_prepared(''
+							.' INSERT INTO '.$this->table_name
+							.' ('
+							.	$columns
+							.' ) VALUES ('
+							.	$values
+							.' )',
+							$parameters
+						);
+
+					return $this->exec_prepared(''
+						.' INSERT INTO '.$this->table_name
+						.' ('
+						.	$columns
+						.' ) VALUES ('
+						.	$values
+						.' )'
+						.' ON CONFLICT('.$pgsql_first_column.') DO UPDATE SET '
+						.	$pgsql_update_columns,
+						array_merge($parameters, $pgsql_update_values)
+					);
+				break;
+				case 'mysql':
+				case 'sqlite':
+					return $this->exec_prepared(''
+						.' REPLACE INTO '.$this->table_name
+						.' ('
+						.	$columns
+						.' ) VALUES ('
+						.	$values
+						.' )',
+						$parameters
+					);
+			}
 		}
 	}
 	class pdo_cheat__existing_row extends pdo_cheat__new_row
 	{
+		protected $new_row=false;
+
 		public function __construct(
 			pdo_cheat $pdo_cheat,
 			$pdo_handler,

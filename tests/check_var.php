@@ -4,7 +4,22 @@
 	 *
 	 * Note:
 	 *  looks for a library at ../lib
+	 *
+	 * Warning:
+	 *  var_export_contains.php library is required
 	 */
+
+	foreach([
+		'var_export_contains.php'
+	] as $library){
+		echo ' -> Including '.$library;
+			if(@(include __DIR__.'/../lib/'.$library) === false)
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				exit(1);
+			}
+		echo ' [ OK ]'.PHP_EOL;
+	}
 
 	echo ' -> Including '.basename(__FILE__);
 		if(@(include __DIR__.'/../lib/'.basename(__FILE__)) === false)
@@ -123,6 +138,38 @@
 		{
 			echo ' [FAIL]'.PHP_EOL;
 			$errors[]='check_argv_next_param_many returns null failed';
+		}
+
+	echo ' -> Testing argv2array';
+		$_SERVER['argv']=[
+			basename(__FILE__),
+			'-arg1', 'val1',
+			'-arg1', 'val2',
+			'-arg2', 'valA',
+			'-arg2', 'valB',
+			'-arg3'
+		];
+		if(var_export_contains(argv2array(), "array('-arg1'=>array(0=>'val1',1=>'val2',),'-arg2'=>array(0=>'valA',1=>'valB',),'-arg3'=>array(),)"))
+			echo ' [ OK ]';
+		else
+		{
+			echo ' [FAIL]';
+			$errors[]='argv2array test1 failed';
+		}
+		$_SERVER['argv']=[
+			basename(__FILE__),
+			'-arg1=val1',
+			'-arg1=val2',
+			'-arg2=valA',
+			'-arg2=valB',
+			'-arg3'
+		];
+		if(var_export_contains(argv2array('='), "array('-arg1'=>array(0=>'val1',1=>'val2',),'-arg2'=>array(0=>'valA',1=>'valB',),'-arg3'=>array(),)"))
+			echo ' [ OK ]'.PHP_EOL;
+		else
+		{
+			echo ' [FAIL]'.PHP_EOL;
+			$errors[]='argv2array test failed';
 		}
 
 	echo ' -> Testing check_argc';

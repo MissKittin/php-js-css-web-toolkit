@@ -170,5 +170,6 @@ mklink /d app\assets\middleware_form_dark.css ..\..\components\middleware_form\a
 ```
 
 ## Portability
-Create a directory `./components/login/lib`  
-and copy the required libraries to this directory.
+Create a `./lib` directory  
+and copy the required libraries to this directory.  
+Libraries in this directory have priority over `../../lib`.

@@ -70,6 +70,182 @@
 			$errors[]='create_table';
 		}
 		$pdo_builder->flush_all();
+	echo '  -> alter_table';
+		$pdo_builder->alter_table('exampletable');
+		if(
+			($pdo_builder->print_exec() === 'ALTER TABLE exampletable ') &&
+			var_export_contains(
+				$pdo_builder->print_parameters(),
+				"array()"
+			)
+		)
+			echo ' [ OK ]'.PHP_EOL;
+		else
+		{
+			echo ' [FAIL]'.PHP_EOL;
+			$errors[]='alter_table';
+		}
+		$pdo_builder->flush_all();
+	echo '  -> alter_table_if_exists';
+		$pdo_builder->alter_table_if_exists('exampletable');
+		if(
+			($pdo_builder->print_exec() === 'ALTER TABLE IF EXISTS exampletable ') &&
+			var_export_contains(
+				$pdo_builder->print_parameters(),
+				"array()"
+			)
+		)
+			echo ' [ OK ]'.PHP_EOL;
+		else
+		{
+			echo ' [FAIL]'.PHP_EOL;
+			$errors[]='alter_table_if_exists';
+		}
+		$pdo_builder->flush_all();
+	echo '  -> add_column';
+		$pdo_builder->add_column('examplecolumn', 'datatype');
+		if(
+			($pdo_builder->print_exec() === 'ADD examplecolumn datatype ') &&
+			var_export_contains(
+				$pdo_builder->print_parameters(),
+				"array()"
+			)
+		)
+			echo ' [ OK ]'.PHP_EOL;
+		else
+		{
+			echo ' [FAIL]'.PHP_EOL;
+			$errors[]='add_column';
+		}
+		$pdo_builder->flush_all();
+	echo '  -> drop_column';
+		$pdo_builder->drop_column('examplecolumn');
+		if(
+			($pdo_builder->print_exec() === 'DROP COLUMN examplecolumn ') &&
+			var_export_contains(
+				$pdo_builder->print_parameters(),
+				"array()"
+			)
+		)
+			echo ' [ OK ]'.PHP_EOL;
+		else
+		{
+			echo ' [FAIL]'.PHP_EOL;
+			$errors[]='drop_column';
+		}
+		$pdo_builder->flush_all();
+	echo '  -> rename_column';
+		$pdo_builder->rename_column('examplecolumn', 'newname');
+		if(
+			($pdo_builder->print_exec() === 'RENAME COLUMN examplecolumn TO newname ') &&
+			var_export_contains(
+				$pdo_builder->print_parameters(),
+				"array()"
+			)
+		)
+			echo ' [ OK ]'.PHP_EOL;
+		else
+		{
+			echo ' [FAIL]'.PHP_EOL;
+			$errors[]='rename_column';
+		}
+		$pdo_builder->flush_all();
+	echo '  -> alter_column';
+		$pdo_builder->alter_column('examplecolumn', 'datatype');
+		if(
+			($pdo_builder->print_exec() === 'ALTER COLUMN examplecolumn datatype ') &&
+			var_export_contains(
+				$pdo_builder->print_parameters(),
+				"array()"
+			)
+		)
+			echo ' [ OK ]'.PHP_EOL;
+		else
+		{
+			echo ' [FAIL]'.PHP_EOL;
+			$errors[]='alter_column';
+		}
+		$pdo_builder->flush_all();
+	echo '  -> alter_column_type';
+		$pdo_builder->alter_column_type('examplecolumn', 'datatype');
+		if(
+			($pdo_builder->print_exec() === 'ALTER COLUMN examplecolumn TYPE datatype ') &&
+			var_export_contains(
+				$pdo_builder->print_parameters(),
+				"array()"
+			)
+		)
+			echo ' [ OK ]'.PHP_EOL;
+		else
+		{
+			echo ' [FAIL]'.PHP_EOL;
+			$errors[]='alter_column_type';
+		}
+		$pdo_builder->flush_all();
+	echo '  -> modify_column';
+		$pdo_builder->modify_column('examplecolumn', 'datatype');
+		if(
+			($pdo_builder->print_exec() === 'MODIFY COLUMN examplecolumn datatype ') &&
+			var_export_contains(
+				$pdo_builder->print_parameters(),
+				"array()"
+			)
+		)
+			echo ' [ OK ]'.PHP_EOL;
+		else
+		{
+			echo ' [FAIL]'.PHP_EOL;
+			$errors[]='modify_column';
+		}
+		$pdo_builder->flush_all();
+	echo '  -> modify';
+		$pdo_builder->modify('examplecolumn', 'datatype');
+		if(
+			($pdo_builder->print_exec() === 'MODIFY examplecolumn datatype ') &&
+			var_export_contains(
+				$pdo_builder->print_parameters(),
+				"array()"
+			)
+		)
+			echo ' [ OK ]'.PHP_EOL;
+		else
+		{
+			echo ' [FAIL]'.PHP_EOL;
+			$errors[]='modify';
+		}
+		$pdo_builder->flush_all();
+	echo '  -> rename';
+		$pdo_builder->rename('exampletable');
+		if(
+			($pdo_builder->print_exec() === 'RENAME exampletable ') &&
+			var_export_contains(
+				$pdo_builder->print_parameters(),
+				"array()"
+			)
+		)
+			echo ' [ OK ]'.PHP_EOL;
+		else
+		{
+			echo ' [FAIL]'.PHP_EOL;
+			$errors[]='rename';
+		}
+		$pdo_builder->flush_all();
+	echo '  -> rename_to';
+		$pdo_builder->rename_to('exampletable');
+		if(
+			($pdo_builder->print_exec() === 'RENAME TO exampletable ') &&
+			var_export_contains(
+				$pdo_builder->print_parameters(),
+				"array()"
+			)
+		)
+			echo ' [ OK ]'.PHP_EOL;
+		else
+		{
+			echo ' [FAIL]'.PHP_EOL;
+			$errors[]='rename_to';
+		}
+		$pdo_builder->flush_all();
 	echo '  -> drop_table';
 		$pdo_builder->drop_table('exampletable');
 		if(
