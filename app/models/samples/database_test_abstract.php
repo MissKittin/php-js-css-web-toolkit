@@ -37,7 +37,7 @@
 							if(!is_file(__DIR__.'/../../../lib/'.$library))
 								throw new Exception(__DIR__.'/../../../lib/'.$library.' not found');
 
-							include __DIR__.'/../../../lib/'.$library;
+							require __DIR__.'/../../../lib/'.$library;
 						}
 					break;
 					case 'function':
@@ -46,7 +46,7 @@
 							if(!is_file(__DIR__.'/../../../lib/'.$library))
 								throw new Exception(__DIR__.'/../../../lib/'.$library.' not found');
 
-							include __DIR__.'/../../../lib/'.$library;
+							require __DIR__.'/../../../lib/'.$library;
 						}
 				}
 

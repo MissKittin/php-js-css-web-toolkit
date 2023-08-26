@@ -267,10 +267,10 @@
 
 			if($this->expire > 0)
 			{
-				$this->redis_handler->setex(
+				$this->redis_handler->set(
 					$this->prefix.$this->ip,
-					$this->expire,
-					$this->current_attempts
+					$this->current_attempts,
+					['ex'=>$this->expire]
 				);
 			}
 			else
@@ -308,7 +308,7 @@
 		 *  get_timestamp() always returns 0
 		 *
 		 * Note:
-		 *  the auto_clean functionality is performed by Redis (setex method)
+		 *  the auto_clean functionality is performed by Redis (set-with-expire method)
 		 *  you can disable this functionality by setting the ban_time value to 0
 		 *
 		 * Constructor parameters:
@@ -399,10 +399,10 @@
 			if($this->ban_time < 1)
 			{
 				if($this->expire > 0)
-					$this->redis_handler->setex(
+					$this->redis_handler->set(
 						$this->prefix.$this->ip,
-						$this->expire,
-						$this->current_attempts
+						$this->current_attempts,
+						['ex'=>$this->expire]
 					);
 				else
 					$this->redis_handler->set(
@@ -411,10 +411,10 @@
 					);
 			}
 			else
-				$this->redis_handler->setex(
+				$this->redis_handler->set(
 					$this->prefix.$this->ip,
-					$this->ban_time,
-					$this->current_attempts
+					$this->current_attempts,
+					['ex'=>$this->ban_time]
 				);
 
 			if($this->current_attempts === $this->max_attempts)

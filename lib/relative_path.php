@@ -23,9 +23,7 @@
 		$from=realpath($from);
 		$to=realpath($to);
 
-		if($from === false)
-			return false;
-		if($to === false)
+		if(($from === false) || ($to === false))
 			return false;
 
 		if(is_dir($from))

@@ -17,13 +17,15 @@
 	 *  __DIR__/../lib
 	 */
 
+	use MatthiasMullie\Minify;
+
 	function load_library($libraries, $required=true)
 	{
 		foreach($libraries as $library)
 			if(file_exists(__DIR__.'/lib/'.$library))
-				include __DIR__.'/lib/'.$library;
+				require __DIR__.'/lib/'.$library;
 			else if(file_exists(__DIR__.'/../lib/'.$library))
-				include __DIR__.'/../lib/'.$library;
+				require __DIR__.'/../lib/'.$library;
 			else
 				if($required)
 					throw new Exception($library.' library not found');
@@ -50,14 +52,12 @@
 
 	try {
 		load_library(['check_var.php']);
-		include find_composer_autoloader();
+		require find_composer_autoloader();
 		check_composer_package(['matthiasmullie/minify']);
 	} catch(Exception $error) {
 		echo 'Error: '.$error->getMessage().PHP_EOL;
 		exit(1);
 	}
-
-	use MatthiasMullie\Minify;
 
 	$input_directory=check_argv_next_param('--dir');
 	$minify_styles=true;

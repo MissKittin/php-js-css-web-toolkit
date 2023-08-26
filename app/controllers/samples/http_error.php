@@ -1,7 +1,7 @@
 <?php
 	function http_error($error_code)
 	{
-		include './app/shared/samples/default_http_headers.php';
+		require './app/shared/samples/default_http_headers.php';
 		http_response_code($error_code);
 
 		$lang='en';
@@ -21,7 +21,7 @@
 		)
 			$theme='dark';
 
-		include './app/shared/samples/ob_adapter.php';
+		require './app/shared/samples/ob_adapter.php';
 		ob_adapter
 			::add(new ob_adapter_obminifier())
 			->add(new ob_adapter_gzip())
@@ -29,6 +29,6 @@
 			->add(new ob_adapter_gunzip())
 			->start();
 
-		include './app/views/samples/http_error/'.$lang.'/'.$theme.'/'.$error_code.'.php';
+		require './app/views/samples/http_error/'.$lang.'/'.$theme.'/'.$error_code.'.php';
 	}
 ?>

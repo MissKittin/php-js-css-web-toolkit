@@ -27,6 +27,10 @@
 			return true;
 		}
 
+		echo ' -> Mocking classes';
+			class Exception extends \Exception {}
+		echo ' [ OK ]'.PHP_EOL;
+
 		echo ' -> Mocking functions';
 			function http_response_code($code)
 			{
@@ -94,7 +98,7 @@
 		}
 
 		echo '  -> checking success (now exit)'.PHP_EOL;
-			prevent_direct('goodscript');
+			prevent_direct('goodscript', '', 'echo');
 			echo '  -> checking success [FAIL]'.PHP_EOL;
 			exit(1);
 	}

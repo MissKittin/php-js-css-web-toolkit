@@ -6,10 +6,10 @@
 	 *  looks for a library at ../lib
 	 *
 	 * Warning:
-	 *  gd extension is recommended
-	 *  imagick extension is recommended
 	 *  has_php_close_tag.php library is required
 	 *  include_into_namespace.php library is required
+	 *  gd extension is recommended
+	 *  imagick extension is recommended
 	 */
 
 	namespace Test
@@ -66,6 +66,7 @@
 			}
 
 		@mkdir(__DIR__.'/tmp');
+		@mkdir(__DIR__.'/tmp/sec_captcha');
 		$failed=false;
 		$no_extensions=[
 			'gd2'=>false,
@@ -83,7 +84,7 @@
 
 				echo '   -> captcha_get';
 					$image=captcha_get('Test\captcha_gd2', [$format]);
-					file_put_contents(__DIR__.'/tmp/sec_captcha_gd2-'.$_SESSION['_captcha']['token'].'.'.$format, $image);
+					file_put_contents(__DIR__.'/tmp/sec_captcha/sec_captcha_gd2-'.$_SESSION['_captcha']['token'].'.'.$format, $image);
 					if(!empty($image))
 						echo ' [ OK ]'.PHP_EOL;
 					else
@@ -126,7 +127,7 @@
 
 					echo '   -> captcha_get';
 						$image=captcha_get('Test\captcha_imagick', [$format]);
-						file_put_contents(__DIR__.'/tmp/sec_captcha_imagick-'.$_SESSION['_captcha']['token'].'.'.$format, $image);
+						file_put_contents(__DIR__.'/tmp/sec_captcha/sec_captcha_imagick-'.$_SESSION['_captcha']['token'].'.'.$format, $image);
 						if(!empty($image))
 							echo ' [ OK ]'.PHP_EOL;
 						else
@@ -171,7 +172,7 @@
 
 					echo '   -> captcha_get';
 						$image=captcha_get('Test\captcha_imagick2', [$format]);
-						file_put_contents(__DIR__.'/tmp/sec_captcha_imagick2-'.$_SESSION['_captcha']['token'].'.'.$format, $image);
+						file_put_contents(__DIR__.'/tmp/sec_captcha/sec_captcha_imagick2-'.$_SESSION['_captcha']['token'].'.'.$format, $image);
 						if(!empty($image))
 							echo ' [ OK ]'.PHP_EOL;
 						else

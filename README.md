@@ -1,7 +1,7 @@
 # PHP-JS-CSS web toolkit
 A set of tools, components and libraries that you can use in your project  
 Recommended PHP version: 7.4  
-Supported relational databases: SQLite3, PostgreSQL, MySQL
+Supported relational databases: PostgreSQL, MySQL, SQLite3
 
 ## Principles
 * respect the KISS rule
@@ -13,7 +13,7 @@ Supported relational databases: SQLite3, PostgreSQL, MySQL
 * if you are writing a new tool, keep it independent of the other tools
 
 ## PHP CLI tools
-* `assets-compiler.php` - compile assets from app/assets
+* `assets-compiler.php` - interface for `assets_compiler.php` library
 * `autoloader-generator.php` - a toy that scans PHP files and generates an autoloader script
 * `check-easter-mkcache.php` - cache generator for `check_easter_cache()`
 * `cron.php` - interface for `cron.php` library
@@ -25,6 +25,7 @@ Supported relational databases: SQLite3, PostgreSQL, MySQL
 * `logrotate.php` - interface for `logrotate.php` library
 * `lv-encrypter.php` - interface for `sec_lv_encrypter.php` library
 * `matthiasmullie-minify.php` - interface for the `matthiasmullie/minify` package
+* `mkphar.php` - a tool to quickly build a PHP archive
 * `opcache-preload-generator.php` - opcache preload script generator
 * `pdo-connect.php` - interface for `pdo_connect.php`, `pdo_cheat.php` (optional) and `pdo_crud_builder.php` (optional) libraries - seed databases
 * `queue-worker.php` - interface for `queue_worker.php` server
@@ -39,6 +40,8 @@ Supported relational databases: SQLite3, PostgreSQL, MySQL
 
 ## PHP libraries
 * `array_tree.php` - convert flat array into tree, tree to list
+* `assets_compiler.php`
+* `async_process_builder.php` - `proc_*` wrapper and standard input-output-error interface
 * `blog_page_slicer.php` - select n elements from array at start point
 * `cache_container.php` - cache manager
 * `check_date.php` - check if is between DD.MM - DD.MM
@@ -72,6 +75,7 @@ Supported relational databases: SQLite3, PostgreSQL, MySQL
 * `print_file.php` - set HTTP headers and send specified file to the client
 * `queue_worker.php` - execute jobs outside the HTTP server
 * `rand_str.php` - random string generator
+* `redis_connect.php` - open preconfigured connection to the Redis
 * `registry.php` - design pattern
 * `relative_path.php` - get relative path between two files/directories
 * `rmdir_recursive.php` - remove non-empty directories
@@ -101,9 +105,9 @@ Supported relational databases: SQLite3, PostgreSQL, MySQL
 ## Javascript libraries
 * `addDesktopIcon.js` - create box with win98-style icon
 * `beautify.js` - quickly replace certain word (temporary solution)
-* `checkDate.js` - `check_date.php` in Js version
+* `checkDate.js` - `check_date.php` in Js
 * `clock.js` - render clock in div
-* `convertBytes.js` - `convert_bytes.php` in Js version
+* `convertBytes.js` - `convert_bytes.php` in Js
 * `disableEnterOnForm.js` - disable submit by Enter behavior
 * `enableTabOnTextarea.js` - allow inserting tabs on selected textareas
 * `epilepsi.js` - nice functions for creating epileptic impressions
@@ -113,7 +117,7 @@ Supported relational databases: SQLite3, PostgreSQL, MySQL
 * `getCssJs.js` - apply CSS or Js at run time
 * `getJson.js` - get/send JSON data
 * `imgRotator.js` - rotate images on selected id
-* `linkify.js` - convert plaintext links to anchors (author: rooseve)
+* `linkify.js` - rooseve's plaintext link to anchor converter
 * `list2tree.js` - convert ul or ol to expandable tree
 * `multipage.js` - put several pages in one HTML file / element switcher
 * `rand.js`

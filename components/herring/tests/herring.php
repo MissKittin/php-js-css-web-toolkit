@@ -3,7 +3,7 @@
 	 * Hint:
 	 *  you can setup database credentials by environment variables
 	 *  variables:
-	 *   TEST_DB_TYPE (pgsql, mysql, sqlite, overrides first argument)
+	 *   TEST_DB_TYPE (pgsql, mysql, sqlite) (default: sqlite)
 	 *   TEST_PGSQL_HOST (default: 127.0.0.1)
 	 *   TEST_PGSQL_PORT (default: 5432)
 	 *   TEST_PGSQL_DBNAME (default: php_toolkit_tests)
@@ -11,9 +11,15 @@
 	 *   TEST_PGSQL_PASSWORD (default: postgres)
 	 *   TEST_MYSQL_HOST (default: [::1])
 	 *   TEST_MYSQL_PORT (default: 3306)
-	 *   TEST_MYSQL_DBNAME (default: php-toolkit-tests)
+	 *   TEST_MYSQL_DBNAME (default: php_toolkit_tests)
 	 *   TEST_MYSQL_USER (default: root)
 	 *   TEST_MYSQL_PASSWORD
+	 *
+	 * Warning:
+	 *  PDO extension is required
+	 *  pdo_pgsql extension is recommended
+	 *  pdo_mysql extension is recommended
+	 *  pdo_sqlite extension is recommended
 	 */
 
 	namespace Test
@@ -63,12 +69,11 @@
 			return true;
 		}
 
-		foreach(['PDO', 'pdo_sqlite'] as $extension)
-			if(!extension_loaded($extension))
-			{
-				echo $extension.' extension is not loaded'.PHP_EOL;
-				exit(1);
-			}
+		if(!extension_loaded('PDO'))
+		{
+			echo 'PDO extension is not loaded'.PHP_EOL;
+			exit(1);
+		}
 
 		echo ' -> Mocking functions and classes';
 			class Exception extends \Exception {}
@@ -178,65 +183,78 @@
 		}
 
 		if(getenv('TEST_DB_TYPE') !== false)
-			$argv[2]=getenv('TEST_DB_TYPE');
-		if(isset($argv[2]))
 		{
-			$_db_type=$argv[2];
-			$_db_credentials=[
-				'pgsql'=>[
-					'host'=>'127.0.0.1',
-					'port'=>'5432',
-					'dbname'=>'php_toolkit_tests',
-					'user'=>'postgres',
-					'password'=>'postgres'
-				],
-				'mysql'=>[
-					'host'=>'[::1]',
-					'port'=>'3306',
-					'dbname'=>'php-toolkit-tests',
-					'user'=>'root',
-					'password'=>''
+			echo ' -> Configuring PDO'.PHP_EOL;
+
+			$_pdo=[
+				'type'=>getenv('TEST_DB_TYPE'),
+				'credentials'=>[
+					'pgsql'=>[
+						'host'=>'127.0.0.1',
+						'port'=>'5432',
+						'dbname'=>'php_toolkit_tests',
+						'user'=>'postgres',
+						'password'=>'postgres'
+					],
+					'mysql'=>[
+						'host'=>'[::1]',
+						'port'=>'3306',
+						'dbname'=>'php_toolkit_tests',
+						'user'=>'root',
+						'password'=>''
+					]
 				]
 			];
-			foreach(['pgsql', 'mysql'] as $database)
-				foreach(['host', 'port', 'dbname', 'user', 'password'] as $parameter)
-				{
-					$variable='TEST_'.strtoupper($database.'_'.$parameter);
-					$value=getenv($variable);
 
-					if($value !== false)
+			foreach(['pgsql', 'mysql'] as $_pdo['_database'])
+				foreach(['host', 'port', 'dbname', 'user', 'password'] as $_pdo['_parameter'])
+				{
+					$_pdo['_variable']='TEST_'.strtoupper($_pdo['_database'].'_'.$_pdo['_parameter']);
+					$_pdo['_value']=getenv($_pdo['_variable']);
+
+					if($_pdo['_value'] !== false)
 					{
-						echo '  -> Using '.$variable.'="'.$value.'" as '.$database.' '.$parameter.PHP_EOL;
-						$_db_credentials[$database][$parameter]=$value;
+						echo '  -> Using '.$_pdo['_variable'].'="'.$_pdo['_value'].'" as '.$_pdo['_database'].' '.$_pdo['_parameter'].PHP_EOL;
+						$_pdo['credentials'][$_pdo['_database']][$_pdo['_parameter']]=$_pdo['_value'];
 					}
 				}
 
-			try {
-				switch($_db_type)
+			try /* some monsters */ {
+				switch($_pdo['type'])
 				{
 					case 'pgsql':
+						echo '  -> Using '.$_pdo['type'].' driver'.PHP_EOL;
+
 						if(!extension_loaded('pdo_pgsql'))
 							throw new Exception('pdo_pgsql extension is not loaded');
 
 						$pdo_handler=new PDO('pgsql:'
-							.'host='.$_db_credentials[$_db_type]['host'].';'
-							.'port='.$_db_credentials[$_db_type]['port'].';'
-							.'dbname='.$_db_credentials[$_db_type]['dbname'].';'
-							.'user='.$_db_credentials[$_db_type]['user'].';'
-							.'password='.$_db_credentials[$_db_type]['password'].''
+							.'host='.$_pdo['credentials'][$_pdo['type']]['host'].';'
+							.'port='.$_pdo['credentials'][$_pdo['type']]['port'].';'
+							.'dbname='.$_pdo['credentials'][$_pdo['type']]['dbname'].';'
+							.'user='.$_pdo['credentials'][$_pdo['type']]['user'].';'
+							.'password='.$_pdo['credentials'][$_pdo['type']]['password'].''
 						);
 					break;
 					case 'mysql':
+						echo '  -> Using '.$_pdo['type'].' driver'.PHP_EOL;
+
 						if(!extension_loaded('pdo_mysql'))
 							throw new Exception('pdo_mysql extension is not loaded');
 
 						$pdo_handler=new PDO('mysql:'
-							.'host='.$_db_credentials[$_db_type]['host'].';'
-							.'port='.$_db_credentials[$_db_type]['port'].';'
-							.'dbname='.$_db_credentials[$_db_type]['dbname'],
-							$_db_credentials[$_db_type]['user'],
-							$_db_credentials[$_db_type]['password']
+							.'host='.$_pdo['credentials'][$_pdo['type']]['host'].';'
+							.'port='.$_pdo['credentials'][$_pdo['type']]['port'].';'
+							.'dbname='.$_pdo['credentials'][$_pdo['type']]['dbname'],
+							$_pdo['credentials'][$_pdo['type']]['user'],
+							$_pdo['credentials'][$_pdo['type']]['password']
 						);
+					break;
+					case 'sqlite':
+						echo '  -> Using '.$_pdo['type'].' driver'.PHP_EOL;
+					break;
+					default:
+						echo '  -> '.$_pdo['type'].' driver is not supported [FAIL]'.PHP_EOL;
 				}
 			} catch(Throwable $error) {
 				echo ' Error: '.$error->getMessage().PHP_EOL;
@@ -245,16 +263,24 @@
 
 			if(isset($pdo_handler))
 			{
-				$pdo_handler->exec('DROP TABLE herring_test_visitors');
-				$pdo_handler->exec('DROP TABLE herring_test_archive');
+				$pdo_handler->exec('DROP TABLE comp_herring_test_visitors');
+				$pdo_handler->exec('DROP TABLE comp_herring_test_archive');
 			}
 		}
 		if(!isset($pdo_handler))
+		{
+			if(!extension_loaded('pdo_sqlite'))
+			{
+				echo 'pdo_sqlite extension is not loaded'.PHP_EOL;
+				exit(1);
+			}
+
 			$pdo_handler=new PDO('sqlite:'.__DIR__.'/tmp/herring.sqlite3');
+		}
 
 		$herring_mock=new herring_mock([
 			'pdo_handler'=>$pdo_handler,
-			'table_name_prefix'=>'herring_test_',
+			'table_name_prefix'=>'comp_herring_test_',
 			'ip'=>'0.0.0.0',
 			'uri'=>'/',
 			'cookie_name'=>'notused',
@@ -262,7 +288,7 @@
 		]);
 		$herring_maintenance=new herring_mock([
 			'pdo_handler'=>$pdo_handler,
-			'table_name_prefix'=>'herring_test_',
+			'table_name_prefix'=>'comp_herring_test_',
 			'maintenance_mode'=>true
 		]);
 		$failed=false;
@@ -318,7 +344,7 @@
 			$benchmark=new \measure_exec_time_from_here();
 			try {
 				$herring_maintenance->move_to_archive(0);
-				if(empty($pdo_handler->query('SELECT * FROM herring_test_visitors')->fetchAll()))
+				if(empty($pdo_handler->query('SELECT * FROM comp_herring_test_visitors')->fetchAll()))
 					echo ' [ OK ]'.PHP_EOL;
 				else
 				{
@@ -386,7 +412,7 @@
 			$benchmark=new \measure_exec_time_from_here();
 			try {
 				$herring_maintenance->flush_archive();
-				if(empty($pdo_handler->query('SELECT * FROM herring_test_archive')->fetchAll()))
+				if(empty($pdo_handler->query('SELECT * FROM comp_herring_test_archive')->fetchAll()))
 					echo ' [ OK ]'.PHP_EOL;
 				else
 				{

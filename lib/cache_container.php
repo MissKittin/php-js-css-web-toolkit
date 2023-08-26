@@ -632,7 +632,7 @@
 		public function __construct(array $params)
 		{
 			if(!isset($params['redis_handler']))
-				throw new Exception('No redis address given');
+				throw new Exception('No redis handler given');
 
 			$this->redis_handler=$params['redis_handler'];
 
@@ -650,7 +650,7 @@
 			JSON_UNESCAPED_UNICODE);
 
 			if($timeout > 0)
-				$this->redis_handler->setex($this->prefix.$key, $timeout, $value);
+				$this->redis_handler->set($this->prefix.$key, $value, ['ex'=>$timeout]);
 			else
 				$this->redis_handler->set($this->prefix.$key, $value);
 		}
@@ -676,7 +676,19 @@
 		}
 		public function flush()
 		{
-			$this->redis_handler->flushAll();
+			$iterator=null;
+
+			do
+			{
+				$keys=$this->redis_handler->scan($iterator, $this->prefix.'*');
+
+				if($keys === false)
+					break;
+
+				foreach($keys as $key)
+					$this->redis_handler->del($key);
+			}
+			while($iterator > 0);
 		}
 	}
 ?>

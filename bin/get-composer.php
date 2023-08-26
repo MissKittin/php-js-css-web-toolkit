@@ -2,8 +2,13 @@
 	/*
 	 * Easily add composer to your project
 	 *
+	 * Dangars note:
+	 *  add --no-installer-verification parameter
+	 *  to skip installer vefification
+	 *
 	 * Warning:
 	 *  curl extension is recommended
+	 *  curl_file_updown.php library is required for curl
 	 *
 	 * lib directory path:
 	 *  __DIR__/lib
@@ -11,8 +16,9 @@
 	 */
 
 	$composer_meta=[
+		'signature_url'=>'https://composer.github.io/installer.sig',
 		'installer_url'=>'https://getcomposer.org/installer',
-		'installer_sum'=>'55ce33d7678c5a611085589f1f3ddf8b3c52d662cd01d4ba75c0ee0459970c2200a51f492d557530c71c15d8dba01eae',
+		'signature_file'=>'./.get-composer-installer.php.sig',
 		'installer_file'=>'./.get-composer-installer.php',
 		'composer_phar'=>'./composer.phar'
 	];
@@ -21,9 +27,9 @@
 	{
 		foreach($libraries as $library)
 			if(file_exists(__DIR__.'/lib/'.$library))
-				include __DIR__.'/lib/'.$library;
+				require __DIR__.'/lib/'.$library;
 			else if(file_exists(__DIR__.'/../lib/'.$library))
-				include __DIR__.'/../lib/'.$library;
+				require __DIR__.'/../lib/'.$library;
 			else
 				if($required)
 					throw new Exception($library.' library not found');
@@ -40,11 +46,12 @@
 
 	chdir(__DIR__);
 
-	if(file_exists($composer_meta['installer_file']))
-	{
-		echo __DIR__.DIRECTORY_SEPARATOR.$composer_meta['installer_file'].' exists, exiting'.PHP_EOL;
-		exit(1);
-	}
+	foreach(['signature', 'installer'] as $file)
+		if(file_exists($composer_meta[$file.'_file']))
+		{
+			echo __DIR__.DIRECTORY_SEPARATOR.$composer_meta[$file.'_file'].' exists, exiting'.PHP_EOL;
+			exit(1);
+		}
 
 	if(file_exists($composer_meta['composer_phar']))
 	{
@@ -55,56 +62,79 @@
 	echo 'Composer will be installed in '.getcwd().DIRECTORY_SEPARATOR.$composer_meta['composer_phar'].PHP_EOL;
 
 	if(extension_loaded('curl') && (!$GLOBALS['force_copy']))
-	{
-		$GLOBALS['curl_failed']=false;
+		foreach(['signature', 'installer'] as $file)
+		{
+			echo 'Downloading '.$file.' via curl'.PHP_EOL;
 
-		echo 'Downloading installer via curl'.PHP_EOL;
 			curl_file_download(
-				$composer_meta['installer_url'],
-				$composer_meta['installer_file'],
+				$composer_meta[$file.'_url'],
+				$composer_meta[$file.'_file'],
 				[
-					'on_error'=>function($error)
+					'on_error'=>function($error) use($file)
 					{
-						echo 'Failed to download installer: '.$error.PHP_EOL;
-						$GLOBALS['curl_failed']=true;
+						echo 'Failed to download '.$file.': '.$error.PHP_EOL;
+
+						@unlink($composer_meta['signature_file']);
+						@unlink($composer_meta['installer_file']);
+
 						exit(1);
 					}
 				]
 			);
-
-			if($GLOBALS['curl_failed'])
-				@unlink($composer_meta['installer_file']);
-	}
+		}
 	else
-	{
-		echo 'Downloading installer via copy'.PHP_EOL;
-			if(!copy($composer_meta['installer_url'], $composer_meta['installer_file']))
+		foreach(['signature', 'installer'] as $file)
+		{
+			echo 'Downloading '.$file.' via copy'.PHP_EOL;
+
+			if(!copy($composer_meta[$file.'_url'], $composer_meta[$file.'_file']))
 			{
-				echo 'Failed to download installer'.PHP_EOL;
+				echo 'Failed to download '.$file.PHP_EOL;
+
+				@unlink($composer_meta['signature_file']);
 				@unlink($composer_meta['installer_file']);
+
 				exit(1);
 			}
-	}
+		}
 
-	if(!file_exists($composer_meta['installer_file']))
-	{
-		echo 'Failed to download installer'.PHP_EOL;
-		exit(1);
-	}
-
-	echo 'Verifying installer'.PHP_EOL;
-		if(hash_file('sha384', $composer_meta['installer_file']) === $composer_meta['installer_sum'])
-			echo 'Installer verified'.PHP_EOL;
-		else
+	foreach(['signature', 'installer'] as $file)
+		if(!file_exists($composer_meta[$file.'_file']))
 		{
-			echo 'Installer corrupt'.PHP_EOL;
-			unlink($composer_meta['installer_file']);
+			echo 'Failed to download '.$file.PHP_EOL;
 			exit(1);
 		}
 
-		echo 'Starting installer'.PHP_EOL;
-			system(PHP_BINARY.' '.$composer_meta['installer_file']);
+	echo 'Verifying installer';
+		if(isset($argv[1]) && ($argv[1] === '--no-installer-verification'))
+			echo ' [SKIP] !!!'.PHP_EOL;
+		else
+		{
+			echo PHP_EOL;
 
-		echo 'Removing installer'.PHP_EOL;
-			unlink($composer_meta['installer_file']);
+			if(
+				hash_file('sha384', $composer_meta['installer_file'])
+				==
+				trim(file_get_contents($composer_meta['signature_file']))
+			)
+				echo 'Installer verified'.PHP_EOL;
+			else
+			{
+				echo 'Installer corrupted'.PHP_EOL;
+
+				unlink($composer_meta['signature_file']);
+				unlink($composer_meta['installer_file']);
+
+				exit(1);
+			}
+		}
+
+	echo 'Starting installer'.PHP_EOL;
+		system(PHP_BINARY.' '.$composer_meta['installer_file']);
+
+	echo 'Removing installer'.PHP_EOL;
+	{
+		unlink($composer_meta['signature_file']);
+		unlink($composer_meta['installer_file']);
+	}
 ?>

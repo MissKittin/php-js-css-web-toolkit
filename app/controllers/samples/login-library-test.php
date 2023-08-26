@@ -1,5 +1,5 @@
 <?php
-	include './app/shared/samples/default_http_headers.php';
+	require './app/shared/samples/default_http_headers.php';
 
 	if(
 		isset($_SERVER['HTTP_ACCEPT_ENCODING']) &&
@@ -7,13 +7,13 @@
 	)
 		ob_start('ob_gzhandler');
 
-	include './app/shared/samples/session_start.php';
+	require './app/shared/samples/session_start.php';
 
-	include './lib/check_var.php';
-	include './lib/sec_csrf.php';
-	include './lib/sec_login.php';
+	require './lib/check_var.php';
+	require './lib/sec_csrf.php';
+	require './lib/sec_login.php';
 
-	include './app/templates/samples/default/default_template.php';
+	require './app/templates/samples/default/default_template.php';
 	$view=new default_template();
 
 	$view['login_failed_single']=false;
@@ -24,7 +24,7 @@
 	$use_login_refresh=true;
 
 	// import credentials and callback_function()
-	include './app/models/samples/login_library_test_credentials.php';
+	require './app/models/samples/login_library_test_credentials.php';
 
 	function reload_page($view)
 	{

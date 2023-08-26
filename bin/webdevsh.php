@@ -15,9 +15,9 @@
 	{
 		foreach($libraries as $library)
 			if(file_exists(__DIR__.'/lib/'.$library))
-				include __DIR__.'/lib/'.$library;
+				require __DIR__.'/lib/'.$library;
 			else if(file_exists(__DIR__.'/../lib/'.$library))
-				include __DIR__.'/../lib/'.$library;
+				require __DIR__.'/../lib/'.$library;
 			else
 				if($required)
 					throw new Exception($library.' library not found');

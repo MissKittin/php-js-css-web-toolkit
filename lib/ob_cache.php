@@ -156,10 +156,10 @@
 					''
 				);
 			else
-				$GLOBALS['_ob_cache']['redis_handler']->setex(
+				$GLOBALS['_ob_cache']['redis_handler']->set(
 					$GLOBALS['_ob_cache']['url'],
-					$GLOBALS['_ob_cache']['expire'],
-					''
+					'',
+					['ex'=>$GLOBALS['_ob_cache']['expire']]
 				);
 
 			ob_start(function($buffer){
@@ -179,10 +179,10 @@
 						$cache_content.$buffer
 					);
 				else
-					$GLOBALS['_ob_cache']['redis_handler']->setex(
+					$GLOBALS['_ob_cache']['redis_handler']->set(
 						$GLOBALS['_ob_cache']['url'],
-						$GLOBALS['_ob_cache']['expire'],
-						$cache_content.$buffer
+						$cache_content.$buffer,
+						['ex'=>$GLOBALS['_ob_cache']['expire']]
 					);
 
 				if(

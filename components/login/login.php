@@ -2,34 +2,34 @@
 	if(!function_exists('check_post'))
 	{
 		if(file_exists(__DIR__.'/lib/check_var.php'))
-			include __DIR__.'/lib/check_var.php';
+			require __DIR__.'/lib/check_var.php';
 		else if(file_exists(__DIR__.'/../../lib/check_var.php'))
-			include __DIR__.'/../../lib/check_var.php';
+			require __DIR__.'/../../lib/check_var.php';
 		else
 			throw new Exception('check_var.php library not found');
 	}
 	if(!function_exists('csrf_check_token'))
 	{
 		if(file_exists(__DIR__.'/lib/sec_csrf.php'))
-			include __DIR__.'/lib/sec_csrf.php';
+			require __DIR__.'/lib/sec_csrf.php';
 		else if(file_exists(__DIR__.'/../../lib/sec_csrf.php'))
-			include __DIR__.'/../../lib/sec_csrf.php';
+			require __DIR__.'/../../lib/sec_csrf.php';
 		else
 			throw new Exception('sec_csrf.php library not found');
 	}
 	if(!function_exists('is_logged'))
 	{
 		if(file_exists(__DIR__.'/lib/sec_login.php'))
-			include __DIR__.'/lib/sec_login.php';
+			require __DIR__.'/lib/sec_login.php';
 		else if(file_exists(__DIR__.'/../../lib/sec_login.php'))
-			include __DIR__.'/../../lib/sec_login.php';
+			require __DIR__.'/../../lib/sec_login.php';
 		else
 			throw new Exception('sec_login.php library not found');
 	}
 
-	include __DIR__.'/config/config.php';
-	include __DIR__.'/config/csp_header.php';
-	include __DIR__.'/config/view.php';
+	require __DIR__.'/config/config.php';
+	require __DIR__.'/config/csp_header.php';
+	require __DIR__.'/config/view.php';
 
 	if(csrf_check_token('post'))
 	{
@@ -100,7 +100,7 @@
 	if(!is_logged())
 	{
 		$GLOBALS['_login']['config']['on_login_prompt']();
-		include __DIR__.'/views/form.php';
+		require __DIR__.'/views/form.php';
 
 		if($GLOBALS['_login']['config']['exit_after_login_prompt'])
 			exit();

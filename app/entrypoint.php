@@ -5,7 +5,7 @@
 		(!isset($_SERVER['REQUEST_URI'])) ||
 		(!isset($_SERVER['REQUEST_METHOD']))
 	){
-		include './app/controllers/samples/http_error.php';
+		require './app/controllers/samples/http_error.php';
 		http_error(400);
 		exit();
 	}
@@ -14,7 +14,7 @@
 		($_SERVER['REQUEST_METHOD'] !== 'GET') &&
 		($_SERVER['REQUEST_METHOD'] !== 'POST')
 	){
-		include './app/controllers/samples/http_error.php';
+		require './app/controllers/samples/http_error.php';
 		http_error(400);
 		exit();
 	}
@@ -42,17 +42,17 @@
 
 	switch(explode('/', strtok($_SERVER['REQUEST_URI'], '?'))[1])
 	{
-		case '': include './app/controllers/samples/home.php'; break;
+		case '': require './app/controllers/samples/home.php'; break;
 
-		case 'about': include './app/controllers/samples/about.php'; break;
-		case 'check-date': include './app/controllers/samples/check-date.php'; break;
-		case 'database-test': include './app/controllers/samples/database-test.php'; break;
-		case 'obsfucate-html': include './app/controllers/samples/obsfucate-html.php'; break;
-		case 'login-library-test': include './app/controllers/samples/login-library-test.php'; break;
-		case 'login-component-test': include './app/controllers/samples/login-component-test.php'; break;
-		case 'preprocessing-test': include './app/controllers/samples/preprocessing-test.php'; break;
+		case 'about': require './app/controllers/samples/about.php'; break;
+		case 'check-date': require './app/controllers/samples/check-date.php'; break;
+		case 'database-test': require './app/controllers/samples/database-test.php'; break;
+		case 'obsfucate-html': require './app/controllers/samples/obsfucate-html.php'; break;
+		case 'login-library-test': require './app/controllers/samples/login-library-test.php'; break;
+		case 'login-component-test': require './app/controllers/samples/login-component-test.php'; break;
+		case 'preprocessing-test': require './app/controllers/samples/preprocessing-test.php'; break;
 		case 'http_error_test':
-			include './app/controllers/samples/http_error.php';
+			require './app/controllers/samples/http_error.php';
 
 			$error_code=explode('/', strtok($_SERVER['REQUEST_URI'], '?'));
 
@@ -72,28 +72,28 @@
 		case 'robots.txt':
 			if(!isset($_SERVER['HTTP_HOST']))
 			{
-				include './app/controllers/samples/http_error.php';
+				require './app/controllers/samples/http_error.php';
 				http_error(400);
 				exit();
 			}
 
-			include './app/controllers/samples/robots-sitemap.php';
+			require './app/controllers/samples/robots-sitemap.php';
 			robots();
 		break;
 		case 'sitemap.xml':
 			if(!isset($_SERVER['HTTP_HOST']))
 			{
-				include './app/controllers/samples/http_error.php';
+				require './app/controllers/samples/http_error.php';
 				http_error(400);
 				exit();
 			}
 
-			include './app/controllers/samples/robots-sitemap.php';
+			require './app/controllers/samples/robots-sitemap.php';
 			sitemap();
 		break;
 
 		default:
-			include './app/controllers/samples/http_error.php';
+			require './app/controllers/samples/http_error.php';
 
 			if(is_dir($_SERVER['DOCUMENT_ROOT'].strtok($_SERVER['REQUEST_URI'], '?')))
 				http_error(403);

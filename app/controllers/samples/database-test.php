@@ -6,7 +6,7 @@
 				return $param;
 	}
 
-	include './app/shared/samples/default_http_headers.php';
+	require './app/shared/samples/default_http_headers.php';
 
 	if(
 		isset($_SERVER['HTTP_ACCEPT_ENCODING']) &&
@@ -14,15 +14,15 @@
 	)
 		ob_start('ob_gzhandler');
 
-	include './app/shared/samples/session_start.php';
+	require './app/shared/samples/session_start.php';
 
-	include './lib/check_var.php';
-	include './lib/sec_csrf.php';
+	require './lib/check_var.php';
+	require './lib/sec_csrf.php';
 
-	include './app/templates/samples/default/default_template.php';
+	require './app/templates/samples/default/default_template.php';
 	$view=new default_template();
 
-	include './app/models/samples/database_test_abstract.php';
+	require './app/models/samples/database_test_abstract.php';
 	try {
 		$db_cars=new database_test_abstract(
 			'cars',

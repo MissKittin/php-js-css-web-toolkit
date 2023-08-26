@@ -2,9 +2,9 @@
 	if(!class_exists('registry'))
 	{
 		if(file_exists(__DIR__.'/lib/registry.php'))
-			include __DIR__.'/lib/registry.php';
+			require __DIR__.'/lib/registry.php';
 		else if(file_exists(__DIR__.'/../../lib/registry.php'))
-			include __DIR__.'/../../lib/registry.php';
+			require __DIR__.'/../../lib/registry.php';
 		else
 			throw new Exception('registry.php library not found');
 	}
@@ -69,7 +69,7 @@
 		}
 		protected function _set_default_labels()
 		{
-			include __DIR__.'/views/csp_header.php';
+			require __DIR__.'/views/csp_header.php';
 
 			$this
 				->set_title('Administration')
@@ -80,11 +80,11 @@
 		protected function _view($_module)
 		{
 			if(isset($_module['config']))
-				include $_module['path'].'/'.$_module['config'];
+				require $_module['path'].'/'.$_module['config'];
 
-			include __DIR__.'/views/top.php';
-			include $_module['path'].'/'.$_module['script'];
-			include __DIR__.'/views/bottom.php';
+			require __DIR__.'/views/top.php';
+			require $_module['path'].'/'.$_module['script'];
+			require __DIR__.'/views/bottom.php';
 		}
 
 		public function add_module(array $params)

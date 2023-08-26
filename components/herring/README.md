@@ -3,8 +3,8 @@ Doktor Sledzik i mister Zgredzik
 Device for tracking users
 
 ## Required PHP extensions
-* `PDO` (for tests)
-* `pdo_sqlite` (for tests)
+* `PDO`
+* `pdo_pgsql` or `pdo_mysql` or `pdo_sqlite`
 
 ## Required libraries
 * `measure_exec_time.php`

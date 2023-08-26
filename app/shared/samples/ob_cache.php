@@ -10,24 +10,17 @@
 	 */
 
 	if(!function_exists('ob_file_cache'))
-		include './lib/ob_cache.php';
+		require './lib/ob_cache.php';
+	if(!function_exists('redis_connect'))
+		require './lib/redis_connect.php';
 
-	function ob_cache($url, $expire=3600, $redis_address='127.0.0.1', $redis_port=6379)
+	function ob_cache($url, $expire=3600)
 	{
 		if(extension_loaded('redis'))
 		{
-			$redis=new Redis();
+			$redis=redis_connect('./app/databases/samples/redis');
 
-			try {
-				if($redis_port === null)
-					$connected=$redis->connect($redis_address);
-				else
-					$connected=$redis->connect($redis_address, $redis_port);
-			} catch(RedisException $e) {
-				$connected=false;
-			}
-
-			if($connected)
+			if($redis)
 			{
 				if(ob_redis_cache($redis, $url, $expire, true) === 0)
 					exit();

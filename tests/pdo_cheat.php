@@ -8,7 +8,7 @@
 	 * Hint:
 	 *  you can setup database credentials by environment variables
 	 *  variables:
-	 *   TEST_DB_TYPE (pgsql, mysql, sqlite, overrides first argument)
+	 *   TEST_DB_TYPE (pgsql, mysql, sqlite) (default: sqlite)
 	 *   TEST_PGSQL_HOST (default: 127.0.0.1)
 	 *   TEST_PGSQL_PORT (default: 5432)
 	 *   TEST_PGSQL_DBNAME (default: php_toolkit_tests)
@@ -16,22 +16,23 @@
 	 *   TEST_PGSQL_PASSWORD (default: postgres)
 	 *   TEST_MYSQL_HOST (default: [::1])
 	 *   TEST_MYSQL_PORT (default: 3306)
-	 *   TEST_MYSQL_DBNAME (default: php-toolkit-tests)
+	 *   TEST_MYSQL_DBNAME (default: php_toolkit_tests)
 	 *   TEST_MYSQL_USER (default: root)
 	 *   TEST_MYSQL_PASSWORD
 	 *
 	 * Warning:
 	 *  PDO extension is required
-	 *  pdo_sqlite extension is required
+	 *  pdo_pgsql extension is recommended
+	 *  pdo_mysql extension is recommended
+	 *  pdo_sqlite extension is recommended
 	 *  var_export_contains.php library is required
 	 */
 
-	foreach(['PDO', 'pdo_sqlite'] as $extension)
-		if(!extension_loaded($extension))
-		{
-			echo $extension.' extension is not loaded'.PHP_EOL;
-			exit(1);
-		}
+	if(!extension_loaded('PDO'))
+	{
+		echo 'PDO extension is not loaded'.PHP_EOL;
+		exit(1);
+	}
 
 	echo ' -> Including var_export_contains.php';
 		if(@(include __DIR__.'/../lib/var_export_contains.php') === false)
@@ -57,65 +58,78 @@
 	echo ' [ OK ]'.PHP_EOL;
 
 	if(getenv('TEST_DB_TYPE') !== false)
-		$argv[1]=getenv('TEST_DB_TYPE');
-	if(isset($argv[1]))
 	{
-		$_db_type=$argv[1];
-		$_db_credentials=[
-			'pgsql'=>[
-				'host'=>'127.0.0.1',
-				'port'=>'5432',
-				'dbname'=>'php_toolkit_tests',
-				'user'=>'postgres',
-				'password'=>'postgres'
-			],
-			'mysql'=>[
-				'host'=>'[::1]',
-				'port'=>'3306',
-				'dbname'=>'php-toolkit-tests',
-				'user'=>'root',
-				'password'=>''
+		echo ' -> Configuring PDO'.PHP_EOL;
+
+		$_pdo=[
+			'type'=>getenv('TEST_DB_TYPE'),
+			'credentials'=>[
+				'pgsql'=>[
+					'host'=>'127.0.0.1',
+					'port'=>'5432',
+					'dbname'=>'php_toolkit_tests',
+					'user'=>'postgres',
+					'password'=>'postgres'
+				],
+				'mysql'=>[
+					'host'=>'[::1]',
+					'port'=>'3306',
+					'dbname'=>'php_toolkit_tests',
+					'user'=>'root',
+					'password'=>''
+				]
 			]
 		];
-		foreach(['pgsql', 'mysql'] as $database)
-			foreach(['host', 'port', 'dbname', 'user', 'password'] as $parameter)
-			{
-				$variable='TEST_'.strtoupper($database.'_'.$parameter);
-				$value=getenv($variable);
 
-				if($value !== false)
+		foreach(['pgsql', 'mysql'] as $_pdo['_database'])
+			foreach(['host', 'port', 'dbname', 'user', 'password'] as $_pdo['_parameter'])
+			{
+				$_pdo['_variable']='TEST_'.strtoupper($_pdo['_database'].'_'.$_pdo['_parameter']);
+				$_pdo['_value']=getenv($_pdo['_variable']);
+
+				if($_pdo['_value'] !== false)
 				{
-					echo ' -> Using '.$variable.'="'.$value.'" as '.$database.' '.$parameter.PHP_EOL;
-					$_db_credentials[$database][$parameter]=$value;
+					echo '  -> Using '.$_pdo['_variable'].'="'.$_pdo['_value'].'" as '.$_pdo['_database'].' '.$_pdo['_parameter'].PHP_EOL;
+					$_pdo['credentials'][$_pdo['_database']][$_pdo['_parameter']]=$_pdo['_value'];
 				}
 			}
 
-		try {
-			switch($_db_type)
+		try /* some monsters */ {
+			switch($_pdo['type'])
 			{
 				case 'pgsql':
+					echo '  -> Using '.$_pdo['type'].' driver'.PHP_EOL;
+
 					if(!extension_loaded('pdo_pgsql'))
 						throw new Exception('pdo_pgsql extension is not loaded');
 
 					$pdo_handler=new PDO('pgsql:'
-						.'host='.$_db_credentials[$_db_type]['host'].';'
-						.'port='.$_db_credentials[$_db_type]['port'].';'
-						.'dbname='.$_db_credentials[$_db_type]['dbname'].';'
-						.'user='.$_db_credentials[$_db_type]['user'].';'
-						.'password='.$_db_credentials[$_db_type]['password'].''
+						.'host='.$_pdo['credentials'][$_pdo['type']]['host'].';'
+						.'port='.$_pdo['credentials'][$_pdo['type']]['port'].';'
+						.'dbname='.$_pdo['credentials'][$_pdo['type']]['dbname'].';'
+						.'user='.$_pdo['credentials'][$_pdo['type']]['user'].';'
+						.'password='.$_pdo['credentials'][$_pdo['type']]['password'].''
 					);
 				break;
 				case 'mysql':
+					echo '  -> Using '.$_pdo['type'].' driver'.PHP_EOL;
+
 					if(!extension_loaded('pdo_mysql'))
 						throw new Exception('pdo_mysql extension is not loaded');
 
 					$pdo_handler=new PDO('mysql:'
-						.'host='.$_db_credentials[$_db_type]['host'].';'
-						.'port='.$_db_credentials[$_db_type]['port'].';'
-						.'dbname='.$_db_credentials[$_db_type]['dbname'],
-						$_db_credentials[$_db_type]['user'],
-						$_db_credentials[$_db_type]['password']
+						.'host='.$_pdo['credentials'][$_pdo['type']]['host'].';'
+						.'port='.$_pdo['credentials'][$_pdo['type']]['port'].';'
+						.'dbname='.$_pdo['credentials'][$_pdo['type']]['dbname'],
+						$_pdo['credentials'][$_pdo['type']]['user'],
+						$_pdo['credentials'][$_pdo['type']]['password']
 					);
+				break;
+				case 'sqlite':
+					echo '  -> Using '.$_pdo['type'].' driver'.PHP_EOL;
+				break;
+				default:
+					echo '  -> '.$_pdo['type'].' driver is not supported [FAIL]'.PHP_EOL;
 			}
 		} catch(Throwable $error) {
 			echo ' Error: '.$error->getMessage().PHP_EOL;
@@ -130,19 +144,28 @@
 		}
 	}
 	if(!isset($pdo_handler))
+	{
+		if(!extension_loaded('pdo_sqlite'))
+		{
+			echo 'pdo_sqlite extension is not loaded'.PHP_EOL;
+			exit(1);
+		}
+
 		$pdo_handler=new PDO('sqlite:'.__DIR__.'/tmp/pdo_cheat.sqlite3');
+	}
 
 	$pdo_cheat=new pdo_cheat([
 		'pdo_handler'=>$pdo_handler,
 		'table_name'=>'pdo_cheat_test_table'
 	]);
-	$pdo_cheat_alter=new pdo_cheat([
+	$pdo_cheat_alter=[
 		'pdo_handler'=>$pdo_handler,
 		'table_name'=>'pdo_cheat_alter_test_table'
-	]);
+	];
 
 	echo ' -> Creating alter table';
-		$pdo_cheat_alter->new_table()
+		$pdo_cheat_alter_handler=new pdo_cheat($pdo_cheat_alter);
+		$pdo_cheat_alter_handler->new_table()
 			->id(pdo_cheat::default_id_type)
 			->name('VARCHAR(30)')
 			->surname('VARCHAR(30)')
@@ -155,9 +178,10 @@
 		}
 		else
 			echo ' [ OK ]'.PHP_EOL;
-	echo ' -> Altering the table (add)';
-		$pdo_cheat_alter->alter_table()
-			->add_column('alter_test', 'INTEGER');
+	echo ' -> Altering the table (add_column)';
+		$pdo_cheat_alter_handler=new pdo_cheat($pdo_cheat_alter);
+		$pdo_cheat_alter_handler->alter_table()
+			->add_alter_test('INTEGER');
 		$pdo_handler->exec('INSERT INTO pdo_cheat_alter_test_table(alter_test) VALUES(2)');
 		switch($pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME))
 		{
@@ -179,118 +203,113 @@
 			$errors[]='Altering the table (add)';
 		}
 	echo ' -> Altering the table (rename_column)';
-		if($pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME) === 'sqlite')
-			echo ' [SKIP]'.PHP_EOL;
+		$pdo_cheat_alter_handler=new pdo_cheat($pdo_cheat_alter);
+		$pdo_cheat_alter_handler->alter_table()
+			->rename_from_alter_test()
+			->rename_to_alter_test_a();
+		switch($pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME))
+		{
+			case 'pgsql':
+				$output_string="array(0=>array('id'=>1,'name'=>NULL,'surname'=>NULL,'personal_id'=>NULL,'alter_test_a'=>2,),)";
+			break;
+			case 'mysql':
+			case 'sqlite':
+				$output_string="array(0=>array('id'=>'1','name'=>NULL,'surname'=>NULL,'personal_id'=>NULL,'alter_test_a'=>'2',),)";
+		}
+		if(var_export_contains(
+			$pdo_handler->query('SELECT * FROM pdo_cheat_alter_test_table')->fetchAll(PDO::FETCH_NAMED),
+			$output_string
+		))
+			echo ' [ OK ]';
 		else
 		{
-			$pdo_cheat_alter->alter_table()
-				->rename_column('alter_test', 'alter_test_a');
-			switch($pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME))
-			{
-				case 'pgsql':
-					$output_string="array(0=>array('id'=>1,'name'=>NULL,'surname'=>NULL,'personal_id'=>NULL,'alter_test_a'=>2,),)";
-				break;
-				case 'mysql':
-					$output_string="array(0=>array('id'=>'1','name'=>NULL,'surname'=>NULL,'personal_id'=>NULL,'alter_test_a'=>'2',),)";
-			}
-			if(var_export_contains(
-				$pdo_handler->query('SELECT * FROM pdo_cheat_alter_test_table')->fetchAll(PDO::FETCH_NAMED),
-				$output_string
-			))
-				echo ' [ OK ]';
-			else
-			{
-				echo ' [FAIL]';
-				$errors[]='Altering the table (rename_column phase 1)';
-			}
+			echo ' [FAIL]';
+			$errors[]='Altering the table (rename_column phase 1)';
+		}
 
-			$pdo_cheat_alter->alter_table()
-				->rename_column('alter_test_a', 'alter_test');
-			switch($pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME))
-			{
-				case 'pgsql':
-					$output_string="array(0=>array('id'=>1,'name'=>NULL,'surname'=>NULL,'personal_id'=>NULL,'alter_test'=>2,),)";
-				break;
-				case 'mysql':
-					$output_string="array(0=>array('id'=>'1','name'=>NULL,'surname'=>NULL,'personal_id'=>NULL,'alter_test'=>'2',),)";
-			}
-			if(var_export_contains(
-				$pdo_handler->query('SELECT * FROM pdo_cheat_alter_test_table')->fetchAll(PDO::FETCH_NAMED),
-				$output_string
-			))
-				echo ' [ OK ]'.PHP_EOL;
-			else
-			{
-				echo ' [FAIL]'.PHP_EOL;
-				$errors[]='Altering the table (rename_column phase 2)';
-			}
+		$pdo_cheat_alter_handler=new pdo_cheat($pdo_cheat_alter);
+		$pdo_cheat_alter_handler->alter_table()
+			->rename_from_alter_test_a()
+			->rename_to_alter_test();
+		switch($pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME))
+		{
+			case 'pgsql':
+				$output_string="array(0=>array('id'=>1,'name'=>NULL,'surname'=>NULL,'personal_id'=>NULL,'alter_test'=>2,),)";
+			break;
+			case 'mysql':
+			case 'sqlite':
+				$output_string="array(0=>array('id'=>'1','name'=>NULL,'surname'=>NULL,'personal_id'=>NULL,'alter_test'=>'2',),)";
 		}
-	echo ' -> Altering the table (modify)';
-		if($pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME) === 'sqlite')
-			echo ' [SKIP]'.PHP_EOL;
+		if(var_export_contains(
+			$pdo_handler->query('SELECT * FROM pdo_cheat_alter_test_table')->fetchAll(PDO::FETCH_NAMED),
+			$output_string
+		))
+			echo ' [ OK ]'.PHP_EOL;
 		else
 		{
-			$pdo_cheat_alter->alter_table()
-				->modify_column('alter_test', 'VARCHAR(30)');
-			switch($pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME))
-			{
-				case 'pgsql':
-					$pdo_handler->exec("INSERT INTO pdo_cheat_alter_test_table(alter_test) VALUES('asd')");
-					$output_string="array(0=>array('id'=>1,'name'=>NULL,'surname'=>NULL,'personal_id'=>NULL,'alter_test'=>'2',),1=>array('id'=>2,'name'=>NULL,'surname'=>NULL,'personal_id'=>NULL,'alter_test'=>'asd',),)";
-				break;
-				case 'mysql':
-					$pdo_handler->exec('INSERT INTO pdo_cheat_alter_test_table(alter_test) VALUES("asd")');
-					$output_string="array(0=>array('id'=>'1','name'=>NULL,'surname'=>NULL,'personal_id'=>NULL,'alter_test'=>'2',),1=>array('id'=>'2','name'=>NULL,'surname'=>NULL,'personal_id'=>NULL,'alter_test'=>'asd',),)";
-			}
-			if(var_export_contains(
-				$pdo_handler->query('SELECT * FROM pdo_cheat_alter_test_table')->fetchAll(PDO::FETCH_NAMED),
-				$output_string
-			))
-				echo ' [ OK ]'.PHP_EOL;
-			else
-			{
-				echo ' [FAIL]'.PHP_EOL;
-				$errors[]='Altering the table (modify)';
-			}
-			switch($pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME))
-			{
-				case 'pgsql':
-					$pdo_handler->exec("DELETE FROM pdo_cheat_alter_test_table WHERE alter_test='asd'");
-				break;
-				case 'mysql':
-					$pdo_handler->exec('DELETE FROM pdo_cheat_alter_test_table WHERE alter_test="asd"');
-			}
+			echo ' [FAIL]'.PHP_EOL;
+			$errors[]='Altering the table (rename_column phase 2)';
 		}
-	echo ' -> Altering the table (drop)';
-		if($pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME) === 'sqlite')
-			echo ' [SKIP]'.PHP_EOL;
+	echo ' -> Altering the table (modify_column)';
+		$pdo_cheat_alter_handler=new pdo_cheat($pdo_cheat_alter);
+		$pdo_cheat_alter_handler->alter_table()
+			->modify_alter_test('VARCHAR(30)');
+		switch($pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME))
+		{
+			case 'pgsql':
+				$pdo_handler->exec("INSERT INTO pdo_cheat_alter_test_table(alter_test) VALUES('asd')");
+				$output_string="array(0=>array('id'=>1,'name'=>NULL,'surname'=>NULL,'personal_id'=>NULL,'alter_test'=>'2',),1=>array('id'=>2,'name'=>NULL,'surname'=>NULL,'personal_id'=>NULL,'alter_test'=>'asd',),)";
+			break;
+			case 'mysql':
+			case 'sqlite':
+				$pdo_handler->exec('INSERT INTO pdo_cheat_alter_test_table(alter_test) VALUES("asd")');
+				$output_string="array(0=>array('id'=>'1','name'=>NULL,'surname'=>NULL,'personal_id'=>NULL,'alter_test'=>'2',),1=>array('id'=>'2','name'=>NULL,'surname'=>NULL,'personal_id'=>NULL,'alter_test'=>'asd',),)";
+		}
+		if(var_export_contains(
+			$pdo_handler->query('SELECT * FROM pdo_cheat_alter_test_table')->fetchAll(PDO::FETCH_NAMED),
+			$output_string
+		))
+			echo ' [ OK ]'.PHP_EOL;
 		else
 		{
-			$pdo_cheat_alter->alter_table()
-				->drop_column('alter_test');
-			switch($pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME))
-			{
-				case 'pgsql':
-					$output_string="array(0=>array('id'=>1,'name'=>NULL,'surname'=>NULL,'personal_id'=>NULL,),)";
-				break;
-				case 'mysql':
-					$output_string="array(0=>array('id'=>'1','name'=>NULL,'surname'=>NULL,'personal_id'=>NULL,),)";
-			}
-			if(var_export_contains(
-				$pdo_handler->query('SELECT * FROM pdo_cheat_alter_test_table')->fetchAll(PDO::FETCH_NAMED),
-				$output_string
-			))
-				echo ' [ OK ]'.PHP_EOL;
-			else
-			{
-				echo ' [FAIL]'.PHP_EOL;
-				$errors[]='Altering the table (drop)';
-			}
+			echo ' [FAIL]'.PHP_EOL;
+			$errors[]='Altering the table (modify)';
+		}
+		switch($pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME))
+		{
+			case 'pgsql':
+				$pdo_handler->exec("DELETE FROM pdo_cheat_alter_test_table WHERE alter_test='asd'");
+			break;
+			case 'mysql':
+			case 'sqlite':
+				$pdo_handler->exec('DELETE FROM pdo_cheat_alter_test_table WHERE alter_test="asd"');
+		}
+	echo ' -> Altering the table (drop_column)';
+		$pdo_cheat_alter_handler=new pdo_cheat($pdo_cheat_alter);
+		$pdo_cheat_alter_handler->alter_table()
+			->drop_alter_test();
+		switch($pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME))
+		{
+			case 'pgsql':
+				$output_string="array(0=>array('id'=>1,'name'=>NULL,'surname'=>NULL,'personal_id'=>NULL,),)";
+			break;
+			case 'mysql':
+			case 'sqlite':
+				$output_string="array(0=>array('id'=>'1','name'=>NULL,'surname'=>NULL,'personal_id'=>NULL,),)";
+		}
+		if(var_export_contains(
+			$pdo_handler->query('SELECT * FROM pdo_cheat_alter_test_table')->fetchAll(PDO::FETCH_NAMED),
+			$output_string
+		))
+			echo ' [ OK ]'.PHP_EOL;
+		else
+		{
+			echo ' [FAIL]'.PHP_EOL;
+			$errors[]='Altering the table (drop)';
 		}
 	echo ' -> Altering the table (rename_table)';
-		if($pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME) !== 'sqlite')
-			$pdo_handler->exec('INSERT INTO pdo_cheat_alter_test_table(alter_test) VALUES(2)');
-		$pdo_cheat_alter->alter_table()
+		$pdo_cheat_alter_handler=new pdo_cheat($pdo_cheat_alter);
+		$pdo_cheat_alter_handler->alter_table()
 			->rename_table('pdo_cheat_alter_test_table_r');
 		switch($pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME))
 		{

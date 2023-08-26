@@ -1,12 +1,12 @@
 <?php
-	include './app/shared/samples/default_http_headers.php';
+	require './app/shared/samples/default_http_headers.php';
 
-	include './app/shared/samples/ob_cache.php';
+	require './app/shared/samples/ob_cache.php';
 	ob_cache(ob_url2file(), 3600);
 
-	include './lib/check_date.php';
+	require './lib/check_date.php';
 
-	include './app/templates/samples/default/default_template.php';
+	require './app/templates/samples/default/default_template.php';
 	$view=new default_template();
 
 	$view['first-question']=false;

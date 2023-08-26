@@ -32,19 +32,7 @@ Edit `app/entrypoint.php`
 You can use eg. `uri_router.php` library or `superclosure_router` component.
 
 ### Creating assets
-There are tree types of assets:
-1) single file assets  
-	Create/put file in `app/assets` - it will be copied to the `public/assets` (see Compiling assets).
-2) concatenated assets  
-	Create directory in `app/assets` with output file name. Place all CSS or Js files in this directory.  
-	All files will be merged to one file in `public/assets`  (see Compiling assets).  
-	Also you can create this directory in `app/views` and link it to the `app/assets`
-3) preprocessed assets  
-	Create directory in `app/assets` with output file name.  
-	Create `main.php` file in this directory with css/js/etc code.  
-	Open `<?php` tag and write dynamic code - these block will be executed during compilation.  
-	`$current_asset` point to asset's directory.  
-	Also put css or js files in this directory these will be included in `main.php`.
+See `assets_compiler.php` library.
 
 ### Creating database configuration for pdo_connect()
 See `pdo_connect.php` library.
@@ -137,10 +125,12 @@ php ./bin/link2file.php ./app
 ```
 
 ### Deploy on shared hosting in a subdirectory
-Note: all routing and asset paths in views must be appropriate
-1) move `./public` directory to `../public_html/app-name` (where `public_html` is document root in your hosting)
-2) edit `public_html/app-name/index.php` and correct the include path (here: `include '../../your-app/app/entrypoint.php';`)
-3) test application: `php ./bin/serve.php --docroot ../public_html`
+Note: all routing and asset paths in views must be appropriate  
+Note: if you don't have something like `public_html`, good luck
+1) upload `./public` directory to `public_html/app-name` (where `public_html` is document root in your hosting)
+2) upload application to `app-name` (next to the `public_html` directory)
+3) edit `public_html/app-name/index.php` and correct the require path (here: `require '../../your-app/app/entrypoint.php';`)
+4) test application: `php ./bin/serve.php --docroot ../public_html`
 
 # Apache configuration
 You need to `a2enmod rewrite`  

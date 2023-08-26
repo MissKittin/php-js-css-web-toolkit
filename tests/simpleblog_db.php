@@ -33,13 +33,14 @@
 
 	echo ' -> Removing temporary files';
 		@mkdir(__DIR__.'/tmp');
+		@mkdir(__DIR__.'/tmp/simpleblog_db');
 		foreach([
 			'simpleblog_db',
 			'simpleblog_dbcache',
 			'simpleblog_dbcache_cache'
 		] as $file)
-			rmdir_recursive(__DIR__.'/tmp/'.$file);
-		@unlink(__DIR__.'/tmp/simpleblog_db.zip');
+			rmdir_recursive(__DIR__.'/tmp/simpleblog_db/'.$file);
+		@unlink(__DIR__.'/tmp/simpleblog_db/simpleblog_db.zip');
 	echo ' [ OK ]'.PHP_EOL;
 
 	$errors=[];
@@ -51,21 +52,21 @@
 		switch($version)
 		{
 			case 'simpleblog_db':
-				@mkdir(__DIR__.'/tmp/simpleblog_db');
+				@mkdir(__DIR__.'/tmp/simpleblog_db/simpleblog_db');
 				$db=new simpleblog_db([
-					'db_path'=>__DIR__.'/tmp/simpleblog_db'
+					'db_path'=>__DIR__.'/tmp/simpleblog_db/simpleblog_db'
 				]);
 			break;
 			case 'simpleblog_db_cache':
-				@mkdir(__DIR__.'/tmp/simpleblog_dbcache');
+				@mkdir(__DIR__.'/tmp/simpleblog_db/simpleblog_dbcache');
 				$db=new simpleblog_db_cache([
-					'db_path'=>__DIR__.'/tmp/simpleblog_dbcache',
-					'cache_path'=>__DIR__.'/tmp/simpleblog_dbcache_cache'
+					'db_path'=>__DIR__.'/tmp/simpleblog_db/simpleblog_dbcache',
+					'cache_path'=>__DIR__.'/tmp/simpleblog_db/simpleblog_dbcache_cache'
 				]);
 			break;
 			case 'simpleblog_db_zip':
 				$db=new simpleblog_db_zip([
-					'db_path'=>__DIR__.'/tmp/simpleblog_db.zip',
+					'db_path'=>__DIR__.'/tmp/simpleblog_db/simpleblog_db.zip',
 					'db_compression'=>true
 				]);
 		}

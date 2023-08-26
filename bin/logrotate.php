@@ -62,9 +62,9 @@
 	{
 		foreach($libraries as $library)
 			if(file_exists(__DIR__.'/lib/'.$library))
-				include __DIR__.'/lib/'.$library;
+				require __DIR__.'/lib/'.$library;
 			else if(file_exists(__DIR__.'/../lib/'.$library))
-				include __DIR__.'/../lib/'.$library;
+				require __DIR__.'/../lib/'.$library;
 			else
 				if($required)
 					throw new Exception($library.' library not found');
@@ -97,11 +97,7 @@
 		exit(1);
 	}
 
-	if(@(include $argv[1]) === false)
-	{
-		echo 'Error: '.$argv[1].' inclusion error'.PHP_EOL;
-		exit(1);
-	}
+	require $argv[1];
 
 	if(!isset($files))
 	{

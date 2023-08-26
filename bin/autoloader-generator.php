@@ -31,7 +31,7 @@
 							$a.='case \''.strtolower($class).'\':';
 								if($debug)
 									$a.='error_log(__FILE__.\' autoloader: loading \'.__DIR__.\'/'.$file.'\');';
-								$a.='include __DIR__.\'/'.$file.'\''
+								$a.='require __DIR__.\'/'.$file.'\''
 							.';break;';
 						}
 					$a.='}'
@@ -50,7 +50,7 @@
 								$a.='case \''.strtolower($function).'\':';
 									if($debug)
 										$a.='error_log(__FILE__.\' load_function: loading \'.__DIR__.\'/'.$file.'\');';
-									$a.='include __DIR__.\'/'.$file.'\''
+									$a.='require __DIR__.\'/'.$file.'\''
 								.';break;';
 							}
 							$a.='default:';
@@ -71,9 +71,9 @@
 	{
 		foreach($libraries as $library)
 			if(file_exists(__DIR__.'/lib/'.$library))
-				include __DIR__.'/lib/'.$library;
+				require __DIR__.'/lib/'.$library;
 			else if(file_exists(__DIR__.'/../lib/'.$library))
-				include __DIR__.'/../lib/'.$library;
+				require __DIR__.'/../lib/'.$library;
 			else
 				if($required)
 					throw new Exception($library.' library not found');

@@ -40,4 +40,6 @@
 		$db_config['host']=$var_databases.'/'.$var_databases_db_name.'/database.sqlite3';
 		$db_config['seeded_path']=$var_databases.'/'.$var_databases_db_name;
 	}
+
+	return $db_config;
 ?>

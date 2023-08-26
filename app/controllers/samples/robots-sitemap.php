@@ -23,7 +23,7 @@
 		if(isset($_SERVER['HTTPS']))
 			$proto='https';
 
-		include './lib/sitemap_generator.php';
+		require './lib/sitemap_generator.php';
 		$sitemap=new sitemap_generator([
 			'url'=>$proto.'://'.$_SERVER['HTTP_HOST'],
 			'default_tags'=>[

@@ -6,17 +6,19 @@
 	 *  looks for a library at ../lib
 	 *
 	 * Hint:
-	 *  you can setup Redis server address and port by environment variables
+	 *  you can setup Redis credentials by environment variables
 	 *  variables:
+	 *   TEST_REDIS=yes (default: no)
 	 *   TEST_REDIS_HOST (default: 127.0.0.1)
 	 *   TEST_REDIS_PORT (default: 6379)
-	 *  to skip cleaning the Redis database,
-	 *   run the test with the --no-redis-clean parameter
+	 *   TEST_REDIS_DBINDEX (default: 0)
+	 *   TEST_REDIS_USER
+	 *   TEST_REDIS_PASSWORD
 	 *
 	 * Hint:
 	 *  you can setup database credentials by environment variables
 	 *  variables:
-	 *   TEST_DB_TYPE (pgsql, mysql, sqlite, overrides first argument)
+	 *   TEST_DB_TYPE (pgsql, mysql, sqlite) (default: sqlite)
 	 *   TEST_PGSQL_HOST (default: 127.0.0.1)
 	 *   TEST_PGSQL_PORT (default: 5432)
 	 *   TEST_PGSQL_DBNAME (default: php_toolkit_tests)
@@ -24,22 +26,23 @@
 	 *   TEST_PGSQL_PASSWORD (default: postgres)
 	 *   TEST_MYSQL_HOST (default: [::1])
 	 *   TEST_MYSQL_PORT (default: 3306)
-	 *   TEST_MYSQL_DBNAME (default: php-toolkit-tests)
+	 *   TEST_MYSQL_DBNAME (default: php_toolkit_tests)
 	 *   TEST_MYSQL_USER (default: root)
 	 *   TEST_MYSQL_PASSWORD
 	 *
 	 * Warning:
 	 *  PDO extension is required
-	 *  pdo_sqlite extension is required
+	 *  pdo_pgsql extension is recommended
+	 *  pdo_mysql extension is recommended
+	 *  pdo_sqlite extension is recommended
 	 *  redis extension is recommended
 	 */
 
-	foreach(['PDO', 'pdo_sqlite'] as $extension)
-		if(!extension_loaded($extension))
-		{
-			echo $extension.' extension is not loaded'.PHP_EOL;
-			exit(1);
-		}
+	if(!extension_loaded('PDO'))
+	{
+		echo 'PDO extension is not loaded'.PHP_EOL;
+		exit(1);
+	}
 
 	echo ' -> Including '.basename(__FILE__);
 		if(@(include __DIR__.'/../lib/'.basename(__FILE__)) === false)
@@ -51,6 +54,7 @@
 
 	echo ' -> Removing temporary files';
 		@mkdir(__DIR__.'/tmp');
+		@mkdir(__DIR__.'/tmp/cache_container');
 		foreach([
 			'cache_container.json',
 			'cache_container.json.lock',
@@ -58,69 +62,82 @@
 			'cache_container_realtime.json.lock',
 			'cache_container.sqlite3'
 		] as $file)
-			@unlink(__DIR__.'/tmp/'.$file);
+			@unlink(__DIR__.'/tmp/cache_container/'.$file);
 	echo ' [ OK ]'.PHP_EOL;
 
 	if(getenv('TEST_DB_TYPE') !== false)
-		$argv[1]=getenv('TEST_DB_TYPE');
-	if(isset($argv[1]))
 	{
-		$_db_type=$argv[1];
-		$_db_credentials=[
-			'pgsql'=>[
-				'host'=>'127.0.0.1',
-				'port'=>'5432',
-				'dbname'=>'php_toolkit_tests',
-				'user'=>'postgres',
-				'password'=>'postgres'
-			],
-			'mysql'=>[
-				'host'=>'[::1]',
-				'port'=>'3306',
-				'dbname'=>'php-toolkit-tests',
-				'user'=>'root',
-				'password'=>''
+		echo ' -> Configuring PDO'.PHP_EOL;
+
+		$_pdo=[
+			'type'=>getenv('TEST_DB_TYPE'),
+			'credentials'=>[
+				'pgsql'=>[
+					'host'=>'127.0.0.1',
+					'port'=>'5432',
+					'dbname'=>'php_toolkit_tests',
+					'user'=>'postgres',
+					'password'=>'postgres'
+				],
+				'mysql'=>[
+					'host'=>'[::1]',
+					'port'=>'3306',
+					'dbname'=>'php_toolkit_tests',
+					'user'=>'root',
+					'password'=>''
+				]
 			]
 		];
-		foreach(['pgsql', 'mysql'] as $database)
-			foreach(['host', 'port', 'dbname', 'user', 'password'] as $parameter)
-			{
-				$variable='TEST_'.strtoupper($database.'_'.$parameter);
-				$value=getenv($variable);
 
-				if($value !== false)
+		foreach(['pgsql', 'mysql'] as $_pdo['_database'])
+			foreach(['host', 'port', 'dbname', 'user', 'password'] as $_pdo['_parameter'])
+			{
+				$_pdo['_variable']='TEST_'.strtoupper($_pdo['_database'].'_'.$_pdo['_parameter']);
+				$_pdo['_value']=getenv($_pdo['_variable']);
+
+				if($_pdo['_value'] !== false)
 				{
-					echo '  -> Using '.$variable.'="'.$value.'" as '.$database.' '.$parameter.PHP_EOL;
-					$_db_credentials[$database][$parameter]=$value;
+					echo '  -> Using '.$_pdo['_variable'].'="'.$_pdo['_value'].'" as '.$_pdo['_database'].' '.$_pdo['_parameter'].PHP_EOL;
+					$_pdo['credentials'][$_pdo['_database']][$_pdo['_parameter']]=$_pdo['_value'];
 				}
 			}
 
-		try {
-			switch($_db_type)
+		try /* some monsters */ {
+			switch($_pdo['type'])
 			{
 				case 'pgsql':
+					echo '  -> Using '.$_pdo['type'].' driver'.PHP_EOL;
+
 					if(!extension_loaded('pdo_pgsql'))
 						throw new Exception('pdo_pgsql extension is not loaded');
 
 					$pdo_handler=new PDO('pgsql:'
-						.'host='.$_db_credentials[$_db_type]['host'].';'
-						.'port='.$_db_credentials[$_db_type]['port'].';'
-						.'dbname='.$_db_credentials[$_db_type]['dbname'].';'
-						.'user='.$_db_credentials[$_db_type]['user'].';'
-						.'password='.$_db_credentials[$_db_type]['password'].''
+						.'host='.$_pdo['credentials'][$_pdo['type']]['host'].';'
+						.'port='.$_pdo['credentials'][$_pdo['type']]['port'].';'
+						.'dbname='.$_pdo['credentials'][$_pdo['type']]['dbname'].';'
+						.'user='.$_pdo['credentials'][$_pdo['type']]['user'].';'
+						.'password='.$_pdo['credentials'][$_pdo['type']]['password'].''
 					);
 				break;
 				case 'mysql':
+					echo '  -> Using '.$_pdo['type'].' driver'.PHP_EOL;
+
 					if(!extension_loaded('pdo_mysql'))
 						throw new Exception('pdo_mysql extension is not loaded');
 
 					$pdo_handler=new PDO('mysql:'
-						.'host='.$_db_credentials[$_db_type]['host'].';'
-						.'port='.$_db_credentials[$_db_type]['port'].';'
-						.'dbname='.$_db_credentials[$_db_type]['dbname'],
-						$_db_credentials[$_db_type]['user'],
-						$_db_credentials[$_db_type]['password']
+						.'host='.$_pdo['credentials'][$_pdo['type']]['host'].';'
+						.'port='.$_pdo['credentials'][$_pdo['type']]['port'].';'
+						.'dbname='.$_pdo['credentials'][$_pdo['type']]['dbname'],
+						$_pdo['credentials'][$_pdo['type']]['user'],
+						$_pdo['credentials'][$_pdo['type']]['password']
 					);
+				break;
+				case 'sqlite':
+					echo '  -> Using '.$_pdo['type'].' driver'.PHP_EOL;
+				break;
+				default:
+					echo '  -> '.$_pdo['type'].' driver is not supported [FAIL]'.PHP_EOL;
 			}
 		} catch(Throwable $error) {
 			echo ' Error: '.$error->getMessage().PHP_EOL;
@@ -131,72 +148,127 @@
 			$pdo_handler->exec('DROP TABLE cache_container');
 	}
 	if(!isset($pdo_handler))
-		$pdo_handler=new PDO('sqlite:'.__DIR__.'/tmp/cache_container.sqlite3');
+	{
+		if(!extension_loaded('pdo_sqlite'))
+		{
+			echo 'pdo_sqlite extension is not loaded'.PHP_EOL;
+			exit(1);
+		}
+
+		$pdo_handler=new PDO('sqlite:'.__DIR__.'/tmp/cache_container/cache_container.sqlite3');
+	}
+
+	if(getenv('TEST_REDIS') === 'yes')
+	{
+		if(!extension_loaded('redis'))
+		{
+			echo 'redis extension is not loaded'.PHP_EOL;
+			exit(1);
+		}
+
+		echo ' -> Configuring Redis'.PHP_EOL;
+
+		$_redis=[
+			'credentials'=>[
+				'host'=>'127.0.0.1',
+				'port'=>6379,
+				'dbindex'=>0,
+				'user'=>null,
+				'password'=>null
+			],
+			'connection_options'=>[
+				'timeout'=>0,
+				'retry_interval'=>0,
+				'read_timeout'=>0
+			]
+		];
+
+		foreach(['host', 'port', 'dbindex', 'user', 'password'] as $_redis['_parameter'])
+		{
+			$_redis['_variable']='TEST_REDIS_'.strtoupper($_redis['_parameter']);
+			$_redis['_value']=getenv($_redis['_variable']);
+
+			if($_redis['_value'] !== false)
+			{
+				echo '  -> Using '.$_redis['_variable'].'="'.$_redis['_value'].'" as Redis '.$_redis['_parameter'].PHP_EOL;
+				$_redis['credentials'][$_redis['_parameter']]=$_redis['_value'];
+			}
+		}
+
+		if($_redis['credentials']['user'] !== null)
+			$_redis['_credentials_auth']['user']=$_redis['credentials']['user'];
+		if($_redis['credentials']['password'] !== null)
+			$_redis['_credentials_auth']['pass']=$_redis['credentials']['password'];
+
+		try {
+			$redis_handler=new Redis();
+
+			if($redis_handler->connect(
+				$_redis['credentials']['host'],
+				$_redis['credentials']['port'],
+				$_redis['connection_options']['timeout'],
+				null,
+				$_redis['connection_options']['retry_interval'],
+				$_redis['connection_options']['read_timeout']
+			) === false){
+				echo '  -> Redis connection error'.PHP_EOL;
+				unset($redis_handler);
+			}
+
+			if(
+				(isset($redis_handler)) &&
+				(isset($_redis['_credentials_auth'])) &&
+				(!$redis_handler->auth($_redis['_credentials_auth']))
+			){
+				echo '  -> Redis auth error'.PHP_EOL;
+				unset($redis_handler);
+			}
+
+			if(
+				(isset($redis_handler)) &&
+				(!$redis_handler->select($_redis['credentials']['dbindex']))
+			){
+				echo '  -> Redis database select error'.PHP_EOL;
+				unset($redis_handler);
+			}
+		} catch(Throwable $error) {
+			echo ' Error: '.$error->getMessage().PHP_EOL;
+			exit(1);
+		}
+
+		if(isset($redis_handler))
+			foreach([
+				'increment_test',
+				'incrementb_test',
+				'decrement_test',
+				'timeout_test',
+				'flush_test'
+			] as $_redis['_key'])
+				$redis_handler->del('cache_container_test__'.$_redis['_key']);
+	}
 
 	$cache_drivers=[
 		'cache_driver_none'=>null,
 		'cache_driver_file'=>[
-			'file'=>__DIR__.'/tmp/cache_container.json',
-			'lock_file'=>__DIR__.'/tmp/cache_container.json.lock'
+			'file'=>__DIR__.'/tmp/cache_container/cache_container.json',
+			'lock_file'=>__DIR__.'/tmp/cache_container/cache_container.json.lock'
 		],
 		'cache_driver_file_realtime'=>[
-			'file'=>__DIR__.'/tmp/cache_container_realtime.json',
-			'lock_file'=>__DIR__.'/tmp/cache_container_realtime.json.lock'
+			'file'=>__DIR__.'/tmp/cache_container/cache_container_realtime.json',
+			'lock_file'=>__DIR__.'/tmp/cache_container/cache_container_realtime.json.lock'
 		],
 		'cache_driver_pdo'=>[
 			'pdo_handler'=>$pdo_handler
 		]
 	];
-	$GLOBALS['_redis_handler']=null;
-	if(extension_loaded('redis'))
-	{
-		$GLOBALS['_redis_handler']=new Redis();
 
-		$_redis_host=getenv('TEST_REDIS_HOST');
-		$_redis_port=getenv('TEST_REDIS_PORT');
-
-		if($_redis_host === false)
-			$_redis_host='127.0.0.1';
-		if($_redis_port === false)
-			$_redis_port=6379;
-
-		if(!$GLOBALS['_redis_handler']->connect($_redis_host, $_redis_port))
-		{
-			echo ' -> cache_driver_redis connection error [SKIP]'.PHP_EOL;
-			$GLOBALS['_redis_handler']=null;
-		}
-		else
-		{
-			$cache_drivers['cache_driver_redis']=[
-				'redis_handler'=>$GLOBALS['_redis_handler'],
-				'prefix'=>'cache_container_test__'
-			];
-
-			echo ' -> Removing Redis records';
-				foreach([
-					'increment_test',
-					'incrementb_test',
-					'decrement_test',
-					'timeout_test',
-					'flush_test'
-				] as $key)
-					$GLOBALS['_redis_handler']->del('cache_container_test__'.$key);
-			echo ' [ OK ]'.PHP_EOL;
-		}
-
-		unset($_redis_host);
-		unset($_redis_port);
-	}
+	if(isset($redis_handler))
+		$cache_drivers['cache_driver_redis']=[
+			'redis_handler'=>$redis_handler,
+			'prefix'=>'cache_container_test__'
+		];
 	else
-		echo ' -> cache_driver_redis redis extension is not loaded [SKIP]'.PHP_EOL;
-
-	if(isset($argv[1]))
-	{
-		unset($cache_drivers['cache_driver_none']);
-		unset($cache_drivers['cache_driver_file']);
-		unset($cache_drivers['cache_driver_file_realtime']);
-		unset($cache_drivers['cache_driver_redis']);
-	}
+		echo ' -> Skipping cache_driver_redis'.PHP_EOL;
 
 	$errors=[];
 	$pdo_errors=[];
@@ -355,22 +427,6 @@
 				$pdo_errors[$cache_container.' => '.$driver_name]=$pdo_handler->errorInfo()[2];
 			}
 		}
-	}
-
-	if(
-		($GLOBALS['_redis_handler'] !== null) &&
-		(@$argv[1] !== '--no-redis-clean')
-	){
-		echo ' -> Removing Redis records';
-			foreach([
-				'increment_test',
-				'incrementb_test',
-				'decrement_test',
-				'timeout_test',
-				'flush_test'
-			] as $key)
-				$GLOBALS['_redis_handler']->del('cache_container_test__'.$key);
-		echo ' [ OK ]'.PHP_EOL;
 	}
 
 	if(!empty($errors))
