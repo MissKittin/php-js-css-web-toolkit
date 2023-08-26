@@ -1,6 +1,4 @@
 <?php
-	include __DIR__.'/home_print_menu.php';
-
 	$view['csp_header']['script-src'][]='\'sha256-0kn4mQtwixDv4IoLMlEO/NXDDiTXzO3lCLIVLvy5Gh8=\'';
 	$view['csp_header']['script-src'][]='\'sha256-5aemaHOjFawbHR/QA2t8+UI69Qm3iWMPpaWhIXTb/2c=\''; // minified
 

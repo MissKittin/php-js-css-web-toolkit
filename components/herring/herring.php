@@ -109,8 +109,7 @@
 					foreach([__DIR__.'/lib', __DIR__.'/../../lib'] as $location)
 						if(file_exists($location.'/'.$library))
 						{
-							if((include $location.'/'.$library) === false)
-								throw new Exception($library.' loading failed');
+							require $location.'/'.$library;
 
 							$load_library=true;
 							break;
@@ -496,7 +495,7 @@
 
 			// top of the document
 				ob_start();
-				include $this->_views_path.'/views/top.php';
+				require $this->_views_path.'/views/top.php';
 				$save_report($output, ob_get_contents());
 				ob_end_clean();
 
@@ -821,7 +820,7 @@
 
 			// bottom of the document
 				ob_start();
-				include $this->_views_path.'/views/bottom.php';
+				require $this->_views_path.'/views/bottom.php';
 				$save_report($output, ob_get_contents());
 				ob_end_clean();
 

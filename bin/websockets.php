@@ -88,9 +88,9 @@
 	{
 		foreach($libraries as $library)
 			if(file_exists(__DIR__.'/lib/'.$library))
-				include __DIR__.'/lib/'.$library;
+				require __DIR__.'/lib/'.$library;
 			else if(file_exists(__DIR__.'/../lib/'.$library))
-				include __DIR__.'/../lib/'.$library;
+				require __DIR__.'/../lib/'.$library;
 			else
 				if($required)
 					throw new Exception($library.' library not found');
@@ -382,11 +382,7 @@
 		exit(1);
 	}
 
-	if((include $_ws_functions) === false)
-	{
-		echo $_ws_functions.' inclusion error'.PHP_EOL;
-		exit(1);
-	}
+	require $_ws_functions;
 
 	if(!function_exists('websockets_main'))
 	{

@@ -8,6 +8,7 @@
 	 * Hint:
 	 *  you can setup database credentials by environment variables
 	 *  variables:
+	 *   TEST_DB_TYPE (pgsql, mysql, sqlite) (default: sqlite)
 	 *   TEST_PGSQL_HOST (default: 127.0.0.1)
 	 *   TEST_PGSQL_PORT (default: 5432)
 	 *   TEST_PGSQL_DBNAME (default: php_toolkit_tests)
@@ -15,16 +16,17 @@
 	 *   TEST_PGSQL_PASSWORD (default: postgres)
 	 *   TEST_MYSQL_HOST (default: [::1])
 	 *   TEST_MYSQL_PORT (default: 3306)
-	 *   TEST_MYSQL_DBNAME (default: php-toolkit-tests)
+	 *   TEST_MYSQL_DBNAME (default: php_toolkit_tests)
 	 *   TEST_MYSQL_USER (default: root)
 	 *   TEST_MYSQL_PASSWORD
 	 *
 	 * Warning:
 	 *  rmdir_recursive.php library is required
 	 *  PDO extension is required
-	 *  pdo_sqlite extension is recommended
+	 *  var_export_contains.php library is required
 	 *  pdo_pgsql extension is recommended
 	 *  pdo_mysql extension is recommended
+	 *  pdo_sqlite extension is recommended
 	 */
 
 	if(!extension_loaded('PDO'))
@@ -33,13 +35,33 @@
 		exit(1);
 	}
 
-	echo ' -> Including rmdir_recursive.php';
-		if(@(include __DIR__.'/../lib/rmdir_recursive.php') === false)
-		{
-			echo ' [FAIL]'.PHP_EOL;
-			exit(1);
-		}
-	echo ' [ OK ]'.PHP_EOL;
+	$_db_driver=getenv('TEST_DB_TYPE');
+	if($_db_driver === false)
+		$_db_driver='sqlite';
+	if(!in_array($_db_driver, ['sqlite', 'pgsql', 'mysql']))
+	{
+		echo $_db_driver.' driver is not supported'.PHP_EOL;
+		exit(1);
+	}
+
+	if(!extension_loaded('pdo_'.$_db_driver))
+	{
+		echo 'pdo_'.$_db_driver.' extension is not loaded'.PHP_EOL;
+		exit(1);
+	}
+
+	foreach([
+		'rmdir_recursive.php',
+		'var_export_contains.php'
+	] as $library){
+		echo ' -> Including '.$library;
+			if(@(include __DIR__.'/../lib/'.$library) === false)
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				exit(1);
+			}
+		echo ' [ OK ]'.PHP_EOL;
+	}
 
 	echo ' -> Including '.basename(__FILE__);
 		if(@(include __DIR__.'/../lib/'.basename(__FILE__)) === false)
@@ -63,7 +85,7 @@
 			'mysql'=>[
 				'host'=>'[::1]',
 				'port'=>'3306',
-				'dbname'=>'php-toolkit-tests',
+				'dbname'=>'php_toolkit_tests',
 				'user'=>'root',
 				'password'=>''
 			]
@@ -90,7 +112,7 @@
 		mkdir(__DIR__.'/tmp/pdo_connect');
 		mkdir(__DIR__.'/tmp/pdo_connect/db_sqlite');
 		file_put_contents(__DIR__.'/tmp/pdo_connect/db_sqlite/config.php', '<?php
-			$db_config=[
+			return [
 				"db_type"=>"sqlite",
 				"host"=>$db."/database.sqlite3"
 			];
@@ -111,7 +133,7 @@
 		?>');
 		mkdir(__DIR__.'/tmp/pdo_connect/db_pgsql');
 		file_put_contents(__DIR__.'/tmp/pdo_connect/db_pgsql/config.php', '<?php
-			$db_config=[
+			return [
 				"db_type"=>"pgsql",
 				"host"=>"'.$_db_credentials['pgsql']['host'].'",
 				"port"=>"'.$_db_credentials['pgsql']['port'].'",
@@ -138,7 +160,7 @@
 		?>');
 		mkdir(__DIR__.'/tmp/pdo_connect/db_mysql');
 		file_put_contents(__DIR__.'/tmp/pdo_connect/db_mysql/config.php', '<?php
-			$db_config=[
+			return [
 				"db_type"=>"mysql",
 				"host"=>"'.$_db_credentials['mysql']['host'].'",
 				"port"=>"'.$_db_credentials['mysql']['port'].'",
@@ -166,60 +188,53 @@
 		?>');
 	echo ' [ OK ]'.PHP_EOL;
 
-	foreach(['sqlite', 'pgsql', 'mysql'] as $database)
-		if(extension_loaded('pdo_'.$database))
-		{
-			try {
-				echo ' -> Testing pdo_connect with '.$database.PHP_EOL;
-					$pdo_handler=pdo_connect(__DIR__.'/tmp/pdo_connect/db_'.$database);
+	try {
+		echo ' -> Testing pdo_connect with '.$_db_driver.PHP_EOL;
+			$pdo_handler=pdo_connect(__DIR__.'/tmp/pdo_connect/db_'.$_db_driver);
 
-				echo '  -> returns PDO instance';
-					if($pdo_handler instanceof PDO)
-						echo ' [ OK ]'.PHP_EOL;
-					else
-					{
-						echo ' [FAIL]'.PHP_EOL;
-						$errors[]=$database.' instanceof PDO failed';
-						continue;
-					}
-
-				echo '  -> database seeded';
-					if(file_exists(__DIR__.'/tmp/pdo_connect/db_'.$database.'/database_seeded'))
-						echo ' [ OK ]';
-					else
-					{
-						echo ' [FAIL]'.PHP_EOL;
-						$errors[]=$database.' database_seeded file not exists';
-					}
-					$query=$pdo_handler->query('SELECT * FROM pdo_connect_test_table');
-					if($query === false)
-					{
-						echo ' [FAIL]'.PHP_EOL;
-						$errors[]=$database.' PDO query() failed';
-					}
-					else
-					{
-						echo ' [ OK ]';
-
-						$result="array(0=>array('id'=>'1','a'=>'aa','b'=>'ab',),1=>array('id'=>'2','a'=>'ba','b'=>'bb',),)";
-						if($database === 'pgsql')
-							$result="array(0=>array('id'=>1,'a'=>'aa','b'=>'ab',),1=>array('id'=>2,'a'=>'ba','b'=>'bb',),)";
-
-						if(str_replace(["\n", ' '], '', var_export($query->fetchAll(PDO::FETCH_NAMED), true)) === $result)
-							echo ' [ OK ]'.PHP_EOL;
-						else
-						{
-							echo ' [FAIL]'.PHP_EOL;
-							$errors[]=$database.' PDO fetchAll() failed';
-						}
-					}
-			} catch(Throwable $error) {
-				echo ' <- Testing pdo_connect with '.$database.' [FAIL]'.PHP_EOL;
-				$errors[]=$database.' caught: '.$error->getMessage();
+		echo '  -> returns PDO instance';
+			if($pdo_handler instanceof PDO)
+				echo ' [ OK ]'.PHP_EOL;
+			else
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				$errors[]=$_db_driver.' instanceof PDO failed';
 			}
-		}
-		else
-			echo ' -> Testing pdo_connect with '.$database.' [SKIP]'.PHP_EOL;
+
+		echo '  -> database seeded';
+			if(file_exists(__DIR__.'/tmp/pdo_connect/db_'.$_db_driver.'/database_seeded'))
+				echo ' [ OK ]';
+			else
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				$errors[]=$_db_driver.' database_seeded file not exists';
+			}
+			$query=$pdo_handler->query('SELECT * FROM pdo_connect_test_table');
+			if($query === false)
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				$errors[]=$_db_driver.' PDO query() failed';
+			}
+			else
+			{
+				echo ' [ OK ]';
+
+				$result="array(0=>array('id'=>'1','a'=>'aa','b'=>'ab',),1=>array('id'=>'2','a'=>'ba','b'=>'bb',),)";
+				if($_db_driver === 'pgsql')
+					$result="array(0=>array('id'=>1,'a'=>'aa','b'=>'ab',),1=>array('id'=>2,'a'=>'ba','b'=>'bb',),)";
+
+				if(var_export_contains($query->fetchAll(PDO::FETCH_NAMED), $result))
+					echo ' [ OK ]'.PHP_EOL;
+				else
+				{
+					echo ' [FAIL]'.PHP_EOL;
+					$errors[]=$_db_driver.' PDO fetchAll() failed';
+				}
+			}
+	} catch(Throwable $error) {
+		echo ' <- Testing pdo_connect with '.$_db_driver.' [FAIL]'.PHP_EOL;
+		$errors[]=$_db_driver.' caught: '.$error->getMessage();
+	}
 
 	if(!empty($errors))
 	{

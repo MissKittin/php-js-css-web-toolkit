@@ -16,7 +16,7 @@
 
 	$failed=false;
 
-	echo ' -> Testing code with function and close tag';
+	echo ' -> Testing code with function and close tag [A]';
 		include_into_namespace(
 			'test_namespace',
 			'<?php
@@ -32,7 +32,7 @@
 			$failed=true;
 		}
 
-	echo ' -> Testing code with function and without close tag';
+	echo ' -> Testing code with function and without close tag [A]';
 		include_into_namespace(
 			'test_namespace',
 			'<?php
@@ -48,7 +48,7 @@
 			$failed=true;
 		}
 
-	echo ' -> Testing code with class and close tag';
+	echo ' -> Testing code with class and close tag [A]';
 		include_into_namespace(
 			'test_namespace',
 			'<?php
@@ -57,6 +57,22 @@
 			true
 		);
 		if(class_exists('test_namespace\test_class'))
+			echo ' [ OK ]'.PHP_EOL;
+		else
+		{
+			echo ' [FAIL]'.PHP_EOL;
+			$failed=true;
+		}
+
+	echo ' -> Testing code with class and close tag [B]';
+		include_into_namespace(
+			'test_namespace',
+			'<?php
+				class test_class_b {}
+			?>',
+			null
+		);
+		if(class_exists('test_namespace\test_class_b'))
 			echo ' [ OK ]'.PHP_EOL;
 		else
 		{

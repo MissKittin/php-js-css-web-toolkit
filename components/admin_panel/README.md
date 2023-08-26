@@ -3,6 +3,7 @@ A small framework
 
 ## Required libraries
 * `registry.php`
+* `assets_compiler.php` (for tests)
 
 ## Note
 The logout button action is the current URL via POST

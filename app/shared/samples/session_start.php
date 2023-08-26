@@ -20,7 +20,7 @@
 		// quick boot up (default behavior)
 
 		if(!class_exists('lv_cookie_session_handler'))
-			include './lib/sec_lv_encrypter.php';
+			require './lib/sec_lv_encrypter.php';
 
 		lv_cookie_session_handler::register_handler([
 			'key'=>file_get_contents('./var/lib/session_cookie_key'),
@@ -44,7 +44,7 @@
 		(OPENSSL_VERSION_NUMBER >= 269484159)
 	){
 		if(!class_exists('lv_cookie_session_handler'))
-			include './lib/sec_lv_encrypter.php';
+			require './lib/sec_lv_encrypter.php';
 
 		@mkdir('./var/lib', 0777, true);
 		file_put_contents('./var/lib/session_cookie_key', lv_encrypter::generate_key('aes-256-gcm'));

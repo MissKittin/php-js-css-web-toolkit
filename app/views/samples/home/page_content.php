@@ -4,4 +4,4 @@
 		sendNotification('sendNotification() works', 'Your nice web app', '');
 	});
 </script>
-<?php home_print_menu($view['home_links']); ?>
+<?php require __DIR__.'/home_print_menu.php'; home_print_menu($view['home_links']); ?>

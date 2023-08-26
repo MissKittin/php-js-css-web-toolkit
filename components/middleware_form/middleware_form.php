@@ -11,7 +11,7 @@
 				'sec_csrf.php'=>'csrf_check_token'
 			]);
 
-			include __DIR__.'/config.php';
+			require __DIR__.'/config.php';
 			$this->registry=$view;
 
 			if((!csrf_check_token('post')) || (check_post('middleware_form') === null))
@@ -24,9 +24,9 @@
 				if(!function_exists($library_func))
 				{
 					if(file_exists(__DIR__.'/lib/'.$library_file))
-						include __DIR__.'/lib/'.$library_file;
+						require __DIR__.'/lib/'.$library_file;
 					else if(file_exists(__DIR__.'/../../lib/'.$library_file))
-						include __DIR__.'/../../lib/'.$library_file;
+						require __DIR__.'/../../lib/'.$library_file;
 					else
 						throw new Exception('Library '.$library_file.' not found');
 				}
@@ -162,7 +162,7 @@
 		public function view()
 		{
 			$view=$this->registry;
-			include __DIR__.'/view.php';
+			require __DIR__.'/view.php';
 		}
 	}
 ?>

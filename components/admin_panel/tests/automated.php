@@ -1,4 +1,28 @@
 <?php
+	echo ' -> Including assets_compiler.php';
+		if(file_exists(__DIR__.'/../lib/assets_compiler.php'))
+		{
+			if(@(include __DIR__.'/../lib/assets_compiler.php') === false)
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				exit(1);
+			}
+		}
+		else if(file_exists(__DIR__.'/../../../lib/assets_compiler.php'))
+		{
+			if(@(include __DIR__.'/../../../lib/assets_compiler.php') === false)
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				exit(1);
+			}
+		}
+		else
+		{
+			echo ' [FAIL]'.PHP_EOL;
+			exit(1);
+		}
+	echo ' [ OK ]'.PHP_EOL;
+
 	echo ' -> Including admin_panel.php';
 		try {
 			if(@(include __DIR__.'/../admin_panel.php') === false)
@@ -128,14 +152,8 @@
 		?>");
 
 		mkdir(__DIR__.'/tmp/automatic/public/assets');
-		copy(__DIR__.'/../assets/admin_panel.js', __DIR__.'/tmp/automatic/public/assets/admin_panel.js');
-		foreach(scandir(__DIR__.'/../assets/admin_panel.css') as $style)
-			if(($style !== '.') && ($style !== '..'))
-				file_put_contents(
-					__DIR__.'/tmp/automatic/public/assets/admin_panel.css',
-					file_get_contents(__DIR__.'/../assets/admin_panel.css/'.$style),
-					FILE_APPEND
-				);
+		foreach(array_diff(scandir(__DIR__.'/../assets'), ['.', '..']) as $file)
+			assets_compiler(__DIR__.'/../assets/'.$file, __DIR__.'/tmp/automatic/public/assets/'.$file);
 
 		echo ' [ OK ]'.PHP_EOL;
 	}

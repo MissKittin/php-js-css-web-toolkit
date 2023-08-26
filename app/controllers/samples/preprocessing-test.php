@@ -20,13 +20,13 @@
 		}
 	}
 
-	include './app/shared/samples/default_http_headers.php';
+	require './app/shared/samples/default_http_headers.php';
 
 	// will be refreshed hourly ("Cache file was created" will disappear in an hour)
-	include './app/shared/samples/ob_cache.php';
+	require './app/shared/samples/ob_cache.php';
 	ob_cache(ob_url2file(), 3600);
 
-	include './app/templates/samples/default/default_template.php';
+	require './app/templates/samples/default/default_template.php';
 	$view=new default_template();
 
 	// ./var/lib/preprocessing-test.php won't be refreshed
@@ -50,7 +50,7 @@
 		$view['cache_created']=true;
 		unset($cache_object);
 	}
-	include './var/lib/preprocessing-test.php';
+	require './var/lib/preprocessing-test.php';
 
 	$view->view('./app/views/samples/preprocessing-test');
 ?>

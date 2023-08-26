@@ -27,20 +27,21 @@
 
 	echo ' -> Removing keys';
 		@mkdir(__DIR__.'/tmp');
-		@unlink(__DIR__.'/tmp/sec_file_sign-private.pem');
-		@unlink(__DIR__.'/tmp/sec_file_sign-public.pem');
+		@mkdir(__DIR__.'/tmp/sec_file_sign');
+		@unlink(__DIR__.'/tmp/sec_file_sign/sec_file_sign-private.pem');
+		@unlink(__DIR__.'/tmp/sec_file_sign/sec_file_sign-public.pem');
 	echo ' [ OK ]'.PHP_EOL;
 
 	echo ' -> Generating keys';
 		file_sign::generate_keys([
-			'private_key'=>__DIR__.'/tmp/sec_file_sign-private.pem',
-			'public_key'=>__DIR__.'/tmp/sec_file_sign-public.pem'
+			'private_key'=>__DIR__.'/tmp/sec_file_sign/sec_file_sign-private.pem',
+			'public_key'=>__DIR__.'/tmp/sec_file_sign/sec_file_sign-public.pem'
 		]);
 	echo ' [ OK ]'.PHP_EOL;
 
 	$filesign=new file_sign([
-		'private_key'=>__DIR__.'/tmp/sec_file_sign-private.pem',
-		'public_key'=>__DIR__.'/tmp/sec_file_sign-public.pem'
+		'private_key'=>__DIR__.'/tmp/sec_file_sign/sec_file_sign-private.pem',
+		'public_key'=>__DIR__.'/tmp/sec_file_sign/sec_file_sign-public.pem'
 	]);
 
 	echo ' -> Testing input'.PHP_EOL;

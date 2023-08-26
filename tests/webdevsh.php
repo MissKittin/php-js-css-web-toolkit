@@ -26,7 +26,8 @@
 	$failed=false;
 
 	echo ' -> Testing webdevsh_css_minifier';
-		if(webdevsh_css_minifier('
+		if(
+		webdevsh_css_minifier('
 			body {
 				background-color: #aaaaaa;
 				color: #000000;
@@ -44,7 +45,10 @@
 				margin: 5px;
 				background-color: #cccccc;
 			}
-		') === 'body{background-color:#aaa;color:#000;opacity:0}a,a:hover,a:visited{color:#a00;text-decoration:none}a:after{content:" \2500\25B6"}input{border-radius:10px;margin:5px;background-color:#ccc}')
+		')
+		===
+		'body{background-color:#aaa;color:#000;opacity:0}a,a:hover,a:visited{color:#a00;text-decoration:none}a:after{content:" \2500\25B6"}input{border-radius:10px;margin:5px;background-color:#ccc}'
+		)
 			echo ' [ OK ]'.PHP_EOL;
 		else
 		{
@@ -53,7 +57,8 @@
 		}
 
 	echo ' -> Testing webdevsh_js_minifier';
-		if(webdevsh_js_minifier('
+		if(
+		webdevsh_js_minifier('
 						document.addEventListener(\'DOMContentLoaded\', function(){
 				function getCookie(name)
 			{
@@ -284,7 +289,10 @@
 				console.log(\' Now is easter\');
 			else
 				console.log(\' Today is not easter\');});
-		') === 'document.addEventListener("DOMContentLoaded",function(){if(window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches){var b,a;function d(){if("rgb(0, 0, 0)"===getComputedStyle(document.body).backgroundColor)return document.body.style.opacity=1,console.log(" /assets/default_dark.css applied"),0;setTimeout(d,30)}console.log("Dark theme enabled"),"true"!==function(b){"use strict";var a=("; "+document.cookie).split("; "+b+"=");if(2===a.length)return a.pop().split(";").shift()}("app_dark_theme")&&(document.cookie="app_dark_theme=true",console.log("app_dark_theme cookie saved")),b="/assets/default_dark.css",(a=document.createElement("link")).rel="stylesheet",a.type="text/css",a.href=location.origin+b,document.getElementsByTagName("head")[0].appendChild(a),d()}else console.log("Dark theme disabled");function c(c,a,d,b){"use strict";var e=new Date(new Date().toISOString().slice(0,10)).getTime(),f=new Date().getFullYear();return!(a<=b)||a===b&&c>d?function(a,b,c,f,g,d){var e=new Date().getMonth()+1;if(e==a){if(new Date().getDate()>=d)return!0}else if(e<a){if(b<=Date.parse(c+"-"+f+"-"+g))return!0}else if(b>=Date.parse(c+"-"+a+"-"+d))return!0;return!1}(a,e,f,b,d,c):!!(e>=Date.parse(f+"-"+a+"-"+c)&&e<=Date.parse(f+"-"+b+"-"+d))}console.log("Testing checkDate()"),c("01","02","25","06")?console.log(" Current date is between 01.02 and 25.06"):console.log(" Current date is not between 01.02 and 25.06"),c("27","06","30","01")?console.log(" Current date is between 27.06 and 30.01"):console.log(" Current date is not between 27.06 and 30.01"),console.log("Testing checkEaster()"),function(e){"use strict";var a=function(a){if(a>=1900&&a<=2099)var b=[24,5];else if(a>=2100&&a<=2199)var b=[24,6];else if(a>=2200&&a<=2299)var b=[25,0];else if(a>=2300&&a<=2399)var b=[26,1];else if(!(a>=2400)||!(a<=2499))return!1;else var b=[25,1];for(var f=a%19,g=a%4,h=a%7,d=(19*f+b[0])%30,i=(2*g+4*h+6*d+b[1])%7,c=22+d+i,e=3;c>31;)c-=31,e++;return[c,e]}(new Date().getFullYear());if(!1===a)return!1;for(var b=a[0]+49,d=a[1];b>30;)d%2==0?b-=30:b-=31,d++;return c(a[0],a[1],b,d)}(49)?console.log(" Now is easter"):console.log(" Today is not easter")})')
+		')
+		===
+		'document.addEventListener("DOMContentLoaded",function(){function e(e){"use strict";var t=document.createElement("script");t.src=location.origin+e,document.getElementsByTagName("head")[0].appendChild(t)}if(window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches){var t;console.log("Dark theme enabled"),"true"!==function e(t){"use strict";var r=("; "+document.cookie).split("; "+t+"=");if(2===r.length)return r.pop().split(";").shift()}("app_dark_theme")&&(document.cookie="app_dark_theme=true",console.log("app_dark_theme cookie saved")),(t=document.createElement("link")).rel="stylesheet",t.type="text/css",t.href=location.origin+"/assets/default_dark.css",document.getElementsByTagName("head")[0].appendChild(t),!function e(){if("rgb(0, 0, 0)"===getComputedStyle(document.body).backgroundColor)return document.body.style.opacity=1,console.log(" /assets/default_dark.css applied"),0;setTimeout(e,30)}()}else console.log("Dark theme disabled");function r(e,t,r,a){"use strict";var n=new Date(new Date().toISOString().slice(0,10)).getTime(),s=new Date().getFullYear(),i=function(e,t,r,a,n,s){var i=new Date().getMonth()+1;if(i==e){if(new Date().getDate()>=s)return!0}else if(i<e){if(t<=Date.parse(r+"-"+a+"-"+n))return!0}else if(t>=Date.parse(r+"-"+e+"-"+s))return!0;return!1};return!(t<=a)||t===a&&e>r?i(t,n,s,a,r,e):!!(n>=Date.parse(s+"-"+t+"-"+e)&&n<=Date.parse(s+"-"+a+"-"+r))}console.log("Testing checkDate()"),r("01","02","25","06")?console.log(" Current date is between 01.02 and 25.06"):console.log(" Current date is not between 01.02 and 25.06"),r("27","06","30","01")?console.log(" Current date is between 27.06 and 30.01"):console.log(" Current date is not between 27.06 and 30.01"),console.log("Testing checkEaster()"),function e(t){"use strict";var a=function(e){if(e>=1900&&e<=2099)var t=[24,5];else if(e>=2100&&e<=2199)var t=[24,6];else if(e>=2200&&e<=2299)var t=[25,0];else if(e>=2300&&e<=2399)var t=[26,1];else if(!(e>=2400)||!(e<=2499))return!1;else var t=[25,1];for(var r=(19*(e%19)+t[0])%30,a=(2*(e%4)+4*(e%7)+6*r+t[1])%7,n=22+r+a,s=3;n>31;)n-=31,s++;return[n,s]}(new Date().getFullYear());if(!1===a)return!1;for(var n=a[0]+49,s=a[1];n>30;)s%2==0?n-=30:n-=31,s++;return r(a[0],a[1],n,s)}(49)?console.log(" Now is easter"):console.log(" Today is not easter")});'
+		)
 			echo ' [ OK ]'.PHP_EOL;
 		else
 		{

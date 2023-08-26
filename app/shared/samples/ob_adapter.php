@@ -46,7 +46,7 @@
 		public function __construct()
 		{
 			if(!function_exists('ob_minifier'))
-				include './lib/ob_minifier.php';
+				require './lib/ob_minifier.php';
 		}
 
 		public function exec($buffer)
@@ -59,7 +59,7 @@
 		public function __construct()
 		{
 			if(!function_exists('ob_sfucator'))
-				include './lib/ob_sfucator.php';
+				require './lib/ob_sfucator.php';
 		}
 
 		public function exec($buffer)

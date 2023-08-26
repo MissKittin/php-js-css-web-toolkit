@@ -2,18 +2,18 @@
 	if(!class_exists('uri_router'))
 	{
 		if(file_exists(__DIR__.'/lib/uri_router.php'))
-			include __DIR__.'/lib/uri_router.php';
+			require __DIR__.'/lib/uri_router.php';
 		else if(file_exists(__DIR__.'/../../lib/uri_router.php'))
-			include __DIR__.'/../../lib/uri_router.php';
+			require __DIR__.'/../../lib/uri_router.php';
 		else
 			throw new Exception('uri_router.php library not found');
 	}
 	if(!class_exists('superclosure'))
 	{
 		if(file_exists(__DIR__.'/lib/superclosure.php'))
-			include __DIR__.'/lib/superclosure.php';
+			require __DIR__.'/lib/superclosure.php';
 		else if(file_exists(__DIR__.'/../../lib/superclosure.php'))
-			include __DIR__.'/../../lib/superclosure.php';
+			require __DIR__.'/../../lib/superclosure.php';
 		else
 			throw new Exception('superclosure.php library not found');
 	}

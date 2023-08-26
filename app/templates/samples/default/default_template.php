@@ -54,7 +54,7 @@
 	 */
 
 	if(!class_exists('registry'))
-		include './lib/registry.php';
+		require './lib/registry.php';
 
 	class default_template extends registry
 	{
@@ -65,12 +65,12 @@
 		{
 			$view=[];
 
-			include __DIR__.'/default_csp_header.php';
+			require __DIR__.'/default_csp_header.php';
 
 			@include $view_path.'/template_config.php';
-			include __DIR__.'/views/top.php';
-			include $view_path.'/'.$page_content;
-			include __DIR__.'/views/bottom.php';
+			require __DIR__.'/views/top.php';
+			require $view_path.'/'.$page_content;
+			require __DIR__.'/views/bottom.php';
 		}
 		private static function parse_headers($view)
 		{
@@ -113,7 +113,7 @@
 
 		public function __construct(bool $return_content=false)
 		{
-			include __DIR__.'/default_csp_header.php';
+			require __DIR__.'/default_csp_header.php';
 			$this->registry['csp_header']=$view['csp_header'];
 			static::$do_return_content=$return_content;
 		}
@@ -168,9 +168,9 @@
 				});
 
 			@include $view_path.'/template_config.php';
-			include __DIR__.'/views/top.php';
-			include $view_path.'/'.$page_content;
-			include __DIR__.'/views/bottom.php';
+			require __DIR__.'/views/top.php';
+			require $view_path.'/'.$page_content;
+			require __DIR__.'/views/bottom.php';
 
 			if(static::$do_return_content)
 			{

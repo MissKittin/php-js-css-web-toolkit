@@ -1,1 +1,1 @@
-<?php include '../app/entrypoint.php'; ?>
+<?php require '../app/entrypoint.php'; ?>

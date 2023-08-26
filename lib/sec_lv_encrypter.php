@@ -28,6 +28,8 @@
 	 *   session handler that uses a relational database to store an encrypted session
 	 *   supported databases: PostgreSQL, MySQL, SQLite3
 	 *   read warning in class block
+	 *  lv_redis_session_handler
+	 *   session handler that uses Redis to store an encrypted session
 	 */
 
 	final class lv_encrypter
@@ -250,7 +252,7 @@
 			return null;
 		}
 	}
-	class lv_session_encrypter extends SessionHandler
+	final class lv_session_encrypter extends SessionHandler
 	{
 		/*
 		 * Lv encrypter
@@ -266,8 +268,8 @@
 		 *  session_set_save_handler(new lv_session_encrypter($key), true)
 		 */
 
-		protected static $initialized=false;
-		protected $lv_encrypter;
+		private static $initialized=false;
+		private $lv_encrypter;
 
 		public function __construct(string $key, string $cipher='aes-128-cbc')
 		{
@@ -304,7 +306,7 @@
 			return parent::write($id, $this->lv_encrypter->encrypt($content, false));
 		}
 	}
-	class lv_cookie_session_handler implements SessionHandlerInterface
+	final class lv_cookie_session_handler implements SessionHandlerInterface
 	{
 		/*
 		 * Lv encrypter
@@ -330,11 +332,11 @@
 		 *  'cookie_expire'=>10 // seconds, optional, default: session.cookie_lifetime
 		 */
 
-		protected static $initialized=false;
-		protected $lv_encrypter;
-		protected $on_error;
-		protected $cookie_id='id';
-		protected $cookie_expire=null;
+		private static $initialized=false;
+		private $lv_encrypter;
+		private $on_error;
+		private $cookie_id='id';
+		private $cookie_expire=null;
 
 		public function __construct(array $params)
 		{
@@ -450,7 +452,7 @@
 		}
 		public function gc($a) {}
 	}
-	class lv_pdo_session_handler implements SessionHandlerInterface
+	final class lv_pdo_session_handler implements SessionHandlerInterface
 	{
 		/*
 		 * Lv encrypter
@@ -512,11 +514,11 @@
 			]), true);
 		 */
 
-		protected static $initialized=false;
-		protected $lv_encrypter;
-		protected $on_error;
-		protected $pdo_handler;
-		protected $table_name='lv_pdo_session_handler';
+		private static $initialized=false;
+		private $lv_encrypter;
+		private $on_error;
+		private $pdo_handler;
+		private $table_name='lv_pdo_session_handler';
 
 		public function __construct(array $params)
 		{
@@ -555,7 +557,7 @@
 			self::$initialized=false;
 		}
 
-		protected function is_sid_available($session_id) // just for my peace of mind
+		private function is_sid_available($session_id) // just for my peace of mind
 		{
 			$data=$this->pdo_handler->prepare(''
 			.	'SELECT id '
@@ -726,6 +728,142 @@
 
 			$this->on_error['callback'](__CLASS__.' gc: '.$result.' sessions removed', $this->pdo_handler);
 
+			return true;
+		}
+	}
+	final class lv_redis_session_handler implements SessionHandlerInterface
+	{
+		/*
+		 * Lv encrypter
+		 * session handler
+		 *
+		 * Uses Redis to store an encrypted session
+		 *
+		 * Warning:
+		 *  lv_encrypter class is required
+		 *  lv_redis_session_handler is a singleton
+		 *
+		 * Note:
+		 *  is_sid_available and create_sid methods were created
+		 *  to make sure that the generated id does not exists in the table.
+		 *  If you do not see the need for such a solution,
+		 *  you can remove it from the class.
+		 *
+		 * Usage:
+			$redis_handler=new Redis();
+			$redis_handler->connect('127.0.0.1', 6379);
+			session_set_save_handler(new lv_redis_session_handler([
+				'key'=>'randomstringforlvencrypter', // required
+				'redis_handler'=>$redis_handler, // required
+				'prefix'=>'lv_session__', // optional, default: lv_pdo_session_handler
+				'on_error'=>function($message) // optional
+				{
+					error_log($message);
+				}
+			]), true);
+		 */
+
+		private static $initialized=false;
+		private $lv_encrypter;
+		private $on_error;
+		private $redis_handler;
+		private $prefix='lv_redis_session_handler__';
+
+		public function __construct(array $params)
+		{
+			if(self::$initialized)
+				throw new Exception(__CLASS__.' is a singleton');
+
+			self::$initialized=true;
+
+			foreach(['redis_handler', 'key'] as $param)
+				if(!isset($params[$param]))
+					throw new Exception('The '.$param.' parameter was not specified for the constructor');
+
+			$cipher='aes-128-cbc';
+			if(isset($params['cipher']))
+				$cipher=$params['cipher'];
+
+			$this->lv_encrypter=new lv_encrypter($params['key'], $cipher);
+
+			foreach(['redis_handler', 'prefix'] as $param)
+				if(isset($params[$param]))
+					$this->$param=$params[$param];
+
+			$this->on_error['callback']=function(){};
+			if(isset($params['on_error']))
+				$this->on_error['callback']=$params['on_error'];
+		}
+		public function __destruct()
+		{
+			$this->close();
+			self::$initialized=false;
+		}
+
+		private function is_sid_available($session_id) // just for my peace of mind
+		{
+			if($this->redis_handler->get($this->prefix.$session_id) === false)
+				return true;
+
+			$this->on_error['callback'](__CLASS__.' error: session id collision with '.$session_id, $this->pdo_handler);
+
+			return false;
+		}
+
+		public function open($save_path, $session_name)
+		{
+			return true;
+		}
+		public function create_sid() // just for my peace of mind
+		{
+			$SessionHandler=new SessionHandler();
+			$session_id=$SessionHandler->create_sid();
+
+			// if method defined
+			while(!$this->is_sid_available($session_id))
+			{
+				$session_id=$SessionHandler->create_sid();
+				$this->on_error['callback'](__CLASS__.' create_sid: new session id generated', $this->redis_handler);
+			}
+
+			return $session_id;
+		}
+		public function read($session_id)
+		{
+			$session_data='';
+			$data=$this->redis_handler->get($this->prefix.$session_id);
+
+			if($data === false)
+				$this->on_error['callback'](__CLASS__.': key does not exists, new session created', $this->redis_handler);
+
+			try {
+				$session_data=$this->lv_encrypter->decrypt($data, false);
+			} catch(Exception $error) {
+				$this->on_error['callback'](__CLASS__.' error: '.$error->getMessage().', new session created', $this->redis_handler);
+				$session_data='';
+			}
+
+			return $session_data;
+		}
+		public function write($session_id, $session_data)
+		{
+			return $this->redis_handler->set(
+				$this->prefix.$session_id,
+				$this->lv_encrypter->encrypt($session_data, false),
+				['ex'=>ini_get('session.gc_maxlifetime')]
+			);
+		}
+		public function close()
+		{
+			$this->redis_handler=null;
+			return true;
+		}
+		public function destroy($session_id)
+		{
+			return $this->redis_handler->del($this->prefix.$session_id);
+		}
+		public function gc($max_lifetime)
+		{
 			return true;
 		}
 	}

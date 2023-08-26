@@ -1,7 +1,7 @@
 <?php
-	include './app/shared/samples/default_http_headers.php';
+	require './app/shared/samples/default_http_headers.php';
 
-	include './app/shared/samples/ob_adapter.php';
+	require './app/shared/samples/ob_adapter.php';
 	ob_adapter
 		::add(new ob_adapter_obminifier())
 		->add(new ob_adapter_obsfucator())
@@ -10,6 +10,6 @@
 		->add(new ob_adapter_gunzip())
 		->start();
 
-	include './app/templates/samples/default/default_template.php';
+	require './app/templates/samples/default/default_template.php';
 	default_template::quick_view('./app/views/samples/obsfucate-html');
 ?>

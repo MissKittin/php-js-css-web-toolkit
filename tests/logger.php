@@ -8,7 +8,7 @@
 	 * Hint:
 	 *  you can setup database credentials by environment variables
 	 *  variables:
-	 *   TEST_DB_TYPE (pgsql, mysql, sqlite, overrides first argument)
+	 *   TEST_DB_TYPE (pgsql, mysql, sqlite) (default: sqlite)
 	 *   TEST_PGSQL_HOST (default: 127.0.0.1)
 	 *   TEST_PGSQL_PORT (default: 5432)
 	 *   TEST_PGSQL_DBNAME (default: php_toolkit_tests)
@@ -16,13 +16,15 @@
 	 *   TEST_PGSQL_PASSWORD (default: postgres)
 	 *   TEST_MYSQL_HOST (default: [::1])
 	 *   TEST_MYSQL_PORT (default: 3306)
-	 *   TEST_MYSQL_DBNAME (default: php-toolkit-tests)
+	 *   TEST_MYSQL_DBNAME (default: php_toolkit_tests)
 	 *   TEST_MYSQL_USER (default: root)
 	 *   TEST_MYSQL_PASSWORD
 	 *
 	 * Warning:
 	 *  PDO extension is required
-	 *  pdo_sqlite extension is required
+	 *  pdo_pgsql extension is recommended
+	 *  pdo_mysql extension is recommended
+	 *  pdo_sqlite extension is recommended
 	 *  has_php_close_tag.php library is required
 	 *  include_into_namespace.php library is required
 	 */
@@ -44,12 +46,11 @@
 			return true;
 		}
 
-		foreach(['PDO', 'pdo_sqlite'] as $extension)
-			if(!extension_loaded($extension))
-			{
-				echo $extension.' extension is not loaded'.PHP_EOL;
-				exit(1);
-			}
+		if(!extension_loaded('PDO'))
+		{
+			echo 'PDO extension is not loaded'.PHP_EOL;
+			exit(1);
+		}
 
 		echo ' -> Mocking functions and classes';
 			class PDO extends \PDO {}
@@ -61,7 +62,8 @@
 
 		echo ' -> Removing temporary files';
 			@mkdir(__DIR__.'/tmp');
-			foreach(['csv', 'json', 'txt', 'xml'] as $log)
+			@mkdir(__DIR__.'/tmp/logger');
+			foreach(['csv', 'json', 'txt', 'xml', 'sqlite3', 'sh'] as $log)
 				if(file_exists(__DIR__.'/tmp/logger/log.'.$log))
 					unlink(__DIR__.'/tmp/logger/log.'.$log);
 		echo ' [ OK ]'.PHP_EOL;
@@ -90,65 +92,78 @@
 			}
 
 		if(getenv('TEST_DB_TYPE') !== false)
-			$argv[1]=getenv('TEST_DB_TYPE');
-		if(isset($argv[1]))
 		{
-			$_db_type=$argv[1];
-			$_db_credentials=[
-				'pgsql'=>[
-					'host'=>'127.0.0.1',
-					'port'=>'5432',
-					'dbname'=>'php_toolkit_tests',
-					'user'=>'postgres',
-					'password'=>'postgres'
-				],
-				'mysql'=>[
-					'host'=>'[::1]',
-					'port'=>'3306',
-					'dbname'=>'php-toolkit-tests',
-					'user'=>'root',
-					'password'=>''
+			echo ' -> Configuring PDO'.PHP_EOL;
+
+			$_pdo=[
+				'type'=>getenv('TEST_DB_TYPE'),
+				'credentials'=>[
+					'pgsql'=>[
+						'host'=>'127.0.0.1',
+						'port'=>'5432',
+						'dbname'=>'php_toolkit_tests',
+						'user'=>'postgres',
+						'password'=>'postgres'
+					],
+					'mysql'=>[
+						'host'=>'[::1]',
+						'port'=>'3306',
+						'dbname'=>'php_toolkit_tests',
+						'user'=>'root',
+						'password'=>''
+					]
 				]
 			];
-			foreach(['pgsql', 'mysql'] as $database)
-				foreach(['host', 'port', 'dbname', 'user', 'password'] as $parameter)
-				{
-					$variable='TEST_'.strtoupper($database.'_'.$parameter);
-					$value=getenv($variable);
 
-					if($value !== false)
+			foreach(['pgsql', 'mysql'] as $_pdo['_database'])
+				foreach(['host', 'port', 'dbname', 'user', 'password'] as $_pdo['_parameter'])
+				{
+					$_pdo['_variable']='TEST_'.strtoupper($_pdo['_database'].'_'.$_pdo['_parameter']);
+					$_pdo['_value']=getenv($_pdo['_variable']);
+
+					if($_pdo['_value'] !== false)
 					{
-						echo '  -> Using '.$variable.'="'.$value.'" as '.$database.' '.$parameter.PHP_EOL;
-						$_db_credentials[$database][$parameter]=$value;
+						echo '  -> Using '.$_pdo['_variable'].'="'.$_pdo['_value'].'" as '.$_pdo['_database'].' '.$_pdo['_parameter'].PHP_EOL;
+						$_pdo['credentials'][$_pdo['_database']][$_pdo['_parameter']]=$_pdo['_value'];
 					}
 				}
 
-			try {
-				switch($_db_type)
+			try /* some monsters */ {
+				switch($_pdo['type'])
 				{
 					case 'pgsql':
+						echo '  -> Using '.$_pdo['type'].' driver'.PHP_EOL;
+
 						if(!extension_loaded('pdo_pgsql'))
 							throw new Exception('pdo_pgsql extension is not loaded');
 
 						$pdo_handler=new PDO('pgsql:'
-							.'host='.$_db_credentials[$_db_type]['host'].';'
-							.'port='.$_db_credentials[$_db_type]['port'].';'
-							.'dbname='.$_db_credentials[$_db_type]['dbname'].';'
-							.'user='.$_db_credentials[$_db_type]['user'].';'
-							.'password='.$_db_credentials[$_db_type]['password'].''
+							.'host='.$_pdo['credentials'][$_pdo['type']]['host'].';'
+							.'port='.$_pdo['credentials'][$_pdo['type']]['port'].';'
+							.'dbname='.$_pdo['credentials'][$_pdo['type']]['dbname'].';'
+							.'user='.$_pdo['credentials'][$_pdo['type']]['user'].';'
+							.'password='.$_pdo['credentials'][$_pdo['type']]['password'].''
 						);
 					break;
 					case 'mysql':
+						echo '  -> Using '.$_pdo['type'].' driver'.PHP_EOL;
+
 						if(!extension_loaded('pdo_mysql'))
 							throw new Exception('pdo_mysql extension is not loaded');
 
 						$pdo_handler=new PDO('mysql:'
-							.'host='.$_db_credentials[$_db_type]['host'].';'
-							.'port='.$_db_credentials[$_db_type]['port'].';'
-							.'dbname='.$_db_credentials[$_db_type]['dbname'],
-							$_db_credentials[$_db_type]['user'],
-							$_db_credentials[$_db_type]['password']
+							.'host='.$_pdo['credentials'][$_pdo['type']]['host'].';'
+							.'port='.$_pdo['credentials'][$_pdo['type']]['port'].';'
+							.'dbname='.$_pdo['credentials'][$_pdo['type']]['dbname'],
+							$_pdo['credentials'][$_pdo['type']]['user'],
+							$_pdo['credentials'][$_pdo['type']]['password']
 						);
+					break;
+					case 'sqlite':
+						echo '  -> Using '.$_pdo['type'].' driver'.PHP_EOL;
+					break;
+					default:
+						echo '  -> '.$_pdo['type'].' driver is not supported [FAIL]'.PHP_EOL;
 				}
 			} catch(Throwable $error) {
 				echo ' Error: '.$error->getMessage().PHP_EOL;
@@ -156,10 +171,18 @@
 			}
 
 			if(isset($pdo_handler))
-				$pdo_handler->exec('DROP TABLE log');
+				$pdo_handler->exec('DROP TABLE logger');
 		}
 		if(!isset($pdo_handler))
-			$pdo_handler=new PDO('sqlite:'.__DIR__.'/tmp/logger.sqlite3');
+		{
+			if(!extension_loaded('pdo_sqlite'))
+			{
+				echo 'pdo_sqlite extension is not loaded'.PHP_EOL;
+				exit(1);
+			}
+
+			$pdo_handler=new PDO('sqlite:'.__DIR__.'/tmp/logger/log.sqlite3');
+		}
 
 		$failed=false;
 
@@ -171,14 +194,14 @@
 			'lock_file'=>__DIR__.'/tmp/logger/log.lock',
 
 			// exec
-			'command'=>__DIR__.'/tmp/logger.sh',
+			'command'=>__DIR__.'/tmp/logger/log.sh',
 
 			// mail
 			'recipient'=>'example@example.com',
 
 			// pdo
 			'pdo_handler'=>$pdo_handler,
-			'table_name'=>'log',
+			'table_name'=>'logger',
 			//'on_pdo_error'=>function($error){ error_log(__FILE__.' log_to_pdo: '.$error[0].' '.$error[1].' '.$error[2]); },
 
 			// curl
@@ -232,7 +255,7 @@
 						$test_failed=true;
 				break;
 				case 'Test\log_to_pdo':
-					$pdo_fetch=$pdo_handler->query('SELECT * FROM log')->fetchAll();
+					$pdo_fetch=$pdo_handler->query('SELECT * FROM logger')->fetchAll();
 
 					if($pdo_fetch[0]['id'].$pdo_fetch[0]['date'].$pdo_fetch[0]['app_name'].$pdo_fetch[0]['priority'].$pdo_fetch[0]['message'] !== '10000-00-00 00:00:00test_appDEBUGdebug test')
 						$test_failed=true;

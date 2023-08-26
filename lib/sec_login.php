@@ -30,7 +30,8 @@
 	 *  login_refresh('string', 'reload string')
 	 *  login_refresh('callback', 'callback_function')
 	 *  login_refresh('callback', 'callback_function', ['callback_arg_a', 'callback_arg_b'])
-	 *  login_refresh('file', 'path/to/file')
+	 *  login_refresh('file', 'path/to/file') // uses include
+	 *  login_refresh('require-file', 'path/to/file') // uses require
 	 *   refresh page after successful login to remove credentials from browser's buffer
 	 *
 	 *  logout(['logout_button_post_or_get_variable'])
@@ -135,6 +136,9 @@
 			break;
 			case 'file':
 				include $input;
+			break;
+			case 'require-file':
+				require $input;
 		}
 	}
 

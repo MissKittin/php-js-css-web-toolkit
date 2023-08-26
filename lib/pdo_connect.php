@@ -19,7 +19,7 @@
 			'./path_to/your_database_config_directory',
 			function($error)
 			{
-				error_log( 'pdo_connect: '.$error->getMessage());
+				error_log('pdo_connect: '.$error->getMessage());
 			}
 		)
 
@@ -58,7 +58,7 @@
 		 * Configuration:
 		 *  1) create a directory for database config files
 		 *  2) create a config.php file:
-				$db_config=[
+				return [
 					'db_type'=>'your-db-type', // sqlite pgsql mysql
 					'host'=>'server-ip-or-sqlite-db-path',
 					'port'=>'server-port',
@@ -94,10 +94,10 @@
 		if(!file_exists($db.'/config.php'))
 			throw new Exception($db.'/config.php not exists');
 
-		include $db.'/config.php';
+		$db_config=require $db.'/config.php';
 
-		if(!isset($db_config))
-			throw new Exception($db.'/config.php does not contain an $db_config array');
+		if(!is_array($db_config))
+			throw new Exception($db.'/config.php did not return an array');
 
 		if(!isset($db_config['seeded_path']))
 			$db_config['seeded_path']=$db;

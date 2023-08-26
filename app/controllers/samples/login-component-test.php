@@ -1,5 +1,5 @@
 <?php
-	include './app/shared/samples/default_http_headers.php';
+	require './app/shared/samples/default_http_headers.php';
 
 	if(
 		isset($_SERVER['HTTP_ACCEPT_ENCODING']) &&
@@ -7,7 +7,7 @@
 	)
 		ob_start('ob_gzhandler');
 
-	include './app/shared/samples/session_start.php';
+	require './app/shared/samples/session_start.php';
 	// set custom session reloader
 	if(class_exists('lv_cookie_session_handler'))
 		$GLOBALS['_login']['config']['session_reload']=function($lifetime)
@@ -17,7 +17,7 @@
 			]);
 		};
 
-	include './lib/logger.php';
+	require './lib/logger.php';
 	$log_fails=new log_to_txt([
 		'app_name'=>'login-component-test',
 		'file'=>'./var/log/fails.log',
@@ -29,7 +29,7 @@
 		'lock_file'=>'./var/log/infos.log.lock'
 	]);
 
-	include './app/models/samples/login_component_test_credentials.php';
+	require './app/models/samples/login_component_test_credentials.php';
 	$GLOBALS['_login']['credentials']=login_component_test_credentials::read_password();
 
 	// configure the login component
@@ -52,9 +52,9 @@
 		$GLOBALS['_login']['view']['login_style']='login_dark.css';
 
 	// add bruteforce protection
-	include './lib/pdo_connect.php';
-	include './lib/pdo_crud_builder.php'; // in ./app/databases/samples/$db/seed.php
-	include './lib/sec_bruteforce.php';
+	require './lib/pdo_connect.php';
+	require './lib/pdo_crud_builder.php'; // in ./app/databases/samples/$db/seed.php
+	require './lib/sec_bruteforce.php';
 
 	if(getenv('DB_IGNORE_ENV') === 'true')
 		$pdo_connect_db='sqlite';
@@ -85,7 +85,7 @@
 		$GLOBALS['_login']['wrong_credentials']=true;
 		$GLOBALS['_login']['view']['wrong_credentials_label']='Zostałeś zbanowany. Wróć później.';
 
-		include './components/login/login.php';
+		require './components/login/login.php';
 		exit();
 	}
 
@@ -109,7 +109,7 @@
 	};
 
 	// display login prompt
-	include './components/login/login.php';
+	require './components/login/login.php';
 
 	if(is_logged())
 	{
@@ -125,11 +125,11 @@
 
 		if(!isset($_SESSION['captcha_verified']))
 		{
-			include './lib/sec_captcha.php';
+			require './lib/sec_captcha.php';
 
 			if((!isset($_POST['captcha'])) || (!captcha_check($_POST['captcha'])))
 			{
-				include './components/middleware_form/middleware_form.php';
+				require './components/middleware_form/middleware_form.php';
 				$captcha_form=new middleware_form();
 
 				$captcha_form
@@ -179,7 +179,7 @@
 					]);
 
 				if($captcha_form->is_form_sent())
-					include './components/login/reload.php'; // display reload page
+					require './components/login/reload.php'; // display reload page
 				else
 					$captcha_form->view();
 
@@ -188,7 +188,7 @@
 
 			$_SESSION['captcha_verified']=true;
 
-			include './components/login/reload.php'; // display reload page
+			require './components/login/reload.php'; // display reload page
 			exit();
 		}
 
@@ -220,7 +220,7 @@
 
 		if(login_component_test_credentials::change_password_requested())
 		{
-			include './components/middleware_form/middleware_form.php';
+			require './components/middleware_form/middleware_form.php';
 			$change_password_form=new middleware_form();
 
 			if(
@@ -234,7 +234,7 @@
 				login_component_test_credentials::save_new_password($_POST['new_password']);
 				$log_infos->info('Password updated');
 
-				include './components/login/reload.php'; // display reload page
+				require './components/login/reload.php'; // display reload page
 				exit();
 			}
 			else
@@ -273,7 +273,7 @@
 
 		// password updated, you can see the content
 
-		include './app/templates/samples/default/default_template.php';
+		require './app/templates/samples/default/default_template.php';
 		default_template::quick_view('./app/views/samples/login-component-test');
 	}
 ?>
