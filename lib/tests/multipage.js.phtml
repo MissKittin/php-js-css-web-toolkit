@@ -1,0 +1,93 @@
+<?php
+	/*
+	 * multipage.js library test
+	 *
+	 * Note:
+	 *  looks for a library at ../lib
+	 *  looks for a library at ..
+	 */
+
+	if(
+		(!is_file(__DIR__.'/../lib/'.basename(__FILE__, '.phtml'))) &&
+		(!is_file(__DIR__.'/../'.basename(__FILE__, '.phtml')))
+	){
+		echo __DIR__.'/../lib/'.basename(__FILE__, '.phtml').' is not a file'.PHP_EOL;
+		echo __DIR__.'/../'.basename(__FILE__, '.phtml').' is not a file'.PHP_EOL;
+		exit();
+	}
+?>
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<style>
+			#app {
+				display: none;
+			}
+
+			#switch_container div {
+				display: none;
+			}
+			#switch_container #switch_container_a {
+				display: block;
+			}
+		</style>
+		<script>
+			<?php
+				if(is_file(__DIR__.'/../lib/'.basename(__FILE__, '.phtml')))
+					require __DIR__.'/../lib/'.basename(__FILE__, '.phtml');
+				else if(is_file(__DIR__.'/../'.basename(__FILE__, '.phtml')))
+					require __DIR__.'/../'.basename(__FILE__, '.phtml');
+			?>
+
+			document.addEventListener('DOMContentLoaded', function(){
+				<?php /* include __DIR__.'/../lib/'.basename(__FILE__, '.phtml'); */ /* multipage() can be here */ ?>
+
+				multipage('app', 'home', 'not_found');
+			}, false)
+		</script>
+	</head>
+	<body>
+		<div id="menu">
+			<a href="#!">Switch to HOME PAGE</a><br>
+			<a href="#!page_a">Switch to page A</a><br>
+			<a href="#!page_b">Switch to page B</a><br>
+			<a href="#!page_c">Switch to page C</a><br>
+			<a href="#!page_x">Switch to page D (not found)</a><br>
+			<a href="/">GO TO /</a><br>
+			<a href="https://google.com">GOOGLE.COM</a>
+		</div>
+		<hr>
+		<noscript>
+			<h1>Enable JS</h1>
+		</noscript>
+		<div id="app">
+			<div id="not_found">
+				<h1>PAGE NOT FOUND</h1>
+			</div>
+			<div id="home">
+				<h1>HOME PAGE</h1>
+				<hr>
+				<h3>switchElement() test</h3>
+				<a onclick="switchElement('switch_container', 'switch_container_a');">Switch to element A</a><br>
+				<a onclick="switchElement('switch_container', 'switch_container_b');">Switch to element B</a><br>
+				<a onclick="switchElement('switch_container', 'switch_container_c');">Switch to element C</a>
+				<hr>
+				<div id="switch_container">
+					<div id="switch_container_a">Element A (default)</div>
+					<div id="switch_container_b">Element B</div>
+					<div id="switch_container_c">Element C</div>
+				</div>
+			</div>
+			<div id="page_a">
+				<h1>PAGE A</h1>
+			</div>
+			<div id="page_b">
+				<h1>PAGE B</h1>
+			</div>
+			<div id="page_c">
+				<h1>PAGE C</h1>
+			</div>
+		</div>
+	</body>
+</html>

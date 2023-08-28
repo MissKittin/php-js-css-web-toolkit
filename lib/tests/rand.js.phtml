@@ -1,0 +1,49 @@
+<?php
+	/*
+	 * rand.js library test
+	 *
+	 * Note:
+	 *  looks for a library at ../lib
+	 *  looks for a library at ..
+	 */
+
+	if(
+		(!is_file(__DIR__.'/../lib/'.basename(__FILE__, '.phtml'))) &&
+		(!is_file(__DIR__.'/../'.basename(__FILE__, '.phtml')))
+	){
+		echo __DIR__.'/../lib/'.basename(__FILE__, '.phtml').' is not a file'.PHP_EOL;
+		echo __DIR__.'/../'.basename(__FILE__, '.phtml').' is not a file'.PHP_EOL;
+		exit();
+	}
+?>
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<style>
+			#app {
+				display: none;
+			}
+		</style>
+		<script>
+			<?php
+				if(is_file(__DIR__.'/../lib/'.basename(__FILE__, '.phtml')))
+					require __DIR__.'/../lib/'.basename(__FILE__, '.phtml');
+				else if(is_file(__DIR__.'/../'.basename(__FILE__, '.phtml')))
+					require __DIR__.'/../'.basename(__FILE__, '.phtml');
+			?>
+
+			function testRand()
+			{
+				document.body.innerHTML='<h1>Random number (1-20): '+rand(1, 20)+'</h1>';
+
+				setTimeout(testRand, 500);
+			}
+
+			document.addEventListener('DOMContentLoaded', function(){
+				testRand();
+			}, false)
+		</script>
+	</head>
+	<body></body>
+</html>

@@ -1,0 +1,104 @@
+<?php
+	/*
+	 * clock.js library test
+	 *
+	 * Note:
+	 *  looks for a library at ../lib
+	 *  looks for a library at ..
+	 */
+
+	if(
+		(!is_file(__DIR__.'/../lib/'.basename(__FILE__, '.phtml'))) &&
+		(!is_file(__DIR__.'/../'.basename(__FILE__, '.phtml')))
+	){
+		echo __DIR__.'/../lib/'.basename(__FILE__, '.phtml').' is not a file'.PHP_EOL;
+		echo __DIR__.'/../'.basename(__FILE__, '.phtml').' is not a file'.PHP_EOL;
+		exit();
+	}
+?>
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<?php if(isset($_GET['clock'])) { ?><script>
+			<?php
+				if(is_file(__DIR__.'/../lib/'.basename(__FILE__, '.phtml')))
+					require __DIR__.'/../lib/'.basename(__FILE__, '.phtml');
+				else if(is_file(__DIR__.'/../'.basename(__FILE__, '.phtml')))
+					require __DIR__.'/../'.basename(__FILE__, '.phtml');
+			?>
+
+			document.addEventListener('DOMContentLoaded', function(){<?php
+				switch($_GET['clock'])
+				{
+					case 'clockDigital': ?>
+						clockDigital('clock_div_id', ':');
+					<?php break;
+					case 'clockDigitalImage': ?>
+						clockDigitalImage(
+							'clock_div_id',
+							['/tmp/clock/0.png', '/tmp/clock/1.png', '/tmp/clock/2.png', '/tmp/clock/3.png', '/tmp/clock/4.png', '/tmp/clock/5.png', '/tmp/clock/6.png', '/tmp/clock/7.png', '/tmp/clock/8.png', '/tmp/clock/9.png'],
+							'/tmp/clock/separator.png'
+						);
+					<?php break;
+					case 'clockDigitalImageSprite': ?>
+						clockDigitalImageSprite(
+							'clock_div_id',
+							'/tmp/clock/clock.png', // sprite image url
+							'24px', // clock's height (the same as sprite image url)
+							'16px', // clock's digit width
+							'8px', // clock's separator width
+							['0px', '16px', '32px', '48px', '64px', '80px', '96px', '112px', '128px', '144px'], // digit's offsets
+							'160px' // separator offset
+						);
+					<?php break;
+					case 'clockAnalogCSS': ?>
+						clockAnalogCSS('clock_div_id', '#000000');
+					<?php break;
+					case 'clockAnalogImage': ?>
+						clockAnalogImage(
+							'clock_div_id',
+							['/tmp/clock/clock-face.png', '/tmp/clock/hour-hand.png', '/tmp/clock/minute-hand.png', '/tmp/clock/second-hand.png', '/tmp/clock/top-image.png']
+						);
+					<?php break;
+					case 'clockAnalogImageSprite': ?>
+						clockAnalogImageSprite(
+							'clock_div_id',
+							'/tmp/clock/clockspriteanalog.png', // sprite image url
+							['400px', '800px', '1200px', '1600px']
+						);
+					<?php break;
+				}
+			?>}, false);
+		</script><?php } ?>
+	</head>
+	<body>
+		<?php
+			if(isset($_GET['clock']))
+				switch($_GET['clock'])
+				{
+					case 'clockDigital': ?>
+						<h1><div id="clock_div_id"></div></h1>
+					<?php break;
+					case 'clockDigitalImage':
+					case 'clockDigitalImageSprite': ?>
+						<div id="clock_div_id"></div>
+					<?php break;
+					case 'clockAnalogCSS':
+					case 'clockAnalogImage':
+					case 'clockAnalogImageSprite': ?>
+						<div id="clock_div_id" style="width: 500px; height: 500px;"></div>
+					<?php break;
+				}
+			else
+			{ ?>
+				<a href="?clock=clockDigital" style="font-size: 30pt;">clockDigital</a><br>
+				<a href="?clock=clockDigitalImage" style="font-size: 30pt;">clockDigitalImage</a><br>
+				<a href="?clock=clockDigitalImageSprite" style="font-size: 30pt;">clockDigitalImageSprite</a><br>
+				<a href="?clock=clockAnalogCSS" style="font-size: 30pt;">clockAnalogCSS</a><br>
+				<a href="?clock=clockAnalogImage" style="font-size: 30pt;">clockAnalogImage</a><br>
+				<a href="?clock=clockAnalogImageSprite" style="font-size: 30pt;">clockAnalogImageSprite</a>
+				<?php }
+		?>
+	</body>
+</html>

@@ -1,0 +1,38 @@
+<?php
+	/*
+	 * fadeAnimationIn.js library test
+	 *
+	 * Note:
+	 *  looks for a library at ../lib
+	 *  looks for a library at ..
+	 */
+
+	if(
+		(!is_file(__DIR__.'/../lib/'.basename(__FILE__, '.phtml'))) &&
+		(!is_file(__DIR__.'/../'.basename(__FILE__, '.phtml')))
+	){
+		echo __DIR__.'/../lib/'.basename(__FILE__, '.phtml').' is not a file'.PHP_EOL;
+		echo __DIR__.'/../'.basename(__FILE__, '.phtml').' is not a file'.PHP_EOL;
+		exit();
+	}
+?>
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<!--[if !IE]><!--><style>body{opacity:0}</style><noscript><style>body{opacity:1}</style></noscript><!--<![endif]-->
+		<script>
+			alert('START');
+
+			<?php
+				if(is_file(__DIR__.'/../lib/'.basename(__FILE__, '.phtml')))
+					require __DIR__.'/../lib/'.basename(__FILE__, '.phtml');
+				else if(is_file(__DIR__.'/../'.basename(__FILE__, '.phtml')))
+					require __DIR__.'/../'.basename(__FILE__, '.phtml');
+			?>
+		</script>
+	</head>
+	<body>
+		<h1>Text</h1>
+	</body>
+</html>
