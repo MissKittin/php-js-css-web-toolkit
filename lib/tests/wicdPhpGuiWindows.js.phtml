@@ -1,0 +1,135 @@
+<?php
+	/*
+	 * wicdPhpGuiWindows.js library test
+	 *
+	 * Note:
+	 *  looks for a library at ../lib
+	 *  looks for a library at ..
+	 */
+
+	if(
+		(!is_file(__DIR__.'/../lib/'.basename(__FILE__, '.phtml'))) &&
+		(!is_file(__DIR__.'/../'.basename(__FILE__, '.phtml')))
+	){
+		echo __DIR__.'/../lib/'.basename(__FILE__, '.phtml').' is not a file'.PHP_EOL;
+		echo __DIR__.'/../'.basename(__FILE__, '.phtml').' is not a file'.PHP_EOL;
+		exit();
+	}
+?>
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<script>
+			document.addEventListener('DOMContentLoaded', function(){
+				<?php
+					if(is_file(__DIR__.'/../lib/'.basename(__FILE__, '.phtml')))
+						require __DIR__.'/../lib/'.basename(__FILE__, '.phtml');
+					else if(is_file(__DIR__.'/../'.basename(__FILE__, '.phtml')))
+						require __DIR__.'/../'.basename(__FILE__, '.phtml');
+
+					if(isset($_GET['theme']))
+					{
+						switch($_GET['theme'])
+						{
+							case 'default': ?>
+								var theme=new wicdPhpGuiWindowsDefault();
+							<?php break;
+							case 'bright': ?>
+								var theme=new wicdPhpGuiWindowsBright();
+							<?php
+						}
+
+						?>
+							// create main window
+								// initialize static window
+								var main=new wicdPhpGuiWindows({
+									'containerId':'app',
+									'windowId':'mainWindow',
+									'theme':theme,
+									'width':'300px',
+									'height':'400px',
+									'title':'wicdPhpGuiWindows',
+									'isFloat':false,
+									'isClosable':false,
+									'hasCloseButton':false
+								});
+
+								// create menu
+								main.createMenuButton('About', function(){
+									about.displayWindow();
+								});
+								main.createMenuButton('Alert', function(){
+									alert('Alert button clicked');
+								});
+
+								// create text label, text input and checkbox
+								main.createLabel('Text label', 'color: #0000aa').createLineBreak();
+								main.createFormInput('text', 'inputText', 'Placeholder', 'Default value').createLineBreak();
+								main.createFormCheckBox('This is a checkbox', 'checkboxName').createHorizontalLine();
+
+								// create box with border, image and inline HTML and add it to the main window
+								var box=new wicdPhpGuiWindowsElement({
+									'theme':theme,
+									'hasBorder':true
+								});
+								box.addImage('/image.png', 'Alt text');
+								box.appendInlineHTML('<h1>Inline HTML</h1>');
+								main.appendObjectHTML(box.getContent()).createLineBreak();
+
+								// create button
+								main.createButton('Nice button', function(){
+									alert('See the message in console');
+									main.hideWindow();
+								});
+
+								// window is ready to display
+								main.createWindow().displayWindow();
+
+							// create about window
+								// initialize floating window
+								var about=new wicdPhpGuiWindows({
+									'containerId':'app',
+									'windowId':'aboutWindow',
+									'theme':theme,
+									'width':'600px',
+									'height':'600px',
+									'title':'About',
+									'isFloat':true,
+									'isClosable':true,
+									'hasCloseButton':true
+								});
+
+								// add text
+								about.appendInlineHTML('<h1 style="text-align: center;">About</h1><div style="text-align: center;">Sample text</div>');
+
+								// create button at the bottom
+								about.createBottomButton('OK', function(){
+									about.hideWindow();
+								});
+
+								// create text label at the bottom
+								about.createBottomLabel('Made by me :)');
+
+								// now push the window to the app container
+								about.createWindow();
+						<?php
+					}
+				?>
+			});
+		</script>
+	</head>
+	<body>
+		<?php
+			if(isset($_GET['theme']))
+			{
+				?><div id="app"></div><?php
+			}
+			else
+			{ ?>
+				<a href="?theme=default" style="font-size: 30pt;">Default theme</a><br>
+				<a href="?theme=bright" style="font-size: 30pt;">Bright theme</a>
+			<?php }
+		?>
+	</body>
+</html>

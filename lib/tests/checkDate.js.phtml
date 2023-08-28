@@ -1,0 +1,169 @@
+<?php
+	/*
+	 * checkDate.js library test
+	 *
+	 * Note:
+	 *  looks for a library at ../lib
+	 *  looks for a library at ..
+	 */
+
+	if(
+		(!is_file(__DIR__.'/../lib/'.basename(__FILE__, '.phtml'))) &&
+		(!is_file(__DIR__.'/../'.basename(__FILE__, '.phtml')))
+	){
+		echo __DIR__.'/../lib/'.basename(__FILE__, '.phtml').' is not a file'.PHP_EOL;
+		echo __DIR__.'/../'.basename(__FILE__, '.phtml').' is not a file'.PHP_EOL;
+		exit();
+	}
+?>
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<script>
+			document.addEventListener('DOMContentLoaded', function(){
+				<?php
+					if(is_file(__DIR__.'/../lib/'.basename(__FILE__, '.phtml')))
+						require __DIR__.'/../lib/'.basename(__FILE__, '.phtml');
+					else if(is_file(__DIR__.'/../'.basename(__FILE__, '.phtml')))
+						require __DIR__.'/../'.basename(__FILE__, '.phtml');
+				?>
+
+				var timestamp;
+
+				OriginalDate=Date;
+				Date=function(...args)
+				{
+					if(args.length === 0)
+						return new OriginalDate(timestamp);
+
+					return new OriginalDate(...args);
+				}
+				Date.parse=function(...args)
+				{
+					return OriginalDate.parse(...args);
+				}
+				Date.now=function()
+				{
+					return timestamp;
+				}
+
+				document.body.innerHTML+='Testing checkDate<br>';
+				document.body.innerHTML+='&nbsp;one year<br>';
+
+				timestamp=OriginalDate.parse('05/10/2022 00:00:00'); // mm/dd/yyyy
+				if(checkDate(20,4, 27,8))
+					document.body.innerHTML+='&nbsp;&nbsp;returns true [ OK ]<br>';
+				else
+					document.body.innerHTML+='&nbsp;&nbsp;returns true [FAIL]<br>';
+
+				timestamp=OriginalDate.parse('03/10/2022 00:00:00'); // mm/dd/yyyy
+				if(!checkDate(20,4, 27,8))
+					document.body.innerHTML+='&nbsp;&nbsp;returns false [ OK ]<br>';
+				else
+					document.body.innerHTML+='&nbsp;&nbsp;returns false [FAIL]<br>';
+
+				timestamp=OriginalDate.parse('04/19/2022 00:00:00'); // mm/dd/yyyy
+				if(!checkDate(20,4, 27,8))
+					document.body.innerHTML+='&nbsp;&nbsp;one day before [ OK ]<br>';
+				else
+					document.body.innerHTML+='&nbsp;&nbsp;one day before [FAIL]<br>';
+
+				timestamp=OriginalDate.parse('04/20/2022 00:00:00'); // mm/dd/yyyy
+				if(checkDate(20,4, 27,8))
+					document.body.innerHTML+='&nbsp;&nbsp;first day [ OK ]<br>';
+				else
+					document.body.innerHTML+='&nbsp;&nbsp;first day [FAIL]<br>';
+
+				timestamp=OriginalDate.parse('08/26/2022 00:00:00'); // mm/dd/yyyy // cheat
+				if(checkDate(20,4, 27,8))
+					document.body.innerHTML+='&nbsp;&nbsp;last day [ OK ]<br>';
+				else
+					document.body.innerHTML+='&nbsp;&nbsp;last day [FAIL]<br>';
+
+				timestamp=OriginalDate.parse('08/28/2022 00:00:00'); // mm/dd/yyyy
+				if(!checkDate(20,4, 27,8))
+					document.body.innerHTML+='&nbsp;&nbsp;one day after [ OK ]<br>';
+				else
+					document.body.innerHTML+='&nbsp;&nbsp;one day after [FAIL]<br>';
+
+				document.body.innerHTML+='&nbsp;between years<br>';
+
+				timestamp=OriginalDate.parse('08/10/2022 00:00:00'); // mm/dd/yyyy
+				if(checkDate(24,6, 14,2))
+					document.body.innerHTML+='&nbsp;&nbsp;returns true [ OK ]<br>';
+				else
+					document.body.innerHTML+='&nbsp;&nbsp;returns true [FAIL]<br>';
+
+				timestamp=OriginalDate.parse('05/10/2022 00:00:00'); // mm/dd/yyyy
+				if(!checkDate(24,6, 14,2))
+					document.body.innerHTML+='&nbsp;&nbsp;returns false [ OK ]<br>';
+				else
+					document.body.innerHTML+='&nbsp;&nbsp;returns false [FAIL]<br>';
+
+				timestamp=OriginalDate.parse('06/23/2022 00:00:00'); // mm/dd/yyyy
+				if(!checkDate(24,6, 14,2))
+					document.body.innerHTML+='&nbsp;&nbsp;one day before [ OK ]<br>';
+				else
+					document.body.innerHTML+='&nbsp;&nbsp;one day before [FAIL]<br>';
+
+				timestamp=OriginalDate.parse('06/24/2022 00:00:00'); // mm/dd/yyyy
+				if(checkDate(24,6, 14,2))
+					document.body.innerHTML+='&nbsp;&nbsp;first day [ OK ]<br>';
+				else
+					document.body.innerHTML+='&nbsp;&nbsp;first day [FAIL]<br>';
+
+				timestamp=OriginalDate.parse('02/13/2022 00:00:00'); // mm/dd/yyyy // cheat
+				if(checkDate(24,6, 14,2))
+					document.body.innerHTML+='&nbsp;&nbsp;last day [ OK ]<br>';
+				else
+					document.body.innerHTML+='&nbsp;&nbsp;last day [FAIL]<br>';
+
+				timestamp=OriginalDate.parse('02/15/2022 00:00:00'); // mm/dd/yyyy
+				if(!checkDate(24,6, 14,2))
+					document.body.innerHTML+='&nbsp;&nbsp;one day after [ OK ]<br>';
+				else
+					document.body.innerHTML+='&nbsp;&nbsp;one day after [FAIL]<br>';
+
+				document.body.innerHTML+='Testing checkEaster<br>';
+
+				timestamp=OriginalDate.parse('04/22/2022 00:00:00'); // mm/dd/yyyy
+				if(checkEaster(49))
+					document.body.innerHTML+='&nbsp;returns true [ OK ]<br>';
+				else
+					document.body.innerHTML+='&nbsp;returns true [FAIL]<br>';
+
+				timestamp=OriginalDate.parse('04/16/2022 00:00:00'); // mm/dd/yyyy
+				if(!checkEaster(49))
+					document.body.innerHTML+='&nbsp;returns false [ OK ]<br>';
+				else
+					document.body.innerHTML+='&nbsp;returns false [FAIL]<br>';
+
+				timestamp=OriginalDate.parse('04/16/2022 00:00:00'); // mm/dd/yyyy
+				if(!checkEaster(49))
+					document.body.innerHTML+='&nbsp;one day before [ OK ]<br>';
+				else
+					document.body.innerHTML+='&nbsp;one day before [FAIL]<br>';
+
+				timestamp=OriginalDate.parse('04/17/2022 00:00:00'); // mm/dd/yyyy
+				if(checkEaster(49))
+					document.body.innerHTML+='&nbsp;first day [ OK ]<br>';
+				else
+					document.body.innerHTML+='&nbsp;first day [FAIL]<br>';
+
+				timestamp=OriginalDate.parse('06/04/2022 00:00:00'); // mm/dd/yyyy // cheat
+				if(checkEaster(49))
+					document.body.innerHTML+='&nbsp;last day [ OK ]<br>';
+				else
+					document.body.innerHTML+='&nbsp;last day [FAIL]<br>';
+
+				timestamp=OriginalDate.parse('06/06/2022 00:00:00'); // mm/dd/yyyy
+				if(!checkEaster(49))
+					document.body.innerHTML+='&nbsp;one day after [ OK ]<br>';
+				else
+					document.body.innerHTML+='&nbsp;one day after [FAIL]<br>';
+			});
+		</script>
+	</head>
+	<body></body>
+</html>

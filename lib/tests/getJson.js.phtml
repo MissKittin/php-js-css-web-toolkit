@@ -1,0 +1,54 @@
+<?php
+	/*
+	 * getJson.js library test
+	 *
+	 * Note:
+	 *  looks for a library at ../lib
+	 *  looks for a library at ..
+	 */
+
+	if(
+		(!is_file(__DIR__.'/../lib/'.basename(__FILE__, '.phtml'))) &&
+		(!is_file(__DIR__.'/../'.basename(__FILE__, '.phtml')))
+	){
+		echo __DIR__.'/../lib/'.basename(__FILE__, '.phtml').' is not a file'.PHP_EOL;
+		echo __DIR__.'/../'.basename(__FILE__, '.phtml').' is not a file'.PHP_EOL;
+		exit();
+	}
+
+	if(isset($_GET['get_json']))
+	{
+		header('Content-Type: application/json');
+
+		echo json_encode([
+			'status'=>'works'
+		]);
+
+		exit();
+	}
+?>
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<script>
+			document.addEventListener('DOMContentLoaded', function(){
+				<?php
+					if(is_file(__DIR__.'/../lib/'.basename(__FILE__, '.phtml')))
+						require __DIR__.'/../lib/'.basename(__FILE__, '.phtml');
+					else if(is_file(__DIR__.'/../'.basename(__FILE__, '.phtml')))
+						require __DIR__.'/../'.basename(__FILE__, '.phtml');
+				?>
+
+				getJson('?get_json=true', 'get', function(error, response){
+					if(error == null)
+						if(response.status === 'works')
+							document.getElementById('getjson').innerHTML='getJson works';
+				}, null);
+			});
+		</script>
+	</head>
+	<body>
+		<h1 id="getjson">getJson is not working</h1>
+	</body>
+</html>

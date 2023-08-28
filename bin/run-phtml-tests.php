@@ -3,6 +3,7 @@
 	 * Start HTTP server
 	 * and run phtml files (tests for Js and CSS libraries)
 	 *
+	 * Looks for files in ../lib/tests directory
 	 * Looks for files in ../tests directory
 	 *
 	 * Warning:
@@ -31,6 +32,7 @@
 
 		error_log('Requested tests list');
 
+		echo 'Directory: '.getcwd().'<br>'."\n";
 		foreach(array_slice(scandir('.'), 2) as $file)
 			if(substr(strrchr($file, '.'), 1) === 'phtml')
 				echo '<a href="/'.$file.'">'.basename($file, '.phtml').'</a><br>'."\n";
@@ -39,12 +41,23 @@
 	}
 	else if(php_sapi_name() === 'cli')
 	{
+		if(is_dir(__DIR__.'/../lib/tests'))
+			$tests_dir=__DIR__.'/../lib/tests';
+		else if(is_dir(__DIR__.'/../tests'))
+			$tests_dir=__DIR__.'/../tests';
+		else
+		{
+			echo __DIR__.'/../lib/tests directory not found'.PHP_EOL;
+			echo __DIR__.'/../tests directory not found'.PHP_EOL;
+			exit(1);
+		}
+
 		/*
 		 * This block comes from the serve.php tool
 		 * with modified
 		 *  chdir(__DIR__.'/../public');
 		 * to
-		 *  chdir(__DIR__.'/../tests');
+		 *  chdir($tests_dir);
 		 */
 
 		function load_library($libraries, $required=true)
@@ -97,7 +110,7 @@
 				die('Cannot chdir to the '.$php_http_docroot.PHP_EOL);
 		}
 		else
-			chdir(__DIR__.'/../tests');
+			chdir($tests_dir);
 
 		echo 'Starting PHP server ('.$php_http_addr.':'.$php_http_port.')'.PHP_EOL;
 		echo ' in '.getcwd().PHP_EOL;

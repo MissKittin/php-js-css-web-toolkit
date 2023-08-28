@@ -1,0 +1,55 @@
+<?php
+	/*
+	 * sortTable.js library test
+	 *
+	 * Note:
+	 *  looks for a library at ../lib
+	 *  looks for a library at ..
+	 */
+
+	if(
+		(!is_file(__DIR__.'/../lib/'.basename(__FILE__, '.phtml'))) &&
+		(!is_file(__DIR__.'/../'.basename(__FILE__, '.phtml')))
+	){
+		echo __DIR__.'/../lib/'.basename(__FILE__, '.phtml').' is not a file'.PHP_EOL;
+		echo __DIR__.'/../'.basename(__FILE__, '.phtml').' is not a file'.PHP_EOL;
+		exit();
+	}
+?>
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<style>
+			table, tr, th, td {
+				border: 1px solid #000000;
+				border-collapse: collapse;
+			}
+		</style>
+		<script>
+			document.addEventListener('DOMContentLoaded', function(){
+				<?php
+					if(is_file(__DIR__.'/../lib/'.basename(__FILE__, '.phtml')))
+						require __DIR__.'/../lib/'.basename(__FILE__, '.phtml');
+					else if(is_file(__DIR__.'/../'.basename(__FILE__, '.phtml')))
+						require __DIR__.'/../'.basename(__FILE__, '.phtml');
+				?>
+
+				sortTable(document.getElementById('sorttable'));
+			}, false);
+		</script>
+	</head>
+	<body>
+		<table id="sorttable">
+			<tr><th>Name</th><th>Country</th></tr>
+			<tr><td>Berglunds snabbkop</td><td>Sweden</td></tr>
+			<tr><td>North/South</td><td>UK</td></tr>
+			<tr><td>Alfreds Futterkiste</td><td>Germany</td></tr>
+			<tr><td>Koniglich Essen</td><td>Germany</td></tr>
+			<tr><td>Magazzini Alimentari Riuniti</td><td>Italy</td></tr>
+			<tr><td>Paris specialites</td><td>France</td></tr>
+			<tr><td>Island Trading</td><td>UK</td></tr>
+			<tr><td>Laughing Bacchus Winecellars</td><td>Canada</td></tr>
+		</table>
+	</body>
+</html>
