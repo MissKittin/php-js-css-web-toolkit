@@ -6,6 +6,9 @@
 	 *  $_SESSION['_login'] is reserved
 	 *  $_SERVER['HTTP_USER_AGENT'] is required
 	 *
+	 * Note:
+	 *  throws an login_exception on error
+	 *
 	 * Usage:
 	 *  login_single('input_login', 'input_plain_password', 'valid_login', 'valid_bcrypted_password')
 	 *   use this to authenticate one user
@@ -49,6 +52,8 @@
 	 *   convert string to bcrypt hash
 	 */
 
+	class login_exception extends Exception {}
+
 	function login_single(
 		string $input_login=null,
 		string $input_password=null,
@@ -56,7 +61,7 @@
 		string $password
 	){
 		if(session_status() !== PHP_SESSION_ACTIVE)
-			throw new Exception('Session not started');
+			throw new file_sign_exception('Session not started');
 
 		if(!isset($_SERVER['HTTP_USER_AGENT']))
 			return false;
@@ -78,7 +83,7 @@
 		array $login_array
 	){
 		if(session_status() !== PHP_SESSION_ACTIVE)
-			throw new Exception('Session not started');
+			throw new file_sign_exception('Session not started');
 
 		if(!isset($_SERVER['HTTP_USER_AGENT']))
 			return false;
@@ -101,7 +106,7 @@
 		callable $callback
 	){
 		if(session_status() !== PHP_SESSION_ACTIVE)
-			throw new Exception('Session not started');
+			throw new file_sign_exception('Session not started');
 
 		if(!isset($_SERVER['HTTP_USER_AGENT']))
 			return false;
@@ -145,7 +150,7 @@
 	function logout($null=false)
 	{
 		if(session_status() !== PHP_SESSION_ACTIVE)
-			throw new Exception('Session not started');
+			throw new file_sign_exception('Session not started');
 
 		if($null !== null)
 		{
@@ -161,7 +166,7 @@
 	function is_logged(bool $session_regenerate=true, callable $on_check_fail=null)
 	{
 		if(session_status() !== PHP_SESSION_ACTIVE)
-			throw new Exception('Session not started');
+			throw new file_sign_exception('Session not started');
 
 		if(!isset($_SERVER['HTTP_USER_AGENT']))
 		{

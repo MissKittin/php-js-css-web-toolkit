@@ -6,6 +6,7 @@
 	 * Mainly for historical purposes. You shouldn't be using this.
 	 */
 
+	class prevent_index_exception extends Exception {}
 	function prevent_index(
 		string $redirect_page_content=null,
 		string $redirect_page_content_type=null
@@ -13,6 +14,9 @@
 		/*
 		 * index.php 404 not found
 		 * Create one index.php and softlink it to another directories
+		 *
+		 * Note:
+		 *  throws an prevent_index_exception on error
 		 *
 		 * Usage:
 			require '../../lib/sec_prevent_direct.php';
@@ -25,6 +29,7 @@
 		 */
 
 		http_response_code(404);
+
 		switch($redirect_page_content_type)
 		{
 			case 'echo':
@@ -37,7 +42,7 @@
 				include $redirect_page_content;
 			break;
 			default:
-				throw new Exception('redirect_page_content_type can be echo or file or include');
+				throw new prevent_index_exception('redirect_page_content_type can be echo or file or include');
 		}
 	}
 	function prevent_direct(

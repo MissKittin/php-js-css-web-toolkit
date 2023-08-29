@@ -84,7 +84,7 @@
 			$__recreate_fifo,
 			$__debug
 		);
-	} catch(Exception $error) {
+	} catch(Throwable $error) {
 		echo '[E] '.$error->getMessage().PHP_EOL;
 		exit(1);
 	}

@@ -140,7 +140,7 @@
 		$autowired_container->unregister_constructor_arg('requiredclass', 'parameter');
 		try {
 			$autowired_container->get('testclass')->get_requiredclass()->get_param();
-		} catch(ArgumentCountError $e) {
+		} catch(ArgumentCountError $error) {
 			$exception_occured=true;
 		}
 		if($exception_occured)
@@ -175,7 +175,7 @@
 		$autowired_container_cache->unregister_constructor_arg('requiredclass', 'parameter');
 		try {
 			$autowired_container_cache->get('testclass')->get_requiredclass()->get_param();
-		} catch(ArgumentCountError $e) {
+		} catch(ArgumentCountError $error) {
 			$exception_occured=true;
 		}
 		if($exception_occured)

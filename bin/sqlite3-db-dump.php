@@ -47,7 +47,7 @@
 			$output=sqlite3_db_dump($argv[1]);
 		else
 			$output=sqlite3_pdo_dump($argv[1]);
-	} catch(Exception $error) {
+	} catch(Throwable $error) {
 		$function_used='sqlite3_pdo_dump';
 		if(class_exists('SQLite3'))
 			$function_used='sqlite3_db_dump';

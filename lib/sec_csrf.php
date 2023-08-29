@@ -7,7 +7,7 @@
 	 * 	token is generated at include and stored in the $_SESSION
 	 *
 	 * Warning:
-	 *  you must start session before include
+	 *  you must start session before include (throws an csrf_exception)
 	 *  $_GET['_csrf_token'] and $_POST['_csrf_token'] are reserved
 	 *  $_SESSION['_csrf_token'] is reseved
 	 *
@@ -65,7 +65,10 @@
 	}
 
 	if(session_status() !== PHP_SESSION_ACTIVE)
-		throw new Exception('Session not started');
+	{
+		class csrf_exception extends Exception {}
+		throw new csrf_exception('Session not started');
+	}
 
 	if((!csrf_checkToken('get')) && (!csrf_checkToken('post')))
 		$_SESSION['_csrf_token']=substr(

@@ -77,7 +77,7 @@ The archive table contains entries older than n days, processed and ready for du
 Generating the report may take a while, so it is recommended to generate it outside the main application.
 
 ## Note
-Throws Exception when there is a database connection error or query execution error.  
+Throws an `herring_exception` when there is a database connection error or query execution error.  
 The tracking cookie is valid for 2 years, unless a setcookie callback is defined.  
 You have to write the report generating tool/interface/cron job yourself
 

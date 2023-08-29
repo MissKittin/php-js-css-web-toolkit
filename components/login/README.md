@@ -10,6 +10,10 @@ Simple middleware
 * `$GLOBALS['_login']`
 * `$_SESSION['_login_remember_me']`
 
+## Note
+Throws an `Exception` if the library is not found  
+Throws an `login_component_exception` on error
+
 ## Config sections
 Roadmap of `$GLOBALS['_login']` array
 * `config`

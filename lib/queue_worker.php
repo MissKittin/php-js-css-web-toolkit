@@ -1,4 +1,5 @@
 <?php
+	class queue_worker_exception extends Exception {}
 	class queue_worker
 	{
 		/*
@@ -15,6 +16,7 @@
 		 *  the server can execute jobs in parallel: using several instances
 		 *   listening to one fifo or/and using the fork option flag
 		 *  if the fork fails, the server will execute the job sequentially
+		 *  throws an queue_worker_exception on error
 		 *
 		 * Queue server start:
 			queue_worker::start_worker(
@@ -117,7 +119,7 @@
 			bool $debug=false
 		){
 			if(php_sapi_name() !== 'cli')
-				throw new Exception('This method is only for CLI');
+				throw new queue_worker_exception('This method is only for CLI');
 
 			if($worker_fork && (!function_exists('pcntl_fork')))
 			{
@@ -129,41 +131,41 @@
 			}
 
 			if($children_limit < 0)
-				throw new Exception('Child process limit cannot be negative');
+				throw new queue_worker_exception('Child process limit cannot be negative');
 
 			if($worker_functions !== null)
 			{
 				if(!file_exists($worker_functions))
-					throw new Exception($worker_functions.' not exist');
+					throw new queue_worker_exception($worker_functions.' not exist');
 
 				if((include $worker_functions) === false)
-					throw new Exception($worker_functions.' inclusion error');
+					throw new queue_worker_exception($worker_functions.' inclusion error');
 			}
 
 			if(!function_exists('queue_worker_main'))
-				throw new Exception('queue_worker_main function not defined in '.$worker_functions);
+				throw new queue_worker_exception('queue_worker_main function not defined in '.$worker_functions);
 
 			if($recreate_fifo && file_exists($worker_fifo))
 				if(!unlink($worker_fifo))
-					throw new Exception('Unable to remove stale file');
+					throw new queue_worker_exception('Unable to remove stale file');
 
 			if(file_exists($worker_fifo))
 			{
 				if(is_dir($worker_fifo))
-					throw new Exception($worker_fifo.' is a directory');
+					throw new queue_worker_exception($worker_fifo.' is a directory');
 			}
 			else
 			{
 				if(!function_exists('posix_mkfifo'))
-					throw new Exception('posix extension not loaded - unable to create fifo');
+					throw new queue_worker_exception('posix extension not loaded - unable to create fifo');
 
 				if(!posix_mkfifo($worker_fifo, 0666))
-					throw new Exception('Unable to create '.$worker_fifo);
+					throw new queue_worker_exception('Unable to create '.$worker_fifo);
 			}
 
 			$worker_input=fopen($worker_fifo, 'r+');
 			if(!$worker_input)
-				throw new Exception('Fifo opening error');
+				throw new queue_worker_exception('Fifo opening error');
 
 			if($debug)
 			{
@@ -309,10 +311,10 @@
 		public function __construct(string $worker_fifo)
 		{
 			if(!file_exists($worker_fifo))
-				throw new Exception($worker_fifo.' not exist');
+				throw new queue_worker_exception($worker_fifo.' not exist');
 
 			if(is_dir($this->worker_fifo))
-				throw new Exception($worker_fifo.' is a directory');
+				throw new queue_worker_exception($worker_fifo.' is a directory');
 
 			$this->worker_fifo=realpath($worker_fifo);
 		}
@@ -324,7 +326,7 @@
 		public function write($worker_input)
 		{
 			if(file_put_contents($this->worker_fifo, serialize($worker_input).PHP_EOL) === false)
-				throw new Exception('Unable to send data to the queue server');
+				throw new queue_worker_exception('Unable to send data to the queue server');
 
 			return $this;
 		}

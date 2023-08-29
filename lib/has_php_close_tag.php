@@ -1,4 +1,5 @@
 <?php
+	class has_php_close_tag_exception extends Exception {}
 	function has_php_close_tag(string $source)
 	{
 		/*
@@ -6,6 +7,9 @@
 		 *
 		 * Warning:
 		 *  tokenizer extension is required
+		 *
+		 * Note:
+		 *  throws an has_php_close_tag_exception on error
 		 *
 		 * Usage:
 		 *  if(has_php_close_tag(file_get_contents('file.php')))
@@ -15,7 +19,7 @@
 		 */
 
 		if(!extension_loaded('tokenizer'))
-			throw new Exception('tokenizer extension is not loaded');
+			throw new has_php_close_tag_exception('tokenizer extension is not loaded');
 
 		$is_php=false;
 		$return=true;

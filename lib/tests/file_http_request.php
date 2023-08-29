@@ -30,6 +30,7 @@
 		}
 
 		echo ' -> Mocking functions and classes';
+			class Exception extends \Exception {}
 			$GLOBALS['stream_context_options']=[];
 			function stream_context_create($options)
 			{
@@ -43,7 +44,6 @@
 
 				return false;
 			}
-			class Exception extends \Exception {}
 		echo ' [ OK ]'.PHP_EOL;
 
 		foreach([
@@ -151,7 +151,7 @@
 						$request_response->$method('mycookie');
 					else
 						$request_response->$method();
-				} catch(Exception $error) {
+				} catch(\Throwable $error) {
 					$caught=true;
 				}
 				if($caught)
@@ -168,7 +168,7 @@
 			$caught=false;
 			try {
 				$request_response->send();
-			} catch(Exception $error) {
+			} catch(\Throwable $error) {
 				$caught=true;
 			}
 			if($caught)

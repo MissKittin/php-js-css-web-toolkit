@@ -9,6 +9,7 @@
 			throw new Exception('registry.php library not found');
 	}
 
+	class admin_panel_exception extends Exception {}
 	class admin_panel extends registry
 	{
 		protected static $return_content='';
@@ -21,10 +22,10 @@
 		public function __construct(array $params)
 		{
 			if(!isset($_SERVER['REQUEST_URI']))
-				throw new Exception('$_SERVER["REQUEST_URI"] is not set');
+				throw new admin_panel_exception('$_SERVER["REQUEST_URI"] is not set');
 
 			if(!isset($params['base_url']))
-				throw new Exception('The base_url parameter was not specified for the constructor');
+				throw new admin_panel_exception('The base_url parameter was not specified for the constructor');
 			$this->base_url=$params['base_url'];
 
 			$this->_set_default_labels();
@@ -49,7 +50,7 @@
 				isset($this->registry['_show_logout_button']) &&
 				(!isset($this->registry['_csrf_token']))
 			)
-				throw new Exception('The CSRF token has not been set');
+				throw new admin_panel_exception('The CSRF token has not been set');
 		}
 
 		protected function _list_modules()
@@ -91,28 +92,28 @@
 		{
 			foreach(['id', 'path', 'script', 'url'] as $param)
 				if(!isset($params[$param]))
-					throw new Exception('The '.$param.' parameter was not specified for the add_module');
+					throw new admin_panel_exception('The '.$param.' parameter was not specified for the add_module');
 
 			foreach(['_args', '_is_default', '_not_found'] as $reserved_param)
 				if(isset($params[$reserved_param]))
-					throw new Exception('The '.$reserved_param.' parameter is reserved');
+					throw new admin_panel_exception('The '.$reserved_param.' parameter is reserved');
 
 			if(isset($this->modules[$params['id']]))
-				throw new Exception('Module with id '.$params['id'].' is already registered');
+				throw new admin_panel_exception('Module with id '.$params['id'].' is already registered');
 
 			$params['path']=realpath($params['path']);
 			if($params['path'] === false)
-				throw new Exception('Module path does not exists');
+				throw new admin_panel_exception('Module path does not exists');
 
 			if(isset($params['config']))
 				if(!file_exists($params['path'].'/'.$params['config']))
-					throw new Exception($params['path'].'/'.$params['config'].' does not exists');
+					throw new admin_panel_exception($params['path'].'/'.$params['config'].' does not exists');
 
 			if(!file_exists($params['path'].'/'.$params['script']))
-				throw new Exception($params['path'].'/'.$params['script'].' does not exists');
+				throw new admin_panel_exception($params['path'].'/'.$params['script'].' does not exists');
 
 			if(isset($this->registered_urls[$params['url']]))
-				throw new Exception('URL '.$params['url'].' is already in use');
+				throw new admin_panel_exception('URL '.$params['url'].' is already in use');
 
 			$this->modules[$params['id']]=$params;
 			$this->registered_urls[$params['url']]=$params['id'];
@@ -122,7 +123,7 @@
 		public function remove_module(string $module_id)
 		{
 			if(!isset($this->modules[$module_id]))
-				throw new Exception('Module with id '.$params['id'].' is not registered');
+				throw new admin_panel_exception('Module with id '.$params['id'].' is not registered');
 
 			unset($this->registered_urls[$this->modules[$module_id]['url']]);
 			unset($this->modules[$module_id]);
@@ -138,10 +139,10 @@
 		{
 			foreach(['id', 'url', 'name'] as $param)
 				if(!isset($params[$param]))
-					throw new Exception('The '.$param.' parameter was not specified for the add_menu_entry');
+					throw new admin_panel_exception('The '.$param.' parameter was not specified for the add_menu_entry');
 
 			if(isset($this->modules[$params['id']]))
-				throw new Exception('Module with id '.$params['id'].' is already registered');
+				throw new admin_panel_exception('Module with id '.$params['id'].' is already registered');
 
 			$this->modules[$params['id']]=$params;
 
@@ -167,20 +168,24 @@
 		public function run(bool $return_content=false)
 		{
 			if($this->default_module === null)
-				throw new Exception('Default module is not defined');
+				throw new admin_panel_exception('Default module is not defined');
 
 			if(!isset($this->modules[$this->default_module]))
-				throw new Exception('Default module is not registered');
+				throw new admin_panel_exception('Default module is not registered');
 
 			$current_url=substr(
 				strtok($_SERVER['REQUEST_URI'], '?'),
 				strlen($this->base_url)+1
 			);
 
-			$current_module=strtok($current_url, '/');
-			if($current_module[-1] === '/')
-				$current_module=substr($current_module, 0, -1);
-			$current_module=trim($current_module);
+			$current_module='';
+			if($current_url !== false)
+			{
+				$current_module=strtok($current_url, '/');
+				if($current_module[-1] === '/')
+					$current_module=substr($current_module, 0, -1);
+				$current_module=trim($current_module);
+			}
 
 			if($current_module === '')
 			{

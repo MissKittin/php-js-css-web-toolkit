@@ -116,8 +116,8 @@
 				'key_bits'=>$key_bits,
 				'key_type'=>$key_type
 			]);
-	} catch(Exception $error) {
-		echo 'Error: '.$error->getMessage();
+	} catch(Throwable $error) {
+		echo 'Error: '.$error->getMessage().PHP_EOL;
 		exit(1);
 	}
 ?>

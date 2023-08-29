@@ -1,4 +1,5 @@
 <?php
+	class file_sign_exception extends Exception {}
 	final class file_sign
 	{
 		/*
@@ -9,8 +10,8 @@
 		 *
 		 * Note:
 		 *  you cannot inherit from this class
-		 *  throws an Exception on error
 		 *  the *_file_signature methods use the SHA1 hash for the file id
+		 *  throws an file_sign_exception on error
 		 *
 		 * Methods:
 		 *  [static] generate_keys(array_params)
@@ -62,17 +63,17 @@
 		public static function generate_keys(array $params)
 		{
 			if(!extension_loaded('openssl'))
-				throw new Exception('openssl extension is not loaded');
+				throw new file_sign_exception('openssl extension is not loaded');
 
 			if(!isset($params['private_key']))
-				throw new Exception('No private_key parameter');
+				throw new file_sign_exception('No private_key parameter');
 			if(!isset($params['public_key']))
-				throw new Exception('No public_key parameter');
+				throw new file_sign_exception('No public_key parameter');
 
 			if(file_exists($params['private_key']))
-				throw new Exception('Private key file does not exist');
+				throw new file_sign_exception('Private key file does not exist');
 			if(file_exists($params['public_key']))
-				throw new Exception('Public key file does not exist');
+				throw new file_sign_exception('Public key file does not exist');
 
 			if(!isset($params['key_bits']))
 				$params['key_bits']=2048;
@@ -84,23 +85,23 @@
 				'private_key_type'=>$params['key_type']
 			]);
 			if($keys === false)
-				throw new Exception('openssl_pkey_new() failed');
+				throw new file_sign_exception('openssl_pkey_new() failed');
 			openssl_pkey_export($keys, $private_key);
 
 			if(file_put_contents($params['private_key'], $private_key) === false)
-				throw new Exception('Unable to write private key file');
+				throw new file_sign_exception('Unable to write private key file');
 			if(file_put_contents($params['public_key'], openssl_pkey_get_details($keys)['key']) === false)
-				throw new Exception('Unable to write public key file');
+				throw new file_sign_exception('Unable to write public key file');
 		}
 
 		public function __construct(array $params)
 		{
 			if(!extension_loaded('openssl'))
-				throw new Exception('openssl extension is not loaded');
+				throw new file_sign_exception('openssl extension is not loaded');
 
 			foreach(['private_key', 'public_key'] as $param)
 				if(!isset($params[$param]))
-					throw new Exception('The '.$param.' parameter was not specified for the constructor');
+					throw new file_sign_exception('The '.$param.' parameter was not specified for the constructor');
 
 			$this->signature_algorithm='sha256WithRSAEncryption';
 
@@ -112,18 +113,18 @@
 			{
 				$this->$key=realpath($this->$key);
 				if($this->$key === false)
-					throw new Exception($key.' file does not exists');
+					throw new file_sign_exception($key.' file does not exists');
 			}
 
 			if(!in_array($this->signature_algorithm, openssl_get_md_methods(true)))
-				throw new Exception('Wrong signature algorithm');
+				throw new file_sign_exception('Wrong signature algorithm');
 		}
 
 		public function generate_input_signature(string $data)
 		{
 			$private_key=openssl_pkey_get_private('file://'.$this->private_key);
 			if($private_key === false)
-				throw new Exception('Invalid private key file');
+				throw new file_sign_exception('Invalid private key file');
 
 			openssl_sign($data, $signature, $private_key, $this->signature_algorithm);
 			openssl_free_key($private_key);
@@ -134,7 +135,7 @@
 		{
 			$public_key=openssl_pkey_get_public('file://'.$this->public_key);
 			if($public_key === false)
-				throw new Exception('Invalid public key file');
+				throw new file_sign_exception('Invalid public key file');
 
 			$result=openssl_verify($data, $signature, $public_key, $this->signature_algorithm);
 			openssl_free_key($public_key);
@@ -146,20 +147,20 @@
 				case 0:
 					return false;
 				default:
-					throw new Exception('Error checking signature');
+					throw new file_sign_exception('Error checking signature');
 			}
 		}
 		public function generate_file_signature(string $file)
 		{
 			if(!file_exists($file))
-				throw new Exception($file.' does not exists');
+				throw new file_sign_exception($file.' does not exists');
 
 			return $this->generate_input_signature(sha1_file($file, true));
 		}
 		public function verify_file_signature(string $file, string $signature)
 		{
 			if(!file_exists($file))
-				throw new Exception($file.' does not exists');
+				throw new file_sign_exception($file.' does not exists');
 
 			return $this->verify_input_signature(sha1_file($file, true), $signature);
 		}
@@ -167,7 +168,7 @@
 		{
 			$private_key=openssl_pkey_get_private('file://'.$this->private_key);
 			if($private_key === false)
-				throw new Exception('Invalid private key file');
+				throw new file_sign_exception('Invalid private key file');
 
 			openssl_private_encrypt($data, $encrypted_data, $private_key);
 			openssl_free_key($private_key);
@@ -178,7 +179,7 @@
 		{
 			$public_key=openssl_pkey_get_public('file://'.$this->public_key);
 			if($public_key === false)
-				throw new Exception('Invalid public key file');
+				throw new file_sign_exception('Invalid public key file');
 
 			openssl_public_decrypt($encrypted_data, $decrypted_data, $public_key);
 			openssl_free_key($public_key);

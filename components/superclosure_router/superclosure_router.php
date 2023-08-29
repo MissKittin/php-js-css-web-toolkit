@@ -18,6 +18,7 @@
 			throw new Exception('superclosure.php library not found');
 	}
 
+	class superclosure_router_exception extends Exception {}
 	abstract class superclosure_router extends uri_router
 	{
 		protected static $source_variable=null;
@@ -53,14 +54,14 @@
 		public static function add_to_cache(string $variable, string $value)
 		{
 			if(strpos($variable, '\'') !== false)
-				throw new Exception('An apostrophe is not allowed here');
+				throw new superclosure_router_exception('An apostrophe is not allowed here');
 
 			static::$cache_registry[$variable]=$value;
 		}
 		public static function read_from_cache(string $variable)
 		{
 			if(!isset(static::$cache_registry[$variable]))
-				throw new Exception('The '.$variable.' variable is not set in the cache');
+				throw new superclosure_router_exception('The '.$variable.' variable is not set in the cache');
 
 			return '$__superclosure_router_cache[\''.$variable.'\']';
 		}
@@ -82,7 +83,7 @@
 		public static function dump_cache(string $cache_file)
 		{
 			if(static::$source_variable === null)
-				throw new Exception('Source variable undefined');
+				throw new superclosure_router_exception('Source variable undefined');
 
 			$output_file=fopen($cache_file, 'w');
 			$first_if=true;
@@ -92,10 +93,10 @@
 			if(static::$run_callback['callback'] !== null)
 			{
 				fwrite($output_file, ''
-					.'$__superclosure_router_rc=function($c){'
-						.'$w='.static::$run_callback['callback']->get_closure_body().';'
-						.'$w($c);'
-					.'};'
+				.	'$__superclosure_router_rc=function($c){'
+				.		'$w='.static::$run_callback['callback']->get_closure_body().';'
+				.		'$w($c);'
+				.	'};'
 				);
 				static::$run_callback['callback']->flush();
 			}
@@ -144,29 +145,29 @@
 				fwrite($output_file, '){');
 					if(!empty($routing_element[1]->get_closure_vars()))
 						fwrite($output_file, ''
-							.'extract('
-								.'unserialize(\''
-									.str_replace(
+						.	'extract('
+						.		'unserialize(\''
+						.			str_replace(
 										'\'', '\\\'',
 										serialize(
 											$routing_element[1]->get_closure_vars()
 										)
 									)
-								.'\')'
-							.');'
+						.		'\')'
+						.	');'
 						);
 
 					if(static::$run_callback['callback'] === null)
 						fwrite($output_file, ''
-							.'$__c='.$routing_element[1]->get_closure_body().';'
-							.'$__c();'
-							.'unset($__c);'
+						.	'$__c='.$routing_element[1]->get_closure_body().';'
+						.	'$__c();'
+						.	'unset($__c);'
 						);
 					else
 						fwrite($output_file, ''
-							.'$__c='.$routing_element[1]->get_closure_body().';'
-							.'$__superclosure_router_rc($__c);'
-							.'unset($__c);'
+						.	'$__c='.$routing_element[1]->get_closure_body().';'
+						.	'$__superclosure_router_rc($__c);'
+						.	'unset($__c);'
 						);
 				fwrite($output_file, '}');
 
@@ -180,22 +181,22 @@
 				fwrite($output_file, 'else{');
 					if(!empty(static::$default_route['callback']->get_closure_vars()))
 						fwrite($output_file, ''
-							.'extract('
-								.'unserialize(\''
-									.str_replace(
+						.	'extract('
+						.		'unserialize(\''
+						.			str_replace(
 										'\'', '\\\'',
 										serialize(
 											static::$default_route['callback']->get_closure_vars()
 										)
 									)
-								.'\')'
-							.');'
+						.		'\')'
+						.	');'
 						);
 
 					fwrite($output_file, ''
-						.'$__c='.static::$default_route['callback']->get_closure_body().';'
-						.'$__c();'
-						.'unset($__c);'
+					.	'$__c='.static::$default_route['callback']->get_closure_body().';'
+					.	'$__c();'
+					.	'unset($__c);'
 					);
 				fwrite($output_file, '}');
 

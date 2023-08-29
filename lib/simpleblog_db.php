@@ -28,6 +28,7 @@
 	 *  you can switch from simpleblog_db_cache to simpleblog_db
 	 *   and - after cleaning the cache storage - from simpleblog_db to simpleblog_db_cache
 	 *  simpleblog_db_zip opens the zip file on first operation
+	 *  throws an simpleblog_db_exception on error
 	 *
 	 * Usage/Examples:
 	 *  creating a database handler (basic version):
@@ -79,6 +80,7 @@
 	 *  simpleblog_db_zip::unflatten() https://stackoverflow.com/a/33855103
 	 */
 
+	class simpleblog_db_exception extends Exception {}
 	class simpleblog_db
 	{
 		protected $constructor_params=['db_path'];
@@ -88,14 +90,14 @@
 		{
 			foreach($this->constructor_params as $param)
 				if(!isset($params[$param]))
-					throw new Exception('The '.$param.' parameter was not specified for the constructor');
+					throw new simpleblog_db_exception('The '.$param.' parameter was not specified for the constructor');
 
 			foreach($this->constructor_params as $param)
 				if(isset($params[$param]))
 					$this->$param=$params[$param];
 
 			if(!is_dir($this->db_path))
-				throw new Exception('Wrong db_path or pointing to file');
+				throw new simpleblog_db_exception('Wrong db_path or pointing to file');
 
 			$this->db_path=realpath($this->db_path);
 		}
@@ -115,13 +117,13 @@
 			$record_name=str_replace(['/..', '../'], '', $record_name);
 
 			if($record_name === '')
-				throw new Exception('Record name cannot be empty');
+				throw new simpleblog_db_exception('Record name cannot be empty');
 
 			if(
 				(!file_exists($this->db_path.'/'.$record_name)) &&
 				(!mkdir($this->db_path.'/'.$record_name))
 			)
-				throw new Exception('The database could not be saved');
+				throw new simpleblog_db_exception('The database could not be saved');
 
 			foreach($content as $key=>$value)
 				if($value === null)
@@ -130,7 +132,7 @@
 					(__METHOD__)($record_name.'/'.$key, $value);
 				else
 					if(file_put_contents($this->db_path.'/'.$record_name.'/'.$key, $value) === false)
-						throw new Exception('The database could not be saved');
+						throw new simpleblog_db_exception('The database could not be saved');
 
 			return null;
 		}
@@ -140,7 +142,7 @@
 			$new_name=str_replace(['/..', '../'], '', $new_name);
 
 			if(($old_name === '') || ($new_name === ''))
-				throw new Exception('Record name cannot be empty');
+				throw new simpleblog_db_exception('Record name cannot be empty');
 
 			$old_name=$this->db_path.'/'.$old_name;
 			$new_name=$this->db_path.'/'.$new_name;
@@ -149,7 +151,7 @@
 				return false;
 
 			if(!rename($old_name, $new_name))
-				throw new Exception('The database could not be saved');
+				throw new simpleblog_db_exception('The database could not be saved');
 
 			return true;
 		}
@@ -166,7 +168,7 @@
 					$record_content[$key]=file_get_contents($this->db_path.'/'.$record_name.'/'.$key);
 
 					if($record_content[$key] === false)
-						throw new Exception('Database could not be read');
+						throw new simpleblog_db_exception('Database could not be read');
 				}
 
 			return $record_content;
@@ -176,12 +178,12 @@
 			$record_name=str_replace(['/..', '../'], '', $record_name);
 
 			if($record_name === '')
-				throw new Exception('Record name cannot be empty');
+				throw new simpleblog_db_exception('Record name cannot be empty');
 
 			if(is_file($this->db_path.'/'.$record_name))
 			{
 				if(!unlink($this->db_path.'/'.$record_name))
-					throw new Exception('The database could not be saved');
+					throw new simpleblog_db_exception('The database could not be saved');
 			}
 			else
 			{
@@ -191,7 +193,7 @@
 						if($file->isFile())
 						{
 							if(!unlink($file->getPathname()))
-								throw new Exception('The database could not be saved');
+								throw new simpleblog_db_exception('The database could not be saved');
 						}
 						else
 							(__METHOD__)(strtr(
@@ -204,7 +206,7 @@
 					}
 
 				if(!rmdir($this->db_path.'/'.$record_name))
-					throw new Exception('The database could not be saved');
+					throw new simpleblog_db_exception('The database could not be saved');
 			}
 		}
 		public function find(string $path)
@@ -248,7 +250,7 @@
 				(!file_exists($this->cache_path)) &&
 				(!mkdir($this->cache_path))
 			)
-				throw new Exception('Unable to create cache store');
+				throw new simpleblog_db_exception('Unable to create cache store');
 
 			$this->cache_path=realpath($this->cache_path);
 		}
@@ -264,7 +266,7 @@
 				if($content === false)
 				{
 					if(!unlink($file))
-						throw new Exception('Fatal error: unable to repair the cache');
+						throw new simpleblog_db_exception('Fatal error: unable to repair the cache');
 
 					return call_user_func_array([$this, $method], $method_params);
 				}
@@ -288,11 +290,11 @@
 				file_exists($this->cache_path.'/__list_records__') &&
 				(!unlink($this->cache_path.'/__list_records__'))
 			)
-				throw new Exception('Fatal error: unable to write cache');
+				throw new simpleblog_db_exception('Fatal error: unable to write cache');
 
 			foreach(glob($this->cache_path.'/__find_cache_*__') as $file)
 				if(!unlink($file))
-					throw new Exception('Fatal error: unable to write cache');
+					throw new simpleblog_db_exception('Fatal error: unable to write cache');
 		}
 
 		public function list()
@@ -310,7 +312,7 @@
 				file_exists($this->cache_path.'/'.$record_name) &&
 				(!unlink($this->cache_path.'/'.$record_name))
 			)
-				throw new Exception('Fatal error: unable to write cache');
+				throw new simpleblog_db_exception('Fatal error: unable to write cache');
 
 			$this->read_from_db($this->cache_path.'/'.$record_name, __FUNCTION__, [$record_name, $content]);
 			$this->remove_list_find_cache();
@@ -323,7 +325,7 @@
 				file_exists($this->cache_path.'/'.$old_name) &&
 				(!unlink($this->cache_path.'/'.$old_name))
 			)
-				throw new Exception('Fatal error: unable to write cache');
+				throw new simpleblog_db_exception('Fatal error: unable to write cache');
 
 			$this->remove_list_find_cache();
 
@@ -348,7 +350,7 @@
 				file_exists($this->cache_path.'/'.$record_name) &&
 				(!unlink($this->cache_path.'/'.$record_name))
 			)
-				throw new Exception('Fatal error: unable to delete record from cache');
+				throw new simpleblog_db_exception('Fatal error: unable to delete record from cache');
 
 			$this->remove_list_find_cache();
 		}
@@ -373,10 +375,10 @@
 		public function __construct(array $params)
 		{
 			if(!extension_loaded('Zip'))
-				throw new Exception('Zip extension is not loaded');
+				throw new simpleblog_db_exception('Zip extension is not loaded');
 
 			if(!isset($params['db_path']))
-				throw new Exception('The db_path parameter was not specified for the constructor');
+				throw new simpleblog_db_exception('The db_path parameter was not specified for the constructor');
 
 			foreach(['db_path', 'db_compression'] as $param)
 				if(isset($params[$param]))
@@ -387,12 +389,12 @@
 			if($this->db_path === false)
 			{
 				if(file_put_contents($params['db_path'], '') === false)
-					throw new Exception('Unable to create database');
+					throw new simpleblog_db_exception('Unable to create database');
 
 				$this->db_path=realpath($params['db_path']);
 
 				if($this->db_path === false)
-					throw new Exception('realpath(db_path) failed');
+					throw new simpleblog_db_exception('realpath(db_path) failed');
 
 				unlink($this->db_path);
 			}
@@ -409,7 +411,7 @@
 			if(!$this->db_opened)
 			{
 				if(!$this->db_handler->open($this->db_path, ZipArchive::CREATE))
-					throw new Exception('Unable to open/create database');
+					throw new simpleblog_db_exception('Unable to open/create database');
 
 				$this->db_opened=true;
 			}
@@ -476,7 +478,7 @@
 			$record_name=str_replace(['/..', '../'], '', $record_name);
 
 			if($record_name === '')
-				throw new Exception('Record name cannot be empty');
+				throw new simpleblog_db_exception('Record name cannot be empty');
 
 			$this->open_db();
 
@@ -486,7 +488,7 @@
 				else
 				{
 					if(!$this->db_handler->addFromString($record_name.'/'.$key, $value))
-						throw new Exception('The database could not be saved');
+						throw new simpleblog_db_exception('The database could not be saved');
 
 					if($this->db_compression)
 						$this->db_handler->setCompressionName($record_name.'/'.$key, ZipArchive::CM_DEFLATE);
@@ -531,7 +533,7 @@
 				$new_file=substr_replace($file, $new_name, strpos($file, $old_name), strlen($old_name));
 
 				if(!$this->db_handler->renameName($file, $new_file))
-					throw new Exception('The database could not be saved');
+					throw new simpleblog_db_exception('The database could not be saved');
 			}
 
 			return true;
@@ -541,7 +543,7 @@
 			$record_name=str_replace(['/..', '../'], '', $record_name);
 
 			if($record_name === '')
-				throw new Exception('Record name cannot be empty');
+				throw new simpleblog_db_exception('Record name cannot be empty');
 
 			$record_name_length=strlen($record_name);
 			$result=[];
@@ -566,7 +568,7 @@
 			$path=str_replace(['/..', '../'], '', $path);
 
 			if($path === '')
-				throw new Exception('Record name cannot be empty');
+				throw new simpleblog_db_exception('Record name cannot be empty');
 
 			$this->open_db();
 
@@ -579,7 +581,7 @@
 					(stripos($i_stats['name'], $path) === 0) &&
 					(!$this->db_handler->deleteName($i_stats['name']))
 				)
-					throw new Exception('The database could not be saved');
+					throw new simpleblog_db_exception('The database could not be saved');
 			}
 		}
 		public function find(string $path)

@@ -70,7 +70,7 @@
 						throw new Exception('File cannot be copied');
 				}
 			}
-	} catch(Exception $error) {
+	} catch(Throwable $error) {
 		echo 'Error: '.$error->getMessage().PHP_EOL;
 		exit(1);
 	}

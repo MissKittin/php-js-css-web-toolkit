@@ -29,6 +29,7 @@
 		}
 
 		echo ' -> Mocking functions';
+			class Exception extends \Exception {}
 			function rand()
 			{
 				static $number=0;

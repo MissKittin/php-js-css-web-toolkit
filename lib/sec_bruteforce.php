@@ -3,16 +3,17 @@
 	 * Trivial bruteforce prevention library - IP ban
 	 * designed so that the attacker does not see that he is banned
 	 *
-	 * Note:
-	 *  Classes with timeout has autoclean function
-	 *   removes ip from database if is not banned anymore
-	 *   See clas's readme
-	 *  All classes depends on bruteforce_generic
-	 *  The json_ondemand classes require their counterparts for composition
-	 *
 	 * Warning:
 	 *  if you create database for one class, then cannot be used in another
 	 *  (you can read table from bruteforce_timeout_pdo in bruteforce_pdo)
+	 *
+	 * Note:
+	 *  classes with timeout has autoclean function
+	 *   removes ip from database if is not banned anymore
+	 *   See clas's readme
+	 *  sll classes depends on bruteforce_generic
+	 *  the json_ondemand classes require their counterparts for composition
+	 *  throws an bruteforce_exception on error
 	 *
 	 * Functions:
 	 *  bruteforce_mixed - mix timeout ban with permban
@@ -37,6 +38,8 @@
 	 *  bruteforce_timeout_json_ondemand
 	 *   store data in flat file, open on access (for debugging purposes) (timeout ban)
 	 */
+
+	class bruteforce_exception extends Exception {}
 
 	function bruteforce_mixed(
 		bruteforce_generic $timeout_hook,
@@ -111,7 +114,7 @@
 	{
 		/*
 		 * This class only contains common code
-		 * Go ahead
+		 * Keep going
 		 */
 
 		protected $constructor_params=[];
@@ -133,7 +136,7 @@
 
 			foreach($this->required_constructor_params as $param)
 				if(!isset($params[$param]))
-					throw new Exception('The '.$param.' parameter was not specified for the constructor');
+					throw new bruteforce_exception('The '.$param.' parameter was not specified for the constructor');
 
 			if(isset($_SERVER['REMOTE_ADDR']))
 				$this->ip=$_SERVER['REMOTE_ADDR'];
@@ -146,7 +149,7 @@
 				$this->on_ban['callback']=$params['on_ban'];
 
 			if($this->ip === null)
-				throw new Exception('$_SERVER["REMOTE_ADDR"] is not set and no ip was given');
+				throw new bruteforce_exception('$_SERVER["REMOTE_ADDR"] is not set and no ip was given');
 		}
 
 		protected function lock_unlock_database($action, $check=false)
@@ -439,6 +442,9 @@
 		 * from simpleblog project
 		 * rewritten to PDO OOP
 		 *
+		 * Note:
+		 *  throws an bruteforce_exception on error
+		 *
 		 * Supported databases:
 		 *  PostgreSQL
 		 *  MySQL
@@ -495,7 +501,7 @@
 				$this->pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME),
 				['pgsql', 'mysql', 'sqlite']
 			))
-				throw new Exception($this->pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME).' driver is not supported');
+				throw new bruteforce_exception($this->pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME).' driver is not supported');
 
 			switch($this->pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME))
 			{
@@ -509,7 +515,7 @@
 					.		'timestamp INTEGER'
 					.	')'
 					) === false)
-						throw new Exception('PDO exec error');
+						throw new bruteforce_exception('PDO exec error');
 				break;
 				case 'mysql':
 					if($this->pdo_handler->exec(''
@@ -521,7 +527,7 @@
 					.		'timestamp INTEGER'
 					.	')'
 					) === false)
-						throw new Exception('PDO exec error');
+						throw new bruteforce_exception('PDO exec error');
 				break;
 				case 'sqlite':
 					if($this->pdo_handler->exec(''
@@ -533,7 +539,7 @@
 					.		'timestamp INTEGER'
 					.	')'
 					) === false)
-						throw new Exception('PDO exec error');
+						throw new bruteforce_exception('PDO exec error');
 			}
 
 			switch($this->pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME))
@@ -590,7 +596,7 @@
 						.		time()
 						.	')'
 						) === false)
-							throw new Exception('PDO exec error');
+							throw new bruteforce_exception('PDO exec error');
 					break;
 					case 'mysql':
 					case 'sqlite':
@@ -606,7 +612,7 @@
 						.		time()
 						.	')'
 						) === false)
-							throw new Exception('PDO exec error');
+							throw new bruteforce_exception('PDO exec error');
 				}
 			else
 				switch($this->pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME))
@@ -619,7 +625,7 @@
 						.		'timestamp='.time().' '
 						.	"WHERE ip='".$this->ip."'"
 						) === false)
-							throw new Exception('PDO exec error');
+							throw new bruteforce_exception('PDO exec error');
 					break;
 					case 'mysql':
 					case 'sqlite':
@@ -630,7 +636,7 @@
 						.		'timestamp='.time().' '
 						.	'WHERE ip="'.$this->ip.'"'
 						) === false)
-							throw new Exception('PDO exec error');
+							throw new bruteforce_exception('PDO exec error');
 				}
 
 			if($this->current_attempts === $this->max_attempts)
@@ -647,7 +653,7 @@
 						.	'DELETE FROM '.$this->table_name.' '
 						.	"WHERE ip='".$this->ip."'"
 						) === false)
-							throw new Exception('PDO exec error');
+							throw new bruteforce_exception('PDO exec error');
 					break;
 					case 'mysql':
 					case 'sqlite':
@@ -655,7 +661,7 @@
 						.	'DELETE FROM '.$this->table_name.' '
 						.	'WHERE ip="'.$this->ip.'"'
 						) === false)
-							throw new Exception('PDO exec error');
+							throw new bruteforce_exception('PDO exec error');
 				}
 
 				$this->current_attempts=0;
@@ -672,7 +678,7 @@
 					.	'DELETE FROM '.$this->table_name.' '
 					.	'WHERE timestamp<'.$timestamp
 					) === false)
-						throw new Exception('PDO exec error');
+						throw new bruteforce_exception('PDO exec error');
 				break;
 				case 'mysql':
 				case 'sqlite':
@@ -680,7 +686,7 @@
 					.	'DELETE FROM '.$this->table_name.' '
 					.	'WHERE timestamp<"'.$timestamp.'"'
 					) === false)
-						throw new Exception('PDO exec error');
+						throw new bruteforce_exception('PDO exec error');
 			}
 		}
 	}
@@ -690,6 +696,9 @@
 		 * Trivial banning method by IP on x unsuccessful attempts for n seconds
 		 * from simpleblog project
 		 * rewritten to PDO OOP
+		 *
+		 * Note:
+		 *  throws an bruteforce_exception on error
 		 *
 		 * Supported databases:
 		 *  PostgreSQL
@@ -760,7 +769,7 @@
 				$this->pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME),
 				['pgsql', 'mysql', 'sqlite']
 			))
-				throw new Exception($this->pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME).' driver is not supported');
+				throw new bruteforce_exception($this->pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME).' driver is not supported');
 
 			switch($this->pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME))
 			{
@@ -774,7 +783,7 @@
 					.		'timestamp INTEGER'
 					.	')'
 					) === false)
-						throw new Exception('PDO exec error');
+						throw new bruteforce_exception('PDO exec error');
 				break;
 				case 'mysql':
 					if($this->pdo_handler->exec(''
@@ -786,7 +795,7 @@
 					.		'timestamp INTEGER'
 					.	')'
 					) === false)
-						throw new Exception('PDO exec error');
+						throw new bruteforce_exception('PDO exec error');
 				break;
 				case 'sqlite':
 					if($this->pdo_handler->exec(''
@@ -798,7 +807,7 @@
 					.		'timestamp INTEGER'
 					.	')'
 					) === false)
-						throw new Exception('PDO exec error');
+						throw new bruteforce_exception('PDO exec error');
 			}
 
 			switch($this->pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME))
@@ -879,7 +888,7 @@
 						.		$timestamp
 						.	')'
 						) === false)
-							throw new Exception('PDO exec error');
+							throw new bruteforce_exception('PDO exec error');
 					break;
 					case 'mysql':
 					case 'sqlite':
@@ -895,7 +904,7 @@
 						.		$timestamp
 						.	')'
 						) === false)
-							throw new Exception('PDO exec error');
+							throw new bruteforce_exception('PDO exec error');
 				}
 			else
 				switch($this->pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME))
@@ -908,7 +917,7 @@
 						.		'timestamp='.$timestamp.' '
 						.	"WHERE ip='".$this->ip."'"
 						) === false)
-							throw new Exception('PDO exec error');
+							throw new bruteforce_exception('PDO exec error');
 					break;
 					case 'mysql':
 					case 'sqlite':
@@ -919,7 +928,7 @@
 						.		'timestamp='.$timestamp.' '
 						.	'WHERE ip="'.$this->ip.'"'
 						) === false)
-							throw new Exception('PDO exec error');
+							throw new bruteforce_exception('PDO exec error');
 				}
 
 			if($this->current_attempts === $this->max_attempts)
@@ -936,7 +945,7 @@
 						.	'DELETE FROM '.$this->table_name.' '
 						.	"WHERE ip='".$this->ip."'"
 						) === false)
-							throw new Exception('PDO exec error');
+							throw new bruteforce_exception('PDO exec error');
 					break;
 					case 'mysql':
 					case 'sqlite':
@@ -944,7 +953,7 @@
 						.	'DELETE FROM '.$this->table_name.' '
 						.	'WHERE ip="'.$this->ip.'"'
 						) === false)
-							throw new Exception('PDO exec error');
+							throw new bruteforce_exception('PDO exec error');
 				}
 
 				$this->current_attempts=0;
@@ -962,7 +971,7 @@
 					.	'DELETE FROM '.$this->table_name.' '
 					.	'WHERE timestamp<'.$timestamp
 					) === false)
-						throw new Exception('PDO exec error');
+						throw new bruteforce_exception('PDO exec error');
 				break;
 				case 'mysql':
 				case 'sqlite':
@@ -970,7 +979,7 @@
 					.	'DELETE FROM '.$this->table_name.' '
 					.	'WHERE timestamp<"'.$timestamp.'"'
 					) === false)
-						throw new Exception('PDO exec error');
+						throw new bruteforce_exception('PDO exec error');
 			}
 		}
 	}

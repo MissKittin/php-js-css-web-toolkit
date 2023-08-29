@@ -2,12 +2,15 @@
 	/*
 	 * OOP overlay for standard request-response handling
 	 *
+	 * Note:
+	 *  throws an http_request_response_exception on error
+	 *
 	 * Classes:
 	 *  http_request (getters)
 	 *  http_session (overlay)
 	 *  http_files (manager)
 	 *   constructor params (optional): destination=>string, max_file_size=>int_bytes, allowed_mimes=>['mime1', 'mime2']
-	 *   warning: throws an exception if the request method is not POST
+	 *   warning: throws an http_request_response_exception if the request method is not POST
 	 *  http_response (setters and senders)
 	 *   note: you can only send a response once
 	 *
@@ -157,6 +160,7 @@
 	 *  https://github.com/symfony/symfony/blob/6.0/src/Symfony/Component/HttpFoundation/Response.php
 	 */
 
+	class http_request_response_exception extends Exception {}
 	class http_request
 	{
 		protected $cache_get=[];
@@ -392,7 +396,7 @@
 		public function __construct()
 		{
 			if(session_status() !== PHP_SESSION_ACTIVE)
-				throw new Exception('Session not started');
+				throw new http_request_response_exception('Session not started');
 		}
 		public function __call($key, $value)
 		{
@@ -420,7 +424,7 @@
 					return $this;
 				break;
 				default:
-					throw new Exception('No get_ or set_ prefix');
+					throw new http_request_response_exception('No get_ or set_ prefix');
 			}
 		}
 	}
@@ -434,7 +438,7 @@
 		public function __construct(array $params=[])
 		{
 			if($_SERVER['REQUEST_METHOD'] !== 'POST')
-				throw new Exception('Only POST method is supported');
+				throw new http_request_response_exception('Only POST method is supported');
 
 			foreach(['destination', 'max_file_size', 'allowed_mimes'] as $param)
 				if(isset($params[$param]))
@@ -461,23 +465,23 @@
 			string $file_name=null
 		){
 			if(!isset($_FILES[$file]))
-				throw new Exception($file.' not exists');
+				throw new http_request_response_exception($file.' not exists');
 
 			if($_FILES[$file]['error'] !== UPLOAD_ERR_OK)
-				throw new Exception($file.' was not uploaded correctly');
+				throw new http_request_response_exception($file.' was not uploaded correctly');
 
 			$file_size=filesize($_FILES[$file]['tmp_name']);
 			if($file_size === 0)
 			{
 				unlink($_FILES[$file]['tmp_name']);
 				unset($_FILES[$file]);
-				throw new Exception($file.' is empty');
+				throw new http_request_response_exception($file.' is empty');
 			}
 			if(($this->max_file_size !== null) && ($file_size > $this->max_file_size))
 			{
 				unlink($_FILES[$file]['tmp_name']);
 				unset($_FILES[$file]);
-				throw new Exception($file.' has exceeded max size');
+				throw new http_request_response_exception($file.' has exceeded max size');
 			}
 
 			if(!empty($this->allowed_mimes))
@@ -487,14 +491,14 @@
 				{
 					unlink($_FILES[$file]['tmp_name']);
 					unset($_FILES[$file]);
-					throw new Exception($file.' is '.$file_mime.' which is not allowed');
+					throw new http_request_response_exception($file.' is '.$file_mime.' which is not allowed');
 				}
 			}
 
 			if($destination === null)
 			{
 				if($this->destination === null)
-					throw new Exception('The destination is not defined either globally or locally');
+					throw new http_request_response_exception('The destination is not defined either globally or locally');
 
 				$destination=$this->destination;
 			}
@@ -503,7 +507,7 @@
 				$file_name=preg_replace('([^\w\s\d\-_~,;\[\]\(\).])', '', basename($_FILES[$file]['name']));
 
 			if(file_exists($destination.$file_name))
-				throw new Exception($destination.$file_name.' already exists');
+				throw new http_request_response_exception($destination.$file_name.' already exists');
 
 			$result=copy($_FILES[$file]['tmp_name'], $destination.$file_name);
 			if($result)
@@ -604,7 +608,7 @@
 		public static function redirect(string $url, bool $exit=true)
 		{
 			if(headers_sent())
-				throw new Exception('HTTP headers already sent');
+				throw new http_request_response_exception('HTTP headers already sent');
 
 			http_response_code(301);
 			header('Location: '.$url);
@@ -616,7 +620,7 @@
 		public function __construct()
 		{
 			if(headers_sent())
-				throw new Exception('HTTP headers already sent');
+				throw new http_request_response_exception('HTTP headers already sent');
 		}
 		public function __destruct()
 		{
@@ -706,7 +710,7 @@
 				return false;
 
 			if(headers_sent())
-				throw new Exception('HTTP headers already sent');
+				throw new http_request_response_exception('HTTP headers already sent');
 
 			if($this->http_content_charset !== null)
 				$this->http_headers['Content-Type'].=';charset='.$this->http_content_charset;
@@ -776,7 +780,7 @@
 		public function send_json($content)
 		{
 			if($this->response_content !== null)
-				throw new Exception('response_content method was called before');
+				throw new http_request_response_exception('response_content method was called before');
 
 			$this->content_type('application/json');
 			$this->response_content=json_encode($content, JSON_UNESCAPED_UNICODE);

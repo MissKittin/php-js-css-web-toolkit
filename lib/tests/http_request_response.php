@@ -517,7 +517,7 @@
 			$caught=false;
 			try {
 				$files->move_uploaded_file('bad_filesize', 'testfile.txt');
-			} catch(Exception $e) {
+			} catch(\Throwable $error) {
 				$caught=true;
 			}
 			if($caught)
@@ -531,7 +531,7 @@
 			$caught=false;
 			try {
 				$files->move_uploaded_file('bad_mime', 'testfile.txt');
-			} catch(Exception $e) {
+			} catch(\Throwable $error) {
 				$caught=true;
 			}
 			if($caught)

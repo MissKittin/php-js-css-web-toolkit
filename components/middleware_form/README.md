@@ -5,6 +5,9 @@ You can specify any form
 * `check_var.php`
 * `sec_csrf.php`
 
+## Note  
+Throws an `middleware_form_exception` on error
+
 ## Methods
 * `add_field(array_field)` [returns self]  
 	add input element

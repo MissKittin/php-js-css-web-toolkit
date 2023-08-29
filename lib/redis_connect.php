@@ -5,6 +5,9 @@
 	 * Warning:
 	 *  redis extension is required
 	 *
+	 * Note:
+	 *  throws an redis_connect_exception on error
+	 *
 	 * Functions:
 	 	// pre-configured version
 	 	redis_connect(
@@ -35,11 +38,12 @@
 			],
 			function($error)
 			{
-				error_log('pdo_connect_array: '.$error->getMessage());
+				error_log('redis_connect_array: '.$error->getMessage());
 			}
 		)
 	 */
 
+	class redis_connect_exception extends Exception {}
 	function redis_connect(string $db, callable $on_error=null)
 	{
 		/*
@@ -51,6 +55,9 @@
 		 *
 		 * Warning:
 		 *  redis_connect_array function is required
+		 *
+		 * Note:
+		 *  throws an redis_connect_exception on error
 		 *
 		 * Configuration:
 		 *  1) create a directory for redis config files
@@ -78,19 +85,19 @@
 				'./path_to/your_database_config_directory',
 				function($error)
 				{
-					error_log('pdo_connect: '.$error->getMessage());
+					error_log('redis_connect: '.$error->getMessage());
 				}
 			);
 		 *   where $on_error is optional and is executed on RedisException
 		 */
 
 		if(!file_exists($db.'/config.php'))
-			throw new Exception($db.'/config.php not exists');
+			throw new redis_connect_exception($db.'/config.php not exists');
 
 		$db_config=require $db.'/config.php';
 
 		if(!is_array($db_config))
-			throw new Exception($db.'/config.php did not return an array');
+			throw new redis_connect_exception($db.'/config.php did not return an array');
 
 		return redis_connect_array($db_config, $on_error);
 	}
@@ -105,6 +112,9 @@
 		 *
 		 * Warning:
 		 *  redis extension is required
+		 *
+		 * Note:
+		 *  throws an redis_connect_exception on error
 		 *
 		 * Initialization:
 			$db=redis_connect_array(
@@ -134,10 +144,10 @@
 		 */
 
 		if(!extension_loaded('redis'))
-			throw new Exception('redis extension is not loaded');
+			throw new redis_connect_exception('redis extension is not loaded');
 
 		if(!isset($db_config['host']))
-			throw new Exception('The host parameter was not specified');
+			throw new redis_connect_exception('The host parameter was not specified');
 
 		foreach([
 			'port'=>6379,
@@ -157,7 +167,7 @@
 			if($db_config['options'] !== null)
 				foreach($db_config['options'] as $option_name=>$option_value)
 					if(!$redis_handler->setOption($option_name, $option_value))
-						throw new Exception('setOption returned false');
+						throw new redis_connect_exception('setOption returned false');
 
 			if(!$redis_handler->connect(
 				$db_config['host'],

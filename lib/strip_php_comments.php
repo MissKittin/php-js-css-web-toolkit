@@ -1,4 +1,5 @@
 <?php
+	class strip_php_comments_exception extends Exception {}
 	function strip_php_comments(string $source)
 	{
 		/*
@@ -6,6 +7,9 @@
 		 *
 		 * Warning:
 		 *  tokenizer extension is required
+		 *
+		 * Note:
+		 *  throws an strip_php_comments_exception on error
 		 *
 		 * Usage:
 		 *  strip_php_comments(file_get_contents('file.php'))
@@ -15,7 +19,7 @@
 		 */
 
 		if(!extension_loaded('tokenizer'))
-			throw new Exception('tokenizer extension is not loaded');
+			throw new strip_php_comments_exception('tokenizer extension is not loaded');
 
 		$output_string='';
 

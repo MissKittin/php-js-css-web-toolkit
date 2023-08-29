@@ -321,7 +321,7 @@
 						$herring_mock->add();
 					}
 				}
-			} catch(Exception $error) {
+			} catch(Throwable $error) {
 				echo ' [FAIL]'.PHP_EOL;
 				$failed=true;
 				$exceptions[]=['add', $error->getMessage()];
@@ -351,7 +351,7 @@
 					echo ' [FAIL]'.PHP_EOL;
 					$failed=true;
 				}
-			} catch(Exception $error) {
+			} catch(Throwable $error) {
 				echo ' [FAIL]'.PHP_EOL;
 				$failed=true;
 				$exceptions[]=['move_to_archive', $error->getMessage()];
@@ -371,7 +371,7 @@
 					echo ' [FAIL]'.PHP_EOL;
 					$failed=true;
 				}
-			} catch(Exception $error) {
+			} catch(Throwable $error) {
 				echo ' [FAIL]'.PHP_EOL;
 				$failed=true;
 				$exceptions[]=['dump_archive_to_csv', $error->getMessage()];
@@ -391,7 +391,7 @@
 					echo ' [FAIL]'.PHP_EOL;
 					$failed=true;
 				}
-			} catch(Exception $error) {
+			} catch(Throwable $error) {
 				echo ' [FAIL]'.PHP_EOL;
 				$failed=true;
 				$exceptions[]=['generate_report', $error->getMessage()];
@@ -419,7 +419,7 @@
 					echo ' [FAIL]'.PHP_EOL;
 					$failed=true;
 				}
-			} catch(Exception $error) {
+			} catch(Throwable $error) {
 				echo ' [FAIL]'.PHP_EOL;
 				$failed=true;
 				$exceptions[]=['flush_archive', $error->getMessage()];

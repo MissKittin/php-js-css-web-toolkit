@@ -1,4 +1,5 @@
 <?php
+	class pdo_crud_builder_exception extends Exception {}
 	class pdo_crud_builder
 	{
 		/*
@@ -7,7 +8,8 @@
 		 * Note:
 		 *  most of the queries are parameterized to avoid sql injections
 		 *  all args in [] are optional
-		 *  for PHP7 and newer
+		 *  PHP 7 or newer is required
+		 *  throws an pdo_crud_builder_exception on error
 		 *
 		 * Initializing:
 		 *  $query_builder_object=new pdo_crud_builder(params_array)
@@ -197,7 +199,7 @@
 		public function __construct(array $params)
 		{
 			if(!isset($params['pdo_handler']))
-				throw new Exception('No PDO handler given');
+				throw new pdo_crud_builder_exception('No PDO handler given');
 
 			$this->fetch_mode=PDO::FETCH_NAMED;
 			$this->on_error['callback']=function(){};
@@ -283,7 +285,7 @@
 			foreach($columns as $column_name=>$column_type)
 			{
 				if(!is_string($column_type))
-					throw new Exception('Array value must be a string');
+					throw new pdo_crud_builder_exception('Array value must be a string');
 				$sql_columns.=$column_name.' '.$column_type.', ';
 			}
 			$sql_columns=substr($sql_columns, 0, -2);
@@ -309,7 +311,7 @@
 			foreach($what as $what_data_set)
 			{
 				if(!is_array($what_data_set))
-					throw new Exception('The dataset must be an array');
+					throw new pdo_crud_builder_exception('The dataset must be an array');
 
 				$sql_what.='(';
 				foreach($what_data_set as $what_value)
@@ -511,7 +513,7 @@
 			foreach($what as $what_data_set)
 			{
 				if(!is_array($what_data_set))
-					throw new Exception('The dataset must be an array');
+					throw new pdo_crud_builder_exception('The dataset must be an array');
 
 				$sql_what.='(';
 				foreach($what_data_set as $what_value)
@@ -539,16 +541,16 @@
 			foreach($what as $data_set)
 			{
 				if(!is_array($data_set))
-					throw new Exception('The dataset must be an array');
+					throw new pdo_crud_builder_exception('The dataset must be an array');
 
 				if(!isset($data_set[0]))
-					throw new Exception('No column name was provided');
+					throw new pdo_crud_builder_exception('No column name was provided');
 
 				if(!is_string($data_set[0]))
-					throw new Exception('Column name must be a string');
+					throw new pdo_crud_builder_exception('Column name must be a string');
 
 				if(!isset($data_set[1]))
-					throw new Exception('No value was provided for column '.$data_set[0]);
+					throw new pdo_crud_builder_exception('No value was provided for column '.$data_set[0]);
 
 				$sql_what.=$data_set[0].' = ?, ';
 				$this->sql_parameters[]=$data_set[1];

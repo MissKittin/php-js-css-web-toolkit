@@ -1,4 +1,5 @@
 <?php
+	class global_variable_streamer_exception extends Exception {}
 	class global_variable_streamer
 	{
 		/*
@@ -14,6 +15,9 @@
 		 *  but if the $cache_file contains a string e.g. 'gvs://my_global_variable'
 		 *  (gvs is the protocol for global_variable_streamer),
 		 *  the data will be saved incorrectly
+		 *
+		 * Note:
+		 *  throws an global_variable_streamer_exception on error
 		 *
 		 * Usage:
 			global_variable_streamer::register_wrapper('gvs');
@@ -41,13 +45,13 @@
 		public function __construct()
 		{
 			if(static::$protocol_length === null)
-				throw new Exception('Use '.static::class.'::register_wrapper() instead');
+				throw new global_variable_streamer_exception('Use '.static::class.'::register_wrapper() instead');
 		}
 
 		public static function register_wrapper(string $protocol)
 		{
 			if(!stream_wrapper_register($protocol, static::class))
-				throw new Exception('Cannot register '.$protocol.' wrapper');
+				throw new global_variable_streamer_exception('Cannot register '.$protocol.' wrapper');
 
 			static::$protocol_length=strlen($protocol);
 		}

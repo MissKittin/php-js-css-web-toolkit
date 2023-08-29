@@ -6,6 +6,8 @@ A small framework
 * `assets_compiler.php` (for tests)
 
 ## Note
+Throws an `Exception` if the library is not found  
+Throws an `admin_panel_exception` on error  
 The logout button action is the current URL via POST
 
 ## Methods

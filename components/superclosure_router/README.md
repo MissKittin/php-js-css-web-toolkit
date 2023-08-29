@@ -6,6 +6,10 @@ Allows you to convert defined rules to PHP code
 * `superclosure.php`
 * `uri_router.php`
 
+## Note
+Throws an `Exception` if the library is not found  
+Throws an `superclosure_router_exception` on error
+
 ## Usage
 Before defining the rules, check if the cache file exists
 ```

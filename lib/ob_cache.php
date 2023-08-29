@@ -11,6 +11,7 @@
 	 * Note:
 	 *  if int_expire_seconds is 0 cache won't be refreshed
 	 *  in ob_redis_cache timeout is handled by Redis
+	 *  throws an ob_cache_exception on error
 	 *
 	 * Functions:
 	 *  ob_file_cache -> save cache to file
@@ -40,6 +41,7 @@
 				exit();
 	 */
 
+	class ob_cache_exception extends Exception {}
 	function ob_file_cache(string $output_file, int $expire=3600, bool $gzip=false)
 	{
 		$GLOBALS['_ob_cache']['output_file']=$output_file;
@@ -59,7 +61,7 @@
 				header('Content-Encoding: gzip');
 
 			if(file_put_contents($GLOBALS['_ob_cache']['output_file'], '') === false)
-				throw new Exception('Cannot write to the '.$GLOBALS['_ob_cache']['output_file']);
+				throw new ob_cache_exception('Cannot write to the '.$GLOBALS['_ob_cache']['output_file']);
 
 			ob_start(function($buffer){
 				$cwd=getcwd();
@@ -75,7 +77,7 @@
 				}
 
 				if(file_put_contents($GLOBALS['_ob_cache']['output_file'], $buffer, FILE_APPEND) === false)
-					throw new Exception('Cannot write to the '.$GLOBALS['_ob_cache']['output_file']);
+					throw new ob_cache_exception('Cannot write to the '.$GLOBALS['_ob_cache']['output_file']);
 
 				chdir($cwd);
 
@@ -93,7 +95,7 @@
 		@mkdir($output_dir, 0777, true);
 
 		if(!is_dir($output_dir))
-			throw new Exception($output_dir.' is not a directory');
+			throw new ob_cache_exception($output_dir.' is not a directory');
 
 		if(file_exists($output_file))
 		{
@@ -221,7 +223,7 @@
 	function ob_url2file(bool $ignore_get=true)
 	{
 		if(!isset($_SERVER['REQUEST_URI']))
-			throw new Exception('$_SERVER["REQUEST_URI"] is not set');
+			throw new ob_cache_exception('$_SERVER["REQUEST_URI"] is not set');
 
 		$result=$_SERVER['REQUEST_URI'];
 
@@ -233,7 +235,7 @@
 	function ob_url2sha1(bool $ignore_get=true)
 	{
 		if(!isset($_SERVER['REQUEST_URI']))
-			throw new Exception('$_SERVER["REQUEST_URI"] is not set');
+			throw new ob_cache_exception('$_SERVER["REQUEST_URI"] is not set');
 
 		$result=$_SERVER['REQUEST_URI'];
 

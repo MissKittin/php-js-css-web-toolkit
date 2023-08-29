@@ -29,6 +29,7 @@
 		}
 
 		echo ' -> Mocking functions';
+			class Exception extends \Exception {}
 			function session_status()
 			{
 				return PHP_SESSION_ACTIVE;

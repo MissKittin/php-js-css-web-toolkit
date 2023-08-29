@@ -6,17 +6,18 @@
 	 *  curl extension is required
 	 *
 	 * Note:
-	 *  throws an exception on an empty response from the server
+	 *  throws an webdevsh_exception on an empty response from the server
 	 *
 	 * Usage:
 	 *  webdevsh_css_minifier(file_get_contents('./style.css')) [returns string]
 	 *  webdevsh_js_minifier(file_get_contents('./script.js')) [returns string]
 	 */
 
+	class webdevsh_exception extends Exception {}
 	function webdevsh_css_minifier(string $input, bool $ignore_https=false)
 	{
 		if(!extension_loaded('curl'))
-			throw new Exception('curl extension is not loaded');
+			throw new webdevsh_exception('curl extension is not loaded');
 
 		$curl_handler=curl_init();
 
@@ -39,14 +40,14 @@
 		curl_close($curl_handler);
 
 		if($output === false)
-			throw new Exception('Server response is empty');
+			throw new webdevsh_exception('Server response is empty');
 
 		return $output;
 	}
 	function webdevsh_js_minifier(string $input, bool $ignore_https=false)
 	{
 		if(!extension_loaded('curl'))
-			throw new Exception('curl extension is not loaded');
+			throw new webdevsh_exception('curl extension is not loaded');
 
 		$curl_handler=curl_init();
 
@@ -69,7 +70,7 @@
 		curl_close($curl_handler);
 
 		if($output === false)
-			throw new Exception('Server response is empty');
+			throw new webdevsh_exception('Server response is empty');
 
 		return $output;
 	}
