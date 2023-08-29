@@ -13,6 +13,9 @@
 	 *  pdo_mysql is required for the MySQL driver
 	 *  pdo_sqlite is required for the SQLite3 driver
 	 *
+	 * Note:
+	 *  throws an pdo_connect_exception on error
+	 *
 	 * Functions:
 	 	// with seeder
 	 	pdo_connect(
@@ -42,6 +45,7 @@
 		)
 	 */
 
+	class pdo_connect_exception extends Exception {}
 	function pdo_connect(string $db, callable $on_error=null)
 	{
 		/*
@@ -54,6 +58,9 @@
 		 *
 		 * Warning:
 		 *  pdo_connect_array function is required
+		 *
+		 * Note:
+		 *  throws an pdo_connect_exception on error
 		 *
 		 * Configuration:
 		 *  1) create a directory for database config files
@@ -92,12 +99,12 @@
 		 */
 
 		if(!file_exists($db.'/config.php'))
-			throw new Exception($db.'/config.php not exists');
+			throw new pdo_connect_exception($db.'/config.php not exists');
 
 		$db_config=require $db.'/config.php';
 
 		if(!is_array($db_config))
-			throw new Exception($db.'/config.php did not return an array');
+			throw new pdo_connect_exception($db.'/config.php did not return an array');
 
 		if(!isset($db_config['seeded_path']))
 			$db_config['seeded_path']=$db;
@@ -120,7 +127,7 @@
 			(!file_exists($db_config['seeded_path'].'/database_seeded'))
 		){
 			if(file_put_contents($db_config['seeded_path'].'/database_seed_w_test', '') === false)
-				throw new Exception('Could not create database_seed_w_test file in '.$db_config['seeded_path']);
+				throw new pdo_connect_exception('Could not create database_seed_w_test file in '.$db_config['seeded_path']);
 
 			unlink($db_config['seeded_path'].'/database_seed_w_test');
 			include $db.'/seed.php';
@@ -143,6 +150,9 @@
 		 *  pdo_pgsql is required for the PostgreSQL driver
 		 *  pdo_mysql is required for the MySQL driver
 		 *  pdo_sqlite is required for the SQLite3 driver
+		 *
+		 * Note:
+		 *  throws an pdo_connect_exception on error
 		 *
 		 * Required parameters:
 		 *  pgsql:
@@ -178,21 +188,21 @@
 		{
 			foreach($params as $db_config_param)
 				if(!isset($db_config[$db_config_param]))
-					throw new Exception('The '.$db_config_param.' parameter was not specified');
+					throw new pdo_connect_exception('The '.$db_config_param.' parameter was not specified');
 		};
 
 		if(!extension_loaded('PDO'))
-			throw new Exception('PDO extension is not loaded');
+			throw new pdo_connect_exception('PDO extension is not loaded');
 
 		if(!isset($db_config['db_type']))
-			throw new Exception('The db_type parameter was not specified');
+			throw new pdo_connect_exception('The db_type parameter was not specified');
 
 		try {
 			switch($db_config['db_type'])
 			{
 				case 'pgsql':
 					if(!extension_loaded('pdo_pgsql'))
-						throw new Exception('pdo_pgsql extension is not loaded');
+						throw new pdo_connect_exception('pdo_pgsql extension is not loaded');
 
 					if(isset($db_config['charset']) && (!empty($db_config['charset'])))
 						$db_config['charset']=';options=\'--client_encoding='.$db_config['charset'].'\'';
@@ -227,7 +237,7 @@
 				break;
 				case 'mysql':
 					if(!extension_loaded('pdo_mysql'))
-						throw new Exception('pdo_mysql extension is not loaded');
+						throw new pdo_connect_exception('pdo_mysql extension is not loaded');
 
 					if(isset($db_config['charset']) && (!empty($db_config['charset'])))
 						$db_config['charset']=';charset='.$db_config['charset'];
@@ -262,13 +272,13 @@
 				break;
 				case 'sqlite':
 					if(!extension_loaded('pdo_sqlite'))
-						throw new Exception('pdo_sqlite extension is not loaded');
+						throw new pdo_connect_exception('pdo_sqlite extension is not loaded');
 
 					$_check_params($db_config, ['host']);
 					$pdo_handler=new PDO('sqlite:'.$db_config['host']);
 				break;
 				default:
-					throw new Exception($db_config['db_type'].' database type is not supported');
+					throw new pdo_connect_exception($db_config['db_type'].' database type is not supported');
 			}
 		} catch(PDOException $error) {
 			if($on_error !== null)

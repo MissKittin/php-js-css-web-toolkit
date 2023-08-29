@@ -87,7 +87,7 @@
 
 			try {
 				$unserialized_closure('arg_value');
-			} catch(Error $e) {
+			} catch(Throwable $error) {
 				echo ' [FAIL]'.PHP_EOL;
 				exit(1);
 			}
@@ -139,7 +139,7 @@
 
 		try {
 			$unserialized_closure();
-		} catch(Error $e) {
+		} catch(Throwable $error) {
 			echo ' [FAIL]'.PHP_EOL;
 			exit(1);
 		}

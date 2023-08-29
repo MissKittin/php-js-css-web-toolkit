@@ -46,10 +46,10 @@
 	 *   returns exec() output
 	 *  log_to_csv
 	 *   input array keys: string_app_name string_file [string_lock_file]
-	 *   throws an Exception on error
+	 *   throws an logger_exception on error
 	 *  log_to_json
 	 *   input array keys: string_app_name string_file [string_lock_file]
-	 *   throws an Exception on error
+	 *   throws an logger_exception on error
 	 *  log_to_pdo
 	 *   input array keys: string_app_name pdo_handler [string_table_name] [callable_on_pdo_error]
 	 *    on_pdo_error is callback function with one arg and is executed on pdo's execute() error
@@ -57,10 +57,10 @@
 	 *   supported databases: PostgreSQL, MySQL, SQLite3
 	 *  log_to_txt
 	 *   input array keys: string_app_name string_file [string_lock_file]
-	 *   throws an Exception on error
+	 *   throws an logger_exception on error
 	 *  log_to_xml
 	 *   input array keys: string_app_name string_file [string_lock_file]
-	 *   throws an Exception on error
+	 *   throws an logger_exception on error
 	 *
 	 * Usage:
 	 *  $output=$log->debug('The condition is true');
@@ -146,6 +146,8 @@
 		$log->error('Something went wrong');
 	 */
 
+	class logger_exception extends Exception {}
+
 	abstract class log_to_generic
 	{
 		protected $constructor_params=['app_name'];
@@ -157,7 +159,7 @@
 		{
 			foreach($this->required_constructor_params as $param)
 				if(!isset($params[$param]))
-					throw new Exception('The '.$param.' parameter was not specified for the constructor');
+					throw new logger_exception('The '.$param.' parameter was not specified for the constructor');
 
 			foreach($this->constructor_params as $param)
 				if(isset($params[$param]))
@@ -197,14 +199,14 @@
 				(!file_exists(dirname($this->file))) &&
 				(!mkdir(dirname($this->file), 0777, true))
 			)
-				throw new Exception('Unable to create '.dirname($this->file));
+				throw new logger_exception('Unable to create '.dirname($this->file));
 
 			if(
 				($this->lock_file === null) &&
 				(!file_exists(dirname($this->lock_file))) &&
 				(!mkdir(dirname($this->lock_file), 0777, true))
 			)
-				throw new Exception('Unable to create '.dirname($this->lock_file));
+				throw new logger_exception('Unable to create '.dirname($this->lock_file));
 		}
 
 		protected function lock_unlock_file($lock)
@@ -217,7 +219,7 @@
 						sleep(0.01);
 
 					if(file_put_contents($this->lock_file, '') === false)
-						throw new Exception('Unable to create lock file');
+						throw new logger_exception('Unable to create lock file');
 				}
 				else
 					return unlink($this->lock_file);
@@ -252,7 +254,7 @@
 		public function __construct(array $params)
 		{
 			if(!extension_loaded('curl'))
-				throw new Exception('curl extension is not loaded');
+				throw new logger_exception('curl extension is not loaded');
 
 			parent::__construct($params);
 
@@ -339,7 +341,7 @@
 				$this->pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME),
 				['pgsql', 'mysql', 'sqlite']
 			))
-				throw new Exception($this->pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME).' driver is not supported');
+				throw new logger_exception($this->pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME).' driver is not supported');
 
 			switch($this->pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME))
 			{
@@ -470,7 +472,7 @@
 					.PHP_EOL,
 				FILE_APPEND
 			) === false)
-				throw new Exception('Unable to create log file');
+				throw new logger_exception('Unable to create log file');
 		}
 	}
 	class log_to_json extends log_to_file
@@ -488,14 +490,14 @@
 						.'"'.str_replace('"', '\"', $message).'"'
 					.']]'
 				) === false)
-					throw new Exception('Unable to create log file');
+					throw new logger_exception('Unable to create log file');
 			}
 			else
 			{
 				$file_handler=fopen($this->file, 'r+');
 
 				if($file_handler === false)
-					throw new Exception('Unable to edit log file');
+					throw new logger_exception('Unable to edit log file');
 
 				$new_log_size=fstat($file_handler)['size']-1;
 
@@ -536,7 +538,7 @@
 					.PHP_EOL,
 				FILE_APPEND
 			) === false)
-				throw new Exception('Unable to create log file');
+				throw new logger_exception('Unable to create log file');
 		}
 	}
 	class log_to_xml extends log_to_file
@@ -555,14 +557,14 @@
 						.'<message>'.$message.'</message>'
 					.'</entry></journal>'
 				) === false)
-					throw new Exception('Unable to create log file');
+					throw new logger_exception('Unable to create log file');
 			}
 			else
 			{
 				$file_handler=fopen($this->file, 'r+');
 
 				if($file_handler === false)
-					throw new Exception('Unable to edit log file');
+					throw new logger_exception('Unable to edit log file');
 
 				$new_log_size=fstat($file_handler)['size']-10;
 

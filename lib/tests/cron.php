@@ -134,6 +134,7 @@
 
 				return $timestamp;
 			}
+			class Exception extends \Exception {}
 		echo ' [ OK ]'.PHP_EOL;
 
 		foreach([

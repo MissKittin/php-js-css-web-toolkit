@@ -1,4 +1,5 @@
 <?php
+	class herring_exception extends Exception {}
 	class herring
 	{
 		protected $pdo_handler;
@@ -21,7 +22,7 @@
 		public function __construct(array $params)
 		{
 			if(!isset($params['pdo_handler']))
-				throw new Exception('No pdo_handler given');
+				throw new herring_exception('No pdo_handler given');
 
 			foreach([
 				'pdo_handler',
@@ -43,7 +44,7 @@
 				$this->pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME),
 				['pgsql', 'mysql', 'sqlite']
 			))
-				throw new Exception($this->pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME).' driver is not supported');
+				throw new herring_exception($this->pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME).' driver is not supported');
 
 			if($this->maintenance_mode === true)
 				return;
@@ -54,7 +55,7 @@
 			if($this->ip === null)
 			{
 				if(!isset($_SERVER['REMOTE_ADDR']))
-					throw new Exception('$_SERVER["REMOTE_ADDR"] is not set');
+					throw new herring_exception('$_SERVER["REMOTE_ADDR"] is not set');
 
 				$this->ip=$_SERVER['REMOTE_ADDR'];
 			}
@@ -75,7 +76,7 @@
 			if($this->uri === null)
 			{
 				if(!isset($_SERVER['REQUEST_URI']))
-					throw new Exception('$_SERVER["REQUEST_URI"] is not set');
+					throw new herring_exception('$_SERVER["REQUEST_URI"] is not set');
 
 				$this->uri=$_SERVER['REQUEST_URI'];
 			}
@@ -116,7 +117,7 @@
 						}
 
 					if(!$load_library)
-						throw new Exception('Library '.$library.' not found');
+						throw new herring_exception('Library '.$library.' not found');
 				}
 			}
 		}
@@ -152,7 +153,7 @@
 			$this->load_library(['rand_str.php'=>['function', 'rand_str']]);
 
 			if($this->maintenance_mode === true)
-				throw new Exception('You cannot add records in maintenance mode');
+				throw new herring_exception('You cannot add records in maintenance mode');
 
 			if($this->timestamp === null)
 				$this->timestamp=time();
@@ -194,7 +195,7 @@
 					.		'uri TEXT'
 					.	')'
 					) === false)
-						throw new Exception('PDO exec error (CREATE TABLE)');
+						throw new herring_exception('PDO exec error (CREATE TABLE)');
 				break;
 				case 'mysql':
 					if($this->pdo_handler->exec(''
@@ -209,7 +210,7 @@
 					.		'uri TEXT'
 					.	')'
 					) === false)
-						throw new Exception('PDO exec error (CREATE TABLE)');
+						throw new herring_exception('PDO exec error (CREATE TABLE)');
 				break;
 				case 'sqlite':
 					if($this->pdo_handler->exec(''
@@ -224,7 +225,7 @@
 					.		'uri TEXT'
 					.	')'
 					) === false)
-						throw new Exception('PDO exec error (CREATE TABLE)');
+						throw new herring_exception('PDO exec error (CREATE TABLE)');
 			}
 
 			$query=$this->pdo_handler->prepare(''
@@ -247,7 +248,7 @@
 			);
 
 			if($query === false)
-				throw new Exception('PDO prepare error');
+				throw new herring_exception('PDO prepare error');
 
 			if(!$query->execute([
 				':timestamp'=>$this->timestamp,
@@ -257,15 +258,15 @@
 				':referer'=>$this->referer,
 				':uri'=>$this->uri
 			]))
-				throw new Exception('PDO execute error');
+				throw new herring_exception('PDO execute error');
 		}
 		public function move_to_archive(int $days)
 		{
 			if($this->maintenance_mode !== true)
-				throw new Exception('You haven\'t turned on maintenance mode');
+				throw new herring_exception('You haven\'t turned on maintenance mode');
 
 			if($days < 0)
-				throw new Exception('The days argument must be greater or equal to 0');
+				throw new herring_exception('The days argument must be greater or equal to 0');
 
 			$days*=86400;
 			$days=time()-$days;
@@ -287,7 +288,7 @@
 					.		'uri TEXT'
 					.	')'
 					) === false)
-						throw new Exception('PDO exec error (CREATE TABLE)');
+						throw new herring_exception('PDO exec error (CREATE TABLE)');
 				break;
 				case 'mysql':
 					if($this->pdo_handler->exec(''
@@ -303,7 +304,7 @@
 					.		'uri TEXT'
 					.	')'
 					) === false)
-						throw new Exception('PDO exec error (CREATE TABLE)');
+						throw new herring_exception('PDO exec error (CREATE TABLE)');
 				break;
 				case 'sqlite':
 					if($this->pdo_handler->exec(''
@@ -319,7 +320,7 @@
 					.		'uri TEXT'
 					.	')'
 					) === false)
-						throw new Exception('PDO exec error (CREATE TABLE)');
+						throw new herring_exception('PDO exec error (CREATE TABLE)');
 			}
 
 			$select_query=$this->pdo_handler->query(''
@@ -329,7 +330,7 @@
 			);
 
 			if($select_query === false)
-				throw new Exception('PDO query error (SELECT FROM '.$this->table_name_prefix.'visitors)');
+				throw new herring_exception('PDO query error (SELECT FROM '.$this->table_name_prefix.'visitors)');
 
 			while($row=$select_query->fetch(PDO::FETCH_ASSOC))
 			{
@@ -355,7 +356,7 @@
 				);
 
 				if($insert_query === false)
-					throw new Exception('PDO prepare error (INSERT INTO '.$this->table_name_prefix.'archive)');
+					throw new herring_exception('PDO prepare error (INSERT INTO '.$this->table_name_prefix.'archive)');
 
 				if(!$insert_query->execute([
 					':timestamp'=>$row['timestamp'],
@@ -366,13 +367,13 @@
 					':referer'=>$row['referer'],
 					':uri'=>$row['uri']
 				]))
-					throw new Exception('PDO execute error (INSERT INTO '.$this->table_name_prefix.'archive)');
+					throw new herring_exception('PDO execute error (INSERT INTO '.$this->table_name_prefix.'archive)');
 
 				if($this->pdo_handler->exec(''
 				.	'DELETE FROM '.$this->table_name_prefix.'visitors '
 				.	'WHERE id='.$row['id']
 				) === false)
-					throw new Exception('PDO exec error (DELETE FROM '.$this->table_name_prefix.'visitors)');
+					throw new herring_exception('PDO exec error (DELETE FROM '.$this->table_name_prefix.'visitors)');
 
 				$moved_ids[]=$row['id'];
 			}
@@ -382,15 +383,15 @@
 		public function flush_archive()
 		{
 			if($this->maintenance_mode !== true)
-				throw new Exception('You haven\'t turned on maintenance mode');
+				throw new herring_exception('You haven\'t turned on maintenance mode');
 
 			if($this->pdo_handler->exec('DELETE FROM '.$this->table_name_prefix.'archive') === false)
-				throw new Exception('Failed to flush the '.$this->table_name_prefix.'archive');
+				throw new herring_exception('Failed to flush the '.$this->table_name_prefix.'archive');
 		}
 		public function dump_archive_to_csv(string $output_file=null)
 		{
 			if($this->maintenance_mode !== true)
-				throw new Exception('You haven\'t turned on maintenance mode');
+				throw new herring_exception('You haven\'t turned on maintenance mode');
 
 			if($output_file === null)
 			{
@@ -406,18 +407,18 @@
 				$output=$output_file;
 
 				if(file_exists($output))
-					throw new Exception($output.' already exists');
+					throw new herring_exception($output.' already exists');
 
 				if(!is_dir(dirname($output)))
-					throw new Exception(dirname($output).' is not a directory');
+					throw new herring_exception(dirname($output).' is not a directory');
 
 				if(file_put_contents($output, '') === false)
-					throw new Exception($output.' write error');
+					throw new herring_exception($output.' write error');
 
 				$save_report=function($output, $content)
 				{
 					if(file_put_contents($output, $content, FILE_APPEND) === false)
-						throw new Exception($output.' write error');
+						throw new herring_exception($output.' write error');
 				};
 			}
 
@@ -427,7 +428,7 @@
 			);
 
 			if($query === false)
-				throw new Exception('PDO query error (SELECT * FROM '.$this->table_name_prefix.'archive)');
+				throw new herring_exception('PDO query error (SELECT * FROM '.$this->table_name_prefix.'archive)');
 
 			$save_report($output, ''
 			.	'"id",'
@@ -460,7 +461,7 @@
 			]);
 
 			if($this->maintenance_mode !== true)
-				throw new Exception('You haven\'t turned on maintenance mode');
+				throw new herring_exception('You haven\'t turned on maintenance mode');
 
 			if($output_file === null)
 			{
@@ -476,18 +477,18 @@
 				$output=$output_file;
 
 				if(file_exists($output))
-					throw new Exception($output.' already exists');
+					throw new herring_exception($output.' already exists');
 
 				if(!is_dir(dirname($output)))
-					throw new Exception(dirname($output).' is not a directory');
+					throw new herring_exception(dirname($output).' is not a directory');
 
 				if(file_put_contents($output, '') === false)
-					throw new Exception($output.' write error');
+					throw new herring_exception($output.' write error');
 
 				$save_report=function($output, $content)
 				{
 					if(file_put_contents($output, $content, FILE_APPEND) === false)
-						throw new Exception($output.' write error');
+						throw new herring_exception($output.' write error');
 				};
 			}
 
@@ -509,7 +510,7 @@
 				);
 
 				if($query === false)
-					throw new Exception('PDO query error (SELECT date, hits FROM '.$this->table_name_prefix.'archive)');
+					throw new herring_exception('PDO query error (SELECT date, hits FROM '.$this->table_name_prefix.'archive)');
 
 				while($row=$query->fetch(PDO::FETCH_ASSOC))
 				{
@@ -536,7 +537,7 @@
 				}
 
 				if($query === false)
-					throw new Exception('PDO query error (SELECT date, ip, user_agent, cookie_id FROM '.$this->table_name_prefix.'archive)');
+					throw new herring_exception('PDO query error (SELECT date, ip, user_agent, cookie_id FROM '.$this->table_name_prefix.'archive)');
 
 				while($row=$query->fetch(PDO::FETCH_ASSOC))
 					++$hits[$row['date']]['unique_hits'];
@@ -572,7 +573,7 @@
 				);
 
 				if($query === false)
-					throw new Exception('PDO query error (SELECT date, uri FROM '.$this->table_name_prefix.'archive)');
+					throw new herring_exception('PDO query error (SELECT date, uri FROM '.$this->table_name_prefix.'archive)');
 
 				$save_report(
 					$output,
@@ -637,7 +638,7 @@
 				}
 
 				if($query === false)
-					throw new Exception('PDO query error (SELECT date, uri, ip, user_agent, cookie_id FROM '.$this->table_name_prefix.'archive)');
+					throw new herring_exception('PDO query error (SELECT date, uri, ip, user_agent, cookie_id FROM '.$this->table_name_prefix.'archive)');
 
 				$save_report(
 					$output,
@@ -689,7 +690,7 @@
 				);
 
 				if($query === false)
-					throw new Exception('PDO query error (SELECT date, timestamp FROM '.$this->table_name_prefix.'archive)');
+					throw new herring_exception('PDO query error (SELECT date, timestamp FROM '.$this->table_name_prefix.'archive)');
 
 				$save_report(
 					$output,
@@ -741,7 +742,7 @@
 				);
 
 				if($query === false)
-					throw new Exception('PDO query error (SELECT ip, date, cookie_id, user_agent, referer, uri FROM '.$this->table_name_prefix.'archive)');
+					throw new herring_exception('PDO query error (SELECT ip, date, cookie_id, user_agent, referer, uri FROM '.$this->table_name_prefix.'archive)');
 
 				$save_report(
 					$output,

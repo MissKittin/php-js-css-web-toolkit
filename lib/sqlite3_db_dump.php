@@ -12,6 +12,7 @@
 	 *   pdo_sqlite extension is required
 	 */
 
+	class sqlite3_db_dump_exception extends Exception {}
 	function sqlite3_db_dump(string $file)
 	{
 		/*
@@ -26,12 +27,15 @@
 		 * Warning:
 		 *  SQLite3 class is required
 		 *
+		 * Note:
+		 *  throws an sqlite3_db_dump_exception on error
+		 *
 		 * Source:
 		 *  https://github.com/ephestione/php-sqlite-dump/blob/master/sqlite_dump.php
 		 */
 
 		if(!class_exists('SQLite3'))
-			throw new Exception('SQLite3 class not found');
+			throw new sqlite3_db_dump_exception('SQLite3 class not found');
 
 		if(!file_exists($file))
 			return false;
@@ -83,11 +87,14 @@
 		 * Warning:
 		 *  PDO extension is required
 		 *  pdo_sqlite extension is required
+		 *
+		 * Note:
+		 *  throws an sqlite3_db_dump_exception on error
 		 */
 
 		foreach(['PDO', 'pdo_sqlite'] as $extension)
 			if(!extension_loaded($extension))
-				throw new Exception($extension.' extension is not loaded');
+				throw new sqlite3_db_dump_exception($extension.' extension is not loaded');
 
 		if(!file_exists($file))
 			return false;

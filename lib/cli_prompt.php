@@ -10,8 +10,10 @@
 	 *  system() is required
 	 *
 	 * Note:
-	 *  throws an Exception if stty utility not found
+	 *  throws an cli_prompt_exception if stty utility not found
 	 */
+
+	class cli_prompt_exception extends Exception {}
 
 	function cli_getstr()
 	{
@@ -40,13 +42,13 @@
 		 *  system() is required
 		 *
 		 * Note:
-		 *  throws an Exception if stty utility not found
+		 *  throws an cli_prompt_exception if stty utility not found
 		 */
 
 		exec('stty 2>&1', $tool_test_output, $tool_test_code);
 
 		if($tool_test_code !== 0)
-			throw new Exception('stty utility not found');
+			throw new cli_prompt_exception('stty utility not found');
 
 		system('stty -echo');
 
@@ -71,13 +73,13 @@
 		 *  system() is required
 		 *
 		 * Note:
-		 *  throws an Exception if stty utility not found
+		 *  throws an cli_prompt_exception if stty utility not found
 		 */
 
 		exec('stty 2>&1', $tool_test_output, $tool_test_code);
 
 		if($tool_test_code !== 0)
-			throw new Exception('stty utility not found');
+			throw new cli_prompt_exception('stty utility not found');
 
 		exec('stty -g', $term_settings);
 		system('stty -icanon');

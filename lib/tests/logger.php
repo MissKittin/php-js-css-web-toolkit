@@ -55,6 +55,7 @@
 
 		echo ' -> Mocking functions and classes';
 			class PDO extends \PDO {}
+			class Exception extends \Exception {}
 			function gmdate($param)
 			{
 				return '0000-00-00 00:00:00';

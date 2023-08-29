@@ -10,6 +10,9 @@
 	 *  openssl (>=1.1.0g) extension is required
 	 *  mbstring extensions is required
 	 *
+	 * Note:
+	 *  throws an lv_encrypter_exception on error
+	 *
 	 * Classes:
 	 *  lv_encrypter
 	 *   main class - content encryptor/decryptor and key generator
@@ -32,6 +35,7 @@
 	 *   session handler that uses Redis to store an encrypted session
 	 */
 
+	class lv_encrypter_exception extends Exception {}
 	final class lv_encrypter
 	{
 		/*
@@ -40,6 +44,9 @@
 		 *
 		 * Warning:
 		 *  OpenSSL (>=1.1.0g) and mbstring extensions are required
+		 *
+		 * Note:
+		 *  throws an lv_encrypter_exception on error
 		 *
 		 * Usage:
 		 *  Key generation:
@@ -91,25 +98,25 @@
 			if(isset(self::$supported_ciphers[$cipher]))
 				return base64_encode(random_bytes(self::$supported_ciphers[$cipher]['size']));
 
-			throw new Exception($cipher.' cipher is not supported');
+			throw new lv_encrypter_exception($cipher.' cipher is not supported');
 		}
 
 		public function __construct(string $key, string $cipher='aes-128-cbc')
 		{
 			if(!extension_loaded('openssl'))
-				throw new Exception('openssl extension is not loaded');
+				throw new lv_encrypter_exception('openssl extension is not loaded');
 
 			if(!extension_loaded('mbstring'))
-				throw new Exception('mbstring extension is not loaded');
+				throw new lv_encrypter_exception('mbstring extension is not loaded');
 
 			$key=base64_decode($key);
 			$cipher=strtolower($cipher);
 
 			if(!isset(self::$supported_ciphers[$cipher]))
-				throw new Exception($cipher.' cipher is not supported');
+				throw new lv_encrypter_exception($cipher.' cipher is not supported');
 
 			if(mb_strlen($key, '8bit') !== self::$supported_ciphers[$cipher]['size'])
-				throw new Exception('Key length is invalid');
+				throw new lv_encrypter_exception('Key length is invalid');
 
 			$this->key=$key;
 			$this->cipher=$cipher;
@@ -128,7 +135,7 @@
 				$content=openssl_encrypt($content, $this->cipher, $this->key, 0, $iv);
 
 			if($content === false)
-				throw new Exception('Could not encrypt the data');
+				throw new lv_encrypter_exception('Could not encrypt the data');
 
 			$iv=base64_encode($iv);
 			$tag=base64_encode($tag);
@@ -140,7 +147,7 @@
 			$json=json_encode(compact('iv', 'content', 'mac', 'tag'), JSON_UNESCAPED_SLASHES);
 
 			if(json_last_error() !== JSON_ERROR_NONE)
-				throw new Exception('Could not encrypt the data');
+				throw new lv_encrypter_exception('Could not encrypt the data');
 
 			return base64_encode($json);
 		}
@@ -153,13 +160,13 @@
 				isset($payload['iv'], $payload['content'], $payload['mac']) &&
 				(strlen(base64_decode($payload['iv'], true)) === openssl_cipher_iv_length($this->cipher))
 			))
-				throw new Exception('The payload is invalid');
+				throw new lv_encrypter_exception('The payload is invalid');
 
 			if(
 				(!self::$supported_ciphers[$this->cipher]['aead']) &&
 				(!hash_equals(hash_hmac('sha256', $payload['iv'].$payload['content'], $this->key), $payload['mac']))
 			)
-				throw new Exception('The MAC is invalid');
+				throw new lv_encrypter_exception('The MAC is invalid');
 
 			$iv=base64_decode($payload['iv']);
 
@@ -169,12 +176,12 @@
 				$tag=base64_decode($payload['tag']);
 
 			if((self::$supported_ciphers[$this->cipher]['aead']) && (strlen($tag) !== 16))
-				throw new Exception('Could not decrypt the data');
+				throw new lv_encrypter_exception('Could not decrypt the data');
 
 			$decrypted=openssl_decrypt($payload['content'], $this->cipher, $this->key, 0, $iv, $tag);
 
 			if($decrypted === false)
-				throw new Exception('Could not decrypt the data');
+				throw new lv_encrypter_exception('Could not decrypt the data');
 
 			if($unserialize)
 				$decrypted=unserialize($decrypted);
@@ -264,6 +271,9 @@
 		 *  lv_encrypter class is required
 		 *  lv_session_encrypter is a singleton
 		 *
+		 * Note:
+		 *  throws an lv_encrypter_exception on error
+		 *
 		 * Usage: add before session_start()
 		 *  session_set_save_handler(new lv_session_encrypter($key), true)
 		 */
@@ -274,7 +284,7 @@
 		public function __construct(string $key, string $cipher='aes-128-cbc')
 		{
 			if(self::$initialized)
-				throw new Exception(__CLASS__.' is a singleton');
+				throw new lv_encrypter_exception(__CLASS__.' is a singleton');
 			self::$initialized=true;
 
 			$this->lv_encrypter=new lv_encrypter($key, $cipher);
@@ -285,11 +295,11 @@
 		}
 		public function __clone()
 		{
-			throw new Exception(__CLASS__.' is a singleton');
+			throw new lv_encrypter_exception(__CLASS__.' is a singleton');
 		}
 		public function __wakeup()
 		{
-			throw new Exception(__CLASS__.' is a singleton');
+			throw new lv_encrypter_exception(__CLASS__.' is a singleton');
 		}
 
 		public function read($id)
@@ -321,6 +331,9 @@
 		 *  lv_encrypter class is required
 		 *  lv_cookie_session_handler is a singleton
 		 *
+		 * Note:
+		 *  throws an lv_encrypter_exception on error
+		 *
 		 * Usage:
 		 *  lv_cookie_session_handler::register_handler(array_setup_params)
 		 *  lv_cookie_session_handler::session_start(array_optional_session_start_params)
@@ -341,12 +354,12 @@
 		public function __construct(array $params)
 		{
 			if(self::$initialized)
-				throw new Exception(__CLASS__.' is a singleton');
+				throw new lv_encrypter_exception(__CLASS__.' is a singleton');
 
 			self::$initialized=true;
 
 			if(!isset($params['key']))
-				throw new Exception('No key specified');
+				throw new lv_encrypter_exception('No key specified');
 
 			$cipher='aes-128-cbc';
 			if(isset($params['cipher']))
@@ -381,7 +394,7 @@
 			$class=__CLASS__;
 
 			if(!$class::$initialized)
-				throw new Exception($class.' is not registered - use the '.$class.'::register_handler method');
+				throw new lv_encrypter_exception($class.' is not registered - use the '.$class.'::register_handler method');
 
 			$params['use_cookies']=0;
 			$params['cache_limiter']='';
@@ -397,7 +410,7 @@
 			if(isset($_COOKIE[$this->cookie_id]))
 				try {
 					$session_data=$this->lv_encrypter->decrypt($_COOKIE[$this->cookie_id], false);
-				} catch(Exception $error) {
+				} catch(lv_encrypter_exception $error) {
 					$this->on_error['callback'](__CLASS__.' error: '.$error->getMessage().', new session created');
 					$session_data='';
 				}
@@ -466,6 +479,9 @@
 		 *  I don't know why, but this class won't work on linuxes with sqlite (PHP 7.4 and 7.3)
 		 *   sqlite throws "disk i/o error", but it works on windows (PHP 7.2)
 		 *
+		 * Note:
+		 *  throws an lv_encrypter_exception on error
+		 *
 		 * Supported databases:
 		 *  PostgreSQL
 		 *  MySQL
@@ -523,13 +539,13 @@
 		public function __construct(array $params)
 		{
 			if(self::$initialized)
-				throw new Exception(__CLASS__.' is a singleton');
+				throw new lv_encrypter_exception(__CLASS__.' is a singleton');
 
 			self::$initialized=true;
 
 			foreach(['pdo_handler', 'key'] as $param)
 				if(!isset($params[$param]))
-					throw new Exception('The '.$param.' parameter was not specified for the constructor');
+					throw new lv_encrypter_exception('The '.$param.' parameter was not specified for the constructor');
 
 			$cipher='aes-128-cbc';
 			if(isset($params['cipher']))
@@ -549,7 +565,7 @@
 				$this->pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME),
 				['pgsql', 'mysql', 'sqlite']
 			))
-				throw new Exception($this->pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME).' driver is not supported');
+				throw new lv_encrypter_exception($this->pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME).' driver is not supported');
 		}
 		public function __destruct()
 		{
@@ -643,7 +659,7 @@
 			if($fetch_data !== false)
 				try {
 					$session_data=$this->lv_encrypter->decrypt($fetch_data['payload'], false);
-				} catch(Exception $error) {
+				} catch(lv_encrypter_exception $error) {
 					$this->on_error['callback'](__CLASS__.' error: '.$error->getMessage().', new session created', $this->pdo_handler);
 					$session_data='';
 				}
@@ -745,9 +761,10 @@
 		 *
 		 * Note:
 		 *  is_sid_available and create_sid methods were created
-		 *  to make sure that the generated id does not exists in the table.
-		 *  If you do not see the need for such a solution,
-		 *  you can remove it from the class.
+		 *   to make sure that the generated id does not exists in the table.
+		 *   if you do not see the need for such a solution,
+		 *   you can remove it from the class
+		 *  throws an lv_encrypter_exception on error
 		 *
 		 * Usage:
 			$redis_handler=new Redis();
@@ -772,13 +789,13 @@
 		public function __construct(array $params)
 		{
 			if(self::$initialized)
-				throw new Exception(__CLASS__.' is a singleton');
+				throw new lv_encrypter_exception(__CLASS__.' is a singleton');
 
 			self::$initialized=true;
 
 			foreach(['redis_handler', 'key'] as $param)
 				if(!isset($params[$param]))
-					throw new Exception('The '.$param.' parameter was not specified for the constructor');
+					throw new lv_encrypter_exception('The '.$param.' parameter was not specified for the constructor');
 
 			$cipher='aes-128-cbc';
 			if(isset($params['cipher']))
@@ -838,7 +855,7 @@
 
 			try {
 				$session_data=$this->lv_encrypter->decrypt($data, false);
-			} catch(Exception $error) {
+			} catch(lv_encrypter_exception $error) {
 				$this->on_error['callback'](__CLASS__.' error: '.$error->getMessage().', new session created', $this->redis_handler);
 				$session_data='';
 			}

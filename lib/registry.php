@@ -1,4 +1,5 @@
 <?php
+	class registry_exception extends Exception {}
 	class registry implements ArrayAccess
 	{
 		/*
@@ -6,6 +7,7 @@
 		 *
 		 * Note:
 		 *  this class can be inherited
+		 *  throws an registry_exception on error
 		 *
 		 * Usage:
 			$registry=new registry(false);
@@ -54,7 +56,7 @@
 		}
 		public function offsetUnset($key)
 		{
-			throw new Exception('unset is not allowed');
+			throw new registry_exception('unset is not allowed');
 		}
 	}
 ?>

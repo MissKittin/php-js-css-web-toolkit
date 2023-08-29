@@ -10,10 +10,14 @@
 	 *  with autowiring and caching functionalities
 	 */
 
+	class ioc_container_exception extends Exception {}
 	class ioc_closure_container
 	{
 		/*
 		 * Dependency Injection container
+		 *
+		 * Note:
+		 *  throws an ioc_container_exception on error
 		 *
 		 * Usage:
 			$container=new ioc_closure_container();
@@ -46,7 +50,7 @@
 		public function set(string $name, Closure $closure)
 		{
 			if(isset($this->closure_container[$name]))
-				throw new Exception($name.' closure is already registered');
+				throw new ioc_container_exception($name.' closure is already registered');
 
 			$this->closure_container[$name]=$closure;
 		}
@@ -56,28 +60,28 @@
 				return $this->object_container[$name];
 
 			if(!isset($this->closure_container[$name]))
-				throw new Exception($name.' closure is not registered');
+				throw new ioc_container_exception($name.' closure is not registered');
 
 			return $this->closure_container[$name]($this);
 		}
 		public function share(string $name, Closure $closure)
 		{
 			if(isset($this->object_container[$name]))
-				throw new Exception($name.' object is already registered');
+				throw new ioc_container_exception($name.' object is already registered');
 
 			$this->object_container[$name]=$closure($this);
 		}
 		public function unset(string $name)
 		{
 			if(!isset($this->closure_container[$name]))
-				throw new Exception($name.' is not registered');
+				throw new ioc_container_exception($name.' is not registered');
 
 			unset($this->closure_container[$name]);
 		}
 		public function unshare(string $name)
 		{
 			if(!isset($this->object_container[$name]))
-				throw new Exception($name.' is not registered');
+				throw new ioc_container_exception($name.' is not registered');
 
 			unset($this->object_container[$name]);
 		}
@@ -85,21 +89,21 @@
 		public static function set_container(string $name, ioc_closure_container $container)
 		{
 			if(isset(static::$shared_containers[$name]))
-				throw new Exception($name.' container is already shared');
+				throw new ioc_container_exception($name.' container is already shared');
 
 			static::$shared_containers[$name]=$container;
 		}
 		public static function get_container(string $name)
 		{
 			if(!isset(static::$shared_containers[$name]))
-				throw new Exception($name.' container is not shared');
+				throw new ioc_container_exception($name.' container is not shared');
 
 			return static::$shared_containers[$name];
 		}
 		public static function unset_container(string $name)
 		{
 			if(!isset(static::$shared_containers[$name]))
-				throw new Exception($name.' container is not saved');
+				throw new ioc_container_exception($name.' container is not saved');
 
 			unset(static::$shared_containers[$name]);
 		}
@@ -113,6 +117,9 @@
 		 *  the constructor parameter for object instance requires a type hint
 		 *  ioc_closure_container class is required
 		 *  ReflectionParameter::getType is required
+		 *
+		 * Note:
+		 *  throws an ioc_container_exception on error
 		 *
 		 * Usage:
 		 *  initialization:
@@ -146,17 +153,20 @@
 		{
 			try {
 				return parent::get($name);
-			} catch(Exception $e) {}
+			} catch(ioc_container_exception $error) {
+				// closure is not registered in $this->closure_container
+				// keep going
+			}
 
 			if(isset($this->cache[$name]))
 				return $this->cache[$name];
 
 			if(!class_exists($name))
-				throw new Exception('Class '.$name.' does not exists');
+				throw new ioc_container_exception('Class '.$name.' does not exists');
 
 			$reflector=new ReflectionClass($name);
 			if(!$reflector->isInstantiable())
-				throw new Exception($name.' is not instantiable');
+				throw new ioc_container_exception($name.' is not instantiable');
 
 			$constructor=$reflector->getConstructor();
 			if($constructor === null)
@@ -184,10 +194,10 @@
 		public function remove_from_cache(string $name)
 		{
 			if(!$this->do_cache)
-				throw new Exception('Cache is disabled');
+				throw new ioc_container_exception('Cache is disabled');
 
 			if(!isset($this->cache[$name]))
-				throw new Exception($name.' is not cached');
+				throw new ioc_container_exception($name.' is not cached');
 
 			unset($this->cache[$name]);
 		}
@@ -200,7 +210,7 @@
 		public function unregister_constructor_arg(string $name, string $arg_name)
 		{
 			if(!isset($this->args[$name][$arg_name]))
-				throw new Exception($arg_name.' argument is not registered for '.$name);
+				throw new ioc_container_exception($arg_name.' argument is not registered for '.$name);
 
 			unset($this->args[$name][$arg_name]);
 

@@ -1,4 +1,5 @@
 <?php
+	class middleware_form_exception extends Exception {}
 	class middleware_form
 	{
 		protected $is_form_sent=true;
@@ -28,7 +29,7 @@
 					else if(file_exists(__DIR__.'/../../lib/'.$library_file))
 						require __DIR__.'/../../lib/'.$library_file;
 					else
-						throw new Exception('Library '.$library_file.' not found');
+						throw new middleware_form_exception('Library '.$library_file.' not found');
 				}
 		}
 

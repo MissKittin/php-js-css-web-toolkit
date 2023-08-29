@@ -215,7 +215,7 @@
 	{
 		// patch
 		if($number_b < 1)
-			throw new Exception('number_b must be positive');
+			throw new InvalidArgumentException('number_b must be positive');
 
 		while($number_b !== 0)
 		{
@@ -362,7 +362,7 @@
 	{
 		// patch
 		if($exponent < 0)
-			throw new Exception('Exponent must be positive or 0');
+			throw new InvalidArgumentException('Exponent must be positive or 0');
 
 		$result=1;
 

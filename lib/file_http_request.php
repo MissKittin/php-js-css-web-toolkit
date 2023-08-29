@@ -1,4 +1,5 @@
 <?php
+	class file_http_request_exception extends Exception {}
 	class file_http_request
 	{
 		/*
@@ -9,6 +10,7 @@
 		 *  allow_url_fopen must be enabled
 		 *  default request method is GET
 		 *  get methods require a send method to be run before use
+		 *  throws an file_http_request_exception on error
 		 *
 		 * Methods:
 		 *  __construct([
@@ -105,7 +107,7 @@
 		public function send()
 		{
 			if($this->url === null)
-				throw new Exception('URL is not defined');
+				throw new file_http_request_exception('URL is not defined');
 
 			if($this->request_context === null)
 			{
@@ -147,7 +149,7 @@
 		public function get_response_headers()
 		{
 			if($this->request_context === null)
-				throw new Exception('The request was not sent or failed');
+				throw new file_http_request_exception('The request was not sent or failed');
 
 			if($this->parsed_response_headers !== null)
 				return $this->parsed_response_headers;
@@ -179,7 +181,7 @@
 		public function get_response_protocol()
 		{
 			if($this->request_context === null)
-				throw new Exception('The request was not sent or failed');
+				throw new file_http_request_exception('The request was not sent or failed');
 
 			$this->get_response_headers();
 
@@ -188,7 +190,7 @@
 		public function get_response_status()
 		{
 			if($this->request_context === null)
-				throw new Exception('The request was not sent or failed');
+				throw new file_http_request_exception('The request was not sent or failed');
 
 			$this->get_response_headers();
 
@@ -197,7 +199,7 @@
 		public function get_response_cookie(string $name, string $default_value=null)
 		{
 			if($this->request_context === null)
-				throw new Exception('The request was not sent or failed');
+				throw new file_http_request_exception('The request was not sent or failed');
 
 			if(isset($this->response_cookies[$name]))
 			{
@@ -239,7 +241,7 @@
 		public function get_response_content()
 		{
 			if($this->request_context === null)
-				throw new Exception('The request was not sent or failed');
+				throw new file_http_request_exception('The request was not sent or failed');
 
 			return $this->response_content;
 		}

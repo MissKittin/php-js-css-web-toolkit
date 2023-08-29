@@ -7,6 +7,7 @@
 	 *  the timestamp of the variable will be refreshed with each modification
 	 *  for cache_driver_pdo and cache_driver_redis:
 	 *   if the key value is not json, the key will be deleted automatically
+	 *  throws an cache_container_exception on error
 	 *
 	 * Main classes:
 	 *  cache_container - full version of the container with local cache
@@ -45,7 +46,7 @@
 	 *    the database is loaded by the constructor and written by the destructor
 	 *   warning:
 	 *    if an uncaught exception occurs, the lockfile will not be removed,
-	 *    a "lockfile still exists" exception will be thrown
+	 *    a "lockfile still exists" cache_container_exception will be thrown
 	 *    and the cache will not work until you manually remove the lockfile
 	 *  cache_driver_file_realtime
 	 *   cache_driver_file wrapper that reads the database and writes changes to the database after each use
@@ -54,7 +55,7 @@
 	 *   constructor array parameters:
 	 *    pdo_handler
 	 *    [table_name] (default: cache_container)
-	 *   note: throws an Exception if query execution fails
+	 *   note: throws an cache_container_exception if query execution fails
 	 *   supported databases: PostgreSQL, MySQL, SQLite3
 	 *  cache_driver_redis -> use Redis as a cache
 	 *   constructor array parameters:
@@ -67,6 +68,7 @@
 		]));
 	 */
 
+	class cache_container_exception extends Exception {}
 	class cache_container
 	{
 		protected $cache_driver;
@@ -154,7 +156,7 @@
 			$this->validate_cache($key, $value, $timeout);
 
 			if($value === null)
-				throw new Exception($key.' is not set');
+				throw new cache_container_exception($key.' is not set');
 
 			$value=$value+$amount;
 			$this->put($key, $value, $timeout);
@@ -168,7 +170,7 @@
 			$this->validate_cache($key, $value, $timeout);
 
 			if($value === null)
-				throw new Exception($key.' is not set');
+				throw new cache_container_exception($key.' is not set');
 
 			$value=$value-$amount;
 			$this->put($key, $value, $timeout);
@@ -182,7 +184,7 @@
 			$this->validate_cache($key, $value, $timeout);
 
 			if($value === null)
-				throw new Exception($key.' is not set');
+				throw new cache_container_exception($key.' is not set');
 
 			$this->unset($key);
 
@@ -215,7 +217,7 @@
 		public function __construct(cache_driver $cache_driver)
 		{
 			if($cache_driver instanceof cache_driver_none)
-				throw new Exception('Dummy driver cannot be used with '.__CLASS__);
+				throw new cache_container_exception('Dummy driver cannot be used with '.__CLASS__);
 
 			$this->cache_driver=$cache_driver;
 		}
@@ -252,7 +254,7 @@
 
 		public function put_temp()
 		{
-			throw new Exception('put_temp() is not available in the '.__CLASS__);
+			throw new cache_container_exception('put_temp() is not available in the '.__CLASS__);
 		}
 		public function get_put(string $key, $default_value, int $timeout=0)
 		{
@@ -280,7 +282,7 @@
 			$value=$this->validate_cache($key);
 
 			if($value === null)
-				throw new Exception($key.' is not set');
+				throw new cache_container_exception($key.' is not set');
 
 			$value['value']=$value['value']+$amount;
 			$this->put($key, $value['value'], $value['timeout']);
@@ -292,7 +294,7 @@
 			$value=$this->validate_cache($key);
 
 			if($value === null)
-				throw new Exception($key.' is not set');
+				throw new cache_container_exception($key.' is not set');
 
 			$value['value']=$value['value']-$amount;
 			$this->put($key, $value['value'], $value['timeout']);
@@ -305,7 +307,7 @@
 			$this->unset($key);
 
 			if($value === null)
-				throw new Exception($key.' is not set');
+				throw new cache_container_exception($key.' is not set');
 
 			return $value;
 		}
@@ -348,7 +350,7 @@
 		{
 			foreach(['file', 'lock_file'] as $param)
 				if(!isset($params[$param]))
-					throw new Exception('The '.$param.' parameter was not specified for the constructor');
+					throw new cache_container_exception('The '.$param.' parameter was not specified for the constructor');
 
 			foreach(['file', 'lock_file'] as $param)
 				if(isset($params[$param]))
@@ -364,7 +366,7 @@
 				if(file_put_contents($this->file, json_encode($this->container, JSON_UNESCAPED_UNICODE)) === false)
 				{
 					unlink($this->lock_file);
-					throw new Exception('Unable to save the cache file');
+					throw new cache_container_exception('Unable to save the cache file');
 				}
 			});
 		}
@@ -380,18 +382,18 @@
 					usleep(10000);
 
 					if($max_wait === 0)
-						throw new Exception('Lock file still exists');
+						throw new cache_container_exception('Lock file still exists');
 
 					--$max_wait;
 				}
 
 				if(file_put_contents($this->lock_file, '') === false)
-					throw new Exception('Unable to create the lock file');
+					throw new cache_container_exception('Unable to create the lock file');
 			}
 			else
 			{
 				if(!file_exists($this->lock_file))
-					throw new Exception('Lock file not exists - cache not saved');
+					throw new cache_container_exception('Lock file not exists - cache not saved');
 
 				$save_callback();
 				unlink($this->lock_file);
@@ -438,7 +440,7 @@
 		{
 			foreach(['file', 'lock_file'] as $param)
 				if(!isset($params[$param]))
-					throw new Exception('The '.$param.' parameter was not specified for the constructor');
+					throw new cache_container_exception('The '.$param.' parameter was not specified for the constructor');
 
 			foreach(['file', 'lock_file'] as $param)
 				if(isset($params[$param]))
@@ -478,7 +480,7 @@
 		public function __construct(array $params)
 		{
 			if(!isset($params['pdo_handler']))
-				throw new Exception('No pdo_handler given');
+				throw new cache_container_exception('No pdo_handler given');
 
 			foreach(['pdo_handler', 'table_name'] as $param)
 				if(isset($params[$param]))
@@ -488,7 +490,7 @@
 				$this->pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME),
 				['pgsql', 'mysql', 'sqlite']
 			))
-				throw new Exception($this->pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME).' driver is not supported');
+				throw new cache_container_exception($this->pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME).' driver is not supported');
 
 			switch($this->pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME))
 			{
@@ -502,7 +504,7 @@
 					.		'timestamp INTEGER'
 					.	')'
 					) === false)
-						throw new Exception('Cannot create '.$this->table_name.' table');
+						throw new cache_container_exception('Cannot create '.$this->table_name.' table');
 				break;
 				case 'pgsql':
 				case 'sqlite':
@@ -515,7 +517,7 @@
 					.		'timestamp INTEGER'
 					.	')'
 					) === false)
-						throw new Exception('Cannot create '.$this->table_name.' table');
+						throw new cache_container_exception('Cannot create '.$this->table_name.' table');
 			}
 		}
 
@@ -562,7 +564,7 @@
 			}
 
 			if($query === false)
-				throw new Exception('PDO prepare error');
+				throw new cache_container_exception('PDO prepare error');
 
 			if(!$query->execute([
 				':key'=>$key,
@@ -570,7 +572,7 @@
 				':timeout'=>$timeout,
 				':timestamp'=>time()
 			]))
-				throw new Exception('PDO execute error');
+				throw new cache_container_exception('PDO execute error');
 		}
 		public function get($key): array
 		{
@@ -581,10 +583,10 @@
 			);
 
 			if($result === false)
-				throw new Exception('PDO prepare error');
+				throw new cache_container_exception('PDO prepare error');
 
 			if(!$result->execute([':key'=>$key]))
-				throw new Exception('PDO execute error');
+				throw new cache_container_exception('PDO execute error');
 
 			$result=$result->fetch(PDO::FETCH_ASSOC);
 
@@ -613,15 +615,15 @@
 			);
 
 			if($query === false)
-				throw new Exception('PDO prepare error');
+				throw new cache_container_exception('PDO prepare error');
 
 			if(!$query->execute([':key'=>$key]))
-				throw new Exception('PDO execute error');
+				throw new cache_container_exception('PDO execute error');
 		}
 		public function flush()
 		{
 			if($this->pdo_handler->exec('DELETE FROM '.$this->table_name) === false)
-				throw new Exception('PDO exec error');
+				throw new cache_container_exception('PDO exec error');
 		}
 	}
 	class cache_driver_redis implements cache_driver
@@ -632,7 +634,7 @@
 		public function __construct(array $params)
 		{
 			if(!isset($params['redis_handler']))
-				throw new Exception('No redis handler given');
+				throw new cache_container_exception('No redis handler given');
 
 			$this->redis_handler=$params['redis_handler'];
 

@@ -126,7 +126,7 @@
 
 			if($_debug)
 				$debug_callback('cron() done');
-		} catch(Exception $error) {
+		} catch(Throwable $error) {
 			$log_callback('Error: '.$error->getMessage());
 		}
 	else
@@ -170,7 +170,7 @@
 				if($_debug)
 					$debug_callback('cron_timestamp() done');
 			}
-		} catch(Exception $error) {
+		} catch(Throwable $error) {
 			$log_callback('Error: '.$error->getMessage());
 		}
 
@@ -232,7 +232,7 @@
 					if($_debug)
 						$debug_callback('cron_timestamp() done');
 				}
-			} catch(Exception $error) {
+			} catch(Throwable $error) {
 				$log_callback('Error: '.$error->getMessage());
 			}
 

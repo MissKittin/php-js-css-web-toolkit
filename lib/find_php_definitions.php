@@ -1,4 +1,5 @@
 <?php
+	class find_php_definitions_exception extends Exception {}
 	function find_php_definitions(string $source)
 	{
 		/*
@@ -9,6 +10,9 @@
 		 *  supports namespaces without open-close braces
 		 *  tokenizer extension is required
 		 *
+		 * Note:
+		 *  throws an find_php_definitions_exception on error
+		 *
 		 * Usage:
 		 *  find_php_definitions(file_get_contents('file.php'))
 		 *  returns array('classes'=>array, 'functions'=>array, 'interfaces'=>array, 'traits'=>array)
@@ -18,7 +22,7 @@
 		 */
 
 		if(!extension_loaded('tokenizer'))
-			throw new Exception('tokenizer extension is not loaded');
+			throw new find_php_definitions_exception('tokenizer extension is not loaded');
 
 		$return_array=[
 			'classes'=>[],
@@ -67,11 +71,11 @@
 					else if($next_string_is_interface)
 					{
 						if(in_array($current_namespace.$token[1], $return_array['classes']))
-							throw new Exception($current_namespace.$token[1].' already exists in classes');
+							throw new find_php_definitions_exception($current_namespace.$token[1].' already exists in classes');
 						if(in_array($current_namespace.$token[1], $return_array['interfaces']))
-							throw new Exception($current_namespace.$token[1].' already exists in interfaces');
+							throw new find_php_definitions_exception($current_namespace.$token[1].' already exists in interfaces');
 						if(in_array($current_namespace.$token[1], $return_array['traits']))
-							throw new Exception($current_namespace.$token[1].' already exists in traits');
+							throw new find_php_definitions_exception($current_namespace.$token[1].' already exists in traits');
 
 						$return_array['interfaces'][]=$current_namespace.$token[1];
 						$next_string_is_interface=false;
@@ -79,11 +83,11 @@
 					else if($next_string_is_trait)
 					{
 						if(in_array($current_namespace.$token[1], $return_array['classes']))
-							throw new Exception($current_namespace.$token[1].' already exists in classes');
+							throw new find_php_definitions_exception($current_namespace.$token[1].' already exists in classes');
 						if(in_array($current_namespace.$token[1], $return_array['interfaces']))
-							throw new Exception($current_namespace.$token[1].' already exists in interfaces');
+							throw new find_php_definitions_exception($current_namespace.$token[1].' already exists in interfaces');
 						if(in_array($current_namespace.$token[1], $return_array['traits']))
-							throw new Exception($current_namespace.$token[1].' already exists in traits');
+							throw new find_php_definitions_exception($current_namespace.$token[1].' already exists in traits');
 
 						$return_array['traits'][]=$current_namespace.$token[1];
 						$next_string_is_trait=false;
@@ -91,11 +95,11 @@
 					else if($next_string_is_class)
 					{
 						if(in_array($current_namespace.$token[1], $return_array['classes']))
-							throw new Exception($current_namespace.$token[1].' already exists in classes');
+							throw new find_php_definitions_exception($current_namespace.$token[1].' already exists in classes');
 						if(in_array($current_namespace.$token[1], $return_array['interfaces']))
-							throw new Exception($current_namespace.$token[1].' already exists in interfaces');
+							throw new find_php_definitions_exception($current_namespace.$token[1].' already exists in interfaces');
 						if(in_array($current_namespace.$token[1], $return_array['traits']))
-							throw new Exception($current_namespace.$token[1].' already exists in traits');
+							throw new find_php_definitions_exception($current_namespace.$token[1].' already exists in traits');
 
 						$return_array['classes'][]=$current_namespace.$token[1];
 						$next_string_is_class=false;
@@ -103,7 +107,7 @@
 					else if($next_string_is_function)
 					{
 						if(in_array($current_namespace.$token[1], $return_array['functions']))
-							throw new Exception($current_namespace.$token[1].' already exists in functions');
+							throw new find_php_definitions_exception($current_namespace.$token[1].' already exists in functions');
 
 						$return_array['functions'][]=$current_namespace.$token[1];
 						$next_string_is_function=false;

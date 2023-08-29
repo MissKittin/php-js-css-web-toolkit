@@ -27,6 +27,11 @@
 			throw new Exception('sec_login.php library not found');
 	}
 
+	if(!class_exists('login_component_exception'))
+	{
+		class login_component_exception extends Exception {}
+	}
+
 	require __DIR__.'/config/config.php';
 	require __DIR__.'/config/csp_header.php';
 	require __DIR__.'/config/view.php';
@@ -47,7 +52,7 @@
 			(check_post('password') !== null)
 		){
 			if(!isset($GLOBALS['_login']['config']['method']))
-				throw new Exception('Login method not specified');
+				throw new login_component_exception('Login method not specified');
 
 			switch($GLOBALS['_login']['config']['method'])
 			{
@@ -74,7 +79,7 @@
 					);
 				break;
 				default:
-					throw new Exception('Unknown login method');
+					throw new login_component_exception('Unknown login method');
 			}
 
 			if($GLOBALS['_login']['result'])

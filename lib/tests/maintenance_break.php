@@ -137,7 +137,7 @@
 					'cookie_name'=>'cookiename',
 					'path'=>'/uripath'
 				]);
-			} catch(Exception $error) {
+			} catch(\Throwable $error) {
 				$caught=true;
 			}
 			if($caught)
@@ -220,7 +220,7 @@
 				maintenance_break_ip([
 					'allowed_ip'=>'127.0.0.1'
 				]);
-			} catch(Exception $error) {
+			} catch(\Throwable $error) {
 				$caught=true;
 			}
 			if($caught)

@@ -22,10 +22,15 @@
 	 *  (new cron_closure)->add(string_hash, callable_function)->add(string_hash, callable_function)->run()
 	 */
 
+	class cron_exception extends Exception {}
+
 	function cron(array $_params)
 	{
 		/*
 		 * Basic cron implementation
+		 *
+		 * Note:
+		 *  throws an cron_exception on error
 		 *
 		 * Parameters:
 		 *  crontab [string] (required) -> path to directory with hashes
@@ -61,7 +66,7 @@
 		 */
 
 		if(!isset($_params['crontab']))
-			throw new Exception('The crontab parameter was not specified');
+			throw new cron_exception('The crontab parameter was not specified');
 
 		if(!isset($_params['debug']))
 			$_params['debug']=false;
@@ -73,7 +78,7 @@
 			$_params['debug_callback']=function(){};
 
 		if(!is_dir($_params['crontab']))
-			throw new Exception($_params['crontab'].' is not a directory');
+			throw new cron_exception($_params['crontab'].' is not a directory');
 
 		if(isset($_params['directory']))
 		{
@@ -157,6 +162,9 @@
 		 *  if the task cannot be deleted, it will be redone
 		 *  and you wouldn't want that
 		 *
+		 * Note:
+		 *  throws an cron_exception on error
+		 *
 		 * Hint:
 		 *  the scripts directory is best placed in the var directory
 		 *  eg. var/cron/timestamps
@@ -173,7 +181,7 @@
 		 */
 
 		if(!isset($_params['tasks']))
-			throw new Exception('The tasks parameter was not specified');
+			throw new cron_exception('The tasks parameter was not specified');
 
 		if(!isset($_params['debug']))
 			$_params['debug']=false;
@@ -185,7 +193,7 @@
 			$_params['debug_callback']=function(){};
 
 		if(!is_dir($_params['tasks']))
-			throw new Exception($_params['tasks'].' is not a directory');
+			throw new cron_exception($_params['tasks'].' is not a directory');
 
 		$_current_timestamp=time();
 		if($_params['debug'])

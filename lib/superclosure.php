@@ -4,11 +4,11 @@
 	 *
 	 * Classes:
 	 *  superclosure
-	 *   standard version
 	 *  superclosure_meta
-	 *   extended version
+	 *   extension with getters
 	 */
 
+	class superclosure_exception extends Exception {}
 	class superclosure
 	{
 		/*
@@ -24,6 +24,7 @@
 		 *
 		 * Note:
 		 *  function($arg) use ($var) is supported
+		 *  throws an superclosure_exception on error
 		 *
 		 * Usage:
 			$closure=new superclosure(function($arg){
@@ -80,13 +81,12 @@
 					eval('$this->reflection='.$data_field.';');
 
 					if(!$this->reflection instanceOf Closure)
-						throw new Exception('Closure expected in unserialized data');
+						throw new superclosure_exception('Closure expected in unserialized data');
 				}
 
 			$this->reflection=new ReflectionFunction($this->reflection);
 		}
 	}
-
 	class superclosure_meta extends superclosure
 	{
 		/*

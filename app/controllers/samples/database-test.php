@@ -34,7 +34,7 @@
 				exit();
 			}
 		);
-	} catch(Exception $error) {
+	} catch(Throwable $error) {
 		echo 'pdo_connect() error: '.$error->getMessage();
 		exit();
 	}

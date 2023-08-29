@@ -79,7 +79,7 @@
 							)
 						) === false)
 							echo ' failed: file cannot be saved'.PHP_EOL;
-					} catch(Exception $error) {
+					} catch(Throwable $error) {
 						echo ' failed: '.$error->getMessage().PHP_EOL;
 					}
 				}
@@ -98,7 +98,7 @@
 							)
 						) === false)
 							echo ' failed: file cannot be saved'.PHP_EOL;
-					} catch(Exception $error) {
+					} catch(Throwable $error) {
 						echo ' failed: '.$error->getMessage().PHP_EOL;
 					}
 				}

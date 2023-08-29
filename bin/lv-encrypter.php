@@ -87,7 +87,7 @@
 	try {
 		$encrypter=new lv_encrypter($key, $cipher);
 		echo $encrypter->$action($content, $do_serialization);
-	} catch(Exception $error) {
-		echo 'Error: '.$error->getMessage();
+	} catch(Throwable $error) {
+		echo 'Error: '.$error->getMessage().PHP_EOL;
 	}
 ?>

@@ -1,5 +1,11 @@
 <?php
-	// Vacuum SQLite3 database
+	/*
+	 * Vacuum SQLite3 database
+	 *
+	 * Warning:
+	 *  PDO extension is required
+	 *  pdo_sqlite extension is required
+	 */
 
 	if(!extension_loaded('PDO'))
 	{
@@ -27,7 +33,7 @@
 	try {
 		$db=new PDO('sqlite:'.$argv[1]);
 		$db->exec('VACUUM');
-	} catch(PDOException $error) {
+	} catch(Throwable $error) {
 		echo 'Error: '.$error->getMessage().PHP_EOL;
 		exit(1);
 	}

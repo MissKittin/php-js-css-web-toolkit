@@ -7,6 +7,8 @@
 	 *  curl_file_download
 	 */
 
+	class curl_file_exception extends Exception {}
+
 	function curl_file_upload(
 		string $url,
 		string $source,
@@ -16,6 +18,9 @@
 		/*
 		 * Quickly upload file
 		 * Supported protocols: FTP FTPS HTTP HTTPS SCP SFTP
+		 *
+		 * Note:
+		 *  throws an curl_file_exception on error
 		 *
 		 * Error handling: add to parameters (3rd arg array)
 		 *  'on_error'=>function($error){ error_log(__FILE__.' curl_file_upload: '.$error); }
@@ -49,7 +54,7 @@
 		 */
 
 		if(!extension_loaded('curl'))
-			throw new Exception('curl extension is not loaded');
+			throw new curl_file_exception('curl extension is not loaded');
 
 		if(!file_exists($source))
 			return false;
@@ -134,6 +139,9 @@
 		/*
 		 * Quickly download file and print it or save
 		 *
+		 * Note:
+		 *  throws an curl_file_exception on error
+		 *
 		 * Error handling: add to parameters (3rd arg array)
 		 *  'on_error'=>function($error){ error_log(__FILE__.' curl_file_download: '.$error); }
 		 *
@@ -158,7 +166,7 @@
 		 */
 
 		if(!extension_loaded('curl'))
-			throw new Exception('curl extension is not loaded');
+			throw new curl_file_exception('curl extension is not loaded');
 
 		foreach([
 			CURLOPT_TIMEOUT=>10,

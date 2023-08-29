@@ -7,7 +7,8 @@
 	 *
 	 * Note:
 	 *  you cannot inherit these classes
-	 *  use composition instead
+	 *   use composition instead
+	 *  throws an pdo_cheat_exception on error
 	 *
 	 * Supported databases:
 	 *  PostgreSQL
@@ -159,6 +160,8 @@
 	 *  	delete_row() [returns bool]
 	 */
 
+	class pdo_cheat_exception extends Exception {}
+
 	abstract class pdo_cheat__exec
 	{
 		protected $pdo_handler;
@@ -216,7 +219,7 @@
 		{
 			foreach(['pdo_handler', 'table_name'] as $param)
 				if(!isset($params[$param]))
-					throw new Exception('The '.$param.' parameter was not specified for the constructor');
+					throw new pdo_cheat_exception('The '.$param.' parameter was not specified for the constructor');
 
 			foreach(['pdo_handler', 'table_name'] as $param)
 				if(isset($params[$param]))
@@ -226,7 +229,7 @@
 				$this->pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME),
 				['pgsql', 'mysql', 'sqlite']
 			))
-				throw new Exception($this->pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME).' driver is not supported');
+				throw new pdo_cheat_exception($this->pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME).' driver is not supported');
 
 			if(isset($params['table_schema']))
 				foreach($params['table_schema'] as $column_name)
@@ -271,7 +274,7 @@
 						.		$table_schema
 						.	')'
 						) === false)
-							throw new Exception('Unable to create table');
+							throw new pdo_cheat_exception('Unable to create table');
 
 						$this->_pdo_cheat__save_table_schema($params['table_schema']);
 					}
@@ -285,7 +288,7 @@
 		public function dump_table(int $limit=null, int $limit_offset=null)
 		{
 			if($this->table_altered)
-				throw new Exception('The table has been altered - this cheater instance is not valid anymore');
+				throw new pdo_cheat_exception('The table has been altered - this cheater instance is not valid anymore');
 
 			if($limit === null)
 				return $this->query(''
@@ -310,7 +313,7 @@
 		public function dump_schema()
 		{
 			if($this->table_altered)
-				throw new Exception('The table has been altered - this cheater instance is not valid anymore');
+				throw new pdo_cheat_exception('The table has been altered - this cheater instance is not valid anymore');
 
 			return $this->table_schema;
 		}
@@ -322,7 +325,7 @@
 		public function new_table()
 		{
 			if($this->table_altered)
-				throw new Exception('The table has been altered - this cheater instance is not valid anymore');
+				throw new pdo_cheat_exception('The table has been altered - this cheater instance is not valid anymore');
 
 			return new pdo_cheat__new_table(
 				$this,
@@ -333,7 +336,7 @@
 		public function alter_table()
 		{
 			if($this->table_altered)
-				throw new Exception('The table has been altered - this cheater instance is not valid anymore');
+				throw new pdo_cheat_exception('The table has been altered - this cheater instance is not valid anymore');
 
 			$this->table_altered=true;
 
@@ -346,7 +349,7 @@
 		public function clear_table()
 		{
 			if($this->table_altered)
-				throw new Exception('The table has been altered - this cheater instance is not valid anymore');
+				throw new pdo_cheat_exception('The table has been altered - this cheater instance is not valid anymore');
 
 			return new pdo_cheat__clear_table(
 				$this,
@@ -357,7 +360,7 @@
 		public function new_row()
 		{
 			if($this->table_altered)
-				throw new Exception('The table has been altered - this cheater instance is not valid anymore');
+				throw new pdo_cheat_exception('The table has been altered - this cheater instance is not valid anymore');
 
 			return new pdo_cheat__new_row(
 				$this,
@@ -369,7 +372,7 @@
 		public function get_row()
 		{
 			if($this->table_altered)
-				throw new Exception('The table has been altered - this cheater instance is not valid anymore');
+				throw new pdo_cheat_exception('The table has been altered - this cheater instance is not valid anymore');
 
 			return new pdo_cheat__get_row(
 				$this,
@@ -381,7 +384,7 @@
 		public function delete_row()
 		{
 			if($this->table_altered)
-				throw new Exception('The table has been altered - this cheater instance is not valid anymore');
+				throw new pdo_cheat_exception('The table has been altered - this cheater instance is not valid anymore');
 
 			return new pdo_cheat__delete_row(
 				$this,
@@ -419,7 +422,7 @@
 		public function __call($column_name, $column_type)
 		{
 			if(!isset($column_type[0]))
-				throw new Exception('No column type defined for '.$column_name);
+				throw new pdo_cheat_exception('No column type defined for '.$column_name);
 
 			$this->table_schema[$column_name]=$column_type[0];
 
@@ -485,12 +488,12 @@
 			if(substr($column_name, 0, 4) === 'add_')
 			{
 				if(!isset($value[0]))
-					throw new Exception('Column datatype not specified');
+					throw new pdo_cheat_exception('Column datatype not specified');
 
 				$column_name=substr($column_name, 4);
 
 				if($column_name === '')
-					throw new Exception('add_() ???');
+					throw new pdo_cheat_exception('add_() ???');
 
 				return $this->_add_column($column_name, $value[0]);
 			}
@@ -499,7 +502,7 @@
 				$column_name=substr($column_name, 5);
 
 				if($column_name === '')
-					throw new Exception('drop_() ???');
+					throw new pdo_cheat_exception('drop_() ???');
 
 				return $this->_drop_column($column_name);
 			}
@@ -508,10 +511,10 @@
 				$column_name=substr($column_name, 12);
 
 				if($column_name === '')
-					throw new Exception('rename_from_() ???');
+					throw new pdo_cheat_exception('rename_from_() ???');
 
 				if($this->rename_from !== null)
-					throw new Exception('rename_from_() has been executed');
+					throw new pdo_cheat_exception('rename_from_() has been executed');
 
 				$this->rename_from=$column_name;
 
@@ -522,10 +525,10 @@
 				$column_name=substr($column_name, 10);
 
 				if($column_name === '')
-					throw new Exception('rename_from_() ???');
+					throw new pdo_cheat_exception('rename_from_() ???');
 
 				if($this->rename_from === null)
-					throw new Exception('rename_from_() has not been executed');
+					throw new pdo_cheat_exception('rename_from_() has not been executed');
 
 				$return_value=$this->_rename_column($this->rename_from, $column_name);
 				$this->rename_from=null;
@@ -535,12 +538,12 @@
 			else if(substr($column_name, 0, 7) === 'modify_')
 			{
 				if(!isset($value[0]))
-					throw new Exception('Column datatype not specified');
+					throw new pdo_cheat_exception('Column datatype not specified');
 
 				$column_name=substr($column_name, 7);
 
 				if($column_name === '')
-					throw new Exception('modify_() ???');
+					throw new pdo_cheat_exception('modify_() ???');
 
 				return $this->_modify_column($column_name, $value[0]);
 			}
@@ -766,12 +769,12 @@
 			if(substr($column_name, 0, 11) === 'get_row_by_')
 			{
 				if(!isset($value[0]))
-					throw new Exception('No column was provided');
+					throw new pdo_cheat_exception('No column was provided');
 
 				$column_name=substr($column_name, 11);
 
 				if($column_name === '')
-					throw new Exception('get_row_by_() ???');
+					throw new pdo_cheat_exception('get_row_by_() ???');
 
 				$this->query_conditions[$column_name]=$value[0];
 
@@ -782,7 +785,7 @@
 				$column_name=substr($column_name, 7);
 
 				if($column_name === '')
-					throw new Exception('select_() ???');
+					throw new pdo_cheat_exception('select_() ???');
 
 				$this->selected_columns[$column_name]=$column_name;
 
@@ -793,10 +796,10 @@
 		public function get_row()
 		{
 			if($this->pdo_query !== null)
-				throw new Exception('get_row() has been executed');
+				throw new pdo_cheat_exception('get_row() has been executed');
 
 			if(empty($this->query_conditions))
-				throw new Exception('get_row_by conditions not defined');
+				throw new pdo_cheat_exception('get_row_by conditions not defined');
 
 			$statement='';
 			$parameters=[];
@@ -836,7 +839,7 @@
 		public function get_next_row()
 		{
 			if($this->pdo_query === null)
-				throw new Exception('get_row() did not executed');
+				throw new pdo_cheat_exception('get_row() did not executed');
 
 			$result=$this->pdo_query->fetch(PDO::FETCH_NAMED);
 
@@ -872,10 +875,10 @@
 		public function __call($column_name, $value)
 		{
 			if(!isset($value[0]))
-				throw new Exception('No value was provided for column '.$column_name);
+				throw new pdo_cheat_exception('No value was provided for column '.$column_name);
 
 			if(!isset($this->table_schema[$column_name]))
-				throw new Exception('The '.$column_name.' column does not exist');
+				throw new pdo_cheat_exception('The '.$column_name.' column does not exist');
 
 			$this->query_conditions[$column_name]=$value[0];
 
@@ -885,7 +888,7 @@
 		public function delete_row()
 		{
 			if(empty($this->query_conditions))
-				throw new Exception('Conditions not specified');
+				throw new pdo_cheat_exception('Conditions not specified');
 
 			$statement='';
 			$parameters=[];
@@ -929,7 +932,7 @@
 		public function __call($column_name, $value)
 		{
 			if(!isset($this->table_schema[$column_name]))
-				throw new Exception($column_name.' column is not defined in the table schema');
+				throw new pdo_cheat_exception($column_name.' column is not defined in the table schema');
 
 			if(isset($value[0]))
 			{

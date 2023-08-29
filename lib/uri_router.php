@@ -1,4 +1,5 @@
 <?php
+	class uri_router_exception extends Exception {}
 	abstract class uri_router
 	{
 		/*
@@ -16,6 +17,7 @@
 		 *
 		 * Note:
 		 *  default route callback will not be cleared by uri_router::route()
+		 *  throws an uri_router_exception on error
 		 *
 		 * Methods:
 		 *  uri_router::set_base_path(string)
@@ -134,7 +136,7 @@
 		public static function route()
 		{
 			if(static::$source === null)
-				throw new Exception('Source undefined');
+				throw new uri_router_exception('Source undefined');
 
 			$path_matches=false;
 			foreach(static::$routing_table as $routing_element)

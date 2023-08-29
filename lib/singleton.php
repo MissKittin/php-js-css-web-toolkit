@@ -7,12 +7,16 @@
 	 *  supports the final keyword but offers less flexibility
 	 */
 
+	class singleton_exception extends Exception {}
+
 	trait t_singleton
 	{
 		/*
 		 * Each time you use a singleton, one little kitten dies
 		 * Don't be indifferent - pets need love too
 		 *
+		 * Note:
+		 *  throws an singleton_exception on error
 		 * Usage:
 			class my_singleton
 			{
@@ -43,11 +47,11 @@
 		}
 		public function __clone()
 		{
-			throw new Exception(static::class.': cloning singleton is not allowed');
+			throw new singleton_exception(static::class.': cloning singleton is not allowed');
 		}
 		public function __wakeup()
 		{
-			throw new Exception(static::class.': unserialization singleton is not allowed');
+			throw new singleton_exception(static::class.': unserialization singleton is not allowed');
 		}
 
 		public static function get_instance()
