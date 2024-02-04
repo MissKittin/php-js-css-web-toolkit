@@ -61,7 +61,7 @@
 		string $password
 	){
 		if(session_status() !== PHP_SESSION_ACTIVE)
-			throw new file_sign_exception('Session not started');
+			throw new login_exception('Session not started');
 
 		if(!isset($_SERVER['HTTP_USER_AGENT']))
 			return false;
@@ -83,7 +83,7 @@
 		array $login_array
 	){
 		if(session_status() !== PHP_SESSION_ACTIVE)
-			throw new file_sign_exception('Session not started');
+			throw new login_exception('Session not started');
 
 		if(!isset($_SERVER['HTTP_USER_AGENT']))
 			return false;
@@ -106,7 +106,7 @@
 		callable $callback
 	){
 		if(session_status() !== PHP_SESSION_ACTIVE)
-			throw new file_sign_exception('Session not started');
+			throw new login_exception('Session not started');
 
 		if(!isset($_SERVER['HTTP_USER_AGENT']))
 			return false;
@@ -150,7 +150,7 @@
 	function logout($null=false)
 	{
 		if(session_status() !== PHP_SESSION_ACTIVE)
-			throw new file_sign_exception('Session not started');
+			throw new login_exception('Session not started');
 
 		if($null !== null)
 		{
@@ -166,7 +166,7 @@
 	function is_logged(bool $session_regenerate=true, callable $on_check_fail=null)
 	{
 		if(session_status() !== PHP_SESSION_ACTIVE)
-			throw new file_sign_exception('Session not started');
+			throw new login_exception('Session not started');
 
 		if(!isset($_SERVER['HTTP_USER_AGENT']))
 		{

@@ -35,6 +35,7 @@ php ./app/bin/remove-samples.php
 * `login-component-test.php` - `/login-component-test` (Login component test) (has view)
 * `login-library-test.php` - `/login-library-test` (Login library test) (has view)
 * `obsfucate-html.php` - `/obsfucate-html` (HTML obsfucator test) (has view)
+* `phar-tet.php` - `/phar-test` (Toolkit in Phar test) (has view)
 * `preprocessing-test.php` - `/preprocessing-test` (PHP preprocessing test) (has view)
 * `robots-sitemap.php` - `/robots.txt` and `/sitemap.xml`
 
@@ -68,10 +69,18 @@ You can configure the database connection through the following environment vari
 * `SQLITE_PATH`
 * `DB_IGNORE_ENV=true` (ignores all the variables above and the DB_TYPE)
 
-### Shared code
-* `default_http_headers.php` - for all controllers
+### Cache databases
+You can configure the database connection through the following environment variables:
+* `REDIS_HOST` (default: 127.0.0.1)
+* `REDIS_PORT` (default: 6379)
+* `REDIS_DBINDEX` (default: 0)
+
+### Libraries
+* `default_http_headers.php` - for (almost) all controllers
+* `logger.php` - logging functions
 * `ob_adapter.php` - `ob_start()` handler
 * `ob_cache.php`
+* `pdo_instance.php` - get PDO handler
 * `session_start.php` - session handler
 
 ### Templates

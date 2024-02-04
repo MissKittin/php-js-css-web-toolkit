@@ -27,8 +27,10 @@
 	 *   script src after page content
 	 *  view(string_view_path, string_page_content='page_content.php')
 	 *   load configuration files from string_view_path and run template with contents from string_view_path/string_page_content
-	 *  quick_view(string_view_path, string_page_content='page_content.php') [STATIC]
+	 *   note: if string_page_content ends with '.php', require will be used instead of readfile
+	 *  [static] quick_view(string_view_path, string_page_content='page_content.php')
 	 *   same as the view(), use when you don't need to set any additional variables
+	 *   note: if string_page_content ends with '.php', require will be used instead of readfile
 	 *
 	 * Variables:
 	 *  lang [string]
@@ -69,7 +71,12 @@
 
 			@include $view_path.'/template_config.php';
 			require __DIR__.'/views/top.php';
-			require $view_path.'/'.$page_content;
+
+			if(str_ends_with($page_content, '.php'))
+				require $view_path.'/'.$page_content;
+			else
+				readfile($view_path.'/'.$page_content);
+
 			require __DIR__.'/views/bottom.php';
 		}
 		private static function parse_headers($view)
@@ -169,7 +176,12 @@
 
 			@include $view_path.'/template_config.php';
 			require __DIR__.'/views/top.php';
-			require $view_path.'/'.$page_content;
+
+			if(str_ends_with($page_content, '.php'))
+				require $view_path.'/'.$page_content;
+			else
+				readfile($view_path.'/'.$page_content);
+
 			require __DIR__.'/views/bottom.php';
 
 			if(static::$do_return_content)

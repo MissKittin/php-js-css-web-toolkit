@@ -1,27 +1,30 @@
 <?php
-	echo ' -> Including assets_compiler.php';
-		if(file_exists(__DIR__.'/../lib/assets_compiler.php'))
-		{
-			if(@(include __DIR__.'/../lib/assets_compiler.php') === false)
+	foreach(['assets_compiler.php', 'rmdir_recursive.php'] as $library)
+	{
+		echo ' Including '.$library;
+			if(file_exists(__DIR__.'/../lib/'.$library))
+			{
+				if(@(include __DIR__.'/../lib/'.$library) === false)
+				{
+					echo ' [FAIL]'.PHP_EOL;
+					exit(1);
+				}
+			}
+			else if(file_exists(__DIR__.'/../../../lib/'.$library))
+			{
+				if(@(include __DIR__.'/../../../lib/'.$library) === false)
+				{
+					echo ' [FAIL]'.PHP_EOL;
+					exit(1);
+				}
+			}
+			else
 			{
 				echo ' [FAIL]'.PHP_EOL;
 				exit(1);
 			}
-		}
-		else if(file_exists(__DIR__.'/../../../lib/assets_compiler.php'))
-		{
-			if(@(include __DIR__.'/../../../lib/assets_compiler.php') === false)
-			{
-				echo ' [FAIL]'.PHP_EOL;
-				exit(1);
-			}
-		}
-		else
-		{
-			echo ' [FAIL]'.PHP_EOL;
-			exit(1);
-		}
-	echo ' [ OK ]'.PHP_EOL;
+		echo ' [ OK ]'.PHP_EOL;
+	}
 
 	echo ' -> Including admin_panel.php';
 		try {
@@ -41,15 +44,13 @@
 	echo ' [ OK ]'.PHP_EOL;
 
 	@mkdir(__DIR__.'/tmp');
-	if(!file_exists(__DIR__.'/tmp/automatic'))
-	{
-		echo ' -> Creating test pool...';
 
+	echo ' -> Creating test pool...';
+		rmdir_recursive(__DIR__.'/tmp/automatic');
 		mkdir(__DIR__.'/tmp/automatic');
 
 		mkdir(__DIR__.'/tmp/automatic/dashboard');
 		file_put_contents(__DIR__.'/tmp/automatic/dashboard/main.php', "
-			<h1>Dashboard</h1>
 			<pre><?php \$_module['path']='/fake/path/components/admin_panel/tests/tmp/serve/dashboard'; echo '\$_module: '; var_dump(\$_module); ?></pre>
 			<pre><?php echo '\$this->registry: '; var_dump(\$this->registry); ?></pre>
 		");
@@ -62,8 +63,6 @@
 
 		mkdir(__DIR__.'/tmp/automatic/posts');
 		file_put_contents(__DIR__.'/tmp/automatic/posts/main.php', "
-			<h1>Posts</h1>
-
 			<?php if(isset(\$_module['_is_default'])) {?>
 				<h3>The module was called as default</h3>
 			<?php } ?>
@@ -127,7 +126,8 @@
 					'config'=>'config.php',
 					'script'=>'main.php',
 					'url'=>'dashboard',
-					'name'=>'Dashboard'
+					'name'=>'Dashboard',
+					'template_header'=>'Dashboard'
 				])
 				->add_module([
 					'id'=>'posts',
@@ -136,6 +136,7 @@
 					'script'=>'main.php',
 					'url'=>'posts',
 					'name'=>'Posts',
+					'template_header'=>'Posts',
 					'custom_variable'=>'Custom variable here'
 				])
 				->add_menu_entry([
@@ -152,11 +153,10 @@
 		?>");
 
 		mkdir(__DIR__.'/tmp/automatic/public/assets');
-		foreach(array_diff(scandir(__DIR__.'/../assets'), ['.', '..']) as $file)
-			assets_compiler(__DIR__.'/../assets/'.$file, __DIR__.'/tmp/automatic/public/assets/'.$file);
-
-		echo ' [ OK ]'.PHP_EOL;
-	}
+		foreach(array_diff(scandir(__DIR__.'/../templates'), ['.', '..']) as $template)
+			foreach(array_diff(scandir(__DIR__.'/../templates/'.$template.'/assets'), ['.', '..']) as $file)
+				assets_compiler(__DIR__.'/../templates/'.$template.'/assets/'.$file, __DIR__.'/tmp/automatic/public/assets/'.$file);
+	echo ' [ OK ]'.PHP_EOL;
 
 	$failed=false;
 	chdir(__DIR__.'/tmp/automatic/public');
@@ -165,8 +165,12 @@
 		$result='';
 		$_SERVER['REQUEST_URI']='/admin/notfound';
 		include './index.php';
-		//echo ' ('.md5($result).')';
-		if(md5($result) === 'f4045f963bdc5aae645f8204173a57b3')
+		if(isset($argv[1]) && ($argv[1] === 'sumdebug'))
+		{
+			file_put_contents(__DIR__.'/tmp/automatic/result_notfound.html', $result);
+			echo ' ('.md5($result).')';
+		}
+		if(md5($result) === '6f99866edf0752d8998de191ba9e4dfe')
 			echo ' [ OK ]'.PHP_EOL;
 		else
 		{
@@ -178,8 +182,12 @@
 		$result='';
 		$_SERVER['REQUEST_URI']='/admin';
 		include './index.php';
-		//echo ' ('.md5($result).')';
-		if(md5($result) === 'ffbf38b3cd80b6cbe8fa12029ed8560b')
+		if(isset($argv[1]) && ($argv[1] === 'sumdebug'))
+		{
+			file_put_contents(__DIR__.'/tmp/automatic/result_default.html', $result);
+			echo ' ('.md5($result).')';
+		}
+		if(md5($result) === '8bfff958d6511b65d189fd255e9f3054')
 			echo ' [ OK ]'.PHP_EOL;
 		else
 		{
@@ -191,8 +199,12 @@
 		$result='';
 		$_SERVER['REQUEST_URI']='/admin/dashboard';
 		include './index.php';
-		//echo ' ('.md5($result).')';
-		if(md5($result) === '232a5d784467fb53f934c50a94e2fe18')
+		if(isset($argv[1]) && ($argv[1] === 'sumdebug'))
+		{
+			file_put_contents(__DIR__.'/tmp/automatic/result_dashboard.html', $result);
+			echo ' ('.md5($result).')';
+		}
+		if(md5($result) === 'd38afec2d9653241e7593d40a8fa241f')
 			echo ' [ OK ]'.PHP_EOL;
 		else
 		{
@@ -205,8 +217,12 @@
 		$result='';
 		$_SERVER['REQUEST_URI']='/admin/posts/new';
 		include './index.php';
-		//echo ' ('.md5($result).')';
-		if(md5($result) === '9d18ecb6663c1f696f3be77cc06ef7b8')
+		if(isset($argv[1]) && ($argv[1] === 'sumdebug'))
+		{
+			file_put_contents(__DIR__.'/tmp/automatic/result_posts-new.html', $result);
+			echo ' ('.md5($result).')';
+		}
+		if(md5($result) === '2551553867cc7ab71f33b1cca6920f75')
 			echo ' [ OK ]'.PHP_EOL;
 		else
 		{
@@ -217,8 +233,12 @@
 		$result='';
 		$_SERVER['REQUEST_URI']='/admin/posts/edit';
 		include './index.php';
-		//echo ' ('.md5($result).')';
-		if(md5($result) === 'ca61b499b18092656933fc60595d081c')
+		if(isset($argv[1]) && ($argv[1] === 'sumdebug'))
+		{
+			file_put_contents(__DIR__.'/tmp/automatic/result_posts-edit.html', $result);
+			echo ' ('.md5($result).')';
+		}
+		if(md5($result) === '236f2ed988c31940f7d39942827c96f6')
 			echo ' [ OK ]'.PHP_EOL;
 		else
 		{
@@ -229,8 +249,12 @@
 		$result='';
 		$_SERVER['REQUEST_URI']='/admin/posts/delete';
 		include './index.php';
-		//echo ' ('.md5($result).')';
-		if(md5($result) === 'c9fc760412f4a575eb84f1c079c3ce65')
+		if(isset($argv[1]) && ($argv[1] === 'sumdebug'))
+		{
+			file_put_contents(__DIR__.'/tmp/automatic/result_posts-delete.html', $result);
+			echo ' ('.md5($result).')';
+		}
+		if(md5($result) === '13e756911e19d0a77538e0d1429b068b')
 			echo ' [ OK ]'.PHP_EOL;
 		else
 		{

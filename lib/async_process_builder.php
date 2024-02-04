@@ -19,15 +19,19 @@
 		 *    if false, the process will start without environment variables
 		 *    default: true
 		 *  Setting up:
-		 *   chdir(string_directory)
+		 *   chdir(string_directory) [returns this]
 		 *    set working directory
 		 *    note: to use, the process cannot be started
 		 *    note: if not used, the start method will use getcwd
-		 *   setenv(string_name, string_value)
+		 *   setenv(string_name, string_value) [returns this]
 		 *    set environment variable for process
 		 *   setenv(string_name) [returns bool]
 		 *    unset environment variable for process
 		 *    returns true if the variable existed
+		 *   set_pty() [returns this]
+		 *    use pseudo terminal instead of pipes
+		 *   unset_pty() [returns this]
+		 *    use pipes instead of pseudo terminal (default behavior)
 		 *  Starting:
 		 *   start()
 		 *    throws an async_process_builder_exception if the process cannot be started
@@ -79,6 +83,8 @@
 		 *    check if process is running
 		 *   stdin_closed() [returns bool]
 		 *    check if stdin has been closed
+		 *   has_pty() [returns bool]
+		 *    check if the process has a pseudo terminal
 		 *  Stopping:
 		 *   stop() [returns int|false]
 		 *    uses proc_close
@@ -162,11 +168,17 @@
 		protected $command;
 		protected $env=[];
 		protected $cwd=null;
-		protected $process_descriptors=[
+		protected $process_descriptors_pipe=[
 			0=>['pipe', 'r'],
 			1=>['pipe', 'w'],
 			2=>['pipe', 'w']
 		];
+		protected $process_descriptors_pty=[
+			0=>['pty'],
+			1=>['pty'],
+			2=>['pty']
+		];
+		protected $process_has_pty=false;
 		protected $process_handler=null;
 		protected $process_pipes=null;
 		protected $_read_until_char_debug=false; // change by inheritance
@@ -329,6 +341,8 @@
 				throw new async_process_builder_exception($directory.' is not a directory');
 
 			$this->cwd=$directory;
+
+			return $this;
 		}
 		public function getenv(string $name)
 		{
@@ -354,6 +368,17 @@
 			}
 
 			$this->env[$name]=$value;
+
+			return $this;
+		}
+		public function set_pty()
+		{
+			if($this->process_started())
+				throw new async_process_builder_exception('The process is already running');
+
+			$this->process_has_pty=true;
+
+			return $this;
 		}
 
 		public function get_pid()
@@ -385,6 +410,10 @@
 
 			return (@stream_get_meta_data($this->process_pipes[0]) === false);
 		}
+		public function has_pty()
+		{
+			return $this->process_has_pty;
+		}
 
 		public function start()
 		{
@@ -394,9 +423,13 @@
 			if($this->cwd === null)
 				$this->cwd=getcwd();
 
+			$process_descriptors=$this->process_descriptors_pipe;
+			if($this->process_has_pty)
+				$process_descriptors=$this->process_descriptors_pty;
+
 			$this->process_handler=proc_open(
 				$this->command,
-				$this->process_descriptors,
+				$process_descriptors,
 				$this->process_pipes,
 				$this->cwd,
 				$this->env

@@ -50,7 +50,7 @@
 		 * Returns alphanumeric string
 		 *
 		 * Warning:
-		 *  openssl extension is required
+		 *  openssl extension is recommended
 		 *
 		 * Note:
 		 *  throws an rand_str_exception on error
@@ -59,7 +59,7 @@
 		 *  rand_str_secure(40)
 		 */
 
-		if((PHP_MAJOR_VERSION >= 7) && (!$force_openssl))
+		if(function_exists('random_bytes') && (!$force_openssl))
 			return substr(bin2hex(random_bytes($chars)), 0, $chars);
 
 		if(!extension_loaded('openssl'))

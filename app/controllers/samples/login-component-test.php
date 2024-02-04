@@ -1,49 +1,65 @@
 <?php
-	require './app/shared/samples/default_http_headers.php';
+	// replace long $array['a']['b']['c']='d' with nice array
+	// because if you declare $array=['a'=>['b'=>['c'=>'d']]],
+	// default settings will be lost
+	function configure_login_component($params)
+	{
+		foreach($params as $section=>$options)
+		{
+			if(is_array($options))
+				foreach($options as $option=>$value)
+					$GLOBALS['_login'][$section][$option]=$value;
+			else
+				$GLOBALS['_login'][$section]=$options;
+		}
+	}
+
+	require './app/lib/samples/default_http_headers.php';
 
 	if(
 		isset($_SERVER['HTTP_ACCEPT_ENCODING']) &&
-		(strpos($_SERVER['HTTP_ACCEPT_ENCODING'], 'gzip') !== false)
+		str_contains($_SERVER['HTTP_ACCEPT_ENCODING'], 'gzip')
 	)
 		ob_start('ob_gzhandler');
 
-	require './app/shared/samples/session_start.php';
+	require './app/lib/samples/session_start.php';
 	// set custom session reloader
 	if(class_exists('lv_cookie_session_handler'))
-		$GLOBALS['_login']['config']['session_reload']=function($lifetime)
-		{
-			lv_cookie_session_handler::session_start([
-				'cookie_lifetime'=>$lifetime
-			]);
-		};
+		configure_login_component([
+			'config'=>[
+				'session_reload'=>function($lifetime){
+					lv_cookie_session_handler::session_start([
+						'cookie_lifetime'=>$lifetime
+					]);
+				}
+			]
+		]);
 
-	require './lib/logger.php';
-	$log_fails=new log_to_txt([
-		'app_name'=>'login-component-test',
-		'file'=>'./var/log/fails.log',
-		'lock_file'=>'./var/log/fails.log.lock'
-	]);
-	$log_infos=new log_to_txt([
-		'app_name'=>'login-component-test',
-		'file'=>'./var/log/infos.log',
-		'lock_file'=>'./var/log/infos.log.lock'
-	]);
+	// enable logging
+	define('LOGGER_APP_NAME', 'login-component-test');
+	require './app/lib/samples/logger.php';
 
 	require './app/models/samples/login_component_test_credentials.php';
 	$GLOBALS['_login']['credentials']=login_component_test_credentials::read_password();
 
 	// configure the login component
-	$GLOBALS['_login']['config']['method']='login_single';
-	$GLOBALS['_login']['view']['lang']='pl';
-	$GLOBALS['_login']['view']['title']='Logowanie';
-	$GLOBALS['_login']['view']['login_style']='login_bright.css';
-	$GLOBALS['_login']['view']['login_label']='Nazwa użytkownika';
-	$GLOBALS['_login']['view']['password_label']='Hasło';
-	$GLOBALS['_login']['view']['remember_me_label']='Zapamiętaj mnie';
-	$GLOBALS['_login']['view']['wrong_credentials_label']='Nieprawidłowa nazwa użytkownika lub hasło';
-	$GLOBALS['_login']['view']['submit_button_label']='Zaloguj';
-	$GLOBALS['_login']['view']['loading_title']='Ładowanie...';
-	$GLOBALS['_login']['view']['loading_label']='Ładowanie...';
+	configure_login_component([
+		'config'=>[
+			'method'=>'login_single'
+		],
+		'view'=>[
+			'lang'=>'pl',
+			'title'=>'Logowanie',
+			'login_style'=>'login_bright.css',
+			'login_label'=>'Nazwa użytkownika',
+			'password_label'=>'Hasło',
+			'remember_me_label'=>'Zapamiętaj mnie',
+			'wrong_credentials_label'=>'Nieprawidłowa nazwa użytkownika lub hasło',
+			'submit_button_label'=>'Zaloguj',
+			'loading_title'=>'Ładowanie...',
+			'loading_label'=>'Ładowanie...'
+		]
+	]);
 	// this cookie is from app/templates/samples/default/assets/default.js/darkTheme.js
 	if(
 		isset($_COOKIE['app_dark_theme']) &&
@@ -52,61 +68,56 @@
 		$GLOBALS['_login']['view']['login_style']='login_dark.css';
 
 	// add bruteforce protection
-	require './lib/pdo_connect.php';
-	require './lib/pdo_crud_builder.php'; // in ./app/databases/samples/$db/seed.php
+	require './app/lib/samples/pdo_instance.php';
 	require './lib/sec_bruteforce.php';
 
-	if(getenv('DB_IGNORE_ENV') === 'true')
-		$pdo_connect_db='sqlite';
-	else
-		$pdo_connect_db=getenv('DB_TYPE');
-
-	if($pdo_connect_db === false)
-		$pdo_connect_db='sqlite';
-
 	$sec_bruteforce=new bruteforce_timeout_pdo([
-		'pdo_handler'=>pdo_connect('./app/databases/samples/'.$pdo_connect_db)
+		'pdo_handler'=>pdo_instance()
 	]);
 
 	if($sec_bruteforce->check())
 	{
 		// disabled login prompt
 
-		$log_infos->info('IP '.$_SERVER['REMOTE_ADDR'].' is banned');
+		log_infos()->info('IP '.$_SERVER['REMOTE_ADDR'].' is banned');
 
 		$_GET=[];
 		$_POST=[];
 
 		// remove this block to hide from the user any info that has been banned
-		$GLOBALS['_login']['view']['login_box_disabled']=true;
-		$GLOBALS['_login']['view']['password_box_disabled']=true;
-		$GLOBALS['_login']['view']['remember_me_box_disabled']=true;
-		$GLOBALS['_login']['view']['submit_button_disabled']=true;
-		$GLOBALS['_login']['wrong_credentials']=true;
-		$GLOBALS['_login']['view']['wrong_credentials_label']='Zostałeś zbanowany. Wróć później.';
+		configure_login_component([
+			'view'=>[
+				'login_box_disabled'=>true,
+				'password_box_disabled'=>true,
+				'remember_me_box_disabled'=>true,
+				'submit_button_disabled'=>true,
+				'wrong_credentials_label'=>'Zostałeś zbanowany. Wróć później.'
+			],
+			'wrong_credentials'=>true
+		]);
 
 		require './components/login/login.php';
 		exit();
 	}
 
 	// define callbacks for the login component
-	$GLOBALS['_login']['config']['on_login_prompt']=function() use($log_infos)
-	{
-		$log_infos->info('Login prompt requested');
-	};
-	$GLOBALS['_login']['config']['on_login_success']=function() use($log_infos)
-	{
-		$log_infos->info('User logged in');
-	};
-	$GLOBALS['_login']['config']['on_login_failed']=function() use($log_fails, $sec_bruteforce)
-	{
-		$log_fails->info($_SERVER['REMOTE_ADDR'].' login failed');
-		$sec_bruteforce->add();
-	};
-	$GLOBALS['_login']['config']['on_logout']=function() use($log_infos)
-	{
-		$log_infos->info('User logged out');
-	};
+	configure_login_component([
+		'config'=>[
+			'on_login_prompt'=>function(){
+				log_infos()->info('Login prompt requested');
+			},
+			'on_login_success'=>function(){
+				log_infos()->info('User logged in');
+			},
+			'on_login_failed'=>function() use($sec_bruteforce){
+				log_fails()->info($_SERVER['REMOTE_ADDR'].' login failed');
+				$sec_bruteforce->add();
+			},
+			'on_logout'=>function(){
+				log_infos()->info('User logged out');
+			}
+		]
+	]);
 
 	// display login prompt
 	require './components/login/login.php';
@@ -117,7 +128,7 @@
 
 		if(!extension_loaded('gd'))
 		{
-			$log_fails->warn('gd extension not installed - CAPTCHA test disabled');
+			log_fails()->warn('gd extension not installed - CAPTCHA test disabled');
 			$_SESSION['captcha_verified']=true;
 		}
 
@@ -232,7 +243,7 @@
 				)
 			){
 				login_component_test_credentials::save_new_password($_POST['new_password']);
-				$log_infos->info('Password updated');
+				log_infos()->info('Password updated');
 
 				require './components/login/reload.php'; // display reload page
 				exit();

@@ -12,8 +12,9 @@
 	 	// pre-configured version
 	 	redis_connect(
 			'./path_to/your_redis_config_directory',
-			function($error)
+			function($error) // optional
 			{
+				// executed on RedisException
 				error_log('redis_connect: '.$error->getMessage());
 			}
 		)
@@ -21,23 +22,26 @@
 		// portable version
 	 	redis_connect_array(
 			[
-				'host'=>'ip-or-unix-socket-path', // required
-				'port'=>'server-port',
-				'auth'=>[
+				'host'=>'server-ip', // required or use socket
+				'port'=>'server-port', // optional, default: 6379
+				'socket'=>'unix-socket-path', // has priority over the host, eg. /var/run/redis/redis.sock
+				'dbindex'=>db-index, // optional, default: 0
+				'auth'=>[ // optional
 					'user'=>'phpredis',
 					'pass'=>'phpredis'
 				],
-				'timeout'=>timeout,
-				'retry_interval'=>retry-interval,
-				'read_timeout'=>read-timeout,
-				'options'=>[
+				'timeout'=>timeout, // optional, default: 0
+				'retry_interval'=>retry-interval, // optional, default: 0
+				'read_timeout'=>read-timeout, // optional, default: 0
+				'options'=>[  // optional
 					Redis::OPT_BACKOFF_ALGORITHM=>Redis::BACKOFF_ALGORITHM_DECORRELATED_JITTER,
 					Redis::OPT_BACKOFF_BASE=>500,
 					Redis::OPT_BACKOFF_CAP, 750
 				]
 			],
-			function($error)
+			function($error) // optional
 			{
+				// executed on RedisException
 				error_log('redis_connect_array: '.$error->getMessage());
 			}
 		)
@@ -63,17 +67,18 @@
 		 *  1) create a directory for redis config files
 		 *  2) create a config.php file:
 				return [
-					'host'=>'ip-or-unix-socket-path', // required
-					'port'=>'server-port',
-					'dbindex'=>0,
-					'auth'=>[
+					'host'=>'server-ip', // required or use socket
+					'port'=>'server-port', // optional, default: 6379
+					'socket'=>'unix-socket-path', // has priority over the host, eg. /var/run/redis/redis.sock
+					'dbindex'=>db-index, // optional, default: 0
+					'auth'=>[ // optional
 						'user'=>'phpredis',
 						'pass'=>'phpredis'
 					],
-					'timeout'=>timeout,
-					'retry_interval'=>retry-interval,
-					'read_timeout'=>read-timeout,
-					'options'=>[
+					'timeout'=>timeout, // optional, default: 0
+					'retry_interval'=>retry-interval, // optional, default: 0
+					'read_timeout'=>read-timeout, // optional, default: 0
+					'options'=>[  // optional
 						Redis::OPT_BACKOFF_ALGORITHM=>Redis::BACKOFF_ALGORITHM_DECORRELATED_JITTER,
 						Redis::OPT_BACKOFF_BASE=>500,
 						Redis::OPT_BACKOFF_CAP, 750
@@ -83,12 +88,12 @@
 		 * Initialization:
 			$db=redis_connect(
 				'./path_to/your_database_config_directory',
-				function($error)
+				function($error) // optional
 				{
+					// executed on RedisException
 					error_log('redis_connect: '.$error->getMessage());
 				}
 			);
-		 *   where $on_error is optional and is executed on RedisException
 		 */
 
 		if(!file_exists($db.'/config.php'))
@@ -119,34 +124,40 @@
 		 * Initialization:
 			$db=redis_connect_array(
 				[
-					'host'=>'ip-or-unix-socket-path', // required
-					'port'=>'server-port',
-					'dbindex'=>0,
-					'auth'=>[
+					'host'=>'server-ip', // required or use socket
+					'port'=>'server-port', // optional, default: 6379
+					'socket'=>'unix-socket-path', // has priority over the host, eg. /var/run/redis/redis.sock
+					'dbindex'=>db-index, // optional, default: 0
+					'auth'=>[ // optional
 						'user'=>'phpredis',
 						'pass'=>'phpredis'
 					],
-					'timeout'=>timeout,
-					'retry_interval'=>retry-interval,
-					'read_timeout'=>read-timeout,
-					'options'=>[
+					'timeout'=>timeout, // optional, default: 0
+					'retry_interval'=>retry-interval, // optional, default: 0
+					'read_timeout'=>read-timeout, // optional, default: 0
+					'options'=>[  // optional
 						Redis::OPT_BACKOFF_ALGORITHM=>Redis::BACKOFF_ALGORITHM_DECORRELATED_JITTER,
 						Redis::OPT_BACKOFF_BASE=>500,
 						Redis::OPT_BACKOFF_CAP, 750
 					]
 				],
-				function($error)
+				function($error) // optional
 				{
+					// executed on RedisException
 					error_log('redis_connect_array: '.$error->getMessage());
 				}
 			);
-		 *   where $on_error is optional and is executed on RedisException
 		 */
 
 		if(!extension_loaded('redis'))
 			throw new redis_connect_exception('redis extension is not loaded');
 
-		if(!isset($db_config['host']))
+		if(isset($db_config['socket']))
+		{
+			$db_config['host']='unix://'.$db_config['socket'];
+			$db_config['port']=0;
+		}
+		else if(!isset($db_config['host']))
 			throw new redis_connect_exception('The host parameter was not specified');
 
 		foreach([

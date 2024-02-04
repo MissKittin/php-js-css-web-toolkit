@@ -9,15 +9,9 @@
 	 * Warning:
 	 *  PDO extension is required
 	 *  pdo_sqlite extension is required
-	 *  SQLite3 class is recommended
+	 * or
+	 *  SQLite3 class is required
 	 */
-
-	foreach(['PDO', 'pdo_sqlite'] as $extension)
-		if(!extension_loaded($extension))
-		{
-			echo $extension.' extension is not loaded'.PHP_EOL;
-			exit(1);
-		}
 
 	echo ' -> Including '.basename(__FILE__);
 		if(is_file(__DIR__.'/../lib/'.basename(__FILE__)))
@@ -49,7 +43,24 @@
 
 	echo ' -> Creating test database';
 		@mkdir(__DIR__.'/tmp');
-		$test_db=new PDO('sqlite:'.__DIR__.'/tmp/sqlite3_db_dump.sqlite3');
+
+		if(extension_loaded('PDO') && extension_loaded('pdo_sqlite'))
+		{
+			echo ' (PDO)';
+			$test_db=new PDO('sqlite:'.__DIR__.'/tmp/sqlite3_db_dump.sqlite3');
+		}
+		else if(class_exists('SQLite3'))
+		{
+			echo ' (SQLite3)';
+			$test_db=new SQLite3(__DIR__.'/tmp/sqlite3_db_dump.sqlite3');
+			$test_db->busyTimeout(5000);
+		}
+		else
+		{
+			echo ' [FAIL]'.PHP_EOL;
+			exit(1);
+		}
+
 		foreach(['a', 'b', 'c'] as $table)
 		{
 			$test_db->exec('CREATE TABLE table'.$table.'(id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, columna TEXT, columnb TEXT)');
@@ -77,14 +88,19 @@
 			echo ' [SKIP]'.PHP_EOL;
 
 	echo ' -> Testing sqlite3_pdo_dump';
-		//echo ' ('.md5(sqlite3_pdo_dump(__DIR__.'/tmp/sqlite3_db_dump.sqlite3')).')';
-		if(md5(sqlite3_pdo_dump(__DIR__.'/tmp/sqlite3_db_dump.sqlite3')) === '60071847ffd1fa2efce1fc9a606b15fe')
-			echo ' [ OK ]'.PHP_EOL;
-		else
+		if(extension_loaded('PDO') && extension_loaded('pdo_sqlite'))
 		{
-			echo ' [FAIL]'.PHP_EOL;
-			$failed=true;
+			//echo ' ('.md5(sqlite3_pdo_dump(__DIR__.'/tmp/sqlite3_db_dump.sqlite3')).')';
+			if(md5(sqlite3_pdo_dump(__DIR__.'/tmp/sqlite3_db_dump.sqlite3')) === '60071847ffd1fa2efce1fc9a606b15fe')
+				echo ' [ OK ]'.PHP_EOL;
+			else
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				$failed=true;
+			}
 		}
+		else
+			echo ' [SKIP]'.PHP_EOL;
 
 	if($failed)
 		exit(1);

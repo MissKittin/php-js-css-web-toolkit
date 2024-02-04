@@ -1,13 +1,13 @@
 <?php
 	function http_error($error_code)
 	{
-		require './app/shared/samples/default_http_headers.php';
+		require './app/lib/samples/default_http_headers.php';
 		http_response_code($error_code);
 
 		$lang='en';
 		if(isset($_SERVER['HTTP_ACCEPT_LANGUAGE']))
 			foreach(['pl', $lang] as $lang)
-				if(substr($_SERVER['HTTP_ACCEPT_LANGUAGE'], 0, strlen($lang)) === $lang)
+				if(str_starts_with($_SERVER['HTTP_ACCEPT_LANGUAGE'], $lang))
 					break;
 
 		if(!isset($_SERVER['HTTP_HOST']))
@@ -21,7 +21,7 @@
 		)
 			$theme='dark';
 
-		require './app/shared/samples/ob_adapter.php';
+		require './app/lib/samples/ob_adapter.php';
 		ob_adapter
 			::add(new ob_adapter_obminifier())
 			->add(new ob_adapter_gzip())

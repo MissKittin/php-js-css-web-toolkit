@@ -3,7 +3,9 @@ A small framework
 
 ## Required libraries
 * `registry.php`
+* `simpleblog_materialized.css` (for materialized template)
 * `assets_compiler.php` (for tests)
+* `rmdir_recursive.php` (for tests)
 
 ## Note
 Throws an `Exception` if the library is not found  
@@ -14,6 +16,7 @@ The logout button action is the current URL via POST
 * `__construct(array_params)`  
 	params:  
 	* `'base_url'=>'/admin'` required
+	* `'template'=>'template_name'` default or materialized, optional
 	* `'assets_path'=>'/assets'` optional
 	* `'show_logout_button'=>true` optional
 	* `'csrf_token'=>['csrf_name', 'csrf_value']` required by show_logout_button
@@ -37,6 +40,7 @@ The logout button action is the current URL via POST
 	* `'script'=>'main.php'` here: `./app/admin/dashboard/main.php`
 	* `'url'=>'dashboard'` must be unique, here: `/admin/dashboard`
 	* `'name'=>'Dashboard'` in menu, will not be displayed if not defined
+	* `'template_header'=>'Dashboard'` in page header, will not be displayed if not defined
 * `remove_module(string_module_id)` [returns self]  
 	unregister a module or menu entry
 * `set_default_module(string_module_id)` [returns self]  
@@ -71,6 +75,13 @@ The logout button action is the current URL via POST
 * `set_logout_button_label(string_label)` [returns self]  
 	default: Logout
 
+## Templates
+There are two templates available:
+* default  
+	purple-yellow-blue theme
+* materialized  
+	based on the Google's Material Design in green
+
 ## Modules
 All application logic is defined by modules.  
 The module first configures the view in a `config` file,  
@@ -100,7 +111,8 @@ Admin router:
 			'config'=>'config.php',
 			'script'=>'main.php',
 			'url'=>'dashboard',
-			'name'=>'Dashboard'
+			'name'=>'Dashboard',
+			'template_header'=>'Dashboard'
 		])
 		->add_module([
 			'id'=>'posts',
@@ -109,6 +121,7 @@ Admin router:
 			'script'=>'main.php',
 			'url'=>'posts',
 			'name'=>'Posts',
+			'template_header'=>'Posts',
 			'custom_variable'=>'Custom variable here'
 		])
 		->add_menu_entry([
@@ -137,7 +150,6 @@ Admin router:
 
 ./app/admin/dashboard/main.php:
 ```
-<h1>Dashboard</h1>
 <pre><?php echo '$_module: '; var_dump($_module); ?></pre>
 <pre><?php echo '$this->registry: '; var_dump($this->registry); ?></pre>
 ```
@@ -154,8 +166,6 @@ Admin router:
 
 ./app/admin/posts/main.php:
 ```
-<h1>Posts</h1>
-
 <?php if(isset($_module['_is_default'])) {?>
 	<h3>The module was called as default</h3>
 <?php } ?>

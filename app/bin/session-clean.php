@@ -15,7 +15,7 @@
 	 *   but it is better to run it from cron
 	 *  if $_sessions_dir is not defined,
 	 *   $_SESSION_CLEAN_TOOL will be set
-	 *   and ./app/shared/samples/session_start.php will be included
+	 *   and ./app/lib/samples/session_start.php will be included
 	 *
 	 * Log callback (not for cli):
 	 *  after the session file has been deleted,

@@ -11,12 +11,24 @@
 	 *  variables:
 	 *   TEST_REDIS=yes (default: no)
 	 *   TEST_REDIS_HOST (default: 127.0.0.1)
+	 *   TEST_REDIS_SOCKET (has priority over the HOST)
+	 *    eg. /var/run/redis/redis.sock
 	 *   TEST_REDIS_PORT (default: 6379)
 	 *   TEST_REDIS_DBINDEX (default: 0)
 	 *   TEST_REDIS_USER
 	 *   TEST_REDIS_PASSWORD
 	 *
+	 * Hint:
+	 *  you can setup Memcached credentials by environment variables
+	 *  variables:
+	 *   TEST_MEMCACHED=yes (default: no)
+	 *   TEST_MEMCACHED_HOST (default: 127.0.0.1)
+	 *   TEST_MEMCACHED_SOCKET (has priority over the HOST)
+	 *    eg. /var/run/memcached/memcached.sock
+	 *   TEST_MEMCACHED_PORT (default: 11211)
+	 *
 	 * Warning:
+	 *  memcached extension is recommended
 	 *  redis extension is recommended
 	 */
 
@@ -65,6 +77,7 @@
 			'credentials'=>[
 				'host'=>'127.0.0.1',
 				'port'=>6379,
+				'socket'=>null,
 				'dbindex'=>0,
 				'user'=>null,
 				'password'=>null
@@ -76,7 +89,7 @@
 			]
 		];
 
-		foreach(['host', 'port', 'dbindex', 'user', 'password'] as $_redis['_parameter'])
+		foreach(['host', 'port', 'socket', 'dbindex', 'user', 'password'] as $_redis['_parameter'])
 		{
 			$_redis['_variable']='TEST_REDIS_'.strtoupper($_redis['_parameter']);
 			$_redis['_value']=getenv($_redis['_variable']);
@@ -86,6 +99,12 @@
 				echo '  -> Using '.$_redis['_variable'].'="'.$_redis['_value'].'" as Redis '.$_redis['_parameter'].PHP_EOL;
 				$_redis['credentials'][$_redis['_parameter']]=$_redis['_value'];
 			}
+		}
+
+		if($_redis['credentials']['socket'] !== null)
+		{
+			$_redis['credentials']['host']='unix://'.$_redis['credentials']['socket'];
+			$_redis['credentials']['port']=0;
 		}
 
 		if($_redis['credentials']['user'] !== null)
@@ -133,6 +152,59 @@
 		{
 			$redis_handler->del('ob_cache_test_cache_1');
 			$redis_handler->del('ob_cache_test_cache_2');
+		}
+	}
+
+	if(getenv('TEST_MEMCACHED') === 'yes')
+	{
+		if(!extension_loaded('memcached'))
+		{
+			echo 'memcached extension is not loaded'.PHP_EOL;
+			exit(1);
+		}
+
+		echo ' -> Configuring Memcached'.PHP_EOL;
+
+		$_memcached=[
+			'credentials'=>[
+				'host'=>'127.0.0.1',
+				'port'=>11211,
+				'socket'=>null
+			]
+		];
+
+		foreach(['host', 'port', 'socket'] as $_memcached['_parameter'])
+		{
+			$_memcached['_variable']='TEST_MEMCACHED_'.strtoupper($_memcached['_parameter']);
+			$_memcached['_value']=getenv($_memcached['_variable']);
+
+			if($_memcached['_value'] !== false)
+			{
+				echo '  -> Using '.$_memcached['_variable'].'="'.$_memcached['_value'].'" as Memcached '.$_memcached['_parameter'].PHP_EOL;
+				$_memcached['credentials'][$_memcached['_parameter']]=$_memcached['_value'];
+			}
+		}
+
+		if($_memcached['credentials']['socket'] !== null)
+		{
+			$_memcached['credentials']['host']=$_memcached['credentials']['socket'];
+			$_memcached['credentials']['port']=0;
+		}
+
+		$memcached_handler=new Memcached();
+
+		if(!$memcached_handler->addServer(
+			$_memcached['credentials']['host'],
+			$_memcached['credentials']['port']
+		)){
+			echo '  -> Memcached connection error'.PHP_EOL;
+			unset($memcached_handler);
+		}
+
+		if(isset($memcached_handler))
+		{
+			$memcached_handler->delete('ob_cache_test_cache_1');
+			$memcached_handler->delete('ob_cache_test_cache_2');
 		}
 	}
 
@@ -222,6 +294,60 @@
 		}
 		else
 			echo ' <- Testing ob_redis_cache [SKIP]'.PHP_EOL;
+
+	echo ' -> Testing ob_memcached_cache'.PHP_EOL;
+		if(isset($memcached_handler))
+		{
+			try {
+				echo '  -> permanent cache';
+
+				ob_start();
+				ob_memcached_cache($memcached_handler, 'cache_1', 0, false, 'ob_cache_test_');
+				echo 'good value';
+				ob_end_clean();
+
+				$memcached_handler->get('ob_cache_test_cache_1');
+				if($memcached_handler->get('ob_cache_test_cache_1') === 'good value')
+					echo ' [ OK ]'.PHP_EOL;
+				else
+				{
+					echo ' [FAIL]'.PHP_EOL;
+					$errors[]='ob_memcached_cache permanent cache failed';
+				}
+			} catch(Throwable $error) {
+				echo ' [FAIL]'.PHP_EOL;
+				$errors[]='ob_memcached_cache permanent cache: '.$error->getMessage();
+			}
+			try {
+				echo '  -> temporary cache';
+
+				ob_start();
+				ob_memcached_cache($memcached_handler, 'cache_2', 1, false, 'ob_cache_test_');
+				echo 'good value';
+				ob_end_clean();
+
+				sleep(4);
+
+				ob_start();
+				ob_memcached_cache($memcached_handler, 'cache_2', 0, false, 'ob_cache_test_');
+				echo 'new value';
+				ob_end_clean();
+
+				$memcached_handler->get('ob_cache_test_cache_2');
+				if($memcached_handler->get('ob_cache_test_cache_2') === 'new value')
+					echo ' [ OK ]'.PHP_EOL;
+				else
+				{
+					echo ' [FAIL]'.PHP_EOL;
+					$errors[]='ob_memcached_cache permanent cache failed';
+				}
+			} catch(Throwable $error) {
+				echo ' [FAIL]'.PHP_EOL;
+				$errors[]='ob_memcached_cache temporary cache: '.$error->getMessage();
+			}
+		}
+		else
+			echo ' <- Testing ob_memcached_cache [SKIP]'.PHP_EOL;
 
 	if(!empty($errors))
 	{

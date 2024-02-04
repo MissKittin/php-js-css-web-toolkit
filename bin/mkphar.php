@@ -18,13 +18,17 @@
 
 	if(check_argv('-h') || check_argv('--help'))
 	{
-		echo 'Usage: [--compress=gz|bz2] [[--stub=path/to/main.php] [--shebang]] --source=dir1 [--source=dir2] --output=path/to/archive.phar'.PHP_EOL;
+		echo 'Usage: [--compress=gz|bz2] [[--stub=path/to/main.php] [--shebang]] --source=dir1 [--source=dir2] [--ignore=filename] [--ignore=dirname/] [--ignore=dir/file] --output=path/to/archive.phar'.PHP_EOL;
 		echo PHP_EOL;
 		echo 'Where:'.PHP_EOL;
 		echo ' --compress -> if not defined, no compression applied'.PHP_EOL;
 		echo ' --stub -> app entrypoint (will be added to the root directory)'.PHP_EOL;
 		echo ' --shebang -> add #!/usr/bin/env php (stub must be defined)'.PHP_EOL;
 		echo ' --source -> path for buildFromDirectory()'.PHP_EOL;
+		echo ' --ignore -> do not add file/directory with name'.PHP_EOL;
+		echo '  note:'.PHP_EOL;
+		echo '   it doesn\'t matter if there is a slash or a backslash in the path'.PHP_EOL;
+		echo '   parent and absolute paths are forbidden'.PHP_EOL;
 		echo ' --output -> path to the output file'.PHP_EOL;
 		exit();
 	}
@@ -33,6 +37,7 @@
 	$shebang='';
 	$stub=check_argv_param('--stub', '=');
 	$sources=check_argv_param_many('--source', '=');
+	$ignores=check_argv_param_many('--ignore', '=');
 	$output=check_argv_param('--output', '=');
 
 	if(!Phar::canWrite())
@@ -86,27 +91,75 @@
 		exit(1);
 	}
 
+	if($ignores === null)
+		$ignores=[];
+
 	if(file_exists($output))
 	{
 		echo __DIR__.'/lib.phar already exists.PHP_EOL';
 		exit(1);
 	}
 
-	foreach($sources as $source)
+	foreach($sources as &$source)
+	{
 		if(!is_dir($source))
 		{
 			echo $source.' is not a directory'.PHP_EOL;
 			exit(1);
 		}
 
+		if(
+			(substr($source, 0, 1) === '/') ||
+			(substr($source, 1, 2) === ':\\')
+		){
+			echo $source.': absolute paths are forbidden'.PHP_EOL;
+			exit(1);
+		}
+
+		if(
+			(substr($source, 0, 3) === '../') ||
+			(substr($source, 0, 3) === '..\\')
+		){
+			echo $source.': parent paths are forbidden'.PHP_EOL;
+			exit(1);
+		}
+
+		if(
+			(substr($source, 0, 2) === './') ||
+			(substr($source, 0, 2) === '.\\')
+		)
+			$source=substr($source, 2);
+	}
+
 	try {
 		$phar=new Phar($output);
 		$phar->startBuffering();
 
 		echo ' -> Adding files'.PHP_EOL;
-		foreach($sources as $source)
-			foreach($phar->buildFromDirectory($source) as $file_destination=>$file_source)
-				echo '  -> '.$file_source.' => '.$file_destination.PHP_EOL;
+		foreach($sources as &$source)
+			foreach(
+				new RecursiveIteratorIterator(
+					new RecursiveDirectoryIterator($source, RecursiveDirectoryIterator::SKIP_DOTS)
+				)
+				as $file
+			){
+				foreach($ignores as $ignore)
+					if(
+						strpos(
+							strtr($file->getPathname(), '\\', '/'),
+							strtr($ignore, '\\', '/')
+						) !== false
+					){
+						echo '[IGN] '.$file->getPathname().PHP_EOL;
+						continue 2;
+					}
+
+				echo '[ADD] '.$file->getPathname().PHP_EOL;
+				$phar->addFile(
+					$file->getPathname(),
+					strtr($file->getPathname(), '\\', '/')
+				);
+			}
 
 		if($stub === null)
 			$phar->setStub('<?php echo \'This Phar has no stub\'.PHP_EOL; exit(1); __HALT_COMPILER(); ?>');
@@ -117,8 +170,8 @@
 				echo ' with shebang'.PHP_EOL;
 			echo PHP_EOL;
 
-			echo '  -> '.$stub.' => '.basename($stub).PHP_EOL;
-			$phar->addFile($stub, basename($stub));
+			echo '  -> '.$stub.' => __'.basename($stub).PHP_EOL;
+			$phar->addFile($stub, '__'.basename($stub));
 
 			$phar->setStub($shebang.$phar->createDefaultStub(basename($stub)));
 		}

@@ -64,7 +64,13 @@
 
 		public function exec($buffer)
 		{
-			return ob_sfucator($buffer);
+			return ob_sfucator(
+				[
+					'title'=>'ob_sfucator',
+					'label'=>'<h1>Enable javascript to view content</h1>'
+				],
+				true, $buffer
+			);
 		}
 	}
 	class ob_adapter_gzip
@@ -89,7 +95,7 @@
 			{
 				if(
 					(!isset($_SERVER['HTTP_ACCEPT_ENCODING'])) ||
-					(strpos($_SERVER['HTTP_ACCEPT_ENCODING'], 'gzip') === false)
+					(!str_contains($_SERVER['HTTP_ACCEPT_ENCODING'], 'gzip'))
 				){
 					if(in_array('Content-Encoding: gzip', headers_list()))
 						header_remove('Content-Encoding');
@@ -118,7 +124,7 @@
 		{
 			if(
 				(!isset($_SERVER['HTTP_ACCEPT_ENCODING'])) ||
-				(strpos($_SERVER['HTTP_ACCEPT_ENCODING'], 'gzip') === false)
+				(!str_contains($_SERVER['HTTP_ACCEPT_ENCODING'], 'gzip'))
 			){
 				if(in_array('Content-Encoding: gzip', headers_list()))
 					header_remove('Content-Encoding');

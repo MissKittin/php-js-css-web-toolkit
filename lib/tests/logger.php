@@ -12,11 +12,15 @@
 	 *   TEST_DB_TYPE (pgsql, mysql, sqlite) (default: sqlite)
 	 *   TEST_PGSQL_HOST (default: 127.0.0.1)
 	 *   TEST_PGSQL_PORT (default: 5432)
+	 *   TEST_PGSQL_SOCKET (has priority over the HOST)
+	 *    eg. for pgsql (note: directory path): /var/run/postgresql
+	 *    eg. for mysql: /var/run/mysqld/mysqld.sock
 	 *   TEST_PGSQL_DBNAME (default: php_toolkit_tests)
 	 *   TEST_PGSQL_USER (default: postgres)
 	 *   TEST_PGSQL_PASSWORD (default: postgres)
 	 *   TEST_MYSQL_HOST (default: [::1])
 	 *   TEST_MYSQL_PORT (default: 3306)
+	 *   TEST_MYSQL_SOCKET (has priority over the HOST
 	 *   TEST_MYSQL_DBNAME (default: php_toolkit_tests)
 	 *   TEST_MYSQL_USER (default: root)
 	 *   TEST_MYSQL_PASSWORD
@@ -150,7 +154,7 @@
 			];
 
 			foreach(['pgsql', 'mysql'] as $_pdo['_database'])
-				foreach(['host', 'port', 'dbname', 'user', 'password'] as $_pdo['_parameter'])
+				foreach(['host', 'port', 'socket', 'dbname', 'user', 'password'] as $_pdo['_parameter'])
 				{
 					$_pdo['_variable']='TEST_'.strtoupper($_pdo['_database'].'_'.$_pdo['_parameter']);
 					$_pdo['_value']=getenv($_pdo['_variable']);
@@ -171,13 +175,21 @@
 						if(!extension_loaded('pdo_pgsql'))
 							throw new Exception('pdo_pgsql extension is not loaded');
 
-						$pdo_handler=new PDO('pgsql:'
-							.'host='.$_pdo['credentials'][$_pdo['type']]['host'].';'
-							.'port='.$_pdo['credentials'][$_pdo['type']]['port'].';'
-							.'dbname='.$_pdo['credentials'][$_pdo['type']]['dbname'].';'
-							.'user='.$_pdo['credentials'][$_pdo['type']]['user'].';'
-							.'password='.$_pdo['credentials'][$_pdo['type']]['password'].''
-						);
+						if(isset($_pdo['credentials'][$_pdo['type']]['socket']))
+							$pdo_handler=new PDO('pgsql:'
+								.'host='.$_pdo['credentials'][$_pdo['type']]['socket'].';'
+								.'dbname='.$_pdo['credentials'][$_pdo['type']]['dbname'].';'
+								.'user='.$_pdo['credentials'][$_pdo['type']]['user'].';'
+								.'password='.$_pdo['credentials'][$_pdo['type']]['password'].''
+							);
+						else
+							$pdo_handler=new PDO('pgsql:'
+								.'host='.$_pdo['credentials'][$_pdo['type']]['host'].';'
+								.'port='.$_pdo['credentials'][$_pdo['type']]['port'].';'
+								.'dbname='.$_pdo['credentials'][$_pdo['type']]['dbname'].';'
+								.'user='.$_pdo['credentials'][$_pdo['type']]['user'].';'
+								.'password='.$_pdo['credentials'][$_pdo['type']]['password'].''
+							);
 					break;
 					case 'mysql':
 						echo '  -> Using '.$_pdo['type'].' driver'.PHP_EOL;
@@ -185,13 +197,21 @@
 						if(!extension_loaded('pdo_mysql'))
 							throw new Exception('pdo_mysql extension is not loaded');
 
-						$pdo_handler=new PDO('mysql:'
-							.'host='.$_pdo['credentials'][$_pdo['type']]['host'].';'
-							.'port='.$_pdo['credentials'][$_pdo['type']]['port'].';'
-							.'dbname='.$_pdo['credentials'][$_pdo['type']]['dbname'],
-							$_pdo['credentials'][$_pdo['type']]['user'],
-							$_pdo['credentials'][$_pdo['type']]['password']
-						);
+						if(isset($_pdo['credentials'][$_pdo['type']]['socket']))
+							$pdo_handler=new PDO('mysql:'
+								.'unix_socket='.$_pdo['credentials'][$_pdo['type']]['socket'].';'
+								.'dbname='.$_pdo['credentials'][$_pdo['type']]['dbname'],
+								$_pdo['credentials'][$_pdo['type']]['user'],
+								$_pdo['credentials'][$_pdo['type']]['password']
+							);
+						else
+							$pdo_handler=new PDO('mysql:'
+								.'host='.$_pdo['credentials'][$_pdo['type']]['host'].';'
+								.'port='.$_pdo['credentials'][$_pdo['type']]['port'].';'
+								.'dbname='.$_pdo['credentials'][$_pdo['type']]['dbname'],
+								$_pdo['credentials'][$_pdo['type']]['user'],
+								$_pdo['credentials'][$_pdo['type']]['password']
+							);
 					break;
 					case 'sqlite':
 						echo '  -> Using '.$_pdo['type'].' driver'.PHP_EOL;
@@ -220,6 +240,7 @@
 
 		$failed=false;
 
+		$GLOBALS['_mail_callback_output']=[];
 		$log_params=[
 			'app_name'=>'test_app',
 
@@ -232,6 +253,11 @@
 
 			// mail
 			'recipient'=>'example@example.com',
+			'mail_callback'=>function($recipient, $app_name, $priority, $message)
+			{
+				$GLOBALS['_mail_callback_output'][$priority]=$recipient.'-'.$app_name.'-'.$message;
+				return true;
+			},
 
 			// pdo
 			'pdo_handler'=>$pdo_handler,
@@ -249,7 +275,7 @@
 			//'Test\log_to_curl',
 			//'Test\log_to_exec',
 			'Test\log_to_json',
-			//'Test\log_to_mail',
+			'Test\log_to_mail',
 			'Test\log_to_pdo',
 			//'Test\log_to_php',
 			//'Test\log_to_syslog',
@@ -287,6 +313,13 @@
 				case 'Test\log_to_json':
 					if(file_get_contents(__DIR__.'/tmp/logger/log.json') !== '[["0000-00-00 00:00:00","test_app","DEBUG","debug test"],["0000-00-00 00:00:00","test_app","INFO","info test"],["0000-00-00 00:00:00","test_app","WARN","warn test"],["0000-00-00 00:00:00","test_app","ERROR","error test"]]')
 						$test_failed=true;
+				break;
+				case 'Test\log_to_mail':
+					foreach(['DEBUG', 'INFO', 'WARN', 'ERROR'] as $mail_callback_output_test)
+						if(!isset($GLOBALS['_mail_callback_output'][$mail_callback_output_test]))
+							$test_failed=true;
+						else if($GLOBALS['_mail_callback_output'][$mail_callback_output_test] !== 'example@example.com-test_app-'.strtolower($mail_callback_output_test).' test')
+							$test_failed=true;
 				break;
 				case 'Test\log_to_pdo':
 					$pdo_fetch=$pdo_handler->query('SELECT * FROM logger')->fetchAll();

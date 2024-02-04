@@ -11,10 +11,21 @@
 	 *  variables:
 	 *   TEST_REDIS=yes (default: no)
 	 *   TEST_REDIS_HOST (default: 127.0.0.1)
+	 *   TEST_REDIS_SOCKET (has priority over the HOST)
+	 *    eg. /var/run/redis/redis.sock
 	 *   TEST_REDIS_PORT (default: 6379)
 	 *   TEST_REDIS_DBINDEX (default: 0)
 	 *   TEST_REDIS_USER
 	 *   TEST_REDIS_PASSWORD
+	 *
+	 * Hint:
+	 *  you can setup Memcached credentials by environment variables
+	 *  variables:
+	 *   TEST_MEMCACHED=yes (default: no)
+	 *   TEST_MEMCACHED_HOST (default: 127.0.0.1)
+	 *   TEST_MEMCACHED_SOCKET (has priority over the HOST)
+	 *    eg. /var/run/memcached/memcached.sock
+	 *   TEST_MEMCACHED_PORT (default: 11211)
 	 *
 	 * Hint:
 	 *  you can setup database credentials by environment variables
@@ -22,17 +33,22 @@
 	 *   TEST_DB_TYPE (pgsql, mysql, sqlite) (default: sqlite)
 	 *   TEST_PGSQL_HOST (default: 127.0.0.1)
 	 *   TEST_PGSQL_PORT (default: 5432)
+	 *   TEST_PGSQL_SOCKET (has priority over the HOST)
+	 *    eg. for pgsql (note: directory path): /var/run/postgresql
+	 *    eg. for mysql: /var/run/mysqld/mysqld.sock
 	 *   TEST_PGSQL_DBNAME (default: php_toolkit_tests)
 	 *   TEST_PGSQL_USER (default: postgres)
 	 *   TEST_PGSQL_PASSWORD (default: postgres)
 	 *   TEST_MYSQL_HOST (default: [::1])
 	 *   TEST_MYSQL_PORT (default: 3306)
+	 *   TEST_MYSQL_SOCKET (has priority over the HOST
 	 *   TEST_MYSQL_DBNAME (default: php_toolkit_tests)
 	 *   TEST_MYSQL_USER (default: root)
 	 *   TEST_MYSQL_PASSWORD
 	 *
 	 * Warning:
 	 *  PDO extension is required
+	 *  memcached extension is recommended
 	 *  pdo_pgsql extension is recommended
 	 *  pdo_mysql extension is recommended
 	 *  pdo_sqlite extension is recommended
@@ -119,7 +135,7 @@
 		];
 
 		foreach(['pgsql', 'mysql'] as $_pdo['_database'])
-			foreach(['host', 'port', 'dbname', 'user', 'password'] as $_pdo['_parameter'])
+			foreach(['host', 'port', 'socket', 'dbname', 'user', 'password'] as $_pdo['_parameter'])
 			{
 				$_pdo['_variable']='TEST_'.strtoupper($_pdo['_database'].'_'.$_pdo['_parameter']);
 				$_pdo['_value']=getenv($_pdo['_variable']);
@@ -140,13 +156,21 @@
 					if(!extension_loaded('pdo_pgsql'))
 						throw new Exception('pdo_pgsql extension is not loaded');
 
-					$pdo_handler=new PDO('pgsql:'
-						.'host='.$_pdo['credentials'][$_pdo['type']]['host'].';'
-						.'port='.$_pdo['credentials'][$_pdo['type']]['port'].';'
-						.'dbname='.$_pdo['credentials'][$_pdo['type']]['dbname'].';'
-						.'user='.$_pdo['credentials'][$_pdo['type']]['user'].';'
-						.'password='.$_pdo['credentials'][$_pdo['type']]['password'].''
-					);
+					if(isset($_pdo['credentials'][$_pdo['type']]['socket']))
+						$pdo_handler=new PDO('pgsql:'
+							.'host='.$_pdo['credentials'][$_pdo['type']]['socket'].';'
+							.'dbname='.$_pdo['credentials'][$_pdo['type']]['dbname'].';'
+							.'user='.$_pdo['credentials'][$_pdo['type']]['user'].';'
+							.'password='.$_pdo['credentials'][$_pdo['type']]['password'].''
+						);
+					else
+						$pdo_handler=new PDO('pgsql:'
+							.'host='.$_pdo['credentials'][$_pdo['type']]['host'].';'
+							.'port='.$_pdo['credentials'][$_pdo['type']]['port'].';'
+							.'dbname='.$_pdo['credentials'][$_pdo['type']]['dbname'].';'
+							.'user='.$_pdo['credentials'][$_pdo['type']]['user'].';'
+							.'password='.$_pdo['credentials'][$_pdo['type']]['password'].''
+						);
 				break;
 				case 'mysql':
 					echo '  -> Using '.$_pdo['type'].' driver'.PHP_EOL;
@@ -154,13 +178,21 @@
 					if(!extension_loaded('pdo_mysql'))
 						throw new Exception('pdo_mysql extension is not loaded');
 
-					$pdo_handler=new PDO('mysql:'
-						.'host='.$_pdo['credentials'][$_pdo['type']]['host'].';'
-						.'port='.$_pdo['credentials'][$_pdo['type']]['port'].';'
-						.'dbname='.$_pdo['credentials'][$_pdo['type']]['dbname'],
-						$_pdo['credentials'][$_pdo['type']]['user'],
-						$_pdo['credentials'][$_pdo['type']]['password']
-					);
+					if(isset($_pdo['credentials'][$_pdo['type']]['socket']))
+						$pdo_handler=new PDO('mysql:'
+							.'unix_socket='.$_pdo['credentials'][$_pdo['type']]['socket'].';'
+							.'dbname='.$_pdo['credentials'][$_pdo['type']]['dbname'],
+							$_pdo['credentials'][$_pdo['type']]['user'],
+							$_pdo['credentials'][$_pdo['type']]['password']
+						);
+					else
+						$pdo_handler=new PDO('mysql:'
+							.'host='.$_pdo['credentials'][$_pdo['type']]['host'].';'
+							.'port='.$_pdo['credentials'][$_pdo['type']]['port'].';'
+							.'dbname='.$_pdo['credentials'][$_pdo['type']]['dbname'],
+							$_pdo['credentials'][$_pdo['type']]['user'],
+							$_pdo['credentials'][$_pdo['type']]['password']
+						);
 				break;
 				case 'sqlite':
 					echo '  -> Using '.$_pdo['type'].' driver'.PHP_EOL;
@@ -208,6 +240,7 @@
 			'credentials'=>[
 				'host'=>'127.0.0.1',
 				'port'=>6379,
+				'socket'=>null,
 				'dbindex'=>0,
 				'user'=>null,
 				'password'=>null
@@ -219,7 +252,7 @@
 			]
 		];
 
-		foreach(['host', 'port', 'dbindex', 'user', 'password'] as $_redis['_parameter'])
+		foreach(['host', 'port', 'socket', 'dbindex', 'user', 'password'] as $_redis['_parameter'])
 		{
 			$_redis['_variable']='TEST_REDIS_'.strtoupper($_redis['_parameter']);
 			$_redis['_value']=getenv($_redis['_variable']);
@@ -229,6 +262,12 @@
 				echo '  -> Using '.$_redis['_variable'].'="'.$_redis['_value'].'" as Redis '.$_redis['_parameter'].PHP_EOL;
 				$_redis['credentials'][$_redis['_parameter']]=$_redis['_value'];
 			}
+		}
+
+		if($_redis['credentials']['socket'] !== null)
+		{
+			$_redis['credentials']['host']='unix://'.$_redis['credentials']['socket'];
+			$_redis['credentials']['port']=0;
 		}
 
 		if($_redis['credentials']['user'] !== null)
@@ -280,6 +319,60 @@
 		}
 	}
 
+	if(getenv('TEST_MEMCACHED') === 'yes')
+	{
+		if(!extension_loaded('memcached'))
+		{
+			echo 'memcached extension is not loaded'.PHP_EOL;
+			exit(1);
+		}
+
+		echo ' -> Configuring Memcached'.PHP_EOL;
+
+		$_memcached=[
+			'credentials'=>[
+				'host'=>'127.0.0.1',
+				'port'=>11211,
+				'socket'=>null
+			]
+		];
+
+		foreach(['host', 'port', 'socket'] as $_memcached['_parameter'])
+		{
+			$_memcached['_variable']='TEST_MEMCACHED_'.strtoupper($_memcached['_parameter']);
+			$_memcached['_value']=getenv($_memcached['_variable']);
+
+			if($_memcached['_value'] !== false)
+			{
+				echo '  -> Using '.$_memcached['_variable'].'="'.$_memcached['_value'].'" as Memcached '.$_memcached['_parameter'].PHP_EOL;
+				$_memcached['credentials'][$_memcached['_parameter']]=$_memcached['_value'];
+			}
+		}
+
+		if($_memcached['credentials']['socket'] !== null)
+		{
+			$_memcached['credentials']['host']=$_memcached['credentials']['socket'];
+			$_memcached['credentials']['port']=0;
+		}
+
+		$memcached_handler=new Memcached();
+
+		if(!$memcached_handler->addServer(
+			$_memcached['credentials']['host'],
+			$_memcached['credentials']['port']
+		)){
+			echo '  -> Memcached connection error'.PHP_EOL;
+			unset($memcached_handler);
+		}
+
+		if(isset($memcached_handler))
+		{
+			$memcached_handler->delete('bruteforce_memcached_test__1.2.3.4');
+			$memcached_handler->delete('bruteforce_memcached_test_resume__1.2.3.4');
+			$memcached_handler->delete('bruteforce_memcached_test_timeout__1.2.3.4');
+		}
+	}
+
 	function on_ban_callback()
 	{
 		++$GLOBALS['_on_ban_count'];
@@ -288,6 +381,7 @@
 	{
 		global $pdo_handler;
 		global $redis_handler;
+		global $memcached_handler;
 
 		$objects=[
 			'bruteforce_pdo'=>new bruteforce_pdo([
@@ -322,12 +416,22 @@
 				'on_ban'=>'on_ban_callback'
 			]);
 
+		if(isset($memcached_handler))
+			$objects['bruteforce_memcached']=new bruteforce_memcached([
+				'memcached_handler'=>$memcached_handler,
+				'prefix'=>'bruteforce_memcached_test__',
+				'max_attempts'=>3,
+				'ip'=>'1.2.3.4',
+				'on_ban'=>'on_ban_callback'
+			]);
+
 		return $objects;
 	}
 	function setup_resume_objects()
 	{
 		global $pdo_handler;
 		global $redis_handler;
+		global $memcached_handler;
 
 		$objects=[
 			'bruteforce_pdo'=>new bruteforce_pdo([
@@ -362,12 +466,22 @@
 				'on_ban'=>'on_ban_callback'
 			]);
 
+		if(isset($memcached_handler))
+			$objects['bruteforce_memcached']=new bruteforce_memcached([
+				'memcached_handler'=>$memcached_handler,
+				'prefix'=>'bruteforce_memcached_test_resume__',
+				'max_attempts'=>3,
+				'ip'=>'1.2.3.4',
+				'on_ban'=>'on_ban_callback'
+			]);
+
 		return $objects;
 	}
 	function setup_timeout_objects()
 	{
 		global $pdo_handler;
 		global $redis_handler;
+		global $memcached_handler;
 
 		$objects=[
 			'bruteforce_timeout_pdo'=>new bruteforce_timeout_pdo([
@@ -400,6 +514,16 @@
 			$objects['bruteforce_timeout_redis']=new bruteforce_timeout_redis([
 				'redis_handler'=>$redis_handler,
 				'prefix'=>'bruteforce_redis_test_timeout__',
+				'max_attempts'=>3,
+				'ip'=>'1.2.3.4',
+				'ban_time'=>2,
+				'on_ban'=>'on_ban_callback'
+			]);
+
+		if(isset($memcached_handler))
+			$objects['bruteforce_timeout_memcached']=new bruteforce_timeout_memcached([
+				'memcached_handler'=>$memcached_handler,
+				'prefix'=>'bruteforce_memcached_test_timeout__',
 				'max_attempts'=>3,
 				'ip'=>'1.2.3.4',
 				'ban_time'=>2,

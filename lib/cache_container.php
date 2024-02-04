@@ -61,6 +61,11 @@
 	 *   constructor array parameters:
 	 *    redis_handler
 	 *    [prefix] => adds to the name of each key (default: cache_container__)
+	 *  cache_driver_memcached -> use Memcached as a cache
+	 *   constructor array parameters:
+	 *    memcached_handler
+	 *    [prefix] => adds to the name of each key (default: cache_container__)
+	 *   note: flush method is not implemented
 	 *
 	 * Example initialization:
 		$cache=new cache_container(new cache_driver_pdo([
@@ -691,6 +696,60 @@
 					$this->redis_handler->del($key);
 			}
 			while($iterator > 0);
+		}
+	}
+	class cache_driver_memcached implements cache_driver
+	{
+		protected $memcached_handler;
+		protected $prefix='cache_container__';
+
+		public function __construct(array $params)
+		{
+			if(!isset($params['memcached_handler']))
+				throw new cache_container_exception('No memcached handler given');
+
+			$this->memcached_handler=$params['memcached_handler'];
+
+			if(isset($params['prefix']))
+				$this->prefix=$params['prefix'];
+		}
+
+		public function put($key, $value, $timeout)
+		{
+			$this->memcached_handler->set(
+				$this->prefix.$key,
+				json_encode([
+					'value'=>$value,
+					'timeout'=>$timeout,
+					'timestamp'=>time()
+				], JSON_UNESCAPED_UNICODE),
+				$timeout
+			);
+		}
+		public function get($key): array
+		{
+			$this->memcached_handler->get($this->prefix.$key); // trigger expiration
+			$value=$this->memcached_handler->get($this->prefix.$key);
+
+			if($value === false)
+				return [];
+
+			$value=json_decode($value, true);
+			if($value === false)
+			{
+				$this->unset($key);
+				return [];
+			}
+
+			return $value;
+		}
+		public function unset($key)
+		{
+			$this->memcached_handler->delete($this->prefix.$key);
+		}
+		public function flush()
+		{
+			throw new cache_container_exception('flush method is not implemented in memcached driver');
 		}
 	}
 ?>

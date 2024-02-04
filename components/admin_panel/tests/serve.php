@@ -15,30 +15,29 @@
 
 	if(!isset($argv[1]))
 	{
-		echo 'Use "serve.php serve" to start built-in server'.PHP_EOL;
+		echo 'Use "serve.php serve [template]" to start built-in server'.PHP_EOL;
 		exit();
 	}
 	if($argv[1] !== 'serve')
 	{
-		echo 'Use "serve.php serve" to start built-in server'.PHP_EOL;
+		echo 'Use "serve.php serve [template]" to start built-in server'.PHP_EOL;
 		exit();
 	}
 
-	@mkdir(__DIR__.'/tmp');
-	if(!file_exists(__DIR__.'/tmp/serve'))
+	foreach(['assets_compiler.php', 'rmdir_recursive.php'] as $library)
 	{
-		echo ' Including assets_compiler.php';
-			if(file_exists(__DIR__.'/../lib/assets_compiler.php'))
+		echo ' Including '.$library;
+			if(file_exists(__DIR__.'/../lib/'.$library))
 			{
-				if(@(include __DIR__.'/../lib/assets_compiler.php') === false)
+				if(@(include __DIR__.'/../lib/'.$library) === false)
 				{
 					echo ' [FAIL]'.PHP_EOL;
 					exit(1);
 				}
 			}
-			else if(file_exists(__DIR__.'/../../../lib/assets_compiler.php'))
+			else if(file_exists(__DIR__.'/../../../lib/'.$library))
 			{
-				if(@(include __DIR__.'/../../../lib/assets_compiler.php') === false)
+				if(@(include __DIR__.'/../../../lib/'.$library) === false)
 				{
 					echo ' [FAIL]'.PHP_EOL;
 					exit(1);
@@ -50,14 +49,20 @@
 				exit(1);
 			}
 		echo ' [ OK ]'.PHP_EOL;
+	}
 
-		echo 'Creating test pool...'.PHP_EOL;
+	$admin_panel_template='default';
+	if(isset($argv[2]))
+		$admin_panel_template=$argv[2];
 
+	@mkdir(__DIR__.'/tmp');
+
+	echo 'Creating test pool...'.PHP_EOL;
+		rmdir_recursive(__DIR__.'/tmp/serve');
 		mkdir(__DIR__.'/tmp/serve');
 
 		mkdir(__DIR__.'/tmp/serve/dashboard');
 		file_put_contents(__DIR__.'/tmp/serve/dashboard/main.php', "
-			<h1>Dashboard</h1>
 			<pre><?php echo '\$_module: '; var_dump(\$_module); ?></pre>
 			<pre><?php echo '\$this->registry: '; var_dump(\$this->registry); ?></pre>
 		");
@@ -70,8 +75,6 @@
 
 		mkdir(__DIR__.'/tmp/serve/posts');
 		file_put_contents(__DIR__.'/tmp/serve/posts/main.php', "
-			<h1>Posts</h1>
-
 			<?php if(isset(\$_module['_is_default'])) {?>
 				<h3>The module was called as default</h3>
 			<?php } ?>
@@ -123,6 +126,7 @@
 
 			\$admin_panel=new admin_panel([
 				'base_url'=>'/admin',
+				'template'=>'$admin_panel_template',
 				'assets_path'=>'/assets',
 				'show_logout_button'=>true,
 				'csrf_token'=>['csrf_name', 'csrf_value']
@@ -137,7 +141,8 @@
 					'config'=>'config.php',
 					'script'=>'main.php',
 					'url'=>'dashboard',
-					'name'=>'Dashboard'
+					'name'=>'Dashboard',
+					'template_header'=>'Dashboard'
 				])
 				->add_module([
 					'id'=>'posts',
@@ -146,6 +151,7 @@
 					'script'=>'main.php',
 					'url'=>'posts',
 					'name'=>'Posts',
+					'template_header'=>'Posts',
 					'custom_variable'=>'Custom variable here'
 				])
 				->add_menu_entry([
@@ -162,9 +168,15 @@
 		?>");
 
 		mkdir(__DIR__.'/tmp/serve/public/assets');
-		foreach(array_diff(scandir(__DIR__.'/../assets'), ['.', '..']) as $file)
-			assets_compiler(__DIR__.'/../assets/'.$file, __DIR__.'/tmp/serve/public/assets/'.$file);
-	}
+
+		foreach(array_diff(scandir(__DIR__.'/../templates'), ['.', '..']) as $template)
+			foreach(array_diff(scandir(__DIR__.'/../templates/'.$template.'/assets'), ['.', '..']) as $file)
+				assets_compiler(__DIR__.'/../templates/'.$template.'/assets/'.$file, __DIR__.'/tmp/serve/public/assets/'.$file);
+
+		if(file_exists(__DIR__.'/../lib/simpleblog_materialized.css'))
+			copy(__DIR__.'/../lib/simpleblog_materialized.css', __DIR__.'/tmp/serve/public/assets/simpleblog_materialized.css');
+		else if(file_exists(__DIR__.'/../../../lib/simpleblog_materialized.css'))
+			copy(__DIR__.'/../../../lib/simpleblog_materialized.css', __DIR__.'/tmp/serve/public/assets/simpleblog_materialized.css');
 
 	chdir(__DIR__.'/tmp/serve/public');
 	echo 'Starting PHP server...'.PHP_EOL.PHP_EOL;

@@ -12,11 +12,15 @@
 	 *   TEST_DB_TYPE (pgsql, mysql, sqlite) (default: sqlite)
 	 *   TEST_PGSQL_HOST (default: 127.0.0.1)
 	 *   TEST_PGSQL_PORT (default: 5432)
+	 *   TEST_PGSQL_SOCKET (has priority over the HOST)
+	 *    eg. for pgsql (note: directory path): /var/run/postgresql
+	 *    eg. for mysql: /var/run/mysqld/mysqld.sock
 	 *   TEST_PGSQL_DBNAME (default: php_toolkit_tests)
 	 *   TEST_PGSQL_USER (default: postgres)
 	 *   TEST_PGSQL_PASSWORD (default: postgres)
 	 *   TEST_MYSQL_HOST (default: [::1])
 	 *   TEST_MYSQL_PORT (default: 3306)
+	 *   TEST_MYSQL_SOCKET (has priority over the HOST
 	 *   TEST_MYSQL_DBNAME (default: php_toolkit_tests)
 	 *   TEST_MYSQL_USER (default: root)
 	 *   TEST_MYSQL_PASSWORD
@@ -29,6 +33,57 @@
 	 *  pdo_mysql extension is recommended
 	 *  pdo_sqlite extension is recommended
 	 */
+
+	function _test_driver($_db_driver, &$errors, $skip_seeded_file_check)
+	{
+		echo ' -> Testing pdo_connect with '.$_db_driver.PHP_EOL;
+			$pdo_handler=pdo_connect(__DIR__.'/tmp/pdo_connect/db_'.$_db_driver);
+
+		echo '  -> returns PDO instance';
+			if($pdo_handler instanceof PDO)
+				echo ' [ OK ]'.PHP_EOL;
+			else
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				$errors[]=$_db_driver.' instanceof PDO failed';
+			}
+
+		echo '  -> database seeded';
+			if($skip_seeded_file_check)
+				echo ' [SKIP]';
+			else
+			{
+				if(file_exists(__DIR__.'/tmp/pdo_connect/db_'.$_db_driver.'/database_seeded'))
+					echo ' [ OK ]';
+				else
+				{
+					echo ' [FAIL]';
+					$errors[]=$_db_driver.' database_seeded file not exists';
+				}
+			}
+			$query=$pdo_handler->query('SELECT * FROM pdo_connect_test_table');
+			if($query === false)
+			{
+				echo ' [FAIL]';
+				$errors[]=$_db_driver.' PDO query() failed';
+			}
+			else
+			{
+				echo ' [ OK ]';
+
+				$result="array(0=>array('id'=>'1','a'=>'aa','b'=>'ab',),1=>array('id'=>'2','a'=>'ba','b'=>'bb',),)";
+				if($_db_driver === 'pgsql')
+					$result="array(0=>array('id'=>1,'a'=>'aa','b'=>'ab',),1=>array('id'=>2,'a'=>'ba','b'=>'bb',),)";
+
+				if(var_export_contains($query->fetchAll(PDO::FETCH_NAMED), $result))
+					echo ' [ OK ]'.PHP_EOL;
+				else
+				{
+					echo ' [FAIL]'.PHP_EOL;
+					$errors[]=$_db_driver.' PDO fetchAll() failed';
+				}
+			}
+	}
 
 	if(!extension_loaded('PDO'))
 	{
@@ -122,7 +177,7 @@
 			]
 		];
 		foreach(['pgsql', 'mysql'] as $database)
-			foreach(['host', 'port', 'dbname', 'user', 'password'] as $parameter)
+			foreach(['host', 'port', 'socket', 'dbname', 'user', 'password'] as $parameter)
 			{
 				$variable='TEST_'.strtoupper($database.'_'.$parameter);
 				$value=getenv($variable);
@@ -162,18 +217,51 @@
 					("ba", "bb")
 			\');
 		?>');
-		mkdir(__DIR__.'/tmp/pdo_connect/db_pgsql');
-		file_put_contents(__DIR__.'/tmp/pdo_connect/db_pgsql/config.php', '<?php
+		mkdir(__DIR__.'/tmp/pdo_connect/db_sqlite_memory');
+		file_put_contents(__DIR__.'/tmp/pdo_connect/db_sqlite_memory/config.php', '<?php
 			return [
-				"db_type"=>"pgsql",
-				"host"=>"'.$_db_credentials['pgsql']['host'].'",
-				"port"=>"'.$_db_credentials['pgsql']['port'].'",
-				"db_name"=>"'.$_db_credentials['pgsql']['dbname'].'",
-				"charset"=>"UTF8",
-				"user"=>"'.$_db_credentials['pgsql']['user'].'",
-				"password"=>"'.$_db_credentials['pgsql']['password'].'"
+				"db_type"=>"sqlite",
+				"host"=>":memory:"
 			];
 		?>');
+		file_put_contents(__DIR__.'/tmp/pdo_connect/db_sqlite_memory/seed.php', '<?php
+			$pdo_handler->exec(\'
+				CREATE TABLE pdo_connect_test_table(
+					id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+					a TEXT,
+					b TEXT
+				)
+			\');
+			$pdo_handler->exec(\'
+				INSERT INTO pdo_connect_test_table(a, b) VALUES
+					("aa", "ab"),
+					("ba", "bb")
+			\');
+		?>');
+		mkdir(__DIR__.'/tmp/pdo_connect/db_pgsql');
+		if(isset($_db_credentials['pgsql']['socket']))
+			file_put_contents(__DIR__.'/tmp/pdo_connect/db_pgsql/config.php', '<?php
+				return [
+					"db_type"=>"pgsql",
+					"socket"=>"'.$_db_credentials['pgsql']['socket'].'",
+					"db_name"=>"'.$_db_credentials['pgsql']['dbname'].'",
+					"charset"=>"UTF8",
+					"user"=>"'.$_db_credentials['pgsql']['user'].'",
+					"password"=>"'.$_db_credentials['pgsql']['password'].'"
+				];
+			?>');
+		else
+			file_put_contents(__DIR__.'/tmp/pdo_connect/db_pgsql/config.php', '<?php
+				return [
+					"db_type"=>"pgsql",
+					"host"=>"'.$_db_credentials['pgsql']['host'].'",
+					"port"=>"'.$_db_credentials['pgsql']['port'].'",
+					"db_name"=>"'.$_db_credentials['pgsql']['dbname'].'",
+					"charset"=>"UTF8",
+					"user"=>"'.$_db_credentials['pgsql']['user'].'",
+					"password"=>"'.$_db_credentials['pgsql']['password'].'"
+				];
+			?>');
 		file_put_contents(__DIR__.'/tmp/pdo_connect/db_pgsql/seed.php', '<?php
 			$pdo_handler->exec(\'DROP TABLE pdo_connect_test_table\');
 			$pdo_handler->exec(\'
@@ -190,17 +278,29 @@
 			");
 		?>');
 		mkdir(__DIR__.'/tmp/pdo_connect/db_mysql');
-		file_put_contents(__DIR__.'/tmp/pdo_connect/db_mysql/config.php', '<?php
-			return [
-				"db_type"=>"mysql",
-				"host"=>"'.$_db_credentials['mysql']['host'].'",
-				"port"=>"'.$_db_credentials['mysql']['port'].'",
-				"db_name"=>"'.$_db_credentials['mysql']['dbname'].'",
-				"charset"=>"utf8mb4",
-				"user"=>"'.$_db_credentials['mysql']['user'].'",
-				"password"=>"'.$_db_credentials['mysql']['password'].'"
-			];
-		?>');
+		if(isset($_db_credentials['mysql']['socket']))
+			file_put_contents(__DIR__.'/tmp/pdo_connect/db_mysql/config.php', '<?php
+				return [
+					"db_type"=>"mysql",
+					"socket"=>"'.$_db_credentials['mysql']['socket'].'",
+					"db_name"=>"'.$_db_credentials['mysql']['dbname'].'",
+					"charset"=>"utf8mb4",
+					"user"=>"'.$_db_credentials['mysql']['user'].'",
+					"password"=>"'.$_db_credentials['mysql']['password'].'"
+				];
+			?>');
+		else
+			file_put_contents(__DIR__.'/tmp/pdo_connect/db_mysql/config.php', '<?php
+				return [
+					"db_type"=>"mysql",
+					"host"=>"'.$_db_credentials['mysql']['host'].'",
+					"port"=>"'.$_db_credentials['mysql']['port'].'",
+					"db_name"=>"'.$_db_credentials['mysql']['dbname'].'",
+					"charset"=>"utf8mb4",
+					"user"=>"'.$_db_credentials['mysql']['user'].'",
+					"password"=>"'.$_db_credentials['mysql']['password'].'"
+				];
+			?>');
 		file_put_contents(__DIR__.'/tmp/pdo_connect/db_mysql/seed.php', '<?php
 			$pdo_handler->exec(\'DROP TABLE pdo_connect_test_table\');
 			$pdo_handler->exec(\'
@@ -220,48 +320,10 @@
 	echo ' [ OK ]'.PHP_EOL;
 
 	try {
-		echo ' -> Testing pdo_connect with '.$_db_driver.PHP_EOL;
-			$pdo_handler=pdo_connect(__DIR__.'/tmp/pdo_connect/db_'.$_db_driver);
+		_test_driver($_db_driver, $errors, false);
 
-		echo '  -> returns PDO instance';
-			if($pdo_handler instanceof PDO)
-				echo ' [ OK ]'.PHP_EOL;
-			else
-			{
-				echo ' [FAIL]'.PHP_EOL;
-				$errors[]=$_db_driver.' instanceof PDO failed';
-			}
-
-		echo '  -> database seeded';
-			if(file_exists(__DIR__.'/tmp/pdo_connect/db_'.$_db_driver.'/database_seeded'))
-				echo ' [ OK ]';
-			else
-			{
-				echo ' [FAIL]'.PHP_EOL;
-				$errors[]=$_db_driver.' database_seeded file not exists';
-			}
-			$query=$pdo_handler->query('SELECT * FROM pdo_connect_test_table');
-			if($query === false)
-			{
-				echo ' [FAIL]'.PHP_EOL;
-				$errors[]=$_db_driver.' PDO query() failed';
-			}
-			else
-			{
-				echo ' [ OK ]';
-
-				$result="array(0=>array('id'=>'1','a'=>'aa','b'=>'ab',),1=>array('id'=>'2','a'=>'ba','b'=>'bb',),)";
-				if($_db_driver === 'pgsql')
-					$result="array(0=>array('id'=>1,'a'=>'aa','b'=>'ab',),1=>array('id'=>2,'a'=>'ba','b'=>'bb',),)";
-
-				if(var_export_contains($query->fetchAll(PDO::FETCH_NAMED), $result))
-					echo ' [ OK ]'.PHP_EOL;
-				else
-				{
-					echo ' [FAIL]'.PHP_EOL;
-					$errors[]=$_db_driver.' PDO fetchAll() failed';
-				}
-			}
+		if($_db_driver === 'sqlite')
+			_test_driver($_db_driver.'_memory', $errors, true);
 	} catch(Throwable $error) {
 		echo ' <- Testing pdo_connect with '.$_db_driver.' [FAIL]'.PHP_EOL;
 		$errors[]=$_db_driver.' caught: '.$error->getMessage();

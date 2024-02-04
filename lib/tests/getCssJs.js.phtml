@@ -17,18 +17,19 @@
 	}
 
 	@mkdir(__DIR__.'/tmp');
+	@mkdir(__DIR__.'/tmp/getCssJs');
 	foreach(['getCssJs.css', 'getCssJs.js'] as $file)
-		@unlink(__DIR__.'/tmp/'.$file);
+		@unlink(__DIR__.'/tmp/getCssJs/'.$file);
 
-	file_put_contents(__DIR__.'/tmp/getCssJs.css', ''
+	file_put_contents(__DIR__.'/tmp/getCssJs/getCssJs.css', ''
 	.	'body {'
 	.	'	color: #ffffff;'
 	.	'	background-color: #000000;'
 	.	'}'
 	);
 	file_put_contents(
-		__DIR__.'/tmp/getCssJs.js',
-		'document.getElementById("getjs").innerHTML="getJS works";'."\n"
+		__DIR__.'/tmp/getCssJs/getCssJs.js',
+		'document.getElementById("getjs").innerHTML="getJS works";'
 	);
 ?>
 <!DOCTYPE html>
@@ -44,8 +45,8 @@
 						require __DIR__.'/../'.basename(__FILE__, '.phtml');
 				?>
 
-				getCSS('/tmp/getCssJs.css');
-				getJS('/tmp/getCssJs.js');
+				getCSS('/tmp/getCssJs/getCssJs.css');
+				getJS('/tmp/getCssJs/getCssJs.js');
 			});
 		</script>
 	</head>
