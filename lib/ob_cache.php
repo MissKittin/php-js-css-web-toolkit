@@ -5,17 +5,17 @@
 	 * Warning:
 	 *  buffer control must not be started
 	 *  this library may conflict with other libraries that uses output buffer control
-	 *  $GLOBALS['_ob_cache'] is reserved
-	 *  ob_redis_cache requires the redis extension
 	 *
 	 * Note:
 	 *  if int_expire_seconds is 0 cache won't be refreshed
 	 *  in ob_redis_cache timeout is handled by Redis
+	 *  in ob_memcached_cache timeout is handled by Memcached
 	 *  throws an ob_cache_exception on error
 	 *
 	 * Functions:
 	 *  ob_file_cache -> save cache to file
 	 *  ob_redis_cache -> save cache in Redis
+	 *  ob_memcached_cache -> save cache in Memcached
 	 *  ob_url2file -> convert $_SERVER['REQUEST_URI'] to filename
 	 *  ob_url2sha1 -> return the sha1 hash of the url
 	 *
@@ -27,6 +27,7 @@
 	 * Usage:
 	 *  ob_file_cache(string_path_to_file, int_expire_seconds=3600, bool_gzip=true)
 	 *  ob_redis_cache(redis_handler, string_url, int_expire_seconds=3600, bool_gzip=true, string_record_prefix='ob_redis_cache')
+	 *  ob_memcached_cache(memcached_handler, string_url, int_expire_seconds=3600, bool_gzip=true, string_record_prefix='ob_memcached_cache')
 	 *  ob_url2file(bool_ignore_get_params=true)
 	 *  ob_url2sha1(bool_ignore_get_params=true)
 	 *
@@ -39,51 +40,48 @@
 			$ob_redis_cache->connect('127.0.0.1', 6379);
 			if(ob_redis_cache($ob_redis_cache, 'cache_'.ob_url2file(), 0, true, 'app_cache') === 0)
 				exit();
+	 *  ob_memcached_cache with compression enabled and no timeout:
+			$ob_memcached_cache=new Memcached();
+			$ob_memcached_cache->addServer('127.0.0.1', 11211);
+			if(ob_memcached_cache($ob_memcached_cache, 'cache_'.ob_url2file(), 0, true, 'app_cache') === 0)
+				exit();
 	 */
 
 	class ob_cache_exception extends Exception {}
 	function ob_file_cache(string $output_file, int $expire=3600, bool $gzip=false)
 	{
-		$GLOBALS['_ob_cache']['output_file']=$output_file;
-		$GLOBALS['_ob_cache']['gzip']=$gzip;
-		$GLOBALS['_ob_cache']['cwd']=getcwd();
-		$GLOBALS['_ob_cache']['browser_gzip_support']=false;
+		$_ob_cache['gzip']=$gzip;
+		$_ob_cache['browser_gzip_support']=false;
 
 		if(isset($_SERVER['HTTP_ACCEPT_ENCODING']))
-			$GLOBALS['_ob_cache']['browser_gzip_support']=strpos($_SERVER['HTTP_ACCEPT_ENCODING'], 'gzip');
+			$_ob_cache['browser_gzip_support']=(strpos($_SERVER['HTTP_ACCEPT_ENCODING'], 'gzip') !== false);
 
-		$generate=function()
+		$generate=function($_ob_cache)
 		{
 			if(
-				$GLOBALS['_ob_cache']['gzip'] &&
-				($GLOBALS['_ob_cache']['browser_gzip_support'] !== false)
+				$_ob_cache['gzip'] &&
+				$_ob_cache['browser_gzip_support']
 			)
 				header('Content-Encoding: gzip');
 
-			if(file_put_contents($GLOBALS['_ob_cache']['output_file'], '') === false)
-				throw new ob_cache_exception('Cannot write to the '.$GLOBALS['_ob_cache']['output_file']);
+			if(file_put_contents($_ob_cache['output_file'], '') === false)
+				throw new ob_cache_exception('Cannot write to the '.$_ob_cache['output_file']);
 
-			ob_start(function($buffer){
-				$cwd=getcwd();
-
-				chdir($GLOBALS['_ob_cache']['cwd']);
-
-				if($GLOBALS['_ob_cache']['gzip'])
+			ob_start(function($buffer) use($_ob_cache){
+				if($_ob_cache['gzip'])
 				{
-					if($GLOBALS['_ob_cache']['browser_gzip_support'] === false)
+					if(!$_ob_cache['browser_gzip_support'])
 						$raw_buffer=$buffer;
 
 					$buffer=gzencode($buffer);
 				}
 
-				if(file_put_contents($GLOBALS['_ob_cache']['output_file'], $buffer, FILE_APPEND) === false)
-					throw new ob_cache_exception('Cannot write to the '.$GLOBALS['_ob_cache']['output_file']);
-
-				chdir($cwd);
+				if(file_put_contents($_ob_cache['output_file'], $buffer, FILE_APPEND) === false)
+					throw new ob_cache_exception('Cannot write to the '.$_ob_cache['output_file']);
 
 				if(
-					$GLOBALS['_ob_cache']['gzip'] &&
-					($GLOBALS['_ob_cache']['browser_gzip_support'] === false)
+					$_ob_cache['gzip'] &&
+					(!$_ob_cache['browser_gzip_support'])
 				)
 					return $raw_buffer;
 				else
@@ -99,24 +97,26 @@
 
 		if(file_exists($output_file))
 		{
+			$_ob_cache['output_file']=realpath($output_file);
+
 			if
 			(
 				($expire !== 0) &&
 				((time()-filemtime($output_file)) > $expire)
 			){
-				$generate();
+				$generate($_ob_cache);
 				return 2;
 			}
 
 			if($gzip)
 			{
-				if($GLOBALS['_ob_cache']['browser_gzip_support'] === false)
-					readgzfile($output_file);
-				else
+				if($_ob_cache['browser_gzip_support'])
 				{
 					header('Content-Encoding: gzip');
 					readfile($output_file);
 				}
+				else
+					readgzfile($output_file);
 			}
 			else
 				readfile($output_file);
@@ -124,7 +124,11 @@
 			return 0;
 		}
 
-		$generate();
+		if(file_put_contents($output_file, '') === false)
+			throw new ob_cache_exception('Cannot create '.$output_file);
+
+		$_ob_cache['output_file']=realpath($output_file);
+		$generate($_ob_cache);
 
 		return 1;
 	}
@@ -135,85 +139,174 @@
 		bool $gzip=false,
 		string $prefix='ob_redis_cache'
 	){
-		$GLOBALS['_ob_cache']['redis_handler']=$redis_handler;
-		$GLOBALS['_ob_cache']['url']=$prefix.$url;
-		$GLOBALS['_ob_cache']['expire']=$expire;
-		$GLOBALS['_ob_cache']['gzip']=$gzip;
-		$GLOBALS['_ob_cache']['browser_gzip_support']=false;
+		$_ob_cache['redis_handler']=$redis_handler;
+		$_ob_cache['url']=$prefix.$url;
+		$_ob_cache['expire']=$expire;
+		$_ob_cache['gzip']=$gzip;
+		$_ob_cache['browser_gzip_support']=false;
 
 		if(isset($_SERVER['HTTP_ACCEPT_ENCODING']))
-			$GLOBALS['_ob_cache']['browser_gzip_support']=strpos($_SERVER['HTTP_ACCEPT_ENCODING'], 'gzip');
-
-		$generate=function()
-		{
-			if(
-				$GLOBALS['_ob_cache']['gzip'] &&
-				($GLOBALS['_ob_cache']['browser_gzip_support'] !== false)
-			)
-				header('Content-Encoding: gzip');
-
-			if($GLOBALS['_ob_cache']['expire'] === 0)
-				$GLOBALS['_ob_cache']['redis_handler']->set(
-					$GLOBALS['_ob_cache']['url'],
-					''
-				);
-			else
-				$GLOBALS['_ob_cache']['redis_handler']->set(
-					$GLOBALS['_ob_cache']['url'],
-					'',
-					['ex'=>$GLOBALS['_ob_cache']['expire']]
-				);
-
-			ob_start(function($buffer){
-				if($GLOBALS['_ob_cache']['gzip'])
-				{
-					if($GLOBALS['_ob_cache']['browser_gzip_support'] === false)
-						$raw_buffer=$buffer;
-
-					$buffer=gzencode($buffer);
-				}
-
-				$cache_content=$GLOBALS['_ob_cache']['redis_handler']->get($GLOBALS['_ob_cache']['url']);
-
-				if($GLOBALS['_ob_cache']['expire'] === 0)
-					$GLOBALS['_ob_cache']['redis_handler']->set(
-						$GLOBALS['_ob_cache']['url'],
-						$cache_content.$buffer
-					);
-				else
-					$GLOBALS['_ob_cache']['redis_handler']->set(
-						$GLOBALS['_ob_cache']['url'],
-						$cache_content.$buffer,
-						['ex'=>$GLOBALS['_ob_cache']['expire']]
-					);
-
-				if(
-					$GLOBALS['_ob_cache']['gzip'] &&
-					($GLOBALS['_ob_cache']['browser_gzip_support'] === false)
-				)
-					return $raw_buffer;
-				else
-					return $buffer;
-			});
-		};
+			$_ob_cache['browser_gzip_support']=(strpos($_SERVER['HTTP_ACCEPT_ENCODING'], 'gzip') !== false);
 
 		$cache_content=$redis_handler->get($prefix.$url);
 
 		if($cache_content === false)
 		{
-			$generate();
+			// $generate()
+
+			if(
+				$_ob_cache['gzip'] &&
+				$_ob_cache['browser_gzip_support']
+			)
+				header('Content-Encoding: gzip');
+
+			if($_ob_cache['expire'] === 0)
+				$_ob_cache['redis_handler']->set(
+					$_ob_cache['url'],
+					''
+				);
+			else
+				$_ob_cache['redis_handler']->set(
+					$_ob_cache['url'],
+					'',
+					['ex'=>$_ob_cache['expire']]
+				);
+
+			ob_start(function($buffer) use($_ob_cache){
+				if($_ob_cache['gzip'])
+				{
+					if(!$_ob_cache['browser_gzip_support'])
+						$raw_buffer=$buffer;
+
+					$buffer=gzencode($buffer);
+				}
+
+				$cache_content=$_ob_cache['redis_handler']->get($_ob_cache['url']);
+
+				if($_ob_cache['expire'] === 0)
+					$_ob_cache['redis_handler']->set(
+						$_ob_cache['url'],
+						$cache_content.$buffer
+					);
+				else
+					$_ob_cache['redis_handler']->set(
+						$_ob_cache['url'],
+						$cache_content.$buffer,
+						['ex'=>$_ob_cache['expire']]
+					);
+
+				if(
+					$_ob_cache['gzip'] &&
+					(!$_ob_cache['browser_gzip_support'])
+				)
+					return $raw_buffer;
+				else
+					return $buffer;
+			});
+
 			return 1;
 		}
 
 		if($gzip)
 		{
-			if($GLOBALS['_ob_cache']['browser_gzip_support'] === false)
-				echo gzdecode($cache_content);
-			else
+			if($_ob_cache['browser_gzip_support'])
 			{
 				header('Content-Encoding: gzip');
 				echo $cache_content;
 			}
+			else
+				echo gzdecode($cache_content);
+		}
+		else
+			echo $cache_content;
+
+		return 0;
+	}
+	function ob_memcached_cache(
+		$memcached_handler,
+		string $url,
+		int $expire=3600,
+		bool $gzip=false,
+		string $prefix='ob_memcached_cache'
+	){
+		$_ob_cache['memcached_handler']=$memcached_handler;
+		$_ob_cache['url']=$prefix.$url;
+		$_ob_cache['expire']=$expire;
+		$_ob_cache['gzip']=$gzip;
+		$_ob_cache['browser_gzip_support']=false;
+
+		if(isset($_SERVER['HTTP_ACCEPT_ENCODING']))
+			$_ob_cache['browser_gzip_support']=(strpos($_SERVER['HTTP_ACCEPT_ENCODING'], 'gzip') !== false);
+
+		$memcached_handler->get($prefix.$url); // trigger expiration
+		$cache_content=$memcached_handler->get($prefix.$url);
+
+		if($cache_content === false)
+		{
+			// $generate()
+
+			if(
+				$_ob_cache['gzip'] &&
+				$_ob_cache['browser_gzip_support']
+			)
+				header('Content-Encoding: gzip');
+
+			if($_ob_cache['expire'] === 0)
+				$_ob_cache['memcached_handler']->set(
+					$_ob_cache['url'],
+					''
+				);
+			else
+				$_ob_cache['memcached_handler']->set(
+					$_ob_cache['url'],
+					'',
+					$_ob_cache['expire']
+				);
+
+			ob_start(function($buffer) use($_ob_cache){
+				if($_ob_cache['gzip'])
+				{
+					if(!$_ob_cache['browser_gzip_support'])
+						$raw_buffer=$buffer;
+
+					$buffer=gzencode($buffer);
+				}
+
+				$cache_content=$_ob_cache['memcached_handler']->get($_ob_cache['url']);
+
+				if($_ob_cache['expire'] === 0)
+					$_ob_cache['memcached_handler']->set(
+						$_ob_cache['url'],
+						$cache_content.$buffer
+					);
+				else
+					$_ob_cache['memcached_handler']->set(
+						$_ob_cache['url'],
+						$cache_content.$buffer,
+						$_ob_cache['expire']
+					);
+
+				if(
+					$_ob_cache['gzip'] &&
+					(!$_ob_cache['browser_gzip_support'])
+				)
+					return $raw_buffer;
+				else
+					return $buffer;
+			});
+
+			return 1;
+		}
+
+		if($gzip)
+		{
+			if($_ob_cache['browser_gzip_support'])
+			{
+				header('Content-Encoding: gzip');
+				echo $cache_content;
+			}
+			else
+				echo gzdecode($cache_content);
 		}
 		else
 			echo $cache_content;

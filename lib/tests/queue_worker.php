@@ -5,10 +5,42 @@
 	 * Note:
 	 *  looks for a library at ../lib
 	 *  looks for a library at ..
+	 *  run with the serve argument to start the queue server manually
+	 *   and run with argument noautoserve to use it
 	 *
 	 * Warning:
 	 *  rmdir_recursive.php library is required
 	 */
+
+	$_serve_test_handler=null;
+	function _serve_test($command)
+	{
+		if(!function_exists('proc_open'))
+			throw new Exception('proc_open function is not available');
+
+		$process_pipes=null;
+		$process_handler=proc_open(
+			$command,
+			[
+				0=>['pipe', 'r'],
+				1=>['pipe', 'w'],
+				2=>['pipe', 'w']
+			],
+			$process_pipes,
+			getcwd(),
+			getenv()
+		);
+
+		sleep(1);
+
+		if(!is_resource($process_handler))
+			throw new Exception('Process cannot be started');
+
+		foreach($process_pipes as $pipe)
+			fclose($pipe);
+
+		return $process_handler;
+	}
 
 	echo ' -> Including rmdir_recursive.php';
 		if(is_file(__DIR__.'/../lib/rmdir_recursive.php'))
@@ -98,14 +130,30 @@
 		exit();
 	}
 
-	if(!file_exists(__DIR__.'/tmp/queue_worker'))
-	{
-		echo 'Run tests/queue_worker.php serve'.PHP_EOL;
+	if(
+		(isset($argv[1]) && ($argv[1] === 'noautoserve')) &&
+		(!file_exists(__DIR__.'/tmp/queue_worker'))
+	){
+		echo 'Run tests/'.basename(__FILE__).' serve'.PHP_EOL;
 		exit(1);
 	}
+	else
+		try {
+			echo ' -> Starting test server';
+			$_serve_test_handler=_serve_test(PHP_BINARY.' '.$argv[0].' serve');
+			echo ' [ OK ]'.PHP_EOL;
+		} catch(Exception $error) {
+			echo ' [FAIL]'.PHP_EOL;
+			echo 'Error: '.$error->getMessage().PHP_EOL;
+			echo 'Use tests/'.basename(__FILE__).' serve'.PHP_EOL;
+			echo ' and run tests/'.basename(__FILE__).' noautoserve'.PHP_EOL;
+			exit(1);
+		}
 
 	echo ' -> Waiting'.PHP_EOL;
 		sleep(2);
+
+	$failed=false;
 
 	echo ' -> Testing queue_worker write';
 		try {
@@ -117,7 +165,7 @@
 		} catch(Throwable $error) {
 			echo ' [FAIL]'.PHP_EOL;
 			echo PHP_EOL.'Error: '.$error->getMessage().PHP_EOL;
-			exit(1);
+			$failed=true;
 		}
 		sleep(2);
 		if(is_file(__DIR__.'/tmp/queue_worker/output'))
@@ -126,7 +174,7 @@
 		{
 			echo ' [FAIL]'.PHP_EOL;
 			echo PHP_EOL.'Error: '.__DIR__.'/tmp/queue_worker/output does not exists'.PHP_EOL;
-			exit(1);
+			$failed=true;
 		}
 		if(file_get_contents(__DIR__.'/tmp/queue_worker/output') === '6e4d191c7a5e070ede846a9d91fd1dfe')
 			echo ' [ OK ]'.PHP_EOL;
@@ -134,6 +182,16 @@
 		{
 			echo ' [FAIL]'.PHP_EOL;
 			echo PHP_EOL.'Error: '.__DIR__.'/tmp/queue_worker/output invalid md5 sum'.PHP_EOL;
-			exit(1);
+			$failed=true;
 		}
+
+	if(is_resource($_serve_test_handler))
+	{
+		echo ' -> Stopping test server'.PHP_EOL;
+		proc_terminate($_serve_test_handler);
+		proc_close($_serve_test_handler);
+	}
+
+	if($failed)
+		exit(1);
 ?>

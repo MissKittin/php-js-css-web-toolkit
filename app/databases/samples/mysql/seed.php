@@ -38,7 +38,10 @@
 	);
 	*/
 
-	// Use PDO CRUD builder (you need to import this library manually)
+	// Use PDO CRUD builder
+	if(!class_exists('pdo_crud_builder'))
+		require __DIR__.'/../../../../lib/pdo_crud_builder.php';
+
 	$seed_crud_builder=new pdo_crud_builder([
 		'pdo_handler'=>$pdo_handler
 	]);

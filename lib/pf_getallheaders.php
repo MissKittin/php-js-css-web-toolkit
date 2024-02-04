@@ -1,5 +1,5 @@
 <?php
-	// getallheaders() for older PHP versions
+	// getallheaders() polyfill
 
 	if(!function_exists('getallheaders'))
 	{

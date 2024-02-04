@@ -1,7 +1,9 @@
 # PHP-JS-CSS web toolkit
 A set of tools, components and libraries that you can use in your project  
+Minimum PHP version: 7.1  
 Recommended PHP version: 7.4  
-Supported relational databases: PostgreSQL, MySQL, SQLite3
+Supported relational databases: PostgreSQL, MySQL, SQLite3  
+Supported cache databases: Redis, Memcached
 
 ## Principles
 * respect the KISS rule
@@ -27,8 +29,9 @@ Supported relational databases: PostgreSQL, MySQL, SQLite3
 * `matthiasmullie-minify.php` - interface for the `matthiasmullie/minify` package
 * `mkphar.php` - a tool to quickly build a PHP archive
 * `opcache-preload-generator.php` - opcache preload script generator
-* `pdo-connect.php` - interface for `pdo_connect.php`, `pdo_cheat.php` (optional) and `pdo_crud_builder.php` (optional) libraries - seed databases
+* `pdo-connect.php` - interface for `pdo_connect.php` library - seed databases
 * `queue-worker.php` - interface for `queue_worker.php` server
+* `run-php-bin-tests.php` - run PHP tool tests in batch mode
 * `run-php-components-tests.php` - run PHP components tests in batch mode
 * `run-php-lib-tests.php` - run PHP library tests in batch mode
 * `run-phtml-tests.php` - serve phtml tests (for Js and CSS libraries)
@@ -40,12 +43,14 @@ Supported relational databases: PostgreSQL, MySQL, SQLite3
 
 ## PHP libraries
 * `array_tree.php` - convert flat array into tree, tree to list
+* `ascii.php` - ASCII conversion (MIT)
 * `assets_compiler.php`
 * `async_process_builder.php` - `proc_*` wrapper and standard input-output-error interface
 * `blog_page_slicer.php` - select n elements from array at start point
 * `cache_container.php` - cache manager
 * `check_date.php` - check if is between DD.MM - DD.MM
 * `check_var.php` - check if variable and eventually return value
+* `cli_prompt.php` - console prompter
 * `convert_bytes.php` - automatically convert input number to human-readable form
 * `copy_recursive.php` - copy entire directories
 * `cron.php` - task scheduler
@@ -54,7 +59,6 @@ Supported relational databases: PostgreSQL, MySQL, SQLite3
 * `dotenv.php` - DotEnv proxy implementation
 * `file_http_request.php` - `file_get_contents()` wrapper for http streams
 * `find_php_definitions.php` - look up the definition of functions, classes, interfaces and traits in the source code
-* `getallheaders.php` - `getallheaders()` for older PHP versions
 * `global_variable_streamer.php` - a helper for functions that only support writing output to a file
 * `has_php_close_tag.php` - check if the PHP file ends with a close tag
 * `http_request_response.php` - OOP overlay for standard request-response handling
@@ -63,8 +67,11 @@ Supported relational databases: PostgreSQL, MySQL, SQLite3
 * `is_float_equal.php` - for older PHP versions it defines an `PHP_FLOAT_EPSILON` constant
 * `logger.php` - easily write logs
 * `logrotate.php` - journalists rotation machine
+* `lv_arr.php` - Laravel array helpers (MIT)
+* `lv_str.php` - Laravel string helpers (MIT)
 * `maintenance_break.php` - check to send the maintenance break pattern
 * `measure_exec_time.php` - debugging
+* `memcached_connect.php` - open preconfigured connection to the Memcached
 * `ob_cache.php` - cache output buffer
 * `ob_minifier.php` - simple minifier and compressor
 * `ob_sfucator.php` - xor all page content on server and decode on client
@@ -72,6 +79,17 @@ Supported relational databases: PostgreSQL, MySQL, SQLite3
 * `pdo_cheat.php` - use the table as an object
 * `pdo_connect.php` - open preconfigured connection to the database and optionally seed
 * `pdo_crud_builder.php` - OOP SQL builder
+* `pf_array.php` - `array_is_list()`, `array_key_first()` and `array_key_last()` polyfill
+* `pf_getallheaders.php` - `getallheaders()` polyfill
+* `pf_is_countable.php` - `is_countable()` polyfill (MIT)
+* `pf_json_validate.php` - `json_validate()` polyfill (MIT)
+* `pf_php_float.php` - `PHP_FLOAT_*` polyfill
+* `pf_php_os_family.php` - `PHP_OS_FAMILY` polyfill (MIT)
+* `pf_spl_object_id.php` - `spl_object_id()` polyfill (MIT)
+* `pf_str.php` - `str_contains()`, `str_ends_with()` and `str_starts_with()` polyfill (MIT)
+* `pf_stream_isatty.php` - `stream_isatty()` polyfill (MIT)
+* `pf_Stringable.php` - `Stringable` polyfill
+* `pf_ValueError.php` - `Error` and `ValueError` polyfill
 * `print_file.php` - set HTTP headers and send specified file to the client
 * `queue_worker.php` - execute jobs outside the HTTP server
 * `rand_str.php` - random string generator
@@ -79,25 +97,27 @@ Supported relational databases: PostgreSQL, MySQL, SQLite3
 * `registry.php` - design pattern
 * `relative_path.php` - get relative path between two files/directories
 * `rmdir_recursive.php` - remove non-empty directories
-* `school_algorithms.php` - miscellaneous and sorting algorithms from lessons
 * `sec_bruteforce.php` - trivial banning method by IP on n unsuccessful attempts
 * `sec_captcha.php` - CAPTCHA image generator
 * `sec_csrf.php` - CSRF protection helpers
 * `sec_file_sign.php` - easily generate file signatures
 * `sec_http_basic_auth.php` - request and validate basic HTTP authentication
 * `sec_login.php` - login/logout helpers
-* `sec_lv_encrypter.php` - laravel's encrypter class for cookies and sessions (MIT)
+* `sec_lv_encrypter.php` - Laravel encrypter class for cookies and sessions (MIT)
 * `sec_prevent_direct.php` - for historical purposes
 * `simple_html_dom.php` - S.C. Chen's HTML DOM parser v1.9.1 (MIT)
 * `simpleblog_db.php` - key-value database that can be edited in notepad
 * `singleton.php` - each time you use a singleton, one little kitten dies
 * `sitemap_generator.php` - `sitemap.xml` builder
 * `sqlite3_db_dump.php` - Ephestione's SQLite3 database dumper (unknown license)
+* `string_translator.php` - translate your app
 * `strip_php_comments.php` - remove comments from PHP source
 * `superclosure.php` - serializable anonymous functions
 * `time_converter.php` - time converting library - convert time to human-readable form
 * `trivial_templating_engine.php`
+* `ulid.php` - ULID manipulation (MIT)
 * `uri_router.php` - OOP routing solution
+* `uuid.php` - UUID manipulation (MIT)
 * `var_export_contains.php` - check if the content of the variable is correct (mainly for testing purposes)
 * `webdevsh.php` - functions for Toptal minifiers
 * `zip.php` - make ZIP file in RAM - library from PhpMyAdmin (GNU GPL2)
@@ -108,6 +128,7 @@ Supported relational databases: PostgreSQL, MySQL, SQLite3
 * `checkDate.js` - `check_date.php` in Js
 * `clock.js` - render clock in div
 * `convertBytes.js` - `convert_bytes.php` in Js
+* `csv2table.js` - build a table from CSV data
 * `disableEnterOnForm.js` - disable submit by Enter behavior
 * `enableTabOnTextarea.js` - allow inserting tabs on selected textareas
 * `epilepsi.js` - nice functions for creating epileptic impressions
@@ -120,6 +141,7 @@ Supported relational databases: PostgreSQL, MySQL, SQLite3
 * `linkify.js` - rooseve's plaintext link to anchor converter
 * `list2tree.js` - convert ul or ol to expandable tree
 * `multipage.js` - put several pages in one HTML file / element switcher
+* `pfReplaceAll.js` - `replaceAll()` polyfill
 * `rand.js`
 * `richTextEditor.js` - basic WYSIWYG editor
 * `sendNotification.js` - send notification to the browser
@@ -142,4 +164,5 @@ Supported relational databases: PostgreSQL, MySQL, SQLite3
 * `herring` - device for tracking users
 * `login` - quickly create login-restricted content
 * `middleware_form` - customizable HTML form
+* `php_polyfill` - backport some features
 * `superclosure_router` - cacheable `uri_router.php`

@@ -23,6 +23,10 @@
 	 *   store data in Redis (permban)
 	 *  bruteforce_timeout_redis
 	 *   store data in Redis (timeout ban)
+	 *  bruteforce_memcached
+	 *   store data in Memcached (permban)
+	 *  bruteforce_timeout_memcached
+	 *   store data in Memcached (timeout ban)
 	 *  bruteforce_pdo
 	 *   store data in database via PDO (permban)
 	 *   supported databases: PostgreSQL, MySQL, SQLite3
@@ -428,6 +432,246 @@
 			if($this->current_attempts !== 0)
 			{
 				$this->redis_handler->del($this->prefix.$this->ip);
+
+				$this->current_attempts=0;
+				$this->current_timestamp=null;
+			}
+		}
+		public function clean_database() {}
+	}
+	class bruteforce_memcached extends bruteforce_generic
+	{
+		/*
+		 * Trivial permbanning method by IP on n unsuccessful attempts
+		 * from simpleblog project
+		 * rewritten to Memcached OOP
+		 *
+		 * Constructor parameters:
+		 *  memcached_handler [object]
+		 *   required
+		 *  prefix [string]
+		 *   adds to the name of each key (default: bruteforce_memcached__)
+		 *  max_attempts [int]
+		 *   n attempts and permban (default 3)
+		 *  ip [string]
+		 *   default $_SERVER['REMOTE_ADDR']
+		 *  expire [int]
+		 *   delete record after n seconds (default: 2592000 [30 days], 0 - disable)
+		 *  on_ban [callback]
+		 *   the add method runs the specified callback if a ban occurs
+		 *
+		 * Opening database:
+			$memcached_handler=new Memcached();
+			$memcached_handler->addServer('127.0.0.1', 11211);
+			$bruteforce=new bruteforce_memcached([
+				'memcached_handler'=>$memcached_handler
+			]);
+		 * Checking: $bruteforce->check()
+		 *  returns bool
+		 * Current attempts number: $bruteforce->get_attempts()
+		 *  returns int from 0 (0 means not added)
+		 * Banning: $bruteforce->add()
+		 *  adding to the table or iterates attempts counter
+		 * Unbanning: $bruteforce->del()
+		 *  removes from the table
+		 * Closing connection: unset($bruteforce)
+		 */
+
+		protected $constructor_params=[
+			'memcached_handler',
+			'prefix',
+			'max_attempts',
+			'ip',
+			'expire'
+		];
+		protected $required_constructor_params=['memcached_handler'];
+
+		protected $memcached_handler;
+		protected $prefix='bruteforce_memcached__';
+		protected $expire=2592000;
+
+		public function __construct(array $params)
+		{
+			parent::__construct($params);
+
+			$this->memcached_handler->get($this->prefix.$this->ip); // trigger expiration
+			$current_attempts=$this->memcached_handler->get($this->prefix.$this->ip);
+
+			if($current_attempts !== false)
+				$this->current_attempts=(int)$current_attempts;
+		}
+
+		public function check()
+		{
+			if($this->current_attempts < $this->max_attempts)
+				return false;
+
+			return true;
+		}
+		public function add()
+		{
+			++$this->current_attempts;
+
+			if($this->expire > 0)
+			{
+				$this->memcached_handler->set(
+					$this->prefix.$this->ip,
+					$this->current_attempts,
+					$this->expire
+				);
+			}
+			else
+			{
+				if($this->current_attempts === 1)
+					$this->memcached_handler->set(
+						$this->prefix.$this->ip,
+						$this->current_attempts
+					);
+				else
+					$this->memcached_handler->increment($this->prefix.$this->ip);
+			}
+
+			if($this->current_attempts === $this->max_attempts)
+				$this->on_ban['callback']();
+		}
+		public function del()
+		{
+			if($this->current_attempts !== 0)
+			{
+				$this->memcached_handler->delete($this->prefix.$this->ip);
+				$this->current_attempts=0;
+			}
+		}
+		public function clean_database() {}
+	}
+	class bruteforce_timeout_memcached extends bruteforce_generic
+	{
+		/*
+		 * Trivial banning method by IP on x unsuccessful attempts for n seconds
+		 * from simpleblog project
+		 * rewritten to Memcached OOP
+		 *
+		 * Warning:
+		 *  get_timestamp() always returns 0
+		 *
+		 * Note:
+		 *  the auto_clean functionality is performed by Memcached (set-with-expire method)
+		 *  you can disable this functionality by setting the ban_time value to 0
+		 *
+		 * Constructor parameters:
+		 *  memcached_handler [object]
+		 *   required
+		 *  prefix [string]
+		 *   adds to the name of each key (default: bruteforce_memcached__)
+		 *  max_attempts [int]
+		 *   n attempts and ban (default 3)
+		 *  ban_time [int]
+		 *   unban after n seconds (default 600 [10min])
+		 *   if is lower than 1, ip is permanently banned after max_attempts (see "expire" below)
+		 *  ip [string]
+		 *   default $_SERVER['REMOTE_ADDR']
+		 *  expire [int]
+		 *   delete record after n seconds (default: 2592000 [30 days], 0 - disable)
+		 *   ignored when ban_time is higher than 1
+		 *  on_ban [callback]
+		 *   the add method runs the specified callback if a ban occurs
+		 *
+		 * Opening database:
+			$memcached_handler=new Memcached();
+			$memcached_handler->addServer('127.0.0.1', 11211);
+			$bruteforce=new bruteforce_memcached([
+				'memcached_handler'=>$memcached_handler
+			]);
+		 * Checking: $bruteforce->check()
+		 *  returns bool
+		 * Current attempts number: $bruteforce->get_attempts()
+		 *  returns int from 0 (0 means not added)
+		 * Banning: $bruteforce->add()
+		 *  adding to the database or iterates attempts counter
+		 * Unbanning: $bruteforce->del()
+		 *  removes from database
+		 * Closing connection: unset($bruteforce)
+		 *
+		 * Changes with respect to bruteforce_memcached: get_timestamp(), add()
+		 */
+
+		protected $constructor_params=[
+			'memcached_handler',
+			'prefix',
+			'max_attempts',
+			'ban_time',
+			'ip',
+			'expire'
+		];
+		protected $required_constructor_params=['memcached_handler'];
+
+		protected $memcached_handler;
+		protected $prefix='bruteforce_memcached__';
+		protected $expire=2592000;
+
+		public function __construct(array $params)
+		{
+			parent::__construct($params);
+
+			$this->memcached_handler->get($this->prefix.$this->ip); // trigger expiration
+			$current_attempts=$this->memcached_handler->get($this->prefix.$this->ip);
+
+			if($current_attempts !== false)
+				$this->current_attempts=(int)$current_attempts;
+		}
+
+		public function get_timestamp()
+		{
+			return 0;
+		}
+		public function check()
+		{
+			if($this->current_attempts < $this->max_attempts)
+				return false;
+
+			if($this->current_timestamp !== null)
+				if($this->current_timestamp+$this->ban_time < time())
+				{
+					$this->del();
+					return false;
+				}
+
+			return true;
+		}
+		public function add()
+		{
+			++$this->current_attempts;
+			$this->current_timestamp=time();
+
+			if($this->ban_time < 1)
+			{
+				if($this->expire > 0)
+					$this->memcached_handler->set(
+						$this->prefix.$this->ip,
+						$this->current_attempts,
+						$this->expire
+					);
+				else
+					$this->memcached_handler->set(
+						$this->prefix.$this->ip,
+						$this->current_attempts
+					);
+			}
+			else
+				$this->memcached_handler->set(
+					$this->prefix.$this->ip,
+					$this->current_attempts,
+					$this->ban_time
+				);
+
+			if($this->current_attempts === $this->max_attempts)
+				$this->on_ban['callback']();
+		}
+		public function del()
+		{
+			if($this->current_attempts !== 0)
+			{
+				$this->memcached_handler->delete($this->prefix.$this->ip);
 
 				$this->current_attempts=0;
 				$this->current_timestamp=null;

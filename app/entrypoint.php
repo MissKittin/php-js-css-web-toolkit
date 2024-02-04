@@ -1,6 +1,8 @@
 <?php
 	chdir(__DIR__.'/..');
 
+	require './components/php_polyfill/php_polyfill.php';
+
 	if(
 		(!isset($_SERVER['REQUEST_URI'])) ||
 		(!isset($_SERVER['REQUEST_METHOD']))
@@ -50,6 +52,7 @@
 		case 'obsfucate-html': require './app/controllers/samples/obsfucate-html.php'; break;
 		case 'login-library-test': require './app/controllers/samples/login-library-test.php'; break;
 		case 'login-component-test': require './app/controllers/samples/login-component-test.php'; break;
+		case 'phar-test': require './app/controllers/samples/phar-test.php'; break;
 		case 'preprocessing-test': require './app/controllers/samples/preprocessing-test.php'; break;
 		case 'http_error_test':
 			require './app/controllers/samples/http_error.php';
@@ -100,4 +103,6 @@
 			else
 				http_error(404);
 	}
+
+	error_log(basename(__FILE__).' finished');
 ?>

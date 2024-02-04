@@ -8,7 +8,7 @@
 	 *  the key may leak through stack trace!!! - please display_errors=off
 	 *   or your app will be compromised!!!
 	 *  openssl (>=1.1.0g) extension is required
-	 *  mbstring extensions is required
+	 *  mbstring extension (or polyfill) is required
 	 *
 	 * Note:
 	 *  throws an lv_encrypter_exception on error
@@ -33,6 +33,8 @@
 	 *   read warning in class block
 	 *  lv_redis_session_handler
 	 *   session handler that uses Redis to store an encrypted session
+	 *  lv_memcached_session_handler
+	 *   session handler that uses Memcached to store an encrypted session
 	 */
 
 	class lv_encrypter_exception extends Exception {}
@@ -106,7 +108,7 @@
 			if(!extension_loaded('openssl'))
 				throw new lv_encrypter_exception('openssl extension is not loaded');
 
-			if(!extension_loaded('mbstring'))
+			if(!function_exists('mb_strlen'))
 				throw new lv_encrypter_exception('mbstring extension is not loaded');
 
 			$key=base64_decode($key);
@@ -772,7 +774,7 @@
 			session_set_save_handler(new lv_redis_session_handler([
 				'key'=>'randomstringforlvencrypter', // required
 				'redis_handler'=>$redis_handler, // required
-				'prefix'=>'lv_session__', // optional, default: lv_pdo_session_handler
+				'prefix'=>'lv_session__', // optional, default: lv_redis_session_handler
 				'on_error'=>function($message) // optional
 				{
 					error_log($message);
@@ -822,7 +824,7 @@
 			if($this->redis_handler->get($this->prefix.$session_id) === false)
 				return true;
 
-			$this->on_error['callback'](__CLASS__.' error: session id collision with '.$session_id, $this->pdo_handler);
+			$this->on_error['callback'](__CLASS__.' error: session id collision with '.$session_id, $this->redis_handler);
 
 			return false;
 		}
@@ -878,6 +880,144 @@
 		public function destroy($session_id)
 		{
 			return $this->redis_handler->del($this->prefix.$session_id);
+		}
+		public function gc($max_lifetime)
+		{
+			return true;
+		}
+	}
+	final class lv_memcached_session_handler implements SessionHandlerInterface
+	{
+		/*
+		 * Lv encrypter
+		 * session handler
+		 *
+		 * Uses Memcached to store an encrypted session
+		 *
+		 * Warning:
+		 *  lv_encrypter class is required
+		 *  lv_memcached_session_handler is a singleton
+		 *
+		 * Note:
+		 *  is_sid_available and create_sid methods were created
+		 *   to make sure that the generated id does not exists in the table.
+		 *   if you do not see the need for such a solution,
+		 *   you can remove it from the class
+		 *  throws an lv_encrypter_exception on error
+		 *
+		 * Usage:
+			$memcached_handler=new Memcached();
+			$memcached_handler->addServer('127.0.0.1', 6379);
+			session_set_save_handler(new lv_memcached_session_handler([
+				'key'=>'randomstringforlvencrypter', // required
+				'memcached_handler'=>$memcached_handler, // required
+				'prefix'=>'lv_session__', // optional, default: lv_memcached_session_handler
+				'on_error'=>function($message) // optional
+				{
+					error_log($message);
+				}
+			]), true);
+		 */
+
+		private static $initialized=false;
+		private $lv_encrypter;
+		private $on_error;
+		private $memcached_handler;
+		private $prefix='lv_memcached_session_handler__';
+
+		public function __construct(array $params)
+		{
+			if(self::$initialized)
+				throw new lv_encrypter_exception(__CLASS__.' is a singleton');
+
+			self::$initialized=true;
+
+			foreach(['memcached_handler', 'key'] as $param)
+				if(!isset($params[$param]))
+					throw new lv_encrypter_exception('The '.$param.' parameter was not specified for the constructor');
+
+			$cipher='aes-128-cbc';
+			if(isset($params['cipher']))
+				$cipher=$params['cipher'];
+
+			$this->lv_encrypter=new lv_encrypter($params['key'], $cipher);
+
+			foreach(['memcached_handler', 'prefix'] as $param)
+				if(isset($params[$param]))
+					$this->$param=$params[$param];
+
+			$this->on_error['callback']=function(){};
+			if(isset($params['on_error']))
+				$this->on_error['callback']=$params['on_error'];
+		}
+		public function __destruct()
+		{
+			$this->close();
+			self::$initialized=false;
+		}
+
+		private function is_sid_available($session_id) // just for my peace of mind
+		{
+			$this->memcached_handler->get($this->prefix.$session_id); // trigger expiration
+			if($this->memcached_handler->get($this->prefix.$session_id) === false)
+				return true;
+
+			$this->on_error['callback'](__CLASS__.' error: session id collision with '.$session_id, $this->memcached_handler);
+
+			return false;
+		}
+
+		public function open($save_path, $session_name)
+		{
+			return true;
+		}
+		public function create_sid() // just for my peace of mind
+		{
+			$SessionHandler=new SessionHandler();
+			$session_id=$SessionHandler->create_sid();
+
+			// if method defined
+			while(!$this->is_sid_available($session_id))
+			{
+				$session_id=$SessionHandler->create_sid();
+				$this->on_error['callback'](__CLASS__.' create_sid: new session id generated', $this->memcached_handler);
+			}
+
+			return $session_id;
+		}
+		public function read($session_id)
+		{
+			$session_data='';
+			$data=$this->memcached_handler->get($this->prefix.$session_id);
+
+			if($data === false)
+				$this->on_error['callback'](__CLASS__.': key does not exists, new session created', $this->memcached_handler);
+
+			try {
+				$session_data=$this->lv_encrypter->decrypt($data, false);
+			} catch(lv_encrypter_exception $error) {
+				$this->on_error['callback'](__CLASS__.' error: '.$error->getMessage().', new session created', $this->memcached_handler);
+				$session_data='';
+			}
+
+			return $session_data;
+		}
+		public function write($session_id, $session_data)
+		{
+			return $this->memcached_handler->set(
+				$this->prefix.$session_id,
+				$this->lv_encrypter->encrypt($session_data, false),
+				ini_get('session.gc_maxlifetime')
+			);
+		}
+		public function close()
+		{
+			$this->memcached_handler=null;
+			return true;
+		}
+		public function destroy($session_id)
+		{
+			return $this->memcached_handler->delete($this->prefix.$session_id);
 		}
 		public function gc($max_lifetime)
 		{

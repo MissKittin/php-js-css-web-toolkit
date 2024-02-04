@@ -15,6 +15,7 @@
 		protected static $return_content='';
 
 		protected $base_url;
+		protected $template='default';
 		protected $modules=[];
 		protected $default_module=null;
 		protected $registered_urls=[];
@@ -27,6 +28,14 @@
 			if(!isset($params['base_url']))
 				throw new admin_panel_exception('The base_url parameter was not specified for the constructor');
 			$this->base_url=$params['base_url'];
+
+			if(isset($params['template']))
+			{
+				if(!file_exists(__DIR__.'/templates/'.$params['template']))
+					throw new admin_panel_exception('The '.$params['template'].' template does not exist');
+
+				$this->template=$params['template'];
+			}
 
 			$this->_set_default_labels();
 
@@ -61,9 +70,15 @@
 				if(isset($module_params['name']))
 				{
 					if(isset($module_params['path']))
-						$modules[$module_params['name']]=$this->base_url.'/'.$module_params['url'];
+						$modules[$module_params['name']]=[
+							'url'=>$this->base_url.'/'.$module_params['url'],
+							'id'=>$module_params['id']
+						];
 					else
-						$modules[$module_params['name']]=$module_params['url'];
+						$modules[$module_params['name']]=[
+							'url'=>$module_params['url'],
+							'id'=>$module_params['id']
+						];
 				}
 
 			return $modules;
@@ -83,9 +98,9 @@
 			if(isset($_module['config']))
 				require $_module['path'].'/'.$_module['config'];
 
-			require __DIR__.'/views/top.php';
+			require __DIR__.'/templates/'.$this->template.'/views/top.php';
 			require $_module['path'].'/'.$_module['script'];
-			require __DIR__.'/views/bottom.php';
+			require __DIR__.'/templates/'.$this->template.'/views/bottom.php';
 		}
 
 		public function add_module(array $params)

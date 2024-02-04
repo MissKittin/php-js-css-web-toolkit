@@ -9,6 +9,20 @@ You can also run the HTTP server to test the CSS and Js libraries on the web bro
 php ./bin/run-phtml-tests.php
 ```
 
+# Packing the toolkit into Phar
+If a better option is to pack the libraries and components into one file,  
+use the `mkphar.php` utility:
+```
+php -d phar.readonly=0 ./bin/mkphar.php --compress=gz --source=components --source=lib --ignore=assets/ --ignore=bin/ --ignore=tests/ --ignore=tmp/ --ignore=README.md --output=toolkit.phar
+```
+and use the generated Phar, eg:
+```
+require 'phar://'
+.	'./toolkit.phar'
+.	'/components/admin_panel/admin_panel.php'
+;
+```
+
 # Installing Composer
 To install Composer, run:
 ```
@@ -81,7 +95,7 @@ php ./bin/composer.phar --optimize-autoloader --no-cache --working-dir=./bin/com
 ### Seeding database offline with pdo_connect() (optional)
 To offline seed database, run
 ```
-php ./bin/pdo-connect.php -db ./app/databases/database-name
+php ./bin/pdo-connect.php --db ./app/databases/database-name
 ```
 Note: database can be seeded automatically on first start.
 

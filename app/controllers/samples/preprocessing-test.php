@@ -20,10 +20,10 @@
 		}
 	}
 
-	require './app/shared/samples/default_http_headers.php';
+	require './app/lib/samples/default_http_headers.php';
 
 	// will be refreshed hourly ("Cache file was created" will disappear in an hour)
-	require './app/shared/samples/ob_cache.php';
+	require './app/lib/samples/ob_cache.php';
 	ob_cache(ob_url2file(), 3600);
 
 	require './app/templates/samples/default/default_template.php';

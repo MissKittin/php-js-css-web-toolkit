@@ -39,6 +39,7 @@
 			->add('/database-test')
 			->add('/obsfucate-html')
 			->add('/login-library-test')
+			->add('/phar-test')
 			->add('/preprocessing-test')
 			->get();
 

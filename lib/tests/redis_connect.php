@@ -9,7 +9,10 @@
 	 * Hint:
 	 *  you can setup Redis credentials by environment variables
 	 *  variables:
+	 *   TEST_REDIS=yes (default: no)
 	 *   TEST_REDIS_HOST (default: 127.0.0.1)
+	 *   TEST_REDIS_SOCKET (has priority over the HOST)
+	 *    eg. /var/run/redis/redis.sock
 	 *   TEST_REDIS_PORT (default: 6379)
 	 *   TEST_REDIS_DBINDEX (default: 0)
 	 *   TEST_REDIS_USER
@@ -78,6 +81,7 @@
 
 	$_redis_host=getenv('TEST_REDIS_HOST');
 	$_redis_port=getenv('TEST_REDIS_PORT');
+	$_redis_socket=getenv('TEST_REDIS_SOCKET');
 	$_redis_dbindex=getenv('TEST_REDIS_DBINDEX');
 	$_redis_user=getenv('TEST_REDIS_USER');
 	$_redis_password=getenv('TEST_REDIS_PASSWORD');
@@ -87,6 +91,8 @@
 		$_redis_host='127.0.0.1';
 	if($_redis_port === false)
 		$_redis_port='6379';
+	if($_redis_socket !== false)
+		$_redis_socket='"socket"=>\''.$_redis_socket.'\',';
 	if($_redis_dbindex === false)
 		$_redis_dbindex='0';
 	if($_redis_user !== false)
@@ -107,6 +113,7 @@
 			return [
 				"host"=>"'.$_redis_host.'",
 				"port"=>'.$_redis_port.',
+				'.$_redis_socket.'
 				"dbindex"=>'.$_redis_dbindex.',
 				"auth"=>$auth
 			];

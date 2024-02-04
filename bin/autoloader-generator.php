@@ -92,6 +92,7 @@
 
 	$input_dirs=check_argv_next_param_many('--in');
 	$output_file=check_argv_next_param('--out');
+	$ignores=check_argv_next_param_many('--ignore');
 	$debug=check_argv('--debug');
 	$output_file_dir=dirname($output_file);
 
@@ -102,7 +103,7 @@
 		check_argv('-h')
 	){
 		echo 'Usage:'.PHP_EOL;
-		echo ' --in path/to/dir_a --in path/to/dir_b --out path/to/your_autoloader.php --debug'.PHP_EOL;
+		echo ' --in path/to/dir_a --in path/to/dir_b [--ignore filename] [--ignore dirname/] [--ignore dir/file] --out path/to/your_autoloader.php [--debug]'.PHP_EOL;
 		echo 'Where:'.PHP_EOL;
 		echo ' --debug adds the ability to track loaded files to the autoloader via error_log()'.PHP_EOL;
 		echo PHP_EOL;
@@ -129,23 +130,51 @@
 		exit(1);
 	}
 
+	if($ignores === null)
+		$ignores=[];
+
 	$classes=[];
 	$functions=[];
 	foreach($input_dirs as $input_dir)
-		foreach(new RecursiveIteratorIterator(new RecursiveDirectoryIterator($input_dir, RecursiveDirectoryIterator::SKIP_DOTS)) as $input_file)
+		foreach(
+			new RecursiveIteratorIterator(
+				new RecursiveDirectoryIterator($input_dir, RecursiveDirectoryIterator::SKIP_DOTS)
+			)
+			as $input_file
+		)
 			if(
 				(!is_dir($input_file)) &&
 				(pathinfo($input_file, PATHINFO_EXTENSION) === 'php')
 			){
+				foreach($ignores as $ignore)
+					if(
+						strpos(
+							strtr($input_file->getPathname(), '\\', '/'),
+							strtr($ignore, '\\', '/')
+						) !== false
+					){
+						echo '[IGN] '.$input_file->getPathname().PHP_EOL;
+						continue 2;
+					}
+
 				echo $input_file.PHP_EOL;
-				$definitions=find_php_definitions(file_get_contents($input_file));
+
+				try {
+					$definitions=find_php_definitions(file_get_contents($input_file));
+				} catch(find_php_definitions_exception $error) {
+					echo ' error: '.$error->getMessage().PHP_EOL;
+					continue;
+				}
 
 				foreach($definitions['classes'] as $class)
 				{
 					if(isset($classes[$class]))
 					{
+						if($classes[$class] === relative_path($output_file_dir, $input_file))
+							continue;
+
 						echo ' error: class '.$class.' already exists in '.$classes[$class].PHP_EOL;
-						exit(1);
+						continue;
 					}
 
 					echo ' found class '.$class.PHP_EOL;
@@ -155,8 +184,11 @@
 				{
 					if(isset($classes[$interface]))
 					{
+						if($classes[$interface] === relative_path($output_file_dir, $input_file))
+							continue;
+
 						echo ' error: interface '.$interface.' already exists in '.$classes[$interface].PHP_EOL;
-						exit(1);
+						continue;
 					}
 
 					echo ' found interface '.$interface.PHP_EOL;
@@ -166,8 +198,11 @@
 				{
 					if(isset($classes[$trait]))
 					{
+						if($classes[$trait] === relative_path($output_file_dir, $input_file))
+							continue;
+
 						echo ' error: trait '.$trait.' already exists in '.$classes[$trait].PHP_EOL;
-						exit(1);
+						continue;
 					}
 
 					echo ' found trait '.$trait.PHP_EOL;
@@ -177,8 +212,11 @@
 				{
 					if(isset($functions[$function]))
 					{
+						if($functions[$function] === relative_path($output_file_dir, $input_file))
+							continue;
+
 						echo ' error: function '.$function.' already exists in '.$functions[$function].PHP_EOL;
-						exit(1);
+						continue;
 					}
 
 					echo ' found function '.$function.PHP_EOL;

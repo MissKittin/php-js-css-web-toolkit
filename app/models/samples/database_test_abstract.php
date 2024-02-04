@@ -2,16 +2,11 @@
 	class database_test_abstract
 	{
 		/*
-		 * database abstraction class
-		 * for elimination of sql usage
+		 * Database abstraction class
+		 * for elimination of SQL usage
 		 *
 		 * Warning:
-		 *  pdo_connect.php library is required
 		 *  pdo_crud_bulder.php library is required
-		 *
-		 * Hint:
-		 *  you can override default database definition
-		 *  by DB_TYPE environment variable
 		 */
 
 		private $table_name;
@@ -25,51 +20,22 @@
 			$table_columns,
 			$on_pdo_connect_error
 		){
-			foreach([
-				'pdo_connect.php'=>['function', 'pdo_connect'],
-				'pdo_crud_builder.php'=>['class', 'pdo_crud_builder']
-			] as $library=>$library_meta)
-				switch($library_meta[0])
-				{
-					case 'class':
-						if(!class_exists($library_meta[1]))
-						{
-							if(!is_file(__DIR__.'/../../../lib/'.$library))
-								throw new Exception(__DIR__.'/../../../lib/'.$library.' not found');
+			require __DIR__.'/../../lib/samples/pdo_instance.php';
 
-							require __DIR__.'/../../../lib/'.$library;
-						}
-					break;
-					case 'function':
-						if(!function_exists($library_meta[1]))
-						{
-							if(!is_file(__DIR__.'/../../../lib/'.$library))
-								throw new Exception(__DIR__.'/../../../lib/'.$library.' not found');
+			if(!class_exists('pdo_crud_builder'))
+			{
+				if(!is_file(__DIR__.'/../../../lib/pdo_crud_builder.php'))
+					throw new Exception(__DIR__.'/../../../lib/pdo_crud_builder.php not found');
 
-							require __DIR__.'/../../../lib/'.$library;
-						}
-				}
+				require __DIR__.'/../../../lib/pdo_crud_builder.php';
+			}
 
 			$this->table_name=$table_name;
 			$this->table_key=$table_key;
 			$this->table_columns=$table_columns;
 
-			if(getenv('DB_IGNORE_ENV') === 'true')
-				$pdo_connect_db=false;
-			else
-				$pdo_connect_db=getenv('DB_TYPE');
-
-			if($pdo_connect_db === false)
-				$pdo_connect_db='sqlite';
-
-			if(!is_dir(__DIR__.'/../../databases/samples/'.$pdo_connect_db))
-				throw new Exception(__DIR__.'/../../databases/samples/'.$pdo_connect_db.' not exists');
-
 			$this->query_builder=new pdo_crud_builder([
-				'pdo_handler'=>pdo_connect(
-					__DIR__.'/../../databases/samples/'.$pdo_connect_db,
-					$on_pdo_connect_error
-				)
+				'pdo_handler'=>pdo_instance()
 			]);
 
 			$this->query_builder->set_fetch_mode(PDO::FETCH_NUM);

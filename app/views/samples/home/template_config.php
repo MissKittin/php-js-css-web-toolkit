@@ -14,6 +14,7 @@
 		'HTML obsfucator test'=>'/obsfucate-html',
 		'Login library test'=>'/login-library-test',
 		'Login component test (login and password: test)'=>'/login-component-test',
+		'Toolkit in Phar test'=>'/phar-test',
 		'PHP preprocessing test'=>'/preprocessing-test',
 		'404 error'=>'/nonexistent',
 		'HTTP errors'=>[

@@ -31,7 +31,7 @@
 	 *    $3 -> message
 	 *   returns exec() output
 	 *  log_to_mail
-	 *   input array keys: string_app_name string_recipient
+	 *   input array keys: string_app_name string_recipient callable_mail_callback
 	 *   hint: add mail.add_x_header=0 to php configuration
 	 *   returns mail() output
 	 *  log_to_php
@@ -93,6 +93,14 @@
 		$log=new log_to_mail([
 			'app_name'=>'test_app',
 			'recipient'=>'example@example.com' // (required)
+			'mail_callback'=>function($recipient, $app_name, $priority, $message) // optional
+			{
+				return my_mail_function(
+					$recipient,
+					'[LOG] '.$app_name.' '.$priority,
+					$message
+				);
+			}
 		])
 		$log=new log_to_pdo([
 			'app_name'=>'test_app',
@@ -129,6 +137,14 @@
 
 			// mail
 			'recipient'=>'example@example.com',
+			//'mail_callback'=>function($recipient, $app_name, $priority, $message)
+			//{
+			//	return my_mail_function(
+			//		$recipient,
+			//		'[LOG] '.$app_name.' '.$priority,
+			//		$message
+			//	);
+			//},
 
 			// pdo
 			'pdo_handler'=>new PDO('sqlite:./database.sqlite3'),
@@ -314,10 +330,28 @@
 		protected $constructor_params=['app_name', 'recipient'];
 
 		protected $recipient;
+		protected $mail_callback;
+
+		public function __construct(array $params)
+		{
+			parent::__construct($params);
+
+			$this->mail_callback['callback']=function($recipient, $app_name, $priority, $message)
+			{
+				return mail(
+					$recipient,
+					'[LOG] '.$app_name.' '.$priority,
+					$message
+				);
+			};
+
+			if(isset($params['mail_callback']))
+				$this->mail_callback['callback']=$params['mail_callback'];
+		}
 
 		public function log(string $priority, string $message)
 		{
-			return mail($this->recipient, '[LOG] '.$this->app_name.' '.$priority ,$message);
+			return $this->mail_callback['callback']($this->recipient, $this->app_name, $priority, $message);
 		}
 	}
 	class log_to_pdo extends log_to_generic

@@ -1,7 +1,7 @@
 <?php
-	require './app/shared/samples/default_http_headers.php';
+	require './app/lib/samples/default_http_headers.php';
 
-	require './app/shared/samples/ob_adapter.php';
+	require './app/lib/samples/ob_adapter.php';
 	ob_adapter
 		::add(new ob_adapter_obminifier())
 		->add(new ob_adapter_gzip())

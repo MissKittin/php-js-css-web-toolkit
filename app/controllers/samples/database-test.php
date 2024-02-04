@@ -6,15 +6,15 @@
 				return $param;
 	}
 
-	require './app/shared/samples/default_http_headers.php';
+	require './app/lib/samples/default_http_headers.php';
 
 	if(
 		isset($_SERVER['HTTP_ACCEPT_ENCODING']) &&
-		(strpos($_SERVER['HTTP_ACCEPT_ENCODING'], 'gzip') !== false)
+		str_contains($_SERVER['HTTP_ACCEPT_ENCODING'], 'gzip')
 	)
 		ob_start('ob_gzhandler');
 
-	require './app/shared/samples/session_start.php';
+	require './app/lib/samples/session_start.php';
 
 	require './lib/check_var.php';
 	require './lib/sec_csrf.php';

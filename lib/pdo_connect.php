@@ -20,8 +20,9 @@
 	 	// with seeder
 	 	pdo_connect(
 			'./path_to/your_database_config_directory',
-			function($error)
+			function($error) // optional
 			{
+				// executed on PDOException
 				error_log('pdo_connect: '.$error->getMessage());
 			}
 		)
@@ -29,7 +30,7 @@
 		// portable version
 	 	pdo_connect_array(
 			[
-				'db_type'=>'your-db-type', // sqlite pgsql mysql
+				'db_type'=>'your-db-type', // or use socket, sqlite pgsql mysql
 				'host'=>'server-ip-or-sqlite-db-path',
 				'port'=>'server-port',
 				//'socket'=>'/path/to/socket', // uncomment to use a unix socket
@@ -38,11 +39,17 @@
 				'user'=>'username',
 				'password'=>'password'
 			],
-			function($error)
+			function($error) // optional
 			{
+				// executed on PDOException
 				error_log('pdo_connect_array: '.$error->getMessage());
 			}
 		)
+	 *
+	 * Note:
+	 *  the socket path varies depending on the database, eg.
+	 *  for pgsql (note: directory path): /var/run/postgresql
+	 *  for mysql: /var/run/mysqld/mysqld.sock
 	 */
 
 	class pdo_connect_exception extends Exception {}
@@ -67,7 +74,7 @@
 		 *  2) create a config.php file:
 				return [
 					'db_type'=>'your-db-type', // sqlite pgsql mysql
-					'host'=>'server-ip-or-sqlite-db-path',
+					'host'=>'server-ip-or-sqlite-db-path', // or use socket, can be :memory: for sqlite
 					'port'=>'server-port',
 					//'socket'=>'/path/to/socket', // uncomment to use a unix socket
 					'db_name'=>'database-name',
@@ -90,12 +97,17 @@
 		 * Initialization:
 			$db=pdo_connect(
 				'./path_to/your_database_config_directory',
-				function($error)
+				function($error) // optional
 				{
+					// executed on PDOException
 					error_log('pdo_connect: '.$error->getMessage());
 				}
 			);
-		 *   where $on_error is optional and is executed on PDOException
+		 *
+		 * Note:
+		 *  the socket path varies depending on the database, eg.
+		 *  for pgsql (note: directory path): /var/run/postgresql
+		 *  for mysql: /var/run/mysqld/mysqld.sock
 		 */
 
 		if(!file_exists($db.'/config.php'))
@@ -106,32 +118,44 @@
 		if(!is_array($db_config))
 			throw new pdo_connect_exception($db.'/config.php did not return an array');
 
-		if(!isset($db_config['seeded_path']))
-			$db_config['seeded_path']=$db;
+		if(!isset($db_config['db_type']))
+			throw new pdo_connect_exception('The db_type parameter was not specified');
 
-		if(
-			isset($db_config['db_type']) &&
-			($db_config['db_type'] === 'sqlite') &&
-			isset($db_config['host']) &&
-			(!file_exists($db_config['host']))
-		)
-			@unlink($db_config['seeded_path'].'/database_seeded');
+		if(is_file($db.'/seed.php'))
+		{
+			if(!isset($db_config['seeded_path']))
+				$db_config['seeded_path']=$db;
+
+			if(
+				($db_config['db_type'] === 'sqlite') &&
+				isset($db_config['host']) &&
+				($db_config['host'] !== ':memory:') &&
+				(!file_exists($db_config['host']))
+			)
+				@unlink($db_config['seeded_path'].'/database_seeded');
+		}
 
 		$pdo_handler=pdo_connect_array($db_config, $on_error);
 
 		if($pdo_handler === false)
 			return false;
 
-		if(
-			file_exists($db.'/seed.php') &&
-			(!file_exists($db_config['seeded_path'].'/database_seeded'))
-		){
-			if(file_put_contents($db_config['seeded_path'].'/database_seed_w_test', '') === false)
-				throw new pdo_connect_exception('Could not create database_seed_w_test file in '.$db_config['seeded_path']);
+		if(is_file($db.'/seed.php'))
+		{
+			if(
+				isset($db_config['host']) &&
+				($db_config['db_type'].$db_config['host'] === 'sqlite:memory:')
+			)
+				include $db.'/seed.php';
+			else if(!file_exists($db_config['seeded_path'].'/database_seeded'))
+			{
+				if(file_put_contents($db_config['seeded_path'].'/database_seed_w_test', '') === false)
+					throw new pdo_connect_exception('Could not create database_seed_w_test file in '.$db_config['seeded_path']);
 
-			unlink($db_config['seeded_path'].'/database_seed_w_test');
-			include $db.'/seed.php';
-			file_put_contents($db_config['seeded_path'].'/database_seeded', '');
+				unlink($db_config['seeded_path'].'/database_seed_w_test');
+				include $db.'/seed.php';
+				file_put_contents($db_config['seeded_path'].'/database_seeded', '');
+			}
 		}
 
 		return $pdo_handler;
@@ -168,7 +192,7 @@
 			$db=pdo_connect_array(
 				[
 					'db_type'=>'your-db-type', // sqlite pgsql mysql
-					'host'=>'server-ip-or-sqlite-db-path',
+					'host'=>'server-ip-or-sqlite-db-path', // or use socket, can be :memory: for sqlite
 					'port'=>'server-port',
 					//'socket'=>'/path/to/socket', // uncomment to use a unix socket
 					'db_name'=>'database-name',
@@ -176,12 +200,17 @@
 					'user'=>'username',
 					'password'=>'password'
 				],
-				function($error)
+				function($error) // optional
 				{
+					// executed on PDOException
 					error_log('pdo_connect_array: '.$error->getMessage());
 				}
 			);
-		 *   where $on_error is optional and is executed on PDOException
+		 *
+		 * Note:
+		 *  the socket path varies depending on the database, eg.
+		 *  for pgsql (note: directory path): /var/run/postgresql
+		 *  for mysql: /var/run/mysqld/mysqld.sock
 		 */
 
 		$_check_params=function($db_config, $params)
