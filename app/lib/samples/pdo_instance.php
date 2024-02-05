@@ -15,7 +15,7 @@
 
 		static $pdo_handler=null;
 
-		if($pdo_instance === null)
+		if($pdo_handler === null)
 		{
 			if(!function_exists('pdo_connect'))
 				require __DIR__.'/../../../lib/pdo_connect.php';
@@ -32,7 +32,7 @@
 				throw new Exception(__DIR__.'/../../databases/samples/'.$pdo_connect_db.' not exists');
 
 			$pdo_handler=pdo_connect(
-				__DIR__.'/../app/databases/samples/'.$pdo_connect_db,
+				__DIR__.'/../../databases/samples/'.$pdo_connect_db,
 				$on_error
 			);
 		}

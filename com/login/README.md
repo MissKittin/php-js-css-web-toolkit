@@ -125,7 +125,7 @@ $GLOBALS['_login']['callback']=function($login)
 $GLOBALS['_login']['config']['method']='login_single';
 
 // display login prompt
-include './components/login/login.php';
+include './com/login/login.php';
 
 // check if user is authenticated
 if(is_logged())
@@ -142,7 +142,7 @@ if(is_logged())
 
 ## Display reload page only
 ```
-include './components/login/reload.php';
+include './com/login/reload.php';
 exit();
 ```
 
@@ -163,12 +163,12 @@ $GLOBALS['_login']['config']['session_reload']=function($cookie_lifetime)
 Link `./assets/login_bright.css` and `./assets/login_dark.css` to the `app/assets`. This step is optional.  
 for *nix:
 ```
-ln -s ../../components/login/assets/login_bright.css ./app/assets/login_bright.css; ln -s ../../components/login/assets/login_dark.css ./app/assets/login_dark.css
+ln -s ../../com/login/assets/login_bright.css ./app/assets/login_bright.css; ln -s ../../com/login/assets/login_dark.css ./app/assets/login_dark.css
 ```
 for windows:
 ```
-mklink /d app\assets\login_bright.css ..\..\components\login\assets\login_bright.css
-mklink /d app\assets\login_dark.css ..\..\components\login\assets\login_dark.css
+mklink /d app\assets\login_bright.css ..\..\com\login\assets\login_bright.css
+mklink /d app\assets\login_dark.css ..\..\com\login\assets\login_dark.css
 ```
 
 ## Portability

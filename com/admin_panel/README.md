@@ -93,7 +93,7 @@ Note: you need to add the `/admin` path to the router
 Admin router:
 ```
 <?php
-	include './components/admin_panel/admin_panel.php';
+	include './com/admin_panel/admin_panel.php';
 
 	$admin_panel=new admin_panel([
 		'base_url'=>'/admin',
@@ -205,15 +205,28 @@ Admin router:
 ```
 
 ## Assets
-Link `./assets/admin_panel.css` and `./assets/admin_panel.js` to the `app/assets`. This step is optional.  
+Link template assets to the `app/assets`.
+
+### default template
 for *nix:
 ```
-ln -s ../../components/admin_panel/assets/admin_panel.css ./app/assets/admin_panel.css; ln -s ../../components/admin_panel/assets/admin_panel.js ./app/assets/admin_panel.js
+ln -s ../../com/admin_panel/templates/default/assets/admin_panel_default.css ./app/assets/admin_panel_default.css; ln -s ../../com/admin_panel/templates/default/assets/admin_panel_default.js ./app/assets/admin_panel_default.js
 ```
 for windows:
 ```
-mklink /d app\assets\admin_panel.css ..\..\components\admin_panel\assets\admin_panel.css
-mklink /d app\assets\admin_panel.js ..\..\components\admin_panel\assets\admin_panel.js
+mklink /d app\assets\admin_panel_default.css ..\..\com\admin_panel\templates\default\assets\admin_panel_default.css
+mklink app\assets\admin_panel_default.js ..\..\com\admin_panel\templates\default\assets\admin_panel_default.js
+```
+
+### materialized template
+for *nix:
+```
+ln -s ../../com/admin_panel/templates/materialized/assets/admin_panel_materialized.css ./app/assets/admin_panel_materialized.css; ln -s ../../lib/simpleblog_materialized.css ./app/assets/simpleblog_materialized.css
+```
+for windows:
+```
+mklink /d app\assets\admin_panel_materialized.css ..\..\com\admin_panel\templates\materialized\assets\admin_panel_materialized.css
+mklink app\assets\simpleblog_materialized.css ..\..\lib\simpleblog_materialized.css
 ```
 
 ## Portability
