@@ -78,7 +78,7 @@ if(!isset($_SESSION['captcha_verified']))
 
 	if((!isset($_POST['captcha'])) || (!captcha_check($_POST['captcha'])))
 	{
-		include './components/middleware_form/middleware_form.php';
+		include './com/middleware_form/middleware_form.php';
 		$captcha_form=new middleware_form();
 
 		// here you can setup the login component (view section)
@@ -107,7 +107,7 @@ if(!isset($_SESSION['captcha_verified']))
 			]);
 
 		if($captcha_form->is_form_sent())
-			include './components/login/reload.php'; // display reload page
+			include './com/login/reload.php'; // display reload page
 		else
 			$captcha_form->view();
 
@@ -116,7 +116,7 @@ if(!isset($_SESSION['captcha_verified']))
 
 	$_SESSION['captcha_verified']=true;
 
-	include './components/login/reload.php'; // display reload page
+	include './com/login/reload.php'; // display reload page
 	exit();
 }
 
@@ -127,7 +127,7 @@ if(!isset($_SESSION['captcha_verified']))
 ```
 if(change_password_requested())
 {
-	include './components/middleware_form/middleware_form.php';
+	include './com/middleware_form/middleware_form.php';
 	$change_password_form=new middleware_form();
 
 	if(($change_password_form->is_form_sent()) && is_old_password_valid($_POST['old_password']))
@@ -164,12 +164,12 @@ if(change_password_requested())
 Link `./assets/middleware_form_bright.css` and `./assets/middleware_form_dark.css` to the `app/assets`. This step is optional.  
 for *nix:
 ```
-ln -s ../../components/middleware_form/assets/middleware_form_bright.css ./app/assets/middleware_form_bright.css; ln -s ../../components/middleware_form/assets/middleware_form_dark.css ./app/assets/middleware_form_dark.css
+ln -s ../../com/middleware_form/assets/middleware_form_bright.css ./app/assets/middleware_form_bright.css; ln -s ../../com/middleware_form/assets/middleware_form_dark.css ./app/assets/middleware_form_dark.css
 ```
 for windows:
 ```
-mklink /d app\assets\middleware_form_bright.css ..\..\components\middleware_form\assets\middleware_form_bright.css
-mklink /d app\assets\middleware_form_dark.css ..\..\components\middleware_form\assets\middleware_form_dark.css
+mklink /d app\assets\middleware_form_bright.css ..\..\com\middleware_form\assets\middleware_form_bright.css
+mklink /d app\assets\middleware_form_dark.css ..\..\com\middleware_form\assets\middleware_form_dark.css
 ```
 
 ## Portability

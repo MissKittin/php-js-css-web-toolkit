@@ -2,7 +2,7 @@
 To check if all libraries and components will work on your server, run:
 ```
 php ./bin/run-php-lib-tests.php
-php ./bin/run-php-components-tests.php
+php ./bin/run-php-com-tests.php
 ```
 You can also run the HTTP server to test the CSS and Js libraries on the web browser:
 ```
@@ -13,13 +13,13 @@ php ./bin/run-phtml-tests.php
 If a better option is to pack the libraries and components into one file,  
 use the `mkphar.php` utility:
 ```
-php -d phar.readonly=0 ./bin/mkphar.php --compress=gz --source=components --source=lib --ignore=assets/ --ignore=bin/ --ignore=tests/ --ignore=tmp/ --ignore=README.md --output=toolkit.phar
+php -d phar.readonly=0 ./bin/mkphar.php --compress=gz --source=com --source=lib --ignore=assets/ --ignore=bin/ --ignore=tests/ --ignore=tmp/ --ignore=README.md --output=toolkit.phar
 ```
 and use the generated Phar, eg:
 ```
 require 'phar://'
 .	'./toolkit.phar'
-.	'/components/admin_panel/admin_panel.php'
+.	'/com/admin_panel/admin_panel.php'
 ;
 ```
 

@@ -15,11 +15,11 @@
 
 	require 'phar://'
 	.	'./toolkit.phar'
-	.	'/components/admin_panel/admin_panel.php'
+	.	'/com/admin_panel/admin_panel.php'
 	;
 	require 'phar://'
 	.	'./toolkit.phar'
-	.	'/components/middleware_form/middleware_form.php'
+	.	'/com/middleware_form/middleware_form.php'
 	;
 
 	$phar_realpath='phar://'.realpath('./toolkit.phar');

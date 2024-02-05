@@ -96,7 +96,7 @@
 			'wrong_credentials'=>true
 		]);
 
-		require './components/login/login.php';
+		require './com/login/login.php';
 		exit();
 	}
 
@@ -120,7 +120,7 @@
 	]);
 
 	// display login prompt
-	require './components/login/login.php';
+	require './com/login/login.php';
 
 	if(is_logged())
 	{
@@ -140,7 +140,7 @@
 
 			if((!isset($_POST['captcha'])) || (!captcha_check($_POST['captcha'])))
 			{
-				require './components/middleware_form/middleware_form.php';
+				require './com/middleware_form/middleware_form.php';
 				$captcha_form=new middleware_form();
 
 				$captcha_form
@@ -190,7 +190,7 @@
 					]);
 
 				if($captcha_form->is_form_sent())
-					require './components/login/reload.php'; // display reload page
+					require './com/login/reload.php'; // display reload page
 				else
 					$captcha_form->view();
 
@@ -199,7 +199,7 @@
 
 			$_SESSION['captcha_verified']=true;
 
-			require './components/login/reload.php'; // display reload page
+			require './com/login/reload.php'; // display reload page
 			exit();
 		}
 
@@ -231,7 +231,7 @@
 
 		if(login_component_test_credentials::change_password_requested())
 		{
-			require './components/middleware_form/middleware_form.php';
+			require './com/middleware_form/middleware_form.php';
 			$change_password_form=new middleware_form();
 
 			if(
@@ -245,7 +245,7 @@
 				login_component_test_credentials::save_new_password($_POST['new_password']);
 				log_infos()->info('Password updated');
 
-				require './components/login/reload.php'; // display reload page
+				require './com/login/reload.php'; // display reload page
 				exit();
 			}
 			else

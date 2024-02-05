@@ -32,7 +32,7 @@ Supported cache databases: Redis, Memcached
 * `pdo-connect.php` - interface for `pdo_connect.php` library - seed databases
 * `queue-worker.php` - interface for `queue_worker.php` server
 * `run-php-bin-tests.php` - run PHP tool tests in batch mode
-* `run-php-components-tests.php` - run PHP components tests in batch mode
+* `run-php-com-tests.php` - run PHP components tests in batch mode
 * `run-php-lib-tests.php` - run PHP library tests in batch mode
 * `run-phtml-tests.php` - serve phtml tests (for Js and CSS libraries)
 * `serve.php` - start PHP development server

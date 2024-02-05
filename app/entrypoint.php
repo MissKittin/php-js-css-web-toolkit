@@ -1,7 +1,7 @@
 <?php
 	chdir(__DIR__.'/..');
 
-	require './components/php_polyfill/php_polyfill.php';
+	require './com/php_polyfill/php_polyfill.php';
 
 	if(
 		(!isset($_SERVER['REQUEST_URI'])) ||
