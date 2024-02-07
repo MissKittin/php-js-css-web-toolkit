@@ -163,12 +163,12 @@ $GLOBALS['_login']['config']['session_reload']=function($cookie_lifetime)
 Link `./assets/login_bright.css` and `./assets/login_dark.css` to the `app/assets`. This step is optional.  
 for *nix:
 ```
-ln -s ../../com/login/assets/login_bright.css ./app/assets/login_bright.css; ln -s ../../com/login/assets/login_dark.css ./app/assets/login_dark.css
+ln -s ../../tk/com/login/assets/login_bright.css ./app/assets/login_bright.css; ln -s ../../tk/com/login/assets/login_dark.css ./app/assets/login_dark.css
 ```
 for windows:
 ```
-mklink /d app\assets\login_bright.css ..\..\com\login\assets\login_bright.css
-mklink /d app\assets\login_dark.css ..\..\com\login\assets\login_dark.css
+mklink /d app\assets\login_bright.css ..\..\tk\com\login\assets\login_bright.css
+mklink /d app\assets\login_dark.css ..\..\tk\com\login\assets\login_dark.css
 ```
 
 ## Portability

@@ -210,23 +210,23 @@ Link template assets to the `app/assets`.
 ### default template
 for *nix:
 ```
-ln -s ../../com/admin_panel/templates/default/assets/admin_panel_default.css ./app/assets/admin_panel_default.css; ln -s ../../com/admin_panel/templates/default/assets/admin_panel_default.js ./app/assets/admin_panel_default.js
+ln -s ../../tk/com/admin_panel/templates/default/assets/admin_panel_default.css ./app/assets/admin_panel_default.css; ln -s ../../tk/com/admin_panel/templates/default/assets/admin_panel_default.js ./app/assets/admin_panel_default.js
 ```
 for windows:
 ```
-mklink /d app\assets\admin_panel_default.css ..\..\com\admin_panel\templates\default\assets\admin_panel_default.css
-mklink app\assets\admin_panel_default.js ..\..\com\admin_panel\templates\default\assets\admin_panel_default.js
+mklink /d app\assets\admin_panel_default.css ..\..\tk\com\admin_panel\templates\default\assets\admin_panel_default.css
+mklink app\assets\admin_panel_default.js ..\..\tk\com\admin_panel\templates\default\assets\admin_panel_default.js
 ```
 
 ### materialized template
 for *nix:
 ```
-ln -s ../../com/admin_panel/templates/materialized/assets/admin_panel_materialized.css ./app/assets/admin_panel_materialized.css; ln -s ../../lib/simpleblog_materialized.css ./app/assets/simpleblog_materialized.css
+ln -s ../../tk/com/admin_panel/templates/materialized/assets/admin_panel_materialized.css ./app/assets/admin_panel_materialized.css; ln -s ../../tk/lib/simpleblog_materialized.css ./app/assets/simpleblog_materialized.css
 ```
 for windows:
 ```
-mklink /d app\assets\admin_panel_materialized.css ..\..\com\admin_panel\templates\materialized\assets\admin_panel_materialized.css
-mklink app\assets\simpleblog_materialized.css ..\..\lib\simpleblog_materialized.css
+mklink /d app\assets\admin_panel_materialized.css ..\..\tk\com\admin_panel\templates\materialized\assets\admin_panel_materialized.css
+mklink app\assets\simpleblog_materialized.css ..\..\tk\lib\simpleblog_materialized.css
 ```
 
 ## Portability

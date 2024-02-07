@@ -164,12 +164,12 @@ if(change_password_requested())
 Link `./assets/middleware_form_bright.css` and `./assets/middleware_form_dark.css` to the `app/assets`. This step is optional.  
 for *nix:
 ```
-ln -s ../../com/middleware_form/assets/middleware_form_bright.css ./app/assets/middleware_form_bright.css; ln -s ../../com/middleware_form/assets/middleware_form_dark.css ./app/assets/middleware_form_dark.css
+ln -s ../../tk/com/middleware_form/assets/middleware_form_bright.css ./app/assets/middleware_form_bright.css; ln -s ../../tk/com/middleware_form/assets/middleware_form_dark.css ./app/assets/middleware_form_dark.css
 ```
 for windows:
 ```
-mklink /d app\assets\middleware_form_bright.css ..\..\com\middleware_form\assets\middleware_form_bright.css
-mklink /d app\assets\middleware_form_dark.css ..\..\com\middleware_form\assets\middleware_form_dark.css
+mklink /d app\assets\middleware_form_bright.css ..\..\tk\com\middleware_form\assets\middleware_form_bright.css
+mklink /d app\assets\middleware_form_dark.css ..\..\tk\com\middleware_form\assets\middleware_form_dark.css
 ```
 
 ## Portability
