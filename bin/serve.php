@@ -52,8 +52,10 @@
 		)
 		{
 			echo 'Usage:'.PHP_EOL;
-			echo ' serve.php [--ip 127.0.0.1] [--port 8080] [--docroot ../public] [--preload ./tmp/app-preload.php] [--threads 1]'.PHP_EOL;
+			echo ' serve.php [--ip 127.0.0.1] [--port 8080] [--docroot ./public] [--preload ./var/lib/app_preload.php] [--threads 1]'.PHP_EOL;
 			echo PHP_EOL;
+			echo '--docroot default path is ./public'.PHP_EOL;
+			echo ' you have been warned'.PHP_EOL;
 			echo '--threads and --preload options requires'.PHP_EOL;
 			echo ' PHP 7.4.0 or newer'.PHP_EOL;
 			echo 'if the server exists without any error,'.PHP_EOL;
@@ -78,7 +80,7 @@
 				die('Cannot chdir to the '.$php_http_docroot.PHP_EOL);
 		}
 		else
-			chdir(__DIR__.'/../public');
+			chdir('./public');
 
 		echo 'Starting PHP server ('.$php_http_addr.':'.$php_http_port.')'.PHP_EOL;
 		echo ' in '.getcwd().PHP_EOL;

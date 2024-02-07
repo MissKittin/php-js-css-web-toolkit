@@ -1,14 +1,13 @@
 # PHP-JS-CSS web toolkit
 A set of tools, components and libraries that you can use in your project  
 Minimum PHP version: 7.1  
-Recommended PHP version: 7.4  
+Recommended PHP version: 7.4 or newer  
 Supported relational databases: PostgreSQL, MySQL, SQLite3  
 Supported cache databases: Redis, Memcached
 
 ## Principles
 * respect the KISS rule
 * respect the DRY rule
-* use MVC design pattern
 * PHP and CSS have a snake_case, Js - camelCase
 * if you are writing a new library, keep it independent of the other libraries
 * if you are writing a new component, keep it independent of the other components
