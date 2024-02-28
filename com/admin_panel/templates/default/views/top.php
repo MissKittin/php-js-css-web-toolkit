@@ -4,6 +4,12 @@
 		<title><?php echo $this->registry['_title']; ?></title>
 		<meta charset="utf-8">
 		<meta http-equiv="Content-Security-Policy" content="<?php
+			if($this->registry['_inline_assets'])
+			{
+				$this->registry['_csp_header']['script-src'][]='\'nonce-mainscript\'';
+				$this->registry['_csp_header']['style-src'][]='\'nonce-mainstyle\'';
+			}
+
 			foreach($this->registry['_csp_header'] as $_csp_param=>$_csp_values)
 			{
 				echo $_csp_param;
@@ -13,13 +19,44 @@
 			}
 		?>">
 		<meta name="viewport" content="width=device-width, initial-scale=1">
-		<link rel="stylesheet" href="<?php echo $this->registry['_assets_path']; ?>/admin_panel_default.css">
+		<?php
+			if($this->registry['_inline_assets'])
+			{
+				?><style nonce="mainstyle"><?php
+					if(is_dir(__DIR__.'/../assets/admin_panel_default.css'))
+						foreach(
+							array_diff(
+								scandir(__DIR__.'/../assets/admin_panel_default.css'),
+								['.', '..']
+							)
+							as $inline_style
+						)
+							readfile(__DIR__.'/../assets/admin_panel_default.css/'.$inline_style);
+				?></style><?php
+			}
+			else
+			{
+				?><link rel="stylesheet" href="<?php echo $this->registry['_assets_path']; ?>/admin_panel_default.css"><?php
+			}
+		?>
 		<?php
 			if(isset($this->registry['_styles']))
 				foreach($this->registry['_styles'] as $_style)
 					{ ?><link rel="stylesheet" href="<?php echo $_style; ?>"><?php }
 		?>
-		<script src="<?php echo $this->registry['_assets_path']; ?>/admin_panel_default.js"></script>
+		<?php
+			if($this->registry['_inline_assets'])
+			{
+				?><script nonce="mainscript"><?php
+					if(is_file(__DIR__.'/../assets/admin_panel_default.js'))
+						readfile(__DIR__.'/../assets/admin_panel_default.js');
+				?></script><?php
+			}
+			else
+			{
+				?><script src="<?php echo $this->registry['_assets_path']; ?>/admin_panel_default.js"></script><?php
+			}
+		?>
 		<?php
 			if(isset($this->registry['_scripts']))
 				foreach($this->registry['_scripts'] as $_script)

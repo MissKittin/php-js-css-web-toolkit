@@ -38,21 +38,22 @@
 	echo ' [ OK ]'.PHP_EOL;
 
 	echo ' -> Removing temporary files';
-		@unlink(__DIR__.'/tmp/sqlite3_db_dump.sqlite3');
+		@unlink(__DIR__.'/tmp/sqlite3_db_dump/sqlite3_db_dump.sqlite3');
 	echo ' [ OK ]'.PHP_EOL;
 
 	echo ' -> Creating test database';
 		@mkdir(__DIR__.'/tmp');
+		@mkdir(__DIR__.'/tmp/sqlite3_db_dump');
 
 		if(extension_loaded('PDO') && extension_loaded('pdo_sqlite'))
 		{
 			echo ' (PDO)';
-			$test_db=new PDO('sqlite:'.__DIR__.'/tmp/sqlite3_db_dump.sqlite3');
+			$test_db=new PDO('sqlite:'.__DIR__.'/tmp/sqlite3_db_dump/sqlite3_db_dump.sqlite3');
 		}
 		else if(class_exists('SQLite3'))
 		{
 			echo ' (SQLite3)';
-			$test_db=new SQLite3(__DIR__.'/tmp/sqlite3_db_dump.sqlite3');
+			$test_db=new SQLite3(__DIR__.'/tmp/sqlite3_db_dump/sqlite3_db_dump.sqlite3');
 			$test_db->busyTimeout(5000);
 		}
 		else
@@ -75,8 +76,12 @@
 	echo ' -> Testing sqlite3_db_dump';
 		if(class_exists('SQLite3'))
 		{
-			//echo ' ('.md5(sqlite3_db_dump(__DIR__.'/tmp/sqlite3_db_dump.sqlite3')).')';
-			if(md5(sqlite3_db_dump(__DIR__.'/tmp/sqlite3_db_dump.sqlite3')) === '60071847ffd1fa2efce1fc9a606b15fe')
+			//echo ' ('.md5(sqlite3_db_dump(__DIR__.'/tmp/sqlite3_db_dump/sqlite3_db_dump.sqlite3')).')';
+			if(
+				md5(sqlite3_db_dump(__DIR__.'/tmp/sqlite3_db_dump/sqlite3_db_dump.sqlite3'))
+				===
+				'60071847ffd1fa2efce1fc9a606b15fe'
+			)
 				echo ' [ OK ]'.PHP_EOL;
 			else
 			{
@@ -90,8 +95,12 @@
 	echo ' -> Testing sqlite3_pdo_dump';
 		if(extension_loaded('PDO') && extension_loaded('pdo_sqlite'))
 		{
-			//echo ' ('.md5(sqlite3_pdo_dump(__DIR__.'/tmp/sqlite3_db_dump.sqlite3')).')';
-			if(md5(sqlite3_pdo_dump(__DIR__.'/tmp/sqlite3_db_dump.sqlite3')) === '60071847ffd1fa2efce1fc9a606b15fe')
+			//echo ' ('.md5(sqlite3_pdo_dump(__DIR__.'/tmp/sqlite3_db_dump/sqlite3_db_dump.sqlite3')).')';
+			if(
+				md5(sqlite3_pdo_dump(__DIR__.'/tmp/sqlite3_db_dump/sqlite3_db_dump.sqlite3'))
+				===
+				'60071847ffd1fa2efce1fc9a606b15fe'
+			)
 				echo ' [ OK ]'.PHP_EOL;
 			else
 			{

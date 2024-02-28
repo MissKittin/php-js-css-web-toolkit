@@ -44,7 +44,7 @@
 		$db->busyTimeout(5000);
 
 		$sql='';
-		@$tables=$db->query('SELECT name FROM sqlite_master WHERE type ="table" AND name NOT LIKE "sqlite_%"');
+		$tables=$db->query('SELECT name FROM sqlite_master WHERE type ="table" AND name NOT LIKE "sqlite_%"');
 
 		if($tables === false)
 			return false;

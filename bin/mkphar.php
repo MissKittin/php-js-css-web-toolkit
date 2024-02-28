@@ -18,14 +18,15 @@
 
 	if(check_argv('-h') || check_argv('--help'))
 	{
-		echo 'Usage: [--compress=gz|bz2] [[--stub=path/to/main.php] [--shebang]] --source=dir1 [--source=dir2] [--ignore=filename] [--ignore=dirname/] [--ignore=dir/file] --output=path/to/archive.phar'.PHP_EOL;
+		echo 'Usage: [--compress=gz|bz2] [[--stub=path/to/main.php] [--shebang]] --source=dir1 [--source=dir2] [--ignore=filename] [--ignore=dirname/] [--ignore=dir/file] [--include=/file.ext] --output=path/to/archive.phar'.PHP_EOL;
 		echo PHP_EOL;
 		echo 'Where:'.PHP_EOL;
 		echo ' --compress -> if not defined, no compression applied'.PHP_EOL;
 		echo ' --stub -> app entrypoint (will be added to the root directory)'.PHP_EOL;
 		echo ' --shebang -> add #!/usr/bin/env php (stub must be defined)'.PHP_EOL;
-		echo ' --source -> path for buildFromDirectory()'.PHP_EOL;
+		echo ' --source -> path for addFile()'.PHP_EOL;
 		echo ' --ignore -> do not add file/directory with name'.PHP_EOL;
+		echo ' --include -> force add file that ends with name (has priority over --ignore)'.PHP_EOL;
 		echo '  note:'.PHP_EOL;
 		echo '   it doesn\'t matter if there is a slash or a backslash in the path'.PHP_EOL;
 		echo '   parent and absolute paths are forbidden'.PHP_EOL;
@@ -38,6 +39,7 @@
 	$stub=check_argv_param('--stub', '=');
 	$sources=check_argv_param_many('--source', '=');
 	$ignores=check_argv_param_many('--ignore', '=');
+	$includes=check_argv_param_many('--include', '=');
 	$output=check_argv_param('--output', '=');
 
 	if(!Phar::canWrite())
@@ -94,6 +96,9 @@
 	if($ignores === null)
 		$ignores=[];
 
+	if($includes === null)
+		$includes=[];
+
 	if(file_exists($output))
 	{
 		echo __DIR__.'/lib.phar already exists.PHP_EOL';
@@ -144,15 +149,26 @@
 				as $file
 			){
 				foreach($ignores as $ignore)
+				{
 					if(
 						strpos(
 							strtr($file->getPathname(), '\\', '/'),
 							strtr($ignore, '\\', '/')
 						) !== false
 					){
+						foreach($includes as $include)
+							if( // str_ends_with()
+								substr(
+									strtr($file->getPathname(), '\\', '/'),
+									-strlen($include)
+								) === $include
+							)
+								break 2;
+
 						echo '[IGN] '.$file->getPathname().PHP_EOL;
 						continue 2;
 					}
+				}
 
 				echo '[ADD] '.$file->getPathname().PHP_EOL;
 				$phar->addFile(

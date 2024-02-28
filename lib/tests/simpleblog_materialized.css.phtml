@@ -27,7 +27,10 @@
 				else if(is_file(__DIR__.'/../'.basename(__FILE__, '.phtml')))
 					require __DIR__.'/../'.basename(__FILE__, '.phtml');
 			?>
-			input[type=file]::before { content: 'Add files'; }
+
+			input[type=file]::before {
+				content: 'Add files';
+			}
 		</style>
 	</head>
 	<body>
@@ -38,15 +41,20 @@
 				<a href="?action=page" style="font-size: 25pt;">Page</a>
 			</div>
 		<?php } else if($_GET['action'] === 'blog') { ?>
-			<div id="header"><h1>HEADER HEADER</h1></div>
-			<div id="headlinks">
-				<div class="headlink"><a href="#">Current</a><div class="headlink_active"></div></div>
-				<div class="headlink"><a href="#">Another</a></div>
+			<div id="header" class="sb_header"><h1>HEADER HEADER</h1></div>
+			<div id="headlinks" class="sb_headlinks">
+				<div class="headlink sb_headlink"><a href="#">Current</a><div class="headlink_active sb_headlink_active"></div></div>
+				<div class="headlink sb_headlink"><a href="#">Another</a></div>
 			</div>
-			<div id="page">
-				<div class="article">
-					<div class="article_title">ARTICLE TITLE<div class="article_date">ARTICLE DATE</div></div>
-					<div class="article_content">
+			<div id="page" class="sb_page">
+				<div class="article sb_article">
+					<div class="article_title sb_article_title">
+						ARTICLE TITLE
+						<div class="article_date sb_article_date">
+							ARTICLE DATE
+						</div>
+					</div>
+					<div class="article_content sb_article_content">
 						Lorem ipsum dolor sit amet, consectetur adipiscing elit. In urna odio, semper vel odio at, sagittis ultricies sem. Mauris scelerisque, sem at venenatis finibus, lacus ex malesuada quam, quis pharetra massa odio consectetur velit. Sed odio est, venenatis sit amet efficitur nec, varius id lectus. Donec blandit nisi nec viverra mattis. Aliquam sed placerat augue. Nullam feugiat consectetur urna, vitae porta lectus imperdiet at. Quisque ut dolor maximus, mattis erat nec, ornare ante. In vitae nisi sed sem auctor porttitor.
 						Vestibulum sollicitudin, eros sed facilisis cursus, nunc lorem elementum metus, at maximus nibh diam vehicula nulla. Fusce varius turpis sed gravida scelerisque. Curabitur ornare mi eu metus commodo ullamcorper. Nunc vel scelerisque nunc, id fermentum nibh. Donec sit amet accumsan odio. Nam condimentum eget velit eu volutpat. Mauris vitae dapibus metus, accumsan rhoncus leo. Praesent sit amet placerat ligula. Vivamus tincidunt, augue quis convallis iaculis, urna elit fringilla magna, ut consectetur urna justo non metus. Praesent vel justo sed orci placerat dictum in id nisl. Morbi eget urna justo.
 						Donec lobortis nisl diam, vitae eleifend orci ornare id. Nullam nisi ligula, viverra vel quam vitae, laoreet efficitur ex. In interdum rhoncus sapien eu accumsan. Aliquam at leo id nibh pharetra cursus ut sed odio. Nulla id diam vitae libero vulputate commodo sit amet eget risus. Suspendisse hendrerit purus ac ipsum sollicitudin fringilla. Nulla rhoncus, dui quis fringilla tincidunt, elit ipsum finibus urna, in condimentum massa tortor eu elit. Quisque nec sem vel nibh posuere posuere nec non enim. Duis sed velit malesuada, lacinia libero eu, venenatis ante. Proin molestie molestie velit, vel ullamcorper ex eleifend sed. Etiam tincidunt tincidunt mi, vel ultrices enim lobortis eget. Curabitur nisi nunc, interdum eu tortor sed, tristique egestas est. Duis vestibulum mattis fermentum. Aenean congue porta porttitor. Donec euismod orci et eros porta, maximus tristique dolor congue.
@@ -69,9 +77,14 @@
 						Phasellus fringilla est tellus, eget laoreet tellus placerat convallis. Mauris in sollicitudin diam. Aenean eu malesuada risus. Pellentesque at sagittis lectus. Proin ullamcorper tortor nec nisl iaculis, at aliquam nunc commodo. Cras ut commodo lacus. Suspendisse ac mollis mauris, in mattis ipsum. Etiam cursus sapien in ipsum tincidunt, et commodo sapien faucibus. Sed id ipsum ut nunc fermentum facilisis. Aliquam a nulla magna. Vestibulum fermentum viverra dolor sed posuere. Phasellus mi turpis, feugiat quis libero ac, tincidunt accumsan arcu.
 					</div>
 				</div>
-				<div class="article">
-					<div class="article_title">ARTICLE TITLE<div class="article_date">ARTICLE DATE</div></div>
-					<div class="article_content">
+				<div class="article sb_article">
+					<div class="article_title sb_article_title">
+						ARTICLE TITLE
+						<div class="article_date sb_article_date">
+							ARTICLE DATE
+						</div>
+					</div>
+					<div class="article_content sb_article_content">
 						Lorem ipsum dolor sit amet, consectetur adipiscing elit. In urna odio, semper vel odio at, sagittis ultricies sem. Mauris scelerisque, sem at venenatis finibus, lacus ex malesuada quam, quis pharetra massa odio consectetur velit. Sed odio est, venenatis sit amet efficitur nec, varius id lectus. Donec blandit nisi nec viverra mattis. Aliquam sed placerat augue. Nullam feugiat consectetur urna, vitae porta lectus imperdiet at. Quisque ut dolor maximus, mattis erat nec, ornare ante. In vitae nisi sed sem auctor porttitor.
 						Vestibulum sollicitudin, eros sed facilisis cursus, nunc lorem elementum metus, at maximus nibh diam vehicula nulla. Fusce varius turpis sed gravida scelerisque. Curabitur ornare mi eu metus commodo ullamcorper. Nunc vel scelerisque nunc, id fermentum nibh. Donec sit amet accumsan odio. Nam condimentum eget velit eu volutpat. Mauris vitae dapibus metus, accumsan rhoncus leo. Praesent sit amet placerat ligula. Vivamus tincidunt, augue quis convallis iaculis, urna elit fringilla magna, ut consectetur urna justo non metus. Praesent vel justo sed orci placerat dictum in id nisl. Morbi eget urna justo.
 						Donec lobortis nisl diam, vitae eleifend orci ornare id. Nullam nisi ligula, viverra vel quam vitae, laoreet efficitur ex. In interdum rhoncus sapien eu accumsan. Aliquam at leo id nibh pharetra cursus ut sed odio. Nulla id diam vitae libero vulputate commodo sit amet eget risus. Suspendisse hendrerit purus ac ipsum sollicitudin fringilla. Nulla rhoncus, dui quis fringilla tincidunt, elit ipsum finibus urna, in condimentum massa tortor eu elit. Quisque nec sem vel nibh posuere posuere nec non enim. Duis sed velit malesuada, lacinia libero eu, venenatis ante. Proin molestie molestie velit, vel ullamcorper ex eleifend sed. Etiam tincidunt tincidunt mi, vel ultrices enim lobortis eget. Curabitur nisi nunc, interdum eu tortor sed, tristique egestas est. Duis vestibulum mattis fermentum. Aenean congue porta porttitor. Donec euismod orci et eros porta, maximus tristique dolor congue.
@@ -94,9 +107,14 @@
 						Phasellus fringilla est tellus, eget laoreet tellus placerat convallis. Mauris in sollicitudin diam. Aenean eu malesuada risus. Pellentesque at sagittis lectus. Proin ullamcorper tortor nec nisl iaculis, at aliquam nunc commodo. Cras ut commodo lacus. Suspendisse ac mollis mauris, in mattis ipsum. Etiam cursus sapien in ipsum tincidunt, et commodo sapien faucibus. Sed id ipsum ut nunc fermentum facilisis. Aliquam a nulla magna. Vestibulum fermentum viverra dolor sed posuere. Phasellus mi turpis, feugiat quis libero ac, tincidunt accumsan arcu.
 					</div>
 				</div>
-				<div class="article">
-					<div class="article_title">ARTICLE TITLE<div class="article_date">ARTICLE DATE</div></div>
-					<div class="article_content">
+				<div class="article sb_article">
+					<div class="article_title sb_article_title">
+						ARTICLE TITLE
+						<div class="article_date sb_article_date">
+							ARTICLE DATE
+						</div>
+					</div>
+					<div class="article_content sb_article_content">
 						Lorem ipsum dolor sit amet, consectetur adipiscing elit. In urna odio, semper vel odio at, sagittis ultricies sem. Mauris scelerisque, sem at venenatis finibus, lacus ex malesuada quam, quis pharetra massa odio consectetur velit. Sed odio est, venenatis sit amet efficitur nec, varius id lectus. Donec blandit nisi nec viverra mattis. Aliquam sed placerat augue. Nullam feugiat consectetur urna, vitae porta lectus imperdiet at. Quisque ut dolor maximus, mattis erat nec, ornare ante. In vitae nisi sed sem auctor porttitor.
 						Vestibulum sollicitudin, eros sed facilisis cursus, nunc lorem elementum metus, at maximus nibh diam vehicula nulla. Fusce varius turpis sed gravida scelerisque. Curabitur ornare mi eu metus commodo ullamcorper. Nunc vel scelerisque nunc, id fermentum nibh. Donec sit amet accumsan odio. Nam condimentum eget velit eu volutpat. Mauris vitae dapibus metus, accumsan rhoncus leo. Praesent sit amet placerat ligula. Vivamus tincidunt, augue quis convallis iaculis, urna elit fringilla magna, ut consectetur urna justo non metus. Praesent vel justo sed orci placerat dictum in id nisl. Morbi eget urna justo.
 						Donec lobortis nisl diam, vitae eleifend orci ornare id. Nullam nisi ligula, viverra vel quam vitae, laoreet efficitur ex. In interdum rhoncus sapien eu accumsan. Aliquam at leo id nibh pharetra cursus ut sed odio. Nulla id diam vitae libero vulputate commodo sit amet eget risus. Suspendisse hendrerit purus ac ipsum sollicitudin fringilla. Nulla rhoncus, dui quis fringilla tincidunt, elit ipsum finibus urna, in condimentum massa tortor eu elit. Quisque nec sem vel nibh posuere posuere nec non enim. Duis sed velit malesuada, lacinia libero eu, venenatis ante. Proin molestie molestie velit, vel ullamcorper ex eleifend sed. Etiam tincidunt tincidunt mi, vel ultrices enim lobortis eget. Curabitur nisi nunc, interdum eu tortor sed, tristique egestas est. Duis vestibulum mattis fermentum. Aenean congue porta porttitor. Donec euismod orci et eros porta, maximus tristique dolor congue.
@@ -119,37 +137,43 @@
 						Phasellus fringilla est tellus, eget laoreet tellus placerat convallis. Mauris in sollicitudin diam. Aenean eu malesuada risus. Pellentesque at sagittis lectus. Proin ullamcorper tortor nec nisl iaculis, at aliquam nunc commodo. Cras ut commodo lacus. Suspendisse ac mollis mauris, in mattis ipsum. Etiam cursus sapien in ipsum tincidunt, et commodo sapien faucibus. Sed id ipsum ut nunc fermentum facilisis. Aliquam a nulla magna. Vestibulum fermentum viverra dolor sed posuere. Phasellus mi turpis, feugiat quis libero ac, tincidunt accumsan arcu.
 					</div>
 				</div>
-				<div id="page_switches">
-					<div class="page_switch"><a href="#">1</a></div>
-					<div class="page_switch"><a href="#">2</a></div>
-					<div class="page_switch"><a href="#">3</a></div>
-					<div class="page_switch"><a href="#">4</a></div>
-					<div class="page_switch"><a href="#">5</a></div>
+				<div id="page_switches" class="sb_page_switches">
+					<div class="page_switch sb_page_switch"><a href="#">1</a></div>
+					<div class="page_switch sb_page_switch"><a href="#">2</a></div>
+					<div class="page_switch sb_page_switch"><a href="#">3</a></div>
+					<div class="page_switch sb_page_switch"><a href="#">4</a></div>
+					<div class="page_switch sb_page_switch"><a href="#">5</a></div>
 				</div>
 			</div>
-			<div id="footer">FOOTER FOOTER</div>
+			<div id="footer" class="sb_footer">
+				FOOTER FOOTER
+			</div>
 		<?php } else if($_GET['action'] === 'page') { ?>
-			<div id="header"><h1>HEADER HEADER</h1></div>
-			<div id="headlinks">
-				<div class="headlink"><a href="#">Current</a><div class="headlink_active"></div></div>
-				<div class="headlink"><a href="#">Another</a></div>
+			<div id="header" class="sb_header">
+				<h1>HEADER HEADER</h1>
 			</div>
-			<div id="content_header"><h3>CONTENT HEADER</h3></div>
-			<div id="content">
+			<div id="headlinks" class="sb_headlinks">
+				<div class="headlink sb_headlink"><a href="#">Current</a><div class="headlink_active sb_headlink_active"></div></div>
+				<div class="headlink sb_headlink"><a href="#">Another</a></div>
+			</div>
+			<div id="content_header" class="sb_content_header">
+				<h3>CONTENT HEADER</h3>
+			</div>
+			<div id="content" class="sb_content">
 				<form>
 					<label for="text_name">Label</label><input type="text" name="text_name">
 					<br>
-					Switch option 1 <label><input type="checkbox"><span class="switch_lever"></span></label>
+					Switch option 1 <label><input type="checkbox"><span class="switch_lever sb_switch_lever"></span></label>
 					<br>
-					Switch option 2 <label><input type="checkbox" checked><span class="switch_lever"></span></label>
+					Switch option 2<label><input type="checkbox" checked><span class="switch_lever sb_switch_lever"></span></label>
 					<br>
-					<input class="button" type="submit" value="Submit">
-					<div class="button"><a href="/page">Go to page</a></div>
-					<input class="full_button" type="submit" value="Login"><!-- for login box -->
+					<input class="button sb_button" type="submit" value="Submit">
+					<div class="button sb_button"><a href="/page">Go to page</a></div>
+					<input class="full_button sb_full_button" type="submit" value="Login"><!-- for login box -->
 					<br>
-					<div class="button button_in_row"><a href="/page">Go to page</a></div>
-					<div class="button button_in_row"><a href="/page">Go to page</a></div>
-					<div class="button button_in_row"><a href="/page">Go to page</a></div>
+					<div class="button button_in_row sb_button sb_button_in_row"><a href="/page">Go to page</a></div>
+					<div class="button button_in_row sb_button sb_button_in_row"><a href="/page">Go to page</a></div>
+					<div class="button button_in_row sb_button sb_button_in_row"><a href="/page">Go to page</a></div>
 					<br><br><br><br>
 					<input type="file" id="myFile" name="filename">
 				</form>
@@ -162,7 +186,9 @@
 					<tr><td>5</td><td>A5</td><td>B5</td><td>C5</td></tr>
 				</table>
 			</div>
-			<div id="footer">FOOTER FOOTER</div>
+			<div id="footer" class="sb_footer">
+				FOOTER FOOTER
+			</div>
 		<?php } ?>
 	</body>
 </html>

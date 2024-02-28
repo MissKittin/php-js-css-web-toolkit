@@ -5,6 +5,7 @@ Simple middleware
 * `check_var.php`
 * `sec_csrf.php`
 * `sec_login.php`
+* `simpleblog_materialized.css` (for materialized template)
 
 ## Reserved variables
 * `$GLOBALS['_login']`
@@ -36,6 +37,8 @@ Roadmap of `$GLOBALS['_login']` array
 	* `on_logout` [closure]  
 		do before logout
 * `view`
+	* `template` [string]  
+		default or materialized
 	* `lang` [string]  
 		`<html lang="lang">`
 	* `title` [string]  
@@ -43,7 +46,14 @@ Roadmap of `$GLOBALS['_login']` array
 	* `assets_path` [string]  
 		default: `/assets`
 	* `login_style` [string]  
-		default: `login_dark.css`
+		`login_default_bright.css` for default template or  
+		`login_default_dark.css` for default template or  
+		`login_materialized.css` for materialized template  
+		default: `login_default_bright.css`
+	* `inline_style` [bool]  
+		compiles the style and adds it to the inline tag  
+		instead of link rel="stylesheet" (not recommended)  
+		default: `false`
 	* `html_headers` [string]  
 		custom html headers, will be added to the `<head>` section
 	* `login_label` [string]  
@@ -160,15 +170,28 @@ $GLOBALS['_login']['config']['session_reload']=function($cookie_lifetime)
 ```
 
 ## Assets
-Link `./assets/login_bright.css` and `./assets/login_dark.css` to the `app/assets`. This step is optional.  
+Link template assets to the `app/assets`.
+
+### default template
 for *nix:
 ```
-ln -s ../../tk/com/login/assets/login_bright.css ./app/assets/login_bright.css; ln -s ../../tk/com/login/assets/login_dark.css ./app/assets/login_dark.css
+ln -s ../../tk/com/login/templates/default/assets/login_default_bright.css ./app/assets/login_default_bright.css; ln -s ../../tk/com/login/templates/default/assets/login_default_dark.css ./app/assets/login_default_dark.css
 ```
 for windows:
 ```
-mklink /d app\assets\login_bright.css ..\..\tk\com\login\assets\login_bright.css
-mklink /d app\assets\login_dark.css ..\..\tk\com\login\assets\login_dark.css
+mklink /d app\assets\login_default_bright.css ..\..\tk\com\login\templates\default\assets\login_default_bright.css
+mklink /d app\assets\login_default_dark.css ..\..\tk\com\login\templates\default\assets\login_default_dark.css
+```
+
+### materialized template
+for *nix:
+```
+ln -s ../../tk/com/login/templates/materialized/assets/login_materialized.css ./app/assets/login_materialized.css; ln -s ../../tk/lib/simpleblog_materialized.css ./app/assets/simpleblog_materialized.css
+```
+for windows:
+```
+mklink /d app\assets\login_materialized.css ..\..\tk\com\login\templates\materialized\assets\login_materialized.css
+mklink app\assets\simpleblog_materialized.css ..\..\tk\lib\simpleblog_materialized.css
 ```
 
 ## Portability

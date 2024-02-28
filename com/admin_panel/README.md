@@ -74,6 +74,10 @@ The logout button action is the current URL via POST
 	`<h1>`, default: Administration
 * `set_logout_button_label(string_label)` [returns self]  
 	default: Logout
+* `set_inline_assets(bool_option)` [returns self]  
+	compiles styles and scripts and adds them to the inline tag  
+	instead of link rel="stylesheet" and script src="" (not recommended)  
+	default: false
 
 ## Templates
 There are two templates available:
@@ -225,7 +229,7 @@ ln -s ../../tk/com/admin_panel/templates/materialized/assets/admin_panel_materia
 ```
 for windows:
 ```
-mklink /d app\assets\admin_panel_materialized.css ..\..\tk\com\admin_panel\templates\materialized\assets\admin_panel_materialized.css
+mklink app\assets\admin_panel_materialized.css ..\..\tk\com\admin_panel\templates\materialized\assets\admin_panel_materialized.css
 mklink app\assets\simpleblog_materialized.css ..\..\tk\lib\simpleblog_materialized.css
 ```
 

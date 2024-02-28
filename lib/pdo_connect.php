@@ -30,14 +30,14 @@
 		// portable version
 	 	pdo_connect_array(
 			[
-				'db_type'=>'your-db-type', // or use socket, sqlite pgsql mysql
-				'host'=>'server-ip-or-sqlite-db-path',
-				'port'=>'server-port',
-				//'socket'=>'/path/to/socket', // uncomment to use a unix socket
-				'db_name'=>'database-name',
-				'charset'=>'your-db-charset', // for pgsql and mysql only, optional
-				'user'=>'username',
-				'password'=>'password'
+				'db_type'=>'string-your-db-type', // or use socket, sqlite pgsql mysql
+				'host'=>'string-server-ip-or-sqlite-db-path',
+				'port'=>'string-server-port',
+				//'socket'=>'string/path/to/socket', // uncomment to use a unix socket
+				'db_name'=>'string-database-name',
+				'charset'=>'string-your-db-charset', // for pgsql and mysql only, optional
+				'user'=>'string-username',
+				'password'=>'string-password'
 			],
 			function($error) // optional
 			{
@@ -73,15 +73,15 @@
 		 *  1) create a directory for database config files
 		 *  2) create a config.php file:
 				return [
-					'db_type'=>'your-db-type', // sqlite pgsql mysql
-					'host'=>'server-ip-or-sqlite-db-path', // or use socket, can be :memory: for sqlite
-					'port'=>'server-port',
-					//'socket'=>'/path/to/socket', // uncomment to use a unix socket
-					'db_name'=>'database-name',
-					'charset'=>'your-db-charset', // for pgsql and mysql only, optional
-					'user'=>'username',
-					'password'=>'password',
-					//'seeded_path'=>$db // uncomment this to move the database_seeded file to a different location
+					'db_type'=>'string-your-db-type', // sqlite pgsql mysql
+					'host'=>'string-server-ip-or-sqlite-db-path', // or use socket, can be :memory: for sqlite
+					'port'=>'string-server-port',
+					//'socket'=>'string/path/to/socket', // uncomment to use a unix socket
+					'db_name'=>'string-database-name',
+					'charset'=>'string-your-db-charset', // for pgsql and mysql only, optional
+					'user'=>'string-username',
+					'password'=>'string-password',
+					//'seeded_path'=>$db // string, uncomment this to move the database_seeded file to a different location
 				];
 		 *  3) optionally you can create a seed.php file which will initialize the database, eg:
 				$pdo_handler->exec(''
@@ -118,10 +118,28 @@
 		if(!is_array($db_config))
 			throw new pdo_connect_exception($db.'/config.php did not return an array');
 
+		foreach([
+			'db_type',
+			'host',
+			'port',
+			'socket',
+			'db_name',
+			'charset',
+			'user',
+			'password',
+			'seeded_path'
+		] as $param)
+			if(isset($db_config[$param]) && (!is_string($db_config[$param])))
+				throw new pdo_connect_exception('The '.$param.' parameter is not a string');
+
 		if(!isset($db_config['db_type']))
 			throw new pdo_connect_exception('The db_type parameter was not specified');
 
+		$do_seed=false;
 		if(is_file($db.'/seed.php'))
+			$do_seed=true;
+
+		if($do_seed)
 		{
 			if(!isset($db_config['seeded_path']))
 				$db_config['seeded_path']=$db;
@@ -130,17 +148,18 @@
 				($db_config['db_type'] === 'sqlite') &&
 				isset($db_config['host']) &&
 				($db_config['host'] !== ':memory:') &&
-				(!file_exists($db_config['host']))
+				(!file_exists($db_config['host'])) &&
+				file_exists($db_config['seeded_path'].'/database_seeded')
 			)
-				@unlink($db_config['seeded_path'].'/database_seeded');
+				unlink($db_config['seeded_path'].'/database_seeded');
 		}
 
-		$pdo_handler=pdo_connect_array($db_config, $on_error);
+		$pdo_handler=pdo_connect_array($db_config, $on_error, false);
 
 		if($pdo_handler === false)
 			return false;
 
-		if(is_file($db.'/seed.php'))
+		if($do_seed)
 		{
 			if(
 				isset($db_config['host']) &&
@@ -153,14 +172,14 @@
 					throw new pdo_connect_exception('Could not create database_seed_w_test file in '.$db_config['seeded_path']);
 
 				unlink($db_config['seeded_path'].'/database_seed_w_test');
-				include $db.'/seed.php';
+				require $db.'/seed.php';
 				file_put_contents($db_config['seeded_path'].'/database_seeded', '');
 			}
 		}
 
 		return $pdo_handler;
 	}
-	function pdo_connect_array(array $db_config, callable $on_error=null)
+	function pdo_connect_array(array $db_config, callable $on_error=null, bool $type_hint=true)
 	{
 		/*
 		 * PDO connection helper
@@ -191,14 +210,14 @@
 		 * Initialization:
 			$db=pdo_connect_array(
 				[
-					'db_type'=>'your-db-type', // sqlite pgsql mysql
-					'host'=>'server-ip-or-sqlite-db-path', // or use socket, can be :memory: for sqlite
-					'port'=>'server-port',
-					//'socket'=>'/path/to/socket', // uncomment to use a unix socket
-					'db_name'=>'database-name',
-					'charset'=>'your-db-charset', // for pgsql and mysql only, optional
-					'user'=>'username',
-					'password'=>'password'
+					'db_type'=>'string-your-db-type', // sqlite pgsql mysql
+					'host'=>'string-server-ip-or-sqlite-db-path', // or use socket, can be :memory: for sqlite
+					'port'=>'string-server-port',
+					//'socket'=>'string/path/to/socket', // uncomment to use a unix socket
+					'db_name'=>'string-database-name',
+					'charset'=>'string-your-db-charset', // for pgsql and mysql only, optional
+					'user'=>'string-username',
+					'password'=>'string-password'
 				],
 				function($error) // optional
 				{
@@ -223,8 +242,24 @@
 		if(!extension_loaded('PDO'))
 			throw new pdo_connect_exception('PDO extension is not loaded');
 
-		if(!isset($db_config['db_type']))
-			throw new pdo_connect_exception('The db_type parameter was not specified');
+		if($type_hint)
+		{
+			if(!isset($db_config['db_type']))
+				throw new pdo_connect_exception('The db_type parameter was not specified');
+
+			foreach([
+				'db_type',
+				'host',
+				'port',
+				'socket',
+				'db_name',
+				'charset',
+				'user',
+				'password'
+			] as $param)
+				if(isset($db_config[$param]) && (!is_string($db_config[$param])))
+					throw new pdo_connect_exception('The '.$param.' parameter is not a string');
+		}
 
 		try {
 			switch($db_config['db_type'])

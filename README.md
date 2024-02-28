@@ -3,7 +3,7 @@ A set of tools, components and libraries that you can use in your project
 Minimum PHP version: 7.1  
 Recommended PHP version: 7.4 or newer  
 Supported relational databases: PostgreSQL, MySQL, SQLite3  
-Supported cache databases: Redis, Memcached
+Supported cache databases: Redis, Memcached, APCu
 
 ## Principles
 * respect the KISS rule
@@ -37,6 +37,7 @@ Supported cache databases: Redis, Memcached
 * `serve.php` - start PHP development server
 * `sqlite3-db-dump.php` - interface for `sqlite3_db_dump.php` library
 * `sqlite3-db-vacuum.php` - vacuum database
+* `strip-php-files.php` - a toy that removes comments and whitespace from php files
 * `webdevsh.php` - interface for `webdevsh.php` library
 * `websockets.php` - a simple point-to-point websocket server
 
@@ -53,6 +54,7 @@ Supported cache databases: Redis, Memcached
 * `convert_bytes.php` - automatically convert input number to human-readable form
 * `copy_recursive.php` - copy entire directories
 * `cron.php` - task scheduler
+* `csv2table.php` - convert CSV file to HTML table
 * `curl_file_updown.php` - quickly download/upload file
 * `directoryIterator_sort.php` - run directoryIterator and sort output by name
 * `dotenv.php` - DotEnv proxy implementation
@@ -66,7 +68,7 @@ Supported cache databases: Redis, Memcached
 * `is_float_equal.php` - for older PHP versions it defines an `PHP_FLOAT_EPSILON` constant
 * `logger.php` - easily write logs
 * `logrotate.php` - journalists rotation machine
-* `lv_arr.php` - Laravel array helpers (MIT)
+* `lv_arr.php` - Laravel array helpers & collections (MIT)
 * `lv_str.php` - Laravel string helpers (MIT)
 * `maintenance_break.php` - check to send the maintenance break pattern
 * `measure_exec_time.php` - debugging
@@ -75,6 +77,7 @@ Supported cache databases: Redis, Memcached
 * `ob_minifier.php` - simple minifier and compressor
 * `ob_sfucator.php` - xor all page content on server and decode on client
 * `observer.php` - design pattern
+* `ocw_slugify.php` - Our Code World slugifiers (CC0 1.0 Deed)
 * `pdo_cheat.php` - use the table as an object
 * `pdo_connect.php` - open preconfigured connection to the database and optionally seed
 * `pdo_crud_builder.php` - OOP SQL builder
@@ -119,6 +122,7 @@ Supported cache databases: Redis, Memcached
 * `uuid.php` - UUID manipulation (MIT)
 * `var_export_contains.php` - check if the content of the variable is correct (mainly for testing purposes)
 * `webdevsh.php` - functions for Toptal minifiers
+* `wp_is_serialized.php` - check if string is serialized data - function from Wordpress (GNU GPL2)
 * `zip.php` - make ZIP file in RAM - library from PhpMyAdmin (GNU GPL2)
 
 ## Javascript libraries

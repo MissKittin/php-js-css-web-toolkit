@@ -93,7 +93,7 @@
 	function is_ulid(string $ulid)
 	{
 		return (
-			(strlen($ulid) === 26) &&
+			(isset($ulid[25]) && (!isset($ulid[26]))) && // (strlen($ulid) === 26)
 			(preg_match(
 				sprintf(
 					'!^[%s]{%d}$!',

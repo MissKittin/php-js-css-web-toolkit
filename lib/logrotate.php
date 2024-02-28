@@ -186,7 +186,10 @@
 				{
 					$print_log('error', $opts['output_file'].'.gz write error - compressing skipped');
 					gzclose($file_gzip);
-					@unlink($opts['output_file'].'.gz');
+
+					if(file_exists($opts['output_file'].'.gz'))
+						unlink($opts['output_file'].'.gz');
+
 					continue;
 				}
 

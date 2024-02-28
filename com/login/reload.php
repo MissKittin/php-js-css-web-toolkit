@@ -11,6 +11,6 @@
 
 	require __DIR__.'/config/view.php';
 
-	login_refresh('file', __DIR__.'/views/reload.php');
+	login_refresh('file', __DIR__.'/templates/'.$GLOBALS['_login']['view']['template'].'/views/reload.php');
 	exit();
 ?>

@@ -13,7 +13,26 @@
 			}
 		?>">
 		<meta name="viewport" content="width=device-width,initial-scale=1">
-		<link rel="stylesheet" href="<?php echo $GLOBALS['_login']['view']['assets_path']; ?>/<?php echo $GLOBALS['_login']['view']['login_style']; ?>">
+		<?php
+			if($GLOBALS['_login']['view']['inline_style'])
+			{
+				?><style nonce="mainstyle"><?php
+					if(is_dir(__DIR__.'/../assets/'.$GLOBALS['_login']['view']['login_style']))
+						foreach(
+							array_diff(
+								scandir(__DIR__.'/../assets/'.$GLOBALS['_login']['view']['login_style']),
+								['.', '..']
+							)
+							as $inline_style
+						)
+							readfile(__DIR__.'/../assets/'.$GLOBALS['_login']['view']['login_style'].'/'.$inline_style);
+				?></style><?php
+			}
+			else
+			{
+				?><link rel="stylesheet" href="<?php echo $GLOBALS['_login']['view']['assets_path']; ?>/<?php echo $GLOBALS['_login']['view']['login_style']; ?>"><?php
+			}
+		?>
 		<meta name="robots" content="noindex,nofollow">
 		<?php echo $GLOBALS['_login']['view']['html_headers']; ?>
 	</head>

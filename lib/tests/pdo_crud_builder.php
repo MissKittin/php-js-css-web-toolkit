@@ -71,11 +71,12 @@
 
 	echo ' -> Removing temporary files';
 		@mkdir(__DIR__.'/tmp');
-		@unlink(__DIR__.'/tmp/pdo_crud_builder.sqlite3');
+		@mkdir(__DIR__.'/tmp/pdo_crud_builder');
+		@unlink(__DIR__.'/tmp/pdo_crud_builder/pdo_crud_builder.sqlite3');
 	echo ' [ OK ]'.PHP_EOL;
 
 	echo ' -> Initializing database handler';
-		$pdo_handler=new PDO('sqlite:'.__DIR__.'/tmp/pdo_crud_builder.sqlite3');
+		$pdo_handler=new PDO('sqlite:'.__DIR__.'/tmp/pdo_crud_builder/pdo_crud_builder.sqlite3');
 		$pdo_builder=new pdo_crud_builder([
 			'pdo_handler'=>$pdo_handler
 		]);

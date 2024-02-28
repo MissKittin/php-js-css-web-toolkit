@@ -3,6 +3,7 @@
 	 * Start HTTP server
 	 * and run phtml files (tests for Js and CSS libraries)
 	 *
+	 * Looks for files in $argv[1] directory
 	 * Looks for files in ../lib/tests directory
 	 * Looks for files in ../tests directory
 	 *
@@ -41,15 +42,28 @@
 	}
 	else if(php_sapi_name() === 'cli')
 	{
-		if(is_dir(__DIR__.'/../lib/tests'))
-			$tests_dir=__DIR__.'/../lib/tests';
-		else if(is_dir(__DIR__.'/../tests'))
-			$tests_dir=__DIR__.'/../tests';
+		if(isset($argv[1]))
+		{
+			if(!is_dir($argv[1]))
+			{
+				echo $argv[1].' is not a directory'.PHP_EOL;
+				exit(1);
+			}
+
+			$tests_dir=$argv[1];
+		}
 		else
 		{
-			echo __DIR__.'/../lib/tests directory not found'.PHP_EOL;
-			echo __DIR__.'/../tests directory not found'.PHP_EOL;
-			exit(1);
+			if(is_dir(__DIR__.'/../lib/tests'))
+				$tests_dir=__DIR__.'/../lib/tests';
+			else if(is_dir(__DIR__.'/../tests'))
+				$tests_dir=__DIR__.'/../tests';
+			else
+			{
+				echo __DIR__.'/../lib/tests directory not found'.PHP_EOL;
+				echo __DIR__.'/../tests directory not found'.PHP_EOL;
+				exit(1);
+			}
 		}
 
 		/*
@@ -84,7 +98,7 @@
 			check_argv('-h')
 		){
 			echo 'Usage:'.PHP_EOL;
-			echo ' serve.php [--ip 127.0.0.1] [--port 8080] [--docroot ../public] [--preload ./tmp/app-preload.php] [--threads 1]'.PHP_EOL;
+			echo ' run-phtml-tests.php [path/to/tests-directory] [--ip 127.0.0.1] [--port 8080] [--docroot ../public] [--preload ./tmp/app-preload.php] [--threads 1]'.PHP_EOL;
 			echo PHP_EOL;
 			echo '--threads and --preload options requires'.PHP_EOL;
 			echo ' PHP 7.4.0 or newer'.PHP_EOL;

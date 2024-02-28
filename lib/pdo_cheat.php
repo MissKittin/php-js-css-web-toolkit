@@ -217,13 +217,19 @@
 
 		public function __construct(array $params)
 		{
-			foreach(['pdo_handler', 'table_name'] as $param)
-				if(!isset($params[$param]))
-					throw new pdo_cheat_exception('The '.$param.' parameter was not specified for the constructor');
-
-			foreach(['pdo_handler', 'table_name'] as $param)
+			foreach([
+				'pdo_handler'=>'object',
+				'table_name'=>'string'
+			] as $param=>$param_type)
 				if(isset($params[$param]))
+				{
+					if(gettype($params[$param]) !== $param_type)
+						throw new pdo_cheat_exception('The input array parameter '.$param.' is not a '.$param_type);
+
 					$this->$param=$params[$param];
+				}
+				else
+					throw new pdo_cheat_exception('The '.$param.' parameter was not specified for the constructor');
 
 			if(!in_array(
 				$this->pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME),
@@ -232,8 +238,18 @@
 				throw new pdo_cheat_exception($this->pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME).' driver is not supported');
 
 			if(isset($params['table_schema']))
+			{
+				if(!is_array($params['table_schema']))
+					throw new pdo_cheat_exception('The input array parameter table_schema is not an array');
+
 				foreach($params['table_schema'] as $column_name)
+				{
+					if(!is_string($column_name))
+						throw new pdo_cheat_exception('One of the elements of the table_schema array is not a string');
+
 					$this->table_schema[$column_name]=$column_name;
+				}
+			}
 			else
 			{
 				$table_schema=$this->query(''
@@ -246,10 +262,18 @@
 				{
 					if(isset($params['new_table_schema']))
 					{
+						if(!is_array($params['new_table_schema']))
+							throw new pdo_cheat_exception('The input array parameter new_table_schema is not an array');
+
 						$table_schema='';
 
 						foreach($params['new_table_schema'] as $column_name=>$column_type)
 						{
+							if(!is_string($column_name))
+								throw new pdo_cheat_exception('One of the column name in the new_table_schema array is not a string');
+							if(!is_string($column_type))
+								throw new pdo_cheat_exception($column_name.' column type is not a string in the new_table_schema array');
+
 							if($column_type === pdo_cheat::default_id_type)
 								switch($this->pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME))
 								{
@@ -566,6 +590,7 @@
 
 			$create_table_args='';
 			$insert_into_args='';
+
 			foreach($table_columns as $table_column)
 			{
 				if($table_column['name'] === $column_name)
@@ -597,10 +622,12 @@
 				$create_table_args.=',';
 				$insert_into_args.=$table_column['name'].',';
 			}
+
 			$create_table_args=substr($create_table_args, 0, -1);
 			$insert_into_args=substr($insert_into_args, 0, -1);
 
 			$select_args='*';
+
 			if($action === 'drop_column')
 				$select_args=&$insert_into_args;
 
@@ -825,10 +852,10 @@
 			}
 
 			$this->pdo_query=$this->query_prepared(''
-				.' SELECT '.$selected_columns
-				.' FROM '.$this->table_name
-				.' WHERE '.$statement,
-				$parameters
+			.	' SELECT '.$selected_columns
+			.	' FROM '.$this->table_name
+			.	' WHERE '.$statement
+			,	$parameters
 			);
 
 			if($this->pdo_query === false)
@@ -904,9 +931,9 @@
 			$this->query_conditions=[];
 
 			return $this->exec_prepared(''
-				.' DELETE FROM '.$this->table_name
-				.' WHERE '.$statement,
-				$parameters
+			.	' DELETE FROM '.$this->table_name
+			.	' WHERE '.$statement
+			,	$parameters
 			);
 		}
 	}
@@ -999,13 +1026,13 @@
 				case 'pgsql':
 					if($this->new_row)
 						return $this->exec_prepared(''
-							.' INSERT INTO '.$this->table_name
-							.' ('
-							.	$columns
-							.' ) VALUES ('
-							.	$values
-							.' )',
-							$parameters
+						.	' INSERT INTO '.$this->table_name
+						.	' ('
+						.		$columns
+						.	' ) VALUES ('
+						.		$values
+						.	' )'
+						,	$parameters
 						);
 
 					return $this->exec_prepared(''
@@ -1045,7 +1072,7 @@
 			$table_schema,
 			$current_row
 		){
-			parent::__construct(
+			parent::{__FUNCTION__}(
 				$pdo_cheat,
 				$pdo_handler,
 				$table_name,

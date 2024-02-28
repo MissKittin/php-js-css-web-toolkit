@@ -175,7 +175,7 @@
 		if($data === null)
 			$data=$random_bytes(16);
 
-		if(strlen($data) !== 16)
+		if((!isset($data[15])) || isset($data[16])) // (strlen($data) !== 16)
 			throw new uuid_exception('Input data must be 16 bytes long');
 
 		$data[6]=chr(ord($data[6]) & 0x0f | 0x40);

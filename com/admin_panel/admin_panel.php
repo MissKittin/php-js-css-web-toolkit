@@ -27,10 +27,17 @@
 
 			if(!isset($params['base_url']))
 				throw new admin_panel_exception('The base_url parameter was not specified for the constructor');
+
+			if(!is_string($params['base_url']))
+				throw new admin_panel_exception('The input array parameter base_url is not a string');
+
 			$this->base_url=$params['base_url'];
 
 			if(isset($params['template']))
 			{
+				if(!is_string($params['template']))
+					throw new admin_panel_exception('The input array parameter template is not a string');
+
 				if(!file_exists(__DIR__.'/templates/'.$params['template']))
 					throw new admin_panel_exception('The '.$params['template'].' template does not exist');
 
@@ -39,21 +46,39 @@
 
 			$this->_set_default_labels();
 
-			if(
-				isset($params['show_logout_button']) &&
-				($params['show_logout_button'] === true)
-			)
-				$this->registry['_show_logout_button']=true;
+			if(isset($params['show_logout_button']))
+			{
+				if(!is_bool($params['show_logout_button']))
+					throw new admin_panel_exception('The input array parameter show_logout_button is not a boolean');
+
+				if($params['show_logout_button'] === true)
+					$this->registry['_show_logout_button']=true;
+			}
 
 			$this->registry['_assets_path']='';
+
 			if(isset($params['assets_path']))
 				$this->registry['_assets_path']=$params['assets_path'];
 
 			if(isset($params['csrf_token']))
+			{
+				if(!is_array($params['csrf_token']))
+					throw new admin_panel_exception('The input array parameter csrf_token is not an array');
+
+				if((!isset($params['csrf_token'][0])) || (!isset($params['csrf_token'][1])))
+					throw new admin_panel_exception('The csrf_token[0] nor csrf_token[1] parameter was not specified for the constructor');
+
+				if(!is_string($params['csrf_token'][0]))
+					throw new admin_panel_exception('The input array parameter csrf_token[0] is not a string');
+
+				if(!is_string($params['csrf_token'][1]))
+					throw new admin_panel_exception('The input array parameter csrf_token[1] is not a string');
+
 				$this->registry['_csrf_token']=[
 					'name'=>$params['csrf_token'][0],
 					'value'=>$params['csrf_token'][1]
 				];
+			}
 
 			if(
 				isset($this->registry['_show_logout_button']) &&
@@ -91,7 +116,9 @@
 				->set_title('Administration')
 				->set_menu_button_label('Menu')
 				->set_panel_label('Administration')
-				->set_logout_button_label('Logout');
+				->set_logout_button_label('Logout')
+				->set_inline_assets(false)
+			;
 		}
 		protected function _view($_module)
 		{
@@ -116,7 +143,12 @@
 			if(isset($this->modules[$params['id']]))
 				throw new admin_panel_exception('Module with id '.$params['id'].' is already registered');
 
+			foreach(['id', 'path', 'config', 'script', 'name', 'url', 'template_header'] as $param)
+				if(isset($params[$param]) && (!is_string($params[$param])))
+					throw new admin_panel_exception('The input array parameter '.$param.' is not a string');
+
 			$params['path']=realpath($params['path']);
+
 			if($params['path'] === false)
 				throw new admin_panel_exception('Module path does not exists');
 
@@ -153,8 +185,13 @@
 		public function add_menu_entry(array $params)
 		{
 			foreach(['id', 'url', 'name'] as $param)
+			{
 				if(!isset($params[$param]))
-					throw new admin_panel_exception('The '.$param.' parameter was not specified for the add_menu_entry');
+					throw new admin_panel_exception('The '.$param.' parameter was not specified for the '.__FUNCTION__);
+
+				if(!is_string($params[$param]))
+					throw new admin_panel_exception('The input array parameter '.$param.' is not a string');
+			}
 
 			if(isset($this->modules[$params['id']]))
 				throw new admin_panel_exception('Module with id '.$params['id'].' is already registered');
@@ -194,11 +231,14 @@
 			);
 
 			$current_module='';
+
 			if($current_url !== false)
 			{
 				$current_module=strtok($current_url, '/');
+
 				if($current_module[-1] === '/')
 					$current_module=substr($current_module, 0, -1);
+
 				$current_module=trim($current_module);
 			}
 
@@ -226,6 +266,7 @@
 				$module_params['_args']=[''];
 				$module_params['_not_found']=true;
 			}
+
 			$module_params['url']=$this->base_url.'/'.$module_params['url'];
 
 			if($return_content)
@@ -295,6 +336,11 @@
 		public function set_logout_button_label(string $label)
 		{
 			$this->registry['_logout_button_label']=$label;
+			return $this;
+		}
+		public function set_inline_assets(bool $option)
+		{
+			$this->registry['_inline_assets']=$option;
 			return $this;
 		}
 	}

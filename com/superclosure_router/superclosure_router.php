@@ -72,7 +72,7 @@
 			bool $use_regex=false,
 			$request_method=null
 		){
-			parent::add(
+			parent::{__FUNCTION__}(
 				$source,
 				new superclosure_meta($callback),
 				$use_regex,

@@ -109,7 +109,7 @@
 			if($this->sleep_called)
 				return ['closure_vars', 'closure_body'];
 
-			return parent::__sleep();
+			return parent::{__FUNCTION__}();
 		}
 
 		public function flush()
