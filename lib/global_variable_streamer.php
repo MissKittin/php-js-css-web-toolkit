@@ -35,6 +35,7 @@
 		 *
 		 * Source:
 		 *  https://www.php.net/manual/en/stream.streamwrapper.example-1.php
+		 *  https://www.php.net/manual/en/class.streamwrapper.php
 		 */
 
 		protected static $protocol_length=null;
@@ -56,19 +57,23 @@
 			static::$protocol_length=strlen($protocol);
 		}
 
-		public function stream_open($path, $mode, $options, &$opened_path)
-		{
+		public function stream_open(
+			string $path,
+			string $mode,
+			int $options,
+			?string &$opened_path
+		): bool {
 			$this->variable_name=substr($path, static::$protocol_length+3);
 			return true;
 		}
-		public function stream_read($count)
+		public function stream_read(int $count): string
 		{
 			$content=substr($GLOBALS[$this->variable_name], $this->current_position, $count);
 			$this->current_position+=strlen($content);
 
 			return $content;
 		}
-		public function stream_write($data)
+		public function stream_write(string $data): int
 		{
 			$data_size=strlen($data);
 
@@ -82,24 +87,26 @@
 
 			return $data_size;
 		}
-		public function stream_tell()
+		public function stream_tell(): int
 		{
 			return $this->current_position;
 		}
-		public function stream_eof()
+		public function stream_eof(): bool
 		{
 			if($this->current_position >= strlen($GLOBALS[$this->variable_name]))
 				return true;
 
 			return false;
 		}
-		public function stream_seek($offset, $whence)
+		public function stream_seek(int $offset, int $whence): bool
 		{
 			switch($whence)
 			{
 				case SEEK_SET:
-					if(($offset < strlen($GLOBALS[$this->variable_name])) && ($offset >= 0))
-					{
+					if(
+						isset($GLOBALS[$this->variable_name][$offset]) && // ($offset < strlen($GLOBALS[$this->variable_name]))
+						($offset >= 0)
+					){
 						$this->current_position=$offset;
 						return true;
 					}
@@ -124,14 +131,14 @@
 
 			return false;
 		}
-		public function stream_metadata($path, $option, $variable)
+		public function stream_metadata(string $path, int $option, $variable): bool
 		{
 			if(($option === STREAM_META_TOUCH) && isset($GLOBALS[substr($path, 5)]))
 				return true;
 
 			return false;
 		}
-		public function stream_stat()
+		public function stream_stat(): bool
 		{
 			return false;
 		}

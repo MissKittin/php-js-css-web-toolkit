@@ -4,6 +4,9 @@
 		<title><?php echo $this->registry['_title']; ?></title>
 		<meta charset="utf-8">
 		<meta http-equiv="Content-Security-Policy" content="<?php
+			if($this->registry['_inline_assets'])
+				$this->registry['_csp_header']['style-src'][]='\'nonce-mainstyle\'';
+
 			foreach($this->registry['_csp_header'] as $_csp_param=>$_csp_values)
 			{
 				echo $_csp_param;
@@ -13,14 +16,32 @@
 			}
 		?>">
 		<meta name="viewport" content="width=device-width, initial-scale=1">
-		<link rel="stylesheet" href="<?php echo $this->registry['_assets_path']; ?>/admin_panel_materialized.css">
-		<link rel="stylesheet" href="<?php echo $this->registry['_assets_path']; ?>/simpleblog_materialized.css">
+		<?php
+			if($this->registry['_inline_assets'])
+			{
+				?><style nonce="mainstyle"><?php
+					if(is_file(__DIR__.'/../../../lib/simpleblog_materialized.css'))
+						readfile(__DIR__.'/../../../lib/simpleblog_materialized.css');
+					else if(is_file(__DIR__.'/../../../../../lib/simpleblog_materialized.css'))
+						readfile(__DIR__.'/../../../../../lib/simpleblog_materialized.css');
+					else
+						echo '/* simpleblog_materialized.css library not found */';
+
+					if(is_file(__DIR__.'/../assets/admin_panel_materialized.css'))
+						readfile(__DIR__.'/../assets/admin_panel_materialized.css');
+				?></style><?php
+			}
+			else
+			{ ?>
+				<link rel="stylesheet" href="<?php echo $this->registry['_assets_path']; ?>/admin_panel_materialized.css">
+				<link rel="stylesheet" href="<?php echo $this->registry['_assets_path']; ?>/simpleblog_materialized.css">
+			<?php }
+		?>
 		<?php
 			if(isset($this->registry['_styles']))
 				foreach($this->registry['_styles'] as $_style)
 					{ ?><link rel="stylesheet" href="<?php echo $_style; ?>"><?php }
 		?>
-		<!--<script src="<?php echo $this->registry['_assets_path']; ?>/admin_panel_default.js"></script>-->
 		<?php
 			if(isset($this->registry['_scripts']))
 				foreach($this->registry['_scripts'] as $_script)
@@ -30,26 +51,26 @@
 		<?php if(isset($this->registry['_html_headers'])) echo $this->registry['_html_headers']; ?>
 	</head>
 	<body>
-		<div id="header">
+		<div id="header" class="sb_header">
 			<h1><?php echo $this->registry['_panel_label']; ?></h1>
 			<div id="logout_button">
 				<?php if(isset($this->registry['_show_logout_button'])) { ?>
 					<form action="<?php echo $_SERVER['REQUEST_URI']; ?>" method="POST">
-						<input type="submit" name="logout" value="<?php echo $this->registry['_logout_button_label']; ?>" class="button">
+						<input type="submit" name="logout" value="<?php echo $this->registry['_logout_button_label']; ?>" class="button sb_button">
 						<input type="hidden" name="<?php echo $this->registry['_csrf_token']['name']; ?>" value="<?php echo $this->registry['_csrf_token']['value']; ?>">
 					</form>
 				<?php } ?>
 			</div>
 		</div>
-		<div id="headlinks">
+		<div id="headlinks" class="sb_headlinks">
 			<?php foreach($this->_list_modules() as $_module_name=>$_module_data) { ?>
-				<div class="headlink">
+				<div class="headlink sb_headlink">
 					<a href="<?php echo $_module_data['url']; ?>"><?php echo $_module_name; ?></a>
-					<?php if($_module_data['id'] === $_module['id']) { ?><div class="headlink_active"></div><?php } ?>
+					<?php if($_module_data['id'] === $_module['id']) { ?><div class="headlink_active sb_headlink_active"></div><?php } ?>
 				</div>
 			<?php } ?>
 		</div>
 		<?php if(isset($_module['template_header'])) { ?>
-			<div id="content_header"><h3><?php echo $_module['template_header']; ?></h3></div>
+			<div id="content_header" class="sb_content_header"><h3><?php echo $_module['template_header']; ?></h3></div>
 		<?php } ?>
-		<div id="content">
+		<div id="content" class="sb_content">

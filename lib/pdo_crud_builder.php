@@ -15,7 +15,7 @@
 		 *  $query_builder_object=new pdo_crud_builder(params_array)
 		 *   where params_array has:
 				'pdo_handler'=>$pdo_object // required
-				'pdo_fetch_mode'=>PDO::FETCH_NAMED // optional
+				'fetch_mode'=>PDO::FETCH_NAMED // optional
 				'auto_flush'=>true // flush query after exec(), optional
 				'on_error'=>function($message){ error_log($message); } // error logging, optional (see examples)
 		 *  note: this class does not creates connection to the database
@@ -204,12 +204,26 @@
 			$this->fetch_mode=PDO::FETCH_NAMED;
 			$this->on_error['callback']=function(){};
 
-			foreach(['pdo_handler', 'fetch_mode', 'auto_flush'] as $param)
+			foreach([
+				'pdo_handler'=>'object',
+				'fetch_mode'=>'integer',
+				'auto_flush'=>'boolean'
+			] as $param=>$param_type)
 				if(isset($params[$param]))
+				{
+					if(gettype($params[$param]) !== $param_type)
+						throw new pdo_crud_builder_exception('The input array parameter '.$param.' is not a '.$param_type);
+
 					$this->$param=$params[$param];
+				}
 
 			if(isset($params['on_error']))
+			{
+				if(!is_callable($params['on_error']))
+					throw new pdo_crud_builder_exception('The input array parameter on_error is not callable');
+
 				$this->on_error['callback']=$on_error;
+			}
 		}
 
 		public function get_fetch_mode()
@@ -605,6 +619,7 @@
 		public function query()
 		{
 			$exec_output=$this->exec(true);
+
 			if($exec_output !== false)
 				return $exec_output->fetchAll($this->fetch_mode);
 

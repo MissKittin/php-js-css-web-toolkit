@@ -33,11 +33,12 @@
 
 	echo ' -> Creating dotenv.env';
 		@mkdir(__DIR__.'/tmp');
-		file_put_contents(__DIR__.'/tmp/dotenv.env', 'TESTVARA="ok ok"'.PHP_EOL.'TESTVARB = "ok ok"'.PHP_EOL.'TESTVARC=\'ok ok\''.PHP_EOL);
+		@mkdir(__DIR__.'/tmp/dotenv');
+		file_put_contents(__DIR__.'/tmp/dotenv/dotenv.env', 'TESTVARA="ok ok"'.PHP_EOL.'TESTVARB = "ok ok"'.PHP_EOL.'TESTVARC=\'ok ok\''.PHP_EOL);
 	echo ' [ OK ]'.PHP_EOL;
 
 	$failed=false;
-	$env=new dotenv(__DIR__.'/tmp/dotenv.env', false);
+	$env=new dotenv(__DIR__.'/tmp/dotenv/dotenv.env', false);
 
 	echo ' -> Testing library';
 		if($env->getenv('TESTVARA', 'fail') === 'ok ok')

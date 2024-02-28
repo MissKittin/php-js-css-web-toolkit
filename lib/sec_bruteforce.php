@@ -30,9 +30,11 @@
 	 *  bruteforce_pdo
 	 *   store data in database via PDO (permban)
 	 *   supported databases: PostgreSQL, MySQL, SQLite3
+	 *   table layout: see class header
 	 *  bruteforce_timeout_pdo
 	 *   store data in database via PDO (timeout ban)
 	 *   supported databases: PostgreSQL, MySQL, SQLite3
+	 *   table layout: see class header
 	 *  bruteforce_json
 	 *   store data in flat file (for debugging purposes) (permban)
 	 *  bruteforce_timeout_json
@@ -145,12 +147,22 @@
 			if(isset($_SERVER['REMOTE_ADDR']))
 				$this->ip=$_SERVER['REMOTE_ADDR'];
 
-			foreach($this->constructor_params as $param)
+			foreach($this->constructor_params as $param=>$param_type)
 				if(isset($params[$param]))
+				{
+					if(gettype($params[$param]) !== $param_type)
+						throw new bruteforce_exception('The input array parameter '.$param.' is not a '.$param_type);
+
 					$this->$param=$params[$param];
+				}
 
 			if(isset($params['on_ban']))
+			{
+				if(!is_callable($params['on_ban']))
+					throw new bruteforce_exception('The input array parameter on_ban is not callable');
+
 				$this->on_ban['callback']=$params['on_ban'];
+			}
 
 			if($this->ip === null)
 				throw new bruteforce_exception('$_SERVER["REMOTE_ADDR"] is not set and no ip was given');
@@ -239,11 +251,11 @@
 		 */
 
 		protected $constructor_params=[
-			'redis_handler',
-			'prefix',
-			'max_attempts',
-			'ip',
-			'expire'
+			'redis_handler'=>'object',
+			'prefix'=>'string',
+			'max_attempts'=>'integer',
+			'ip'=>'string',
+			'expire'=>'integer'
 		];
 		protected $required_constructor_params=['redis_handler'];
 
@@ -253,7 +265,7 @@
 
 		public function __construct(array $params)
 		{
-			parent::__construct($params);
+			parent::{__FUNCTION__}($params);
 
 			$current_attempts=$this->redis_handler->get($this->prefix.$this->ip);
 
@@ -357,12 +369,12 @@
 		 */
 
 		protected $constructor_params=[
-			'redis_handler',
-			'prefix',
-			'max_attempts',
-			'ban_time',
-			'ip',
-			'expire'
+			'redis_handler'=>'object',
+			'prefix'=>'string',
+			'max_attempts'=>'integer',
+			'ban_time'=>'integer',
+			'ip'=>'string',
+			'expire'=>'integer'
 		];
 		protected $required_constructor_params=['redis_handler'];
 
@@ -372,7 +384,7 @@
 
 		public function __construct(array $params)
 		{
-			parent::__construct($params);
+			parent::{__FUNCTION__}($params);
 
 			$current_attempts=$this->redis_handler->get($this->prefix.$this->ip);
 
@@ -478,11 +490,11 @@
 		 */
 
 		protected $constructor_params=[
-			'memcached_handler',
-			'prefix',
-			'max_attempts',
-			'ip',
-			'expire'
+			'memcached_handler'=>'object',
+			'prefix'=>'string',
+			'max_attempts'=>'integer',
+			'ip'=>'string',
+			'expire'=>'integer'
 		];
 		protected $required_constructor_params=['memcached_handler'];
 
@@ -492,7 +504,7 @@
 
 		public function __construct(array $params)
 		{
-			parent::__construct($params);
+			parent::{__FUNCTION__}($params);
 
 			$this->memcached_handler->get($this->prefix.$this->ip); // trigger expiration
 			$current_attempts=$this->memcached_handler->get($this->prefix.$this->ip);
@@ -596,12 +608,12 @@
 		 */
 
 		protected $constructor_params=[
-			'memcached_handler',
-			'prefix',
-			'max_attempts',
-			'ban_time',
-			'ip',
-			'expire'
+			'memcached_handler'=>'object',
+			'prefix'=>'string',
+			'max_attempts'=>'integer',
+			'ban_time'=>'integer',
+			'ip'=>'string',
+			'expire'=>'integer'
 		];
 		protected $required_constructor_params=['memcached_handler'];
 
@@ -611,7 +623,7 @@
 
 		public function __construct(array $params)
 		{
-			parent::__construct($params);
+			parent::{__FUNCTION__}($params);
 
 			$this->memcached_handler->get($this->prefix.$this->ip); // trigger expiration
 			$current_attempts=$this->memcached_handler->get($this->prefix.$this->ip);
@@ -694,11 +706,30 @@
 		 *  MySQL
 		 *  SQLite3
 	 	 *
+		 * Table layout:
+		 *  PostgreSQL:
+		 *   `id` SERIAL PRIMARY KEY
+		 *   `ip` VARCHAR(39)
+		 *   `attempts` INTEGER
+		 *   `timestamp` INTEGER
+		 *  MySQL:
+		 *   `id` INTEGER NOT NULL AUTO_INCREMENT [PRIMARY KEY]
+		 *   `ip` VARCHAR(39)
+		 *   `attempts` INTEGER
+		 *   `timestamp` INTEGER
+		 *  SQLite3:
+		 *   `id` INTEGER PRIMARY KEY AUTOINCREMENT
+		 *   `ip` VARCHAR(39)
+		 *   `attempts` INTEGER
+		 *   `timestamp` INTEGER
+		 *
 		 * Constructor parameters:
 		 *  pdo_handler [object]
 		 *   required
 		 *  table_name [string]
 		 *   selected table for data (default sec_bruteforce)
+		 *  create_table [bool]
+		 *   send table creation query (default (safe) true)
 		 *  max_attempts [int]
 		 *   n attempts and ban (default 3)
 		 *  ip [string]
@@ -721,25 +752,24 @@
 		 * Database cleaning: $bruteforce->clean_database(int_seconds)
 		 *  removes stale records (older than 2592000 seconds [30 days] by default)
 		 * Closing connection: unset($bruteforce)
-		 *
-		 * Table layout:
-		 *  id[primary key] ip[varchar(39)] attempts[int] timestamp[int]
 		 */
 
 		protected $constructor_params=[
-			'pdo_handler',
-			'table_name',
-			'max_attempts',
-			'ip'
+			'pdo_handler'=>'object',
+			'table_name'=>'string',
+			'create_table'=>'boolean',
+			'max_attempts'=>'integer',
+			'ip'=>'string'
 		];
 		protected $required_constructor_params=['pdo_handler'];
 
 		protected $pdo_handler;
 		protected $table_name='sec_bruteforce';
+		protected $create_table=true;
 
 		public function __construct(array $params)
 		{
-			parent::__construct($params);
+			parent::{__FUNCTION__}($params);
 
 			if(!in_array(
 				$this->pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME),
@@ -747,44 +777,45 @@
 			))
 				throw new bruteforce_exception($this->pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME).' driver is not supported');
 
-			switch($this->pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME))
-			{
-				case 'pgsql':
-					if($this->pdo_handler->exec(''
-					.	'CREATE TABLE IF NOT EXISTS '.$this->table_name
-					.	'('
-					.		'id SERIAL PRIMARY KEY,'
-					.		'ip VARCHAR(39),'
-					.		'attempts INTEGER,'
-					.		'timestamp INTEGER'
-					.	')'
-					) === false)
-						throw new bruteforce_exception('PDO exec error');
-				break;
-				case 'mysql':
-					if($this->pdo_handler->exec(''
-					.	'CREATE TABLE IF NOT EXISTS '.$this->table_name
-					.	'('
-					.		'id INTEGER NOT NULL AUTO_INCREMENT, PRIMARY KEY(id),'
-					.		'ip VARCHAR(39),'
-					.		'attempts INTEGER,'
-					.		'timestamp INTEGER'
-					.	')'
-					) === false)
-						throw new bruteforce_exception('PDO exec error');
-				break;
-				case 'sqlite':
-					if($this->pdo_handler->exec(''
-					.	'CREATE TABLE IF NOT EXISTS '.$this->table_name
-					.	'('
-					.		'id INTEGER PRIMARY KEY AUTOINCREMENT,'
-					.		'ip VARCHAR(39),'
-					.		'attempts INTEGER,'
-					.		'timestamp INTEGER'
-					.	')'
-					) === false)
-						throw new bruteforce_exception('PDO exec error');
-			}
+			if($this->create_table)
+				switch($this->pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME))
+				{
+					case 'pgsql':
+						if($this->pdo_handler->exec(''
+						.	'CREATE TABLE IF NOT EXISTS '.$this->table_name
+						.	'('
+						.		'id SERIAL PRIMARY KEY,'
+						.		'ip VARCHAR(39),'
+						.		'attempts INTEGER,'
+						.		'timestamp INTEGER'
+						.	')'
+						) === false)
+							throw new bruteforce_exception('PDO exec error');
+					break;
+					case 'mysql':
+						if($this->pdo_handler->exec(''
+						.	'CREATE TABLE IF NOT EXISTS '.$this->table_name
+						.	'('
+						.		'id INTEGER NOT NULL AUTO_INCREMENT, PRIMARY KEY(id),'
+						.		'ip VARCHAR(39),'
+						.		'attempts INTEGER,'
+						.		'timestamp INTEGER'
+						.	')'
+						) === false)
+							throw new bruteforce_exception('PDO exec error');
+					break;
+					case 'sqlite':
+						if($this->pdo_handler->exec(''
+						.	'CREATE TABLE IF NOT EXISTS '.$this->table_name
+						.	'('
+						.		'id INTEGER PRIMARY KEY AUTOINCREMENT,'
+						.		'ip VARCHAR(39),'
+						.		'attempts INTEGER,'
+						.		'timestamp INTEGER'
+						.	')'
+						) === false)
+							throw new bruteforce_exception('PDO exec error');
+				}
 
 			switch($this->pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME))
 			{
@@ -949,11 +980,30 @@
 		 *  MySQL
 		 *  SQLite3
 	 	 *
+		 * Table layout:
+		 *  PostgreSQL:
+		 *   `id` SERIAL PRIMARY KEY
+		 *   `ip` VARCHAR(39)
+		 *   `attempts` INTEGER
+		 *   `timestamp` INTEGER
+		 *  MySQL:
+		 *   `id` INTEGER NOT NULL AUTO_INCREMENT [PRIMARY KEY]
+		 *   `ip` VARCHAR(39)
+		 *   `attempts` INTEGER
+		 *   `timestamp` INTEGER
+		 *  SQLite3:
+		 *   `id` INTEGER PRIMARY KEY AUTOINCREMENT
+		 *   `ip` VARCHAR(39)
+		 *   `attempts` INTEGER
+		 *   `timestamp` INTEGER
+		 *
 		 * Constructor parameters:
 		 *  pdo_handler [object]
 		 *   required
 		 *  table_name [string]
 		 *   selected table for data (default sec_bruteforce)
+		 *  create_table [bool]
+		 *   send table creation query (default (safe) true)
 		 *  max_attempts [int]
 		 *   n attempts and ban (default 3)
 		 *  ban_time [int]
@@ -986,28 +1036,27 @@
 		 *  removes stale records (older than 2592000 seconds [30 days] by default)
 		 * Closing connection: unset($bruteforce)
 		 *
-		 * Table layout:
-		 *  id[primary key] ip[varchar(39)] attempts[int] timestamp[int]
-		 *
 		 * Changes with respect to bruteforce_pdo: __construct(), get_timestamp(), check(), add()
 		 */
 
 		protected $constructor_params=[
-			'pdo_handler',
-			'table_name',
-			'max_attempts',
-			'ban_time',
-			'ip',
-			'auto_clean'
+			'pdo_handler'=>'object',
+			'table_name'=>'string',
+			'create_table'=>'boolean',
+			'max_attempts'=>'integer',
+			'ban_time'=>'integer',
+			'ip'=>'string',
+			'auto_clean'=>'boolean'
 		];
 		protected $required_constructor_params=['pdo_handler'];
 
 		protected $pdo_handler;
 		protected $table_name='sec_bruteforce';
+		protected $create_table=true;
 
 		public function __construct(array $params)
 		{
-			parent::__construct($params);
+			parent::{__FUNCTION__}($params);
 
 			if(!in_array(
 				$this->pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME),
@@ -1015,44 +1064,45 @@
 			))
 				throw new bruteforce_exception($this->pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME).' driver is not supported');
 
-			switch($this->pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME))
-			{
-				case 'pgsql':
-					if($this->pdo_handler->exec(''
-					.	'CREATE TABLE IF NOT EXISTS '.$this->table_name
-					.	'('
-					.		'id SERIAL PRIMARY KEY,'
-					.		'ip VARCHAR(39),'
-					.		'attempts INTEGER,'
-					.		'timestamp INTEGER'
-					.	')'
-					) === false)
-						throw new bruteforce_exception('PDO exec error');
-				break;
-				case 'mysql':
-					if($this->pdo_handler->exec(''
-					.	'CREATE TABLE IF NOT EXISTS '.$this->table_name
-					.	'('
-					.		'id INTEGER NOT NULL AUTO_INCREMENT, PRIMARY KEY(id),'
-					.		'ip VARCHAR(39),'
-					.		'attempts INTEGER,'
-					.		'timestamp INTEGER'
-					.	')'
-					) === false)
-						throw new bruteforce_exception('PDO exec error');
-				break;
-				case 'sqlite':
-					if($this->pdo_handler->exec(''
-					.	'CREATE TABLE IF NOT EXISTS '.$this->table_name
-					.	'('
-					.		'id INTEGER PRIMARY KEY AUTOINCREMENT,'
-					.		'ip VARCHAR(39),'
-					.		'attempts INTEGER,'
-					.		'timestamp INTEGER'
-					.	')'
-					) === false)
-						throw new bruteforce_exception('PDO exec error');
-			}
+			if($this->create_table)
+				switch($this->pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME))
+				{
+					case 'pgsql':
+						if($this->pdo_handler->exec(''
+						.	'CREATE TABLE IF NOT EXISTS '.$this->table_name
+						.	'('
+						.		'id SERIAL PRIMARY KEY,'
+						.		'ip VARCHAR(39),'
+						.		'attempts INTEGER,'
+						.		'timestamp INTEGER'
+						.	')'
+						) === false)
+							throw new bruteforce_exception('PDO exec error');
+					break;
+					case 'mysql':
+						if($this->pdo_handler->exec(''
+						.	'CREATE TABLE IF NOT EXISTS '.$this->table_name
+						.	'('
+						.		'id INTEGER NOT NULL AUTO_INCREMENT, PRIMARY KEY(id),'
+						.		'ip VARCHAR(39),'
+						.		'attempts INTEGER,'
+						.		'timestamp INTEGER'
+						.	')'
+						) === false)
+							throw new bruteforce_exception('PDO exec error');
+					break;
+					case 'sqlite':
+						if($this->pdo_handler->exec(''
+						.	'CREATE TABLE IF NOT EXISTS '.$this->table_name
+						.	'('
+						.		'id INTEGER PRIMARY KEY AUTOINCREMENT,'
+						.		'ip VARCHAR(39),'
+						.		'attempts INTEGER,'
+						.		'timestamp INTEGER'
+						.	')'
+						) === false)
+							throw new bruteforce_exception('PDO exec error');
+				}
 
 			switch($this->pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME))
 			{
@@ -1269,10 +1319,10 @@
 		 */
 
 		protected $constructor_params=[
-			'file',
-			'lock_file',
-			'max_attempts',
-			'ip'
+			'file'=>'string',
+			'lock_file'=>'string',
+			'max_attempts'=>'integer',
+			'ip'=>'string'
 		];
 		protected $required_constructor_params=['file'];
 
@@ -1282,7 +1332,7 @@
 
 		public function __construct(array $params)
 		{
-			parent::__construct($params);
+			parent::{__FUNCTION__}($params);
 
 			$this->lock_unlock_database(true);
 
@@ -1384,12 +1434,12 @@
 		 */
 
 		protected $constructor_params=[
-			'file',
-			'lock_file',
-			'max_attempts',
-			'ban_time',
-			'ip',
-			'auto_clean'
+			'file'=>'string',
+			'lock_file'=>'string',
+			'max_attempts'=>'integer',
+			'ban_time'=>'integer',
+			'ip'=>'string',
+			'auto_clean'=>'boolean'
 		];
 		protected $required_constructor_params=['file'];
 
@@ -1399,7 +1449,7 @@
 
 		public function __construct(array $params)
 		{
-			parent::__construct($params);
+			parent::{__FUNCTION__}($params);
 
 			$this->lock_unlock_database(true);
 

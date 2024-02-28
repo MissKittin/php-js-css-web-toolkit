@@ -30,7 +30,7 @@
 	 *  lv_pdo_session_handler
 	 *   session handler that uses a relational database to store an encrypted session
 	 *   supported databases: PostgreSQL, MySQL, SQLite3
-	 *   read warning in class block
+	 *   table layout: see class header
 	 *  lv_redis_session_handler
 	 *   session handler that uses Redis to store an encrypted session
 	 *  lv_memcached_session_handler
@@ -50,7 +50,7 @@
 		 * Note:
 		 *  throws an lv_encrypter_exception on error
 		 *
-		 * Usage:
+		 * Usage (args in the [] are optional):
 		 *  Key generation:
 		 *   lv_encrypter::generate_key([string_cipher='aes-128-cbc']) [returns base64-encoded random string]
 		 *  Initialization:
@@ -131,6 +131,7 @@
 
 			$iv=random_bytes(openssl_cipher_iv_length($this->cipher));
 			$tag='';
+
 			if(self::$supported_ciphers[$this->cipher]['aead'])
 				$content=openssl_encrypt($content, $this->cipher, $this->key, 0, $iv, $tag);
 			else
@@ -141,6 +142,7 @@
 
 			$iv=base64_encode($iv);
 			$tag=base64_encode($tag);
+
 			if(self::$supported_ciphers[$this->cipher]['aead'])
 				$mac='';
 			else
@@ -177,7 +179,10 @@
 			else
 				$tag=base64_decode($payload['tag']);
 
-			if((self::$supported_ciphers[$this->cipher]['aead']) && (strlen($tag) !== 16))
+			if(
+				self::$supported_ciphers[$this->cipher]['aead'] &&
+				((!isset($tag[15])) || isset($tag[16])) // (strlen($tag) !== 16)
+			)
 				throw new lv_encrypter_exception('Could not decrypt the data');
 
 			$decrypted=openssl_decrypt($payload['content'], $this->cipher, $this->key, 0, $iv, $tag);
@@ -205,7 +210,7 @@
 		 *
 		 * Usage:
 		 *  Initialization:
-		 *   $cookies=new lv_cookie_encrypter(string_key, [string_cipher='aes-128-cbc'])
+		 *   $cookies=new lv_cookie_encrypter(string_key, [string_cipher='aes-256-gcm'])
 		 *  Encrypting cookie:
 		 *   $cookies->setcookie()
 		 *    where setcookie method takes the same parameters as built-in PHP function
@@ -277,7 +282,7 @@
 		 *  throws an lv_encrypter_exception on error
 		 *
 		 * Usage: add before session_start()
-		 *  session_set_save_handler(new lv_session_encrypter($key), true)
+		 *  session_set_save_handler(new lv_session_encrypter($key, 'aes-256-gcm'), true)
 		 */
 
 		private static $initialized=false;
@@ -287,6 +292,7 @@
 		{
 			if(self::$initialized)
 				throw new lv_encrypter_exception(__CLASS__.' is a singleton');
+
 			self::$initialized=true;
 
 			$this->lv_encrypter=new lv_encrypter($key, $cipher);
@@ -306,7 +312,7 @@
 
 		public function read($id)
 		{
-			$content=parent::read($id);
+			$content=parent::{__FUNCTION__}($id);
 
 			if($content !== '')
 				return $this->lv_encrypter->decrypt($content, false);
@@ -315,7 +321,7 @@
 		}
 		public function write($id, $content)
 		{
-			return parent::write($id, $this->lv_encrypter->encrypt($content, false));
+			return parent::{__FUNCTION__}($id, $this->lv_encrypter->encrypt($content, false));
 		}
 	}
 	final class lv_cookie_session_handler implements SessionHandlerInterface
@@ -358,24 +364,38 @@
 			if(self::$initialized)
 				throw new lv_encrypter_exception(__CLASS__.' is a singleton');
 
-			self::$initialized=true;
+			$cipher='aes-128-cbc';
+			$this->on_error['callback']=function(){};
+
+			foreach([
+				'cookie_id'=>'string',
+				'cookie_expire'=>'integer'
+			] as $param=>$param_type)
+				if(isset($params[$param]))
+				{
+					if(gettype($params[$param]) !== $param_type)
+						throw new lv_encrypter_exception('The input array parameter '.$param.' is not a '.$param_type);
+
+					$this->$param=$params[$param];
+				}
 
 			if(!isset($params['key']))
 				throw new lv_encrypter_exception('No key specified');
 
-			$cipher='aes-128-cbc';
 			if(isset($params['cipher']))
 				$cipher=$params['cipher'];
 
+			if(isset($params['on_error']))
+			{
+				if(!is_callable($params['on_error']))
+					throw new lv_encrypter_exception('The input array parameter on_error is not callable');
+
+				$this->on_error['callback']=$params['on_error'];
+			}
+
 			$this->lv_encrypter=new lv_encrypter($params['key'], $cipher);
 
-			foreach(['cookie_id', 'cookie_expire'] as $param)
-				if(isset($params[$param]))
-					$this->$param=$params[$param];
-
-			$this->on_error['callback']=function(){};
-			if(isset($params['on_error']))
-				$this->on_error['callback']=$params['on_error'];
+			self::$initialized=true;
 		}
 		public function __destruct()
 		{
@@ -425,6 +445,7 @@
 				$session_data=$this->lv_encrypter->encrypt($session_data, false);
 
 			$cookie_expire=$this->cookie_expire;
+
 			if($cookie_expire === null)
 				$cookie_expire=session_get_cookie_params()['lifetime'];
 
@@ -478,8 +499,6 @@
 		 * Warning:
 		 *  lv_encrypter class is required
 		 *  lv_pdo_session_handler is a singleton
-		 *  I don't know why, but this class won't work on linuxes with sqlite (PHP 7.4 and 7.3)
-		 *   sqlite throws "disk i/o error", but it works on windows (PHP 7.2)
 		 *
 		 * Note:
 		 *  throws an lv_encrypter_exception on error
@@ -488,6 +507,16 @@
 		 *  PostgreSQL
 		 *  MySQL
 		 *  SQLite3
+		 *
+		 * Table layout:
+		 *  MySQL:
+		 *   `id` VARCHAR(30) [PRIMARY KEY]
+		 *   `payload` TEXT
+		 *   `last_activity` INTEGER
+		 *  PostgreSQL and SQLite3:
+		 *   `id` VARCHAR(30) PRIMARY KEY
+		 *   `payload` TEXT
+		 *   `last_activity` INTEGER
 		 *
 		 * Hint:
 		 *  the gc() calls on_error for both the error log and notifications
@@ -523,8 +552,10 @@
 		 * Usage:
 			session_set_save_handler(new lv_pdo_session_handler([
 				'key'=>'randomstringforlvencrypter', // required
+				'cipher'=>'aes-256-gcm', // optional, default: aes-128-cbc, for lv_encrypter, see lv_encrypter::$supported_ciphers
 				'pdo_handler'=>new PDO('sqlite:./lv_pdo_session.sqlite3'), // required
 				'table_name'=>'lv_handler_sessions', // optional, default: lv_pdo_session_handler
+				'create_table'=>true, // optional, send table creation query, default (safe): true
 				'on_error'=>function($message) // optional
 				{
 					error_log($message);
@@ -537,37 +568,55 @@
 		private $on_error;
 		private $pdo_handler;
 		private $table_name='lv_pdo_session_handler';
+		private $create_table=true;
 
 		public function __construct(array $params)
 		{
 			if(self::$initialized)
 				throw new lv_encrypter_exception(__CLASS__.' is a singleton');
 
-			self::$initialized=true;
-
-			foreach(['pdo_handler', 'key'] as $param)
-				if(!isset($params[$param]))
-					throw new lv_encrypter_exception('The '.$param.' parameter was not specified for the constructor');
-
 			$cipher='aes-128-cbc';
+			$this->on_error['callback']=function(){};
+
+			foreach([
+				'pdo_handler'=>'object',
+				'table_name'=>'string',
+				'create_table'=>'boolean'
+			] as $param=>$param_type)
+				if(isset($params[$param]))
+				{
+					if(gettype($params[$param]) !== $param_type)
+						throw new lv_encrypter_exception('The input array parameter '.$param.' is not a '.$param_type);
+
+					$this->$param=$params[$param];
+				}
+
+			if(!isset($params['pdo_handler']))
+				throw new lv_encrypter_exception('The pdo_handler parameter was not specified for the constructor');
+
+			if(!isset($params['key']))
+				throw new lv_encrypter_exception('No key specified');
+
 			if(isset($params['cipher']))
 				$cipher=$params['cipher'];
 
-			$this->lv_encrypter=new lv_encrypter($params['key'], $cipher);
-
-			foreach(['pdo_handler', 'table_name'] as $param)
-				if(isset($params[$param]))
-					$this->$param=$params[$param];
-
-			$this->on_error['callback']=function(){};
 			if(isset($params['on_error']))
+			{
+				if(!is_callable($params['on_error']))
+					throw new lv_encrypter_exception('The input array parameter on_error is not callable');
+
 				$this->on_error['callback']=$params['on_error'];
+			}
 
 			if(!in_array(
 				$this->pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME),
 				['pgsql', 'mysql', 'sqlite']
 			))
 				throw new lv_encrypter_exception($this->pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME).' driver is not supported');
+
+			$this->lv_encrypter=new lv_encrypter($params['key'], $cipher);
+
+			self::$initialized=true;
 		}
 		public function __destruct()
 		{
@@ -599,31 +648,32 @@
 
 		public function open($save_path, $session_name)
 		{
-			switch($this->pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME))
-			{
-				case 'mysql':
-					if($this->pdo_handler->exec(''
-					.	'CREATE TABLE IF NOT EXISTS '.$this->table_name
-					.	'('
-					.		'id VARCHAR(30), PRIMARY KEY(id),'
-					.		'payload TEXT,'
-					.		'last_activity INTEGER'
-					.	')'
-					) === false)
-						return false;
-				break;
-				case 'pgsql':
-				case 'sqlite':
-					if($this->pdo_handler->exec(''
-					.	'CREATE TABLE IF NOT EXISTS '.$this->table_name
-					.	'('
-					.		'id VARCHAR(30) PRIMARY KEY,'
-					.		'payload TEXT,'
-					.		'last_activity INTEGER'
-					.	')'
-					) === false)
-						return false;
-			}
+			if($this->create_table)
+				switch($this->pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME))
+				{
+					case 'mysql':
+						if($this->pdo_handler->exec(''
+						.	'CREATE TABLE IF NOT EXISTS '.$this->table_name
+						.	'('
+						.		'id VARCHAR(30), PRIMARY KEY(id),'
+						.		'payload TEXT,'
+						.		'last_activity INTEGER'
+						.	')'
+						) === false)
+							return false;
+					break;
+					case 'pgsql':
+					case 'sqlite':
+						if($this->pdo_handler->exec(''
+						.	'CREATE TABLE IF NOT EXISTS '.$this->table_name
+						.	'('
+						.		'id VARCHAR(30) PRIMARY KEY,'
+						.		'payload TEXT,'
+						.		'last_activity INTEGER'
+						.	')'
+						) === false)
+							return false;
+				}
 
 			return true;
 		}
@@ -773,6 +823,7 @@
 			$redis_handler->connect('127.0.0.1', 6379);
 			session_set_save_handler(new lv_redis_session_handler([
 				'key'=>'randomstringforlvencrypter', // required
+				'cipher'=>'aes-256-gcm', // optional, default: aes-128-cbc, for lv_encrypter, see lv_encrypter::$supported_ciphers
 				'redis_handler'=>$redis_handler, // required
 				'prefix'=>'lv_session__', // optional, default: lv_redis_session_handler
 				'on_error'=>function($message) // optional
@@ -793,25 +844,41 @@
 			if(self::$initialized)
 				throw new lv_encrypter_exception(__CLASS__.' is a singleton');
 
-			self::$initialized=true;
-
-			foreach(['redis_handler', 'key'] as $param)
-				if(!isset($params[$param]))
-					throw new lv_encrypter_exception('The '.$param.' parameter was not specified for the constructor');
-
 			$cipher='aes-128-cbc';
+			$this->on_error['callback']=function(){};
+
+			foreach([
+				'redis_handler'=>'object',
+				'prefix'=>'string'
+			] as $param=>$param_type)
+				if(isset($params[$param]))
+				{
+					if(gettype($params[$param]) !== $param_type)
+						throw new lv_encrypter_exception('The input array parameter '.$param.' is not a '.$param_type);
+
+					$this->$param=$params[$param];
+				}
+
+			if(!isset($params['redis_handler']))
+				throw new lv_encrypter_exception('The redis_handler parameter was not specified for the constructor');
+
+			if(!isset($params['key']))
+				throw new lv_encrypter_exception('No key specified');
+
 			if(isset($params['cipher']))
 				$cipher=$params['cipher'];
 
+			if(isset($params['on_error']))
+			{
+				if(!is_callable($params['on_error']))
+					throw new lv_encrypter_exception('The input array parameter on_error is not callable');
+
+				$this->on_error['callback']=$params['on_error'];
+			}
+
 			$this->lv_encrypter=new lv_encrypter($params['key'], $cipher);
 
-			foreach(['redis_handler', 'prefix'] as $param)
-				if(isset($params[$param]))
-					$this->$param=$params[$param];
-
-			$this->on_error['callback']=function(){};
-			if(isset($params['on_error']))
-				$this->on_error['callback']=$params['on_error'];
+			self::$initialized=true;
 		}
 		public function __destruct()
 		{
@@ -910,6 +977,7 @@
 			$memcached_handler->addServer('127.0.0.1', 6379);
 			session_set_save_handler(new lv_memcached_session_handler([
 				'key'=>'randomstringforlvencrypter', // required
+				'cipher'=>'aes-256-gcm', // optional, default: aes-128-cbc, for lv_encrypter, see lv_encrypter::$supported_ciphers
 				'memcached_handler'=>$memcached_handler, // required
 				'prefix'=>'lv_session__', // optional, default: lv_memcached_session_handler
 				'on_error'=>function($message) // optional
@@ -930,25 +998,41 @@
 			if(self::$initialized)
 				throw new lv_encrypter_exception(__CLASS__.' is a singleton');
 
-			self::$initialized=true;
-
-			foreach(['memcached_handler', 'key'] as $param)
-				if(!isset($params[$param]))
-					throw new lv_encrypter_exception('The '.$param.' parameter was not specified for the constructor');
-
 			$cipher='aes-128-cbc';
+			$this->on_error['callback']=function(){};
+
+			foreach([
+				'memcached_handler'=>'object',
+				'prefix'=>'string'
+			] as $param=>$param_type)
+				if(isset($params[$param]))
+				{
+					if(gettype($params[$param]) !== $param_type)
+						throw new lv_encrypter_exception('The input array parameter '.$param.' is not a '.$param_type);
+
+					$this->$param=$params[$param];
+				}
+
+			if(!isset($params['memcached_handler']))
+				throw new lv_encrypter_exception('The pdo_handler parameter was not specified for the constructor');
+
+			if(!isset($params['key']))
+				throw new lv_encrypter_exception('No key specified');
+
 			if(isset($params['cipher']))
 				$cipher=$params['cipher'];
 
+			if(isset($params['on_error']))
+			{
+				if(!is_callable($params['on_error']))
+					throw new lv_encrypter_exception('The input array parameter on_error is not callable');
+
+				$this->on_error['callback']=$params['on_error'];
+			}
+
 			$this->lv_encrypter=new lv_encrypter($params['key'], $cipher);
 
-			foreach(['memcached_handler', 'prefix'] as $param)
-				if(isset($params[$param]))
-					$this->$param=$params[$param];
-
-			$this->on_error['callback']=function(){};
-			if(isset($params['on_error']))
-				$this->on_error['callback']=$params['on_error'];
+			self::$initialized=true;
 		}
 		public function __destruct()
 		{

@@ -90,8 +90,7 @@
 	$errors=[];
 
 	echo ' -> Removing temporary files';
-		@mkdir(__DIR__.'/tmp');
-		@unlink(__DIR__.'/tmp/pdo_cheat.sqlite3');
+		@unlink(__DIR__.'/tmp/pdo_cheat/pdo_cheat.sqlite3');
 	echo ' [ OK ]'.PHP_EOL;
 
 	if(getenv('TEST_DB_TYPE') !== false)
@@ -206,7 +205,9 @@
 			exit(1);
 		}
 
-		$pdo_handler=new PDO('sqlite:'.__DIR__.'/tmp/pdo_cheat.sqlite3');
+		@mkdir(__DIR__.'/tmp');
+		@mkdir(__DIR__.'/tmp/pdo_cheat');
+		$pdo_handler=new PDO('sqlite:'.__DIR__.'/tmp/pdo_cheat/pdo_cheat.sqlite3');
 	}
 
 	$pdo_cheat=new pdo_cheat([

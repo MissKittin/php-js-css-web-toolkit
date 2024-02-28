@@ -44,6 +44,7 @@
 			$start_day
 		){
 			$current_month=date('m');
+
 			if($current_month == $start_month)
 			{
 				if(date('d') >= $start_day)
@@ -75,8 +76,7 @@
 
 			if
 			(
-				($current_date >= strtotime($current_year.'-'.$start_month.'-'.$start_day))
-				&&
+				($current_date >= strtotime($current_year.'-'.$start_month.'-'.$start_day)) &&
 				($current_date <= strtotime($current_year.'-'.$end_month.'-'.$end_day))
 			)
 				return true;
@@ -96,6 +96,7 @@
 	function check_easter(int $easter_days)
 	{
 		$easter_start=check_easter__calculate(date('Y'));
+
 		if($easter_start === false)
 			return false;
 
@@ -121,7 +122,9 @@
 	}
 	function check_easter_cache(int $easter_days, string $input_data)
 	{
-		if(!@$date_table=unserialize($input_data))
+		$date_table=unserialize($input_data);
+
+		if($date_table === false)
 			return false;
 
 		$this_year=date('Y');
@@ -180,6 +183,7 @@
 	function check_easter__make_cache()
 	{
 		$this_year=date('Y');
+
 		for($i=1; $i<=100; ++$i)
 		{
 			$calculate_easter_output=check_easter__calculate($this_year);

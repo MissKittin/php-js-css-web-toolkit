@@ -152,7 +152,7 @@
 		public function get(string $name)
 		{
 			try {
-				return parent::get($name);
+				return parent::{__FUNCTION__}($name);
 			} catch(ioc_container_exception $error) {
 				// closure is not registered in $this->closure_container
 				// keep going

@@ -228,7 +228,7 @@
 			if(!$this->process_started())
 				throw new async_process_builder_exception('The process is not running');
 
-			if(strlen($end_char) !== 1)
+			if((!isset($end_char[0])) || isset($end_char[1])) // (strlen($end_char) !== 1)
 				throw new async_process_builder_exception('The passed string contains more than one character');
 
 			$output='';
@@ -272,7 +272,10 @@
 			if(!isset($this->process_pipes[$descriptor]))
 				throw new async_process_builder_exception('Descriptor '.$descriptor.' does not exists (process not started?)');
 
-			if(@stream_get_meta_data($this->process_pipes[$descriptor]) === false)
+			if(
+				is_resource($this->process_pipes[$descriptor]) &&
+				(stream_get_meta_data($this->process_pipes[$descriptor]) === false)
+			)
 				throw new async_process_builder_exception('Descriptor '.$descriptor.' is not a stream');
 
 			if(!$this->stdin_closed())
@@ -393,7 +396,7 @@
 			if(!is_resource($this->process_handler))
 				return false;
 
-			$process_status=@proc_get_status($this->process_handler);
+			$process_status=proc_get_status($this->process_handler);
 
 			if(!isset($process_status['running']))
 				return false;
@@ -408,7 +411,10 @@
 			if(!isset($this->process_pipes[0]))
 				throw new async_process_builder_exception('Standard input descriptor does not exists (process not started?)');
 
-			return (@stream_get_meta_data($this->process_pipes[0]) === false);
+			if(!is_resource($this->process_pipes[0]))
+				return true;
+
+			return (stream_get_meta_data($this->process_pipes[0]) === false);
 		}
 		public function has_pty()
 		{

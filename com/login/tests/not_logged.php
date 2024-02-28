@@ -74,7 +74,7 @@
 
 	echo ' -> Checking if views/form.php was included';
 		$found=false;
-		$strlen=strlen(realpath(__DIR__.'/..'))+1;
+		$strlen=strlen(realpath(__DIR__.'/../templates/default'))+1;
 		foreach(get_included_files() as $file)
 			if(strtr(substr($file, $strlen), '\\', '/') === 'views/form.php')
 			{

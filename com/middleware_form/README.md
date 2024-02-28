@@ -66,6 +66,10 @@ Set config options with the `add_config` method
 	default: `/assets`
 * `middleware_form_style` [string]  
 	default: `middleware_form_dark.css`
+* `inline_style` [bool]  
+	compiles the style and adds it to the inline tag  
+	instead of link rel="stylesheet" (not recommended)  
+	default: `false`
 * `submit_button_label` [string]  
 	default: `Next`
 

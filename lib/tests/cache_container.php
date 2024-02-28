@@ -48,6 +48,7 @@
 	 *
 	 * Warning:
 	 *  PDO extension is required
+	 *  apcu extension is recommended
 	 *  memcached extension is recommended
 	 *  pdo_pgsql extension is recommended
 	 *  pdo_mysql extension is recommended
@@ -390,6 +391,18 @@
 		];
 	else
 		echo ' -> Skipping cache_driver_memcached'.PHP_EOL;
+
+	if(extension_loaded('apcu'))
+	{
+		if(apcu_enabled())
+			$cache_drivers['cache_driver_apcu']=[
+				'prefix'=>'cache_container_test__'
+			];
+		else
+			echo ' -> Skipping cache_driver_apcu - APCu disabled'.PHP_EOL;
+	}
+	else
+		echo ' -> Skipping cache_driver_apcu'.PHP_EOL;
 
 	$errors=[];
 	$pdo_errors=[];

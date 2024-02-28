@@ -58,38 +58,50 @@
 
 		private $private_key;
 		private $public_key;
-		private $signature_algorithm;
+		private $signature_algorithm='sha256WithRSAEncryption';
 
 		public static function generate_keys(array $params)
 		{
 			if(!extension_loaded('openssl'))
 				throw new file_sign_exception('openssl extension is not loaded');
 
-			if(!isset($params['private_key']))
-				throw new file_sign_exception('No private_key parameter');
-			if(!isset($params['public_key']))
-				throw new file_sign_exception('No public_key parameter');
-
-			if(file_exists($params['private_key']))
-				throw new file_sign_exception('Private key file does not exist');
-			if(file_exists($params['public_key']))
-				throw new file_sign_exception('Public key file does not exist');
-
 			if(!isset($params['key_bits']))
 				$params['key_bits']=2048;
+
 			if(!isset($params['key_type']))
 				$params['key_type']=OPENSSL_KEYTYPE_RSA;
+
+			foreach([
+				'private_key'=>'string',
+				'public_key'=>'string',
+				'key_bits'=>'integer',
+				'key_type'=>'integer'
+			] as $param)
+				if(isset($params[$param]) && (gettype($params[$param]) !== $param_type))
+					throw new file_sign_exception('The input array parameter '.$param.' is not a '.$param_type);
+
+			foreach(['private_key', 'public_key'] as $param)
+			{
+				if(!isset($params[$param]))
+					throw new file_sign_exception('No '.$param.' parameter');
+
+				if(file_exists($params[$param]))
+					throw new file_sign_exception($param.' file exists');
+			}
 
 			$keys=openssl_pkey_new([
 				'private_key_bits'=>$params['key_bits'],
 				'private_key_type'=>$params['key_type']
 			]);
+
 			if($keys === false)
 				throw new file_sign_exception('openssl_pkey_new() failed');
+
 			openssl_pkey_export($keys, $private_key);
 
 			if(file_put_contents($params['private_key'], $private_key) === false)
 				throw new file_sign_exception('Unable to write private key file');
+
 			if(file_put_contents($params['public_key'], openssl_pkey_get_details($keys)['key']) === false)
 				throw new file_sign_exception('Unable to write public key file');
 		}
@@ -99,19 +111,22 @@
 			if(!extension_loaded('openssl'))
 				throw new file_sign_exception('openssl extension is not loaded');
 
-			foreach(['private_key', 'public_key'] as $param)
-				if(!isset($params[$param]))
-					throw new file_sign_exception('The '.$param.' parameter was not specified for the constructor');
-
-			$this->signature_algorithm='sha256WithRSAEncryption';
-
 			foreach(['private_key', 'public_key', 'signature_algorithm'] as $param)
 				if(isset($params[$param]))
+				{
+					if(!is_string($params[$param]))
+						throw new file_sign_exception('The input array parameter '.$param.' is not a string');
+
 					$this->$param=$params[$param];
+				}
 
 			foreach(['private_key', 'public_key'] as $key)
 			{
+				if(!isset($params[$key]))
+					throw new file_sign_exception('The '.$key.' parameter was not specified for the constructor');
+
 				$this->$key=realpath($this->$key);
+
 				if($this->$key === false)
 					throw new file_sign_exception($key.' file does not exists');
 			}
@@ -123,6 +138,7 @@
 		public function generate_input_signature(string $data)
 		{
 			$private_key=openssl_pkey_get_private('file://'.$this->private_key);
+
 			if($private_key === false)
 				throw new file_sign_exception('Invalid private key file');
 
@@ -134,6 +150,7 @@
 		public function verify_input_signature(string $data, string $signature)
 		{
 			$public_key=openssl_pkey_get_public('file://'.$this->public_key);
+
 			if($public_key === false)
 				throw new file_sign_exception('Invalid public key file');
 
@@ -167,6 +184,7 @@
 		public function encrypt_data(string $data)
 		{
 			$private_key=openssl_pkey_get_private('file://'.$this->private_key);
+
 			if($private_key === false)
 				throw new file_sign_exception('Invalid private key file');
 
@@ -178,6 +196,7 @@
 		public function decrypt_data(string $encrypted_data)
 		{
 			$public_key=openssl_pkey_get_public('file://'.$this->public_key);
+
 			if($public_key === false)
 				throw new file_sign_exception('Invalid public key file');
 

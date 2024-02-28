@@ -90,7 +90,9 @@
 		};
 
 		$output_dir=dirname($output_file);
-		@mkdir($output_dir, 0777, true);
+
+		if(!file_exists($output_dir))
+			mkdir($output_dir, 0777, true);
 
 		if(!is_dir($output_dir))
 			throw new ob_cache_exception($output_dir.' is not a directory');

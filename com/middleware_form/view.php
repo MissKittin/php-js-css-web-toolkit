@@ -13,6 +13,26 @@
 			}
 		?>">
 		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<?php
+			if($view['inline_style'])
+			{
+				?><style nonce="mainstyle"><?php
+					if(is_dir(__DIR__.'/assets/'.$view['middleware_form_style']))
+						foreach(
+							array_diff(
+								scandir(__DIR__.'/assets/'.$view['middleware_form_style']),
+								['.', '..']
+							)
+							as $inline_style
+						)
+							readfile(__DIR__.'/assets/'.$view['middleware_form_style'].'/'.$inline_style);
+				?></style><?php
+			}
+			else
+			{
+				?><link rel="stylesheet" href="<?php echo $view['assets_path']; ?>/<?php echo $view['middleware_form_style']; ?>"><?php
+			}
+		?>
 		<link rel="stylesheet" href="<?php echo $view['assets_path']; ?>/<?php echo $view['middleware_form_style']; ?>">
 		<meta name="robots" content="noindex,nofollow">
 		<?php

@@ -89,12 +89,15 @@
 		public function __construct(array $params)
 		{
 			foreach($this->constructor_params as $param)
-				if(!isset($params[$param]))
-					throw new simpleblog_db_exception('The '.$param.' parameter was not specified for the constructor');
-
-			foreach($this->constructor_params as $param)
 				if(isset($params[$param]))
+				{
+					if(!is_string($params[$param]))
+						throw new simpleblog_db_exception('The input array parameter '.$param.' is not a string');
+
 					$this->$param=$params[$param];
+				}
+				else
+					throw new simpleblog_db_exception('The '.$param.' parameter was not specified for the constructor');
 
 			if(!is_dir($this->db_path))
 				throw new simpleblog_db_exception('Wrong db_path or pointing to file');
@@ -244,7 +247,7 @@
 
 		public function __construct(array $params)
 		{
-			parent::__construct($params);
+			parent::{__FUNCTION__}($params);
 
 			if(
 				(!file_exists($this->cache_path)) &&
@@ -280,7 +283,7 @@
 			$content=call_user_func_array(['parent', $method], $method_params);
 
 			if(($content !== null) && (!empty($content)))
-				@file_put_contents($file, serialize($content));
+				file_put_contents($file, serialize($content));
 
 			return $content;
 		}
@@ -380,9 +383,17 @@
 			if(!isset($params['db_path']))
 				throw new simpleblog_db_exception('The db_path parameter was not specified for the constructor');
 
-			foreach(['db_path', 'db_compression'] as $param)
+			foreach([
+				'db_path'=>'string',
+				'db_compression'=>'boolean'
+			] as $param=>$param_type)
 				if(isset($params[$param]))
+				{
+					if(gettype($params[$param]) !== $param_type)
+						throw new Exception('The input array parameter '.$param.' is not a '.$param_type);
+
 					$this->$param=$params[$param];
+				}
 
 			$this->db_path=realpath($this->db_path);
 

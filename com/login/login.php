@@ -33,15 +33,18 @@
 	}
 
 	require __DIR__.'/config/config.php';
-	require __DIR__.'/config/csp_header.php';
 	require __DIR__.'/config/view.php';
+	require __DIR__.'/config/csp_header.php';
+
+	if(!is_dir(__DIR__.'/templates/'.$GLOBALS['_login']['view']['template']))
+		throw new login_component_exception($GLOBALS['_login']['view']['template'].' template does not exist');
 
 	if(csrf_check_token('post'))
 	{
 		if(logout(check_post('logout')))
 		{
 			$GLOBALS['_login']['config']['on_logout']();
-			login_refresh('file', __DIR__.'/views/reload.php');
+			login_refresh('file', __DIR__.'/templates/'.$GLOBALS['_login']['view']['template'].'/views/reload.php');
 
 			exit();
 		}
@@ -88,7 +91,7 @@
 					$_SESSION['_login_remember_me']=true;
 
 				$GLOBALS['_login']['config']['on_login_success']();
-				login_refresh('file', __DIR__.'/views/reload.php');
+				login_refresh('file', __DIR__.'/templates/'.$GLOBALS['_login']['view']['template'].'/views/reload.php');
 
 				exit();
 			}
@@ -105,7 +108,7 @@
 	if(!is_logged())
 	{
 		$GLOBALS['_login']['config']['on_login_prompt']();
-		require __DIR__.'/views/form.php';
+		require __DIR__.'/templates/'.$GLOBALS['_login']['view']['template'].'/views/form.php';
 
 		if($GLOBALS['_login']['config']['exit_after_login_prompt'])
 			exit();

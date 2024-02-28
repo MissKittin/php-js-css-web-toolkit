@@ -28,21 +28,23 @@
 
 	namespace Test
 	{
+		date_default_timezone_set('UTC');
+
 		$test_options=[
 			'short'=>[
 				'clients'=>32, // 256 records
-				'csv_sum'=>'5be6b7824f183f86c39d9e64a44e036e',
-				'html_sum'=>'960940ab4968b2c13a7d1db8c4d7def7'
+				'csv_sum'=>'2c3839f21acbe4c8d2eb0b6a576da527',
+				'html_sum'=>'ab3c180e5048351b45046f2d879ab4da'
 			],
 			'long'=>[
 				'clients'=>255, // 2040 records
-				'csv_sum'=>'e85f1f8d3de5b5e8be6523c98360a05e',
-				'html_sum'=>'e85f1f8d3de5b5e8be6523c98360a05e'
+				'csv_sum'=>'62f60e0a2c03fdc2ad4f35c78a93c526',
+				'html_sum'=>'e32685aa21cf86c7c928453237f2970b'
 			],
 			'longlong'=>[
 				'clients'=>125000, // 1000000 records
-				'csv_sum'=>'58f6e1c28c92fa400e42f0f8ad16a70e',
-				'html_sum'=>'7f49e39dba1c7dfc0b03b2fbb1901c2c'
+				'csv_sum'=>'7ec6d5978b5816f9615f519eaed49b73',
+				'html_sum'=>'f0d6c18ff312aab838c0ac62e471f8a0'
 			]
 		];
 
@@ -164,6 +166,7 @@
 			foreach([
 				'herring.csv',
 				'herring.html',
+				'herring-csv.html',
 				'herring.sqlite3',
 				'herring_pre_flush.sqlite3',
 				'herring_pre_move.sqlite3'
@@ -175,6 +178,9 @@
 		$GLOBALS['current_timestamp_hits']=0;
 		function get_timstamp()
 		{
+			if($GLOBALS['current_timestamp_hits'] > 50)
+				$GLOBALS['current_timestamp']+=3600;
+
 			if($GLOBALS['current_timestamp_hits'] > 100)
 			{
 				$GLOBALS['current_timestamp']+=86400;
@@ -446,6 +452,25 @@
 				$pdo_errors['flush_archive']=$pdo_handler->errorInfo()[2];
 			}
 			$benchmarks['flush_archive']=$benchmark->get_exec_time();
+
+		echo ' -> Testing generate_report_from_csv';
+			$benchmark=new \measure_exec_time_from_here();
+			try {
+				herring_mock::generate_report_from_csv(__DIR__.'/tmp/herring.csv', __DIR__.'/tmp/herring-csv.html');
+				if(md5(file_get_contents(__DIR__.'/tmp/herring-csv.html')) === $test_options[$test_option]['html_sum'])
+					echo ' [ OK ]'.PHP_EOL;
+				else
+				{
+					echo ' [FAIL]'.PHP_EOL;
+					$failed=true;
+				}
+			} catch(Throwable $error) {
+				echo ' [FAIL]'.PHP_EOL;
+				$failed=true;
+				$exceptions[]=['generate_report_from_csv', $error->getMessage()];
+				$pdo_errors['generate_report_from_csv']=$pdo_handler->errorInfo()[2];
+			}
+			$benchmarks['generate_report_from_csv']=$benchmark->get_exec_time();
 
 		echo PHP_EOL;
 		foreach($benchmarks as $benchmark_method=>$benchmark_time)

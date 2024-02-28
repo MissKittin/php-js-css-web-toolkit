@@ -4,42 +4,67 @@
  *
  * Page layout:
 	<body>
-		<div id="header"><!-- H1 text--></div>
-		<div id="headlinks"></div>
-		<div id="content_header"><!-- H3 text --></div>
-		<div id="content"></div>
-		<div id="footer"><!-- Text --></div>
+		<div id="header" class="sb_header">
+			<!-- H1 text-->
+		</div>
+		<div id="headlinks" class="sb_headlinks">
+			<div class="headlink sb_headlink"><a href="/page">Current page</a><div class="headlink_active sb_headlink_active"></div></div>
+			<div class="headlink sb_headlink"><a href="/page">Another page</a></div>
+		</div>
+		<div id="content_header sb_content_header">
+			<!-- H3 text -->
+		</div>
+		<div id="content sb_content"></div>
+		<div id="footer sb_footer"><!-- Text --></div>
 	</body>
  * Blog page layout:
 	<body>
-		<div id="header"><!-- H1 text--></div>
-		<div id="headlinks"></div>
-		<div id="page">
-			<div class="article">
-				<div class="article_title"><!-- Text --><div class="article_date"><!-- Text --></div></div>
-				<div class="article_content"><!-- Text --></div>
+		<div id="header" class="sb_header">
+			<!-- H1 text-->
+		</div>
+		<div id="headlinks" class="sb_headlinks">
+			<div class="headlink sb_headlink"><a href="/page">Current page</a><div class="headlink_active sb_headlink_active"></div></div>
+			<div class="headlink sb_headlink"><a href="/page">Another page</a></div>
+		</div>
+		<div id="page" class="sb_page">
+			<div class="article sb_article">
+				<div class="article_title sb_article_title">
+					<!-- Text -->
+					<div class="article_date sb_article_date">
+						<!-- Text -->
+					</div>
+				</div>
+				<div class="article_content sb_article_content">
+					<!-- Text -->
+				</div>
 			</div>
-			<div id="page_switches">
-				<div class="page_switch"><a href="/page/1">1</a></div>
+			<div id="page_switches" class="sb_page_switches">
+				<div class="page_switch sb_page_switch"><a href="/page/1">1</a></div>
 			</div>
 		</div>
-		<div id="footer"><!-- Text --></div>
+		<div id="footer" class="footer"><!-- Text --></div>
 	</body>
  *
- * Headlinks:
- *  <div class="headlink"><a href="/page">Current page</a><div class="headlink_active"></div></div>
- *  <div class="headlink"><a href="/page">Another page</a></div>
  * Input text:
- *  <label for="text_name">Label</label><input type="text" name="text_name">
+		<label for="text_name">Label</label>
+		<input type="text" name="text_name">
  * Switches:
- *  Switch option 1 <label><input type="checkbox"><span class="switch_lever"></span></label>
- *  Switch option 2 <label><input type="checkbox" checked><span class="switch_lever"></span></label>
+ *  Switch option 1
+		<label>
+			<input type="checkbox">
+			<span class="switch_lever sb_switch_lever"></span>
+		</label>
+ *  Switch option 2
+		<label>
+			<input type="checkbox" checked>
+			<span class="switch_lever sb_switch_lever"></span>
+		</label>
  * Buttons:
- *  <input class="button" type="submit">
- *  <div class="button"><a href="/page">Go to page</a></div>
- *  <input class="full_button" type="submit"><!-- for login box -->
+ *  <input class="button sb_button" type="submit">
+ *  <div class="button sb_button"><a href="/page">Go to page</a></div>
+ *  <input class="full_button sb_full_button" type="submit"><!-- for login box -->
  * Multiple buttons in one row:
- *  <div class="button button_in_row"><a href="/page">Go to page</a></div>
+ *  <div class="button button_in_row sb_button sb_button_in_row"><a href="/page">Go to page</a></div>
  * Add files button label (<style>):
  *  input[type=file]::before { content: 'Add files'; }
  *
@@ -51,13 +76,13 @@
 body {
 	background-color: #e5e5e5;
 	font-size: 16px;
-	font-family: Roboto,Helvetica,Arial,sans-serif;
+	font-family: Roboto, Helvetica, Arial, sans-serif;
 	margin: 0;
 	padding: 0;
 }
 
 /* Buttons */
-.button {
+.sb_button {
 	color: #ffffff;
 	background-color: #26a69a;
 	letter-spacing: .5px;
@@ -70,17 +95,24 @@ body {
 	line-height: 36px;
 	margin: 5px;
 	padding: 0 16px;
-	box-shadow: 0 2px 2px 0 rgba(0,0,0,0.14), 0 3px 1px -2px rgba(0,0,0,0.12), 0 1px 5px 0 rgba(0,0,0,0.2);
+	box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14),
+		0 3px 1px -2px rgba(0, 0, 0, 0.12),
+		0 1px 5px 0 rgba(0, 0, 0, 0.2);
 }
-.button a, .button a:hover, .button a:visited {
+.sb_button a,
+.sb_button a:hover,
+.sb_button a:visited {
 	color: #ffffff;
 	text-decoration: none;
 }
-.button_in_row { float: left; }
-.full_button {
+.sb_button_in_row {
+	float: left;
+}
+.sb_full_button {
 	width: 100%;
 	border: none;
-	box-shadow: 0 2px 5px 0 rgba(0,0,0,0.16), 0 2px 10px 0 rgba(0,0,0,0.12);
+	box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.16),
+		0 2px 10px 0 rgba(0, 0, 0, 0.12);
 	background-color: #4caf50;
 	color: #ffffff;
 	padding: 20px;
@@ -93,10 +125,13 @@ textarea {
 	border: none;
 	resize: none;
 	outline: none;
-	box-shadow: 0 2px 2px 0 rgba(0,0,0,.14), 0 3px 1px -2px rgba(0,0,0,.2), 0 1px 5px 0 rgba(0,0,0,.12);
+	box-shadow: 0 2px 2px 0 rgba(0, 0, 0, .14),
+		0 3px 1px -2px rgba(0, 0, 0, .2),
+		0 1px 5px 0 rgba(0, 0, 0, .12);
 	white-space: nowrap;
 }
-input[type=text], input[type=password] {
+input[type=text],
+input[type=password] {
 	background-color: transparent;
 	border: none;
 	border-bottom: 1px solid #9e9e9e;
@@ -106,22 +141,34 @@ input[type=text], input[type=password] {
 	padding: 0;
 	outline: none;
 }
-input[type=text]:focus, input[type=password]:focus { border-bottom: 1px solid #4caf50; }
+input[type=text]:focus,
+input[type=password]:focus {
+	border-bottom: 1px solid #4caf50;
+}
 label {
 	color: #9e9e9e;
 	position: relative;
-	top: 0; left: 0.75rem;
+	top: 0;
+	left: 0.75rem;
 	font-size: 0.8rem;
 }
 
 /* tables */
-table a, table a:hover, table a:visited {
+table a,
+table a:hover,
+table a:visited {
 	text-decoration: none;
 	color: #0000ff;
 }
-table { border-collapse: collapse; }
-table tr:nth-child(even) { background-color: #f2f2f2; }
-table td { white-space: nowrap; }
+table {
+	border-collapse: collapse;
+}
+table tr:nth-child(even) {
+	background-color: #f2f2f2;
+}
+table td {
+	white-space: nowrap;
+}
 
 /* switches (checkboxes) */
 label input[type=checkbox] {
@@ -129,10 +176,17 @@ label input[type=checkbox] {
 	width: 0;
 	height: 0;
 }
-label input[type=checkbox]:checked + .switch_lever { background-color: #84c7c1; }
-label input[type=checkbox]:checked + .switch_lever:before, label input[type=checkbox]:checked + .switch_lever:after { left: 18px; }
-label input[type=checkbox]:checked + .switch_lever:after { background-color: #26a69a; }
-label .switch_lever {
+label input[type=checkbox]:checked + .sb_switch_lever {
+	background-color: #84c7c1;
+}
+label input[type=checkbox]:checked + .sb_switch_lever:before,
+label input[type=checkbox]:checked + .sb_switch_lever:after {
+	left: 18px;
+}
+label input[type=checkbox]:checked + .sb_switch_lever:after {
+	background-color: #26a69a;
+}
+label .sb_switch_lever {
 	content: "";
 	display: inline-block;
 	position: relative;
@@ -145,7 +199,8 @@ label .switch_lever {
 	vertical-align: middle;
 	margin-bottom: 2px;
 }
-label .switch_lever:before, label .switch_lever:after {
+label .sb_switch_lever:before,
+label .sb_switch_lever:after {
 	content: "";
 	position: absolute;
 	display: inline-block;
@@ -154,24 +209,35 @@ label .switch_lever:before, label .switch_lever:after {
 	border-radius: 50%;
 	left: 0;
 	top: -3px;
-	transition: left 0.3s ease, background .3s ease, box-shadow 0.1s ease, transform .1s ease;
+	transition: left 0.3s ease,
+		background .3s ease,
+		box-shadow 0.1s ease,
+		transform .1s ease;
 }
-label .switch_lever:before { background-color: rgba(38, 166, 154, 0.15); }
-label .switch_lever:after {
+label .sb_switch_lever:before {
+	background-color: rgba(38, 166, 154, 0.15);
+}
+label .sb_switch_lever:after {
 	background-color: #F1F1F1;
-	box-shadow: 0px 3px 1px -2px rgba(0, 0, 0, 0.2), 0px 2px 2px 0px rgba(0, 0, 0, 0.14), 0px 1px 5px 0px rgba(0, 0, 0, 0.12);
+	box-shadow: 0px 3px 1px -2px rgba(0, 0, 0, 0.2),
+		0 2px 2px 0 rgba(0, 0, 0, 0.14),
+		0 1px 5px 0 rgba(0, 0, 0, 0.12);
 }
-input[type=checkbox]:checked:not(:disabled) ~ .switch_lever:active::before, input[type=checkbox]:checked:not(:disabled).tabbed:focus ~ .switch_lever::before {
+input[type=checkbox]:checked:not(:disabled) ~ .sb_switch_lever:active::before,
+input[type=checkbox]:checked:not(:disabled).tabbed:focus ~ .sb_switch_lever::before {
 	transform: scale(2.4);
 	background-color: rgba(38, 166, 154, 0.15);
 }
-input[type=checkbox]:not(:disabled) ~ .switch_lever:active:before, input[type=checkbox]:not(:disabled).tabbed:focus ~ .switch_lever::before {
+input[type=checkbox]:not(:disabled) ~ .sb_switch_lever:active:before,
+input[type=checkbox]:not(:disabled).tabbed:focus ~ .sb_switch_lever::before {
 	transform: scale(2.4);
 	background-color: rgba(0, 0, 0, 0.08);
 }
 
 /* file upload */
-input[type=file]::-webkit-file-upload-button { visibility: hidden; }
+input[type=file]::-webkit-file-upload-button {
+	visibility: hidden;
+}
 input[type=file]::before {
 	display: inline-block;
 	/* .button */
@@ -185,25 +251,32 @@ input[type=file]::before {
 	line-height: 36px;
 	margin-left: 2px;
 	padding: 0 5px;
-	box-shadow: 0 2px 2px 0 rgba(0,0,0,0.14), 0 3px 1px -2px rgba(0,0,0,0.12), 0 1px 5px 0 rgba(0,0,0,0.2);
+	box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14),
+		0 3px 1px -2px rgba(0, 0, 0, 0.12),
+		0 1px 5px 0 rgba(0, 0, 0, 0.2);
 }
 
 /* header */
-#header {
+.sb_header {
 	color: #ffffff;
 	background-color: #4caf50;
 	overflow: auto;
 	position: relative;
 	margin: 0;
-	padding: 0; padding-left: 10px;
-	box-shadow: 0 2px 2px 0 rgba(0,0,0,.14), 0 3px 1px -2px rgba(0,0,0,.2), 0 1px 5px 0 rgba(0,0,0,.12);
+	padding: 0;
+	padding-left: 10px;
+	box-shadow: 0 2px 2px 0 rgba(0, 0, 0, .14),
+		0 3px 1px -2px rgba(0, 0, 0, .2),
+		0 1px 5px 0 rgba(0, 0, 0, .12);
 }
 
 /* menu */
-#headlinks {
+.sb_headlinks {
 	background-color: #f6f6f6;
 	overflow: auto;
-	margin-top: 2px; margin-left: 5px; margin-right: 5px;
+	margin-top: 2px;
+	margin-left: 5px;
+	margin-right: 5px;
 }
 .headlink {
 	color: #7fbf8f;
@@ -215,12 +288,14 @@ input[type=file]::before {
 	width: 100px;
 	height: 22px;
 }
-.headlink a, .headlink a:hover, .headlink a:visited {
+.sb_headlink a,
+.sb_headlink a:hover,
+.sb_headlink a:visited {
 	color: #197b10;
 	text-decoration: none;
 	text-transform: uppercase;
 }
-.headlink_active {
+.sb_headlink_active {
 	background-color: #4caf50;
 	position: absolute;
 	bottom: 0;
@@ -229,38 +304,49 @@ input[type=file]::before {
 }
 
 /* content, blog content */
-#content_header, #page .article_title {
+.sb_content_header,
+.sb_page .article_title {
 	color: #777777;
 	background-color: #f5f5f5;
 	font-size: 2rem;
-	margin: 10px; margin-bottom: 1px;
+	margin: 10px;
+	margin-bottom: 1px;
 	padding: 5px;
-	box-shadow: 0 2px 2px 0 rgba(0,0,0,.14), 0 3px 1px -2px rgba(0,0,0,.2), 0 1px 5px 0 rgba(0,0,0,.12);
+	box-shadow: 0 2px 2px 0 rgba(0, 0, 0, .14),
+		0 3px 1px -2px rgba(0, 0, 0, .2),
+		0 1px 5px 0 rgba(0, 0, 0, .12);
 }
-#content, #page .article_content, #page #page_switches {
+.sb_content,
+.sb_page .sb_article_content,
+.sb_page .sb_page_switches {
 	background-color: #ffffff;
-	margin: 10px; margin-top: 1px;
+	margin: 10px;
+	margin-top: 1px;
 	padding: 5px;
-	box-shadow: 0 2px 2px 0 rgba(0,0,0,.14), 0 3px 1px -2px rgba(0,0,0,.2), 0 1px 5px 0 rgba(0,0,0,.12);
+	box-shadow: 0 2px 2px 0 rgba(0, 0, 0, .14),
+		0 3px 1px -2px rgba(0, 0, 0, .2),
+		0 1px 5px 0 rgba(0, 0, 0, .12);
 	margin-bottom: 50px; /* for footer */
 	overflow: auto;
 }
 /* blog content */
-#page .article_content {
+.sb_page .sb_article_content {
 	margin-bottom: 10px;
 }
-#page .article_date {
+.sb_page .sb_article_date {
 	float: right;
 	font-size: 1rem;
 }
-#page #page_switches {
+.sb_page .sb_page_switches {
 	display: flex;
 	overflow: auto;
-	margin-top: 2px; margin-left: 5px; margin-right: 5px;
+	margin-top: 2px;
+	margin-left: 5px;
+	margin-right: 5px;
 	height: 40px;
 	padding: 1px;
 }
-#page #page_switches .page_switch {
+.sb_page .sb_page_switches .sb_page_switch {
 	width: 30px;
 	height: 26px;
 	margin: 5px;
@@ -269,13 +355,15 @@ input[type=file]::before {
 	border-radius: 50%;
 	text-align: center;
 }
-#page #page_switches .page_switch a, #page #page_switches .page_switch a:hover, #page #page_switches .page_switch a:visited {
+.sb_page .sb_page_switches .sb_page_switch a,
+.sb_page .sb_page_switches .page_switch a:hover,
+.sb_page .sb_page_switches .sb_page_switch a:visited {
 	text-decoration: none;
 	color: #000000;
 }
 
 /* footer */
-#footer {
+.sb_footer {
 	color: #ffffff;
 	background-color: #4caf50;
 	padding: 5px;
@@ -283,9 +371,11 @@ input[type=file]::before {
 	bottom: 0;
 	width: 100%;
 	height: 30px;
-	box-shadow: 0 2px 2px 0 rgba(0,0,0,.14), 0 3px 1px -2px rgba(0,0,0,.2), 0 1px 5px 0 rgba(0,0,0,.12);
+	box-shadow: 0 2px 2px 0 rgba(0, 0, 0, .14),
+		0 3px 1px -2px rgba(0, 0, 0, .2),
+		0 1px 5px 0 rgba(0, 0, 0, .12);
 }
-#footerText {
+.sb_footer .sb_footer_text {
 	float: right;
 	margin-right: 20px;
 	padding-top: 5px;

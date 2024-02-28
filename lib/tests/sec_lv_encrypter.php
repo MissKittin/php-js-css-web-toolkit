@@ -90,8 +90,19 @@
 		}
 	echo ' [ OK ]'.PHP_EOL;
 
-	@mkdir(__DIR__.'/tmp');
-	@mkdir(__DIR__.'/tmp/sec_lv_encrypter');
+	if(isset($argv[1]) && ($argv[1] === '_restart_test_'))
+		echo ' -> Removing temporary files [SKIP]'.PHP_EOL;
+	else
+	{
+		echo ' -> Removing temporary files';
+
+		@mkdir(__DIR__.'/tmp');
+		@mkdir(__DIR__.'/tmp/sec_lv_encrypter');
+		@unlink(__DIR__.'/tmp/sec_lv_encrypter/sec_lv_encrypter.sqlite3');
+		@unlink(__DIR__.'/tmp/sec_lv_encrypter/sec_lv_encrypter_pdo_handler_key');
+
+		echo ' [ OK ]'.PHP_EOL;
+	}
 
 	if(getenv('TEST_DB_TYPE') !== false)
 	{
@@ -188,7 +199,12 @@
 			exit(1);
 		}
 	}
-	if(!isset($pdo_handler))
+	if(isset($pdo_handler))
+	{
+		if(!(isset($argv[1]) && ($argv[1] === '_restart_test_')))
+			$pdo_handler->exec('DROP TABLE sec_lv_encrypter_pdo_session_handler');
+	}
+	else
 	{
 		if(!extension_loaded('pdo_sqlite'))
 		{
@@ -334,11 +350,6 @@
 
 	$restart_test=false;
 	$errors=[];
-
-	echo ' -> Removing temporary files';
-		@mkdir(__DIR__.'/tmp');
-		@unlink(__DIR__.'/tmp/sec_lv_encrypter/sec_lv_encrypter.sqlite3');
-	echo ' [ OK ]'.PHP_EOL;
 
 	echo ' -> Testing lv_encrypter';
 		$lv_encrypter=new lv_encrypter(lv_encrypter::generate_key());
@@ -593,7 +604,7 @@
 	{
 		echo ' -> Restarting test'.PHP_EOL;
 
-		system(PHP_BINARY.' '.$argv[0], $restart_test_result);
+		system(PHP_BINARY.' '.$argv[0].' _restart_test_', $restart_test_result);
 
 		if($restart_test_result !== 0)
 			$errors[]='restart test';

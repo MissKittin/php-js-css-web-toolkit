@@ -1,4 +1,7 @@
 <?php
+	if(!isset($GLOBALS['_login']['view']['template']))
+		$GLOBALS['_login']['view']['template']='default';
+
 	if(!isset($GLOBALS['_login']['view']['lang']))
 		$GLOBALS['_login']['view']['lang']='en';
 
@@ -12,7 +15,10 @@
 
 	// $GLOBALS['_login']['view']['assets_path']/$GLOBALS['_login']['view']['login_style']
 	if(!isset($GLOBALS['_login']['view']['login_style']))
-		$GLOBALS['_login']['view']['login_style']='login_bright.css';
+		$GLOBALS['_login']['view']['login_style']='login_default_bright.css';
+
+	if(!isset($GLOBALS['_login']['view']['inline_style']))
+		$GLOBALS['_login']['view']['inline_style']=false;
 
 	if(!isset($GLOBALS['_login']['view']['html_headers']))
 		$GLOBALS['_login']['view']['html_headers']='';

@@ -214,7 +214,7 @@
 					if($_params['debug'])
 						$_params['debug_callback']('Job '.$_job.' ended');
 
-					if(@unlink($_params['tasks'].'/'.$_job))
+					if(unlink($_params['tasks'].'/'.$_job))
 					{
 						if($_params['debug'])
 							$_params['debug_callback']('Job '.$_job.' removed');

@@ -172,7 +172,7 @@
 			.	"\r\n"
 			;
 
-			if(@socket_write(
+			if(socket_write(
 				$this->client,
 				$headers,
 				strlen($headers)
@@ -234,7 +234,7 @@
 		}
 		public function write(string $content)
 		{
-			if(@socket_write(
+			if(socket_write(
 				$this->client,
 				chr(129).chr(
 					strlen($content)
@@ -334,6 +334,8 @@
 	if($_ws_port === null)
 		$_ws_port='8081';
 
+	$_ws_uds=check_argv_next_param('--uds');
+
 	$_ws_read_bytes=check_argv_next_param('--read');
 	if($_ws_read_bytes === null)
 		$_ws_read_bytes=5000;
@@ -357,9 +359,11 @@
 		check_argv('--help') ||
 		check_argv('-h')
 	){
-		echo 'Usage: --functions ./path/to/functions.php [--ip 127.0.0.1] [--port 8081] [--read 5000] [--origin http://example.com:8080] [--origin http://secondwebsite.com] [--children-limit=4] [--debug]'.PHP_EOL;
+		echo 'Usage: --functions ./path/to/functions.php [--ip 127.0.0.1] [--port 8081] [--uds /path/to/websockets.sock] [--read 5000] [--origin http://example.com:8080] [--origin http://secondwebsite.com] [--children-limit=4] [--debug]'.PHP_EOL;
 		echo PHP_EOL;
 		echo 'Where:'.PHP_EOL;
+		echo ' --uds -> use Unix Domain Socket instead of TCP/IP'.PHP_EOL;
+		echo '  note: has priority over the ip/port'.PHP_EOL;
 		echo ' --read -> bytes from client'.PHP_EOL;
 		echo ' --origin -> add to the whitelist'.PHP_EOL;
 		echo '  note: if the argument is absent, any address is allowed'.PHP_EOL;
@@ -399,7 +403,11 @@
 					unset($GLOBALS['_ws_children_pids'][$pid]);
 	});
 
-	$_ws_server=socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
+	if($_ws_uds === null)
+		$_ws_server=socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
+	else
+		$_ws_server=socket_create(AF_UNIX, SOCK_STREAM, 0);
+
 	if($_ws_server === false)
 	{
 		echo 'socket_create() error: '.socket_strerror(socket_last_error()).PHP_EOL;
@@ -407,7 +415,11 @@
 	}
 
 	socket_set_option($_ws_server, SOL_SOCKET, SO_REUSEADDR, 1);
-	if(@socket_bind($_ws_server, $_ws_ip, $_ws_port) === false)
+	if($_ws_uds === null)
+		$_ws_sb_result=socket_bind($_ws_server, $_ws_ip, $_ws_port);
+	else
+		$_ws_sb_result=socket_bind($_ws_server, $_ws_uds);
+	if($_ws_sb_result === false)
 	{
 		echo 'socket_bind() error: '.socket_strerror(socket_last_error()).PHP_EOL;
 		exit(1);

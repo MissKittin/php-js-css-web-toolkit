@@ -4,6 +4,7 @@
 		'title'=>'Middleware form',
 		'assets_path'=>'/assets',
 		'middleware_form_style'=>'middleware_form_bright.css',
+		'inline_style'=>false,
 		'submit_button_label'=>'Next',
 		'csp_header'=>[
 			'default-src'=>['\'none\''],

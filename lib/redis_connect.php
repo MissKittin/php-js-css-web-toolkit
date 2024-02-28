@@ -22,17 +22,17 @@
 		// portable version
 	 	redis_connect_array(
 			[
-				'host'=>'server-ip', // required or use socket
-				'port'=>'server-port', // optional, default: 6379
-				'socket'=>'unix-socket-path', // has priority over the host, eg. /var/run/redis/redis.sock
-				'dbindex'=>db-index, // optional, default: 0
+				'host'=>'string-server-ip', // required or use socket
+				'port'=>int-server-port, // optional, default: 6379
+				'socket'=>'string-unix-socket-path', // has priority over the host, eg. /var/run/redis/redis.sock
+				'dbindex'=>int-db-index, // optional, default: 0
 				'auth'=>[ // optional
-					'user'=>'phpredis',
-					'pass'=>'phpredis'
+					'user'=>'string-phpredis',
+					'pass'=>'string-phpredis'
 				],
-				'timeout'=>timeout, // optional, default: 0
-				'retry_interval'=>retry-interval, // optional, default: 0
-				'read_timeout'=>read-timeout, // optional, default: 0
+				'timeout'=>float-timeout, // optional, default: 0
+				'retry_interval'=>int-retry-interval, // optional, default: 0
+				'read_timeout'=>float-read-timeout, // optional, default: 0
 				'options'=>[  // optional
 					Redis::OPT_BACKOFF_ALGORITHM=>Redis::BACKOFF_ALGORITHM_DECORRELATED_JITTER,
 					Redis::OPT_BACKOFF_BASE=>500,
@@ -67,17 +67,17 @@
 		 *  1) create a directory for redis config files
 		 *  2) create a config.php file:
 				return [
-					'host'=>'server-ip', // required or use socket
-					'port'=>'server-port', // optional, default: 6379
-					'socket'=>'unix-socket-path', // has priority over the host, eg. /var/run/redis/redis.sock
-					'dbindex'=>db-index, // optional, default: 0
+					'host'=>'string-server-ip', // required or use socket
+					'port'=>int-server-port, // optional, default: 6379
+					'socket'=>'string-unix-socket-path', // has priority over the host, eg. /var/run/redis/redis.sock
+					'dbindex'=>int-db-index, // optional, default: 0
 					'auth'=>[ // optional
-						'user'=>'phpredis',
-						'pass'=>'phpredis'
+						'user'=>'string-phpredis',
+						'pass'=>'string-phpredis'
 					],
-					'timeout'=>timeout, // optional, default: 0
-					'retry_interval'=>retry-interval, // optional, default: 0
-					'read_timeout'=>read-timeout, // optional, default: 0
+					'timeout'=>float-timeout, // optional, default: 0
+					'retry_interval'=>int-retry-interval, // optional, default: 0
+					'read_timeout'=>float-read-timeout, // optional, default: 0
 					'options'=>[  // optional
 						Redis::OPT_BACKOFF_ALGORITHM=>Redis::BACKOFF_ALGORITHM_DECORRELATED_JITTER,
 						Redis::OPT_BACKOFF_BASE=>500,
@@ -104,9 +104,23 @@
 		if(!is_array($db_config))
 			throw new redis_connect_exception($db.'/config.php did not return an array');
 
-		return redis_connect_array($db_config, $on_error);
+		foreach([
+			'host'=>'string',
+			'port'=>'integer',
+			'socket'=>'string',
+			'dbindex'=>'integer',
+			'auth'=>'array',
+			'timeout'=>'double',
+			'retry_interval'=>'integer',
+			'read_timeout'=>'double',
+			'options'=>'array'
+		] as $param=>$param_type)
+			if(isset($db_config[$param]) && (gettype($db_config[$param]) !== $param_type))
+				throw new redis_connect_exception('The '.$param.' parameter is not a '.$param_type);
+
+		return redis_connect_array($db_config, $on_error, false);
 	}
-	function redis_connect_array(array $db_config, callable $on_error=null)
+	function redis_connect_array(array $db_config, callable $on_error=null, bool $type_hint=true)
 	{
 		/*
 		 * Redis connection helper
@@ -124,17 +138,17 @@
 		 * Initialization:
 			$db=redis_connect_array(
 				[
-					'host'=>'server-ip', // required or use socket
-					'port'=>'server-port', // optional, default: 6379
-					'socket'=>'unix-socket-path', // has priority over the host, eg. /var/run/redis/redis.sock
-					'dbindex'=>db-index, // optional, default: 0
+					'host'=>'string-server-ip', // required or use socket
+					'port'=>int-server-port, // optional, default: 6379
+					'socket'=>'string-unix-socket-path', // has priority over the host, eg. /var/run/redis/redis.sock
+					'dbindex'=>int-db-index, // optional, default: 0
 					'auth'=>[ // optional
-						'user'=>'phpredis',
-						'pass'=>'phpredis'
+						'user'=>'string-phpredis',
+						'pass'=>'string0phpredis'
 					],
-					'timeout'=>timeout, // optional, default: 0
-					'retry_interval'=>retry-interval, // optional, default: 0
-					'read_timeout'=>read-timeout, // optional, default: 0
+					'timeout'=>float-timeout, // optional, default: 0
+					'retry_interval'=>int-retry-interval, // optional, default: 0
+					'read_timeout'=>float-read-timeout, // optional, default: 0
 					'options'=>[  // optional
 						Redis::OPT_BACKOFF_ALGORITHM=>Redis::BACKOFF_ALGORITHM_DECORRELATED_JITTER,
 						Redis::OPT_BACKOFF_BASE=>500,
@@ -151,6 +165,21 @@
 
 		if(!extension_loaded('redis'))
 			throw new redis_connect_exception('redis extension is not loaded');
+
+		if($type_hint)
+			foreach([
+				'host'=>'string',
+				'port'=>'integer',
+				'socket'=>'string',
+				'dbindex'=>'integer',
+				'auth'=>'array',
+				'timeout'=>'double',
+				'retry_interval'=>'integer',
+				'read_timeout'=>'double',
+				'options'=>'array'
+			] as $param=>$param_type)
+				if(isset($db_config[$param]) && (gettype($db_config[$param]) !== $param_type))
+					throw new redis_connect_exception('The '.$param.' parameter is not a '.$param_type);
 
 		if(isset($db_config['socket']))
 		{

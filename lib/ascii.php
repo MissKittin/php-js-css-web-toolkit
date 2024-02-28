@@ -45,7 +45,7 @@
 		if(!extension_loaded('mbstring'))
 			throw new ascii_exception('mbstring extension is not loaded');
 
-		if(strlen($separator) !== 1)
+		if((!isset($separator[0])) || isset($separator[1])) // (strlen($separator) !== 1)
 			throw new ascii_exception('The separator must be one character long');
 
 		$flip='_';

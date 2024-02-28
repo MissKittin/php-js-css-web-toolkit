@@ -69,5 +69,5 @@
 		</script>
 	</head>
 	<body>
-		<h1>Herring component report</h1>
+		<h1>Herring report</h1>
 		<h2><?php if(!$this->_no_view_date) echo date('Y-m-d H:i'); ?></h2>

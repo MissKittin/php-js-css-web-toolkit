@@ -3,20 +3,20 @@
  *
  * HTML template:
 	<body>
-		<div id="page">
-			<div id="header"></div>
-			<div id="headlinks"></div>
-			<div id="content">
-				<div class="article">
-					<div class="article_meta">
-						<div class="article_title"></div>
-						<div class="article_date"></div>
+		<div id="page" class="sb_page">
+			<div id="header" class="sb_header"></div>
+			<div id="headlinks" class="sb_headlinks"></div>
+			<div id="content" class="sb_content">
+				<div class="article sb_article">
+					<div class="article_meta sb_article_meta">
+						<div class="article_title sb_article_title"></div>
+						<div class="article_date sb_article_date"></div>
 					</div>
-					<div class="article_content"></div>
+					<div class="article_content sb_article_content"></div>
 				</div>
 			</div>
-			<div id="page_switches"></div>
-			<div id="footer"></div>
+			<div id="page_switches" class="sb_page_switches"></div>
+			<div id="footer" class="sb_footer"></div>
 		</div>
 	</body>
  */
@@ -25,27 +25,39 @@ body {
 	margin: 0;
 	padding: 0;
 }
-#page {
+.sb_page {
 	width: 80%;
 	margin: 0 auto;
 	padding: 1px;
 }
-#page div { overflow: auto; }
-#page #headlinks {
+.sb_page div {
+	overflow: auto;
+}
+.sb_page .sb_headlinks {
 	overflow: auto;
 	margin: 2px 1% 1% 1%;
 	padding: 1px;
 }
-#page #content {
+.sb_page .sb_content {
 	margin: 2px 3% 1% 3%;
 	padding: 1px;
 }
-#page #content .article { margin-bottom: 10px; }
-#page #content .article .article_meta { overflow: auto; }
-#page #content .article .article_title { float: left; }
-#page #content .article .article_date { float: right; }
-#page #content .article .article_content { margin: 2%; }
-#page #page_switches {
+.sb_page .sb_content .sb_article {
+	margin-bottom: 10px;
+}
+.sb_page .sb_content .sb_article .sb_article_meta {
+	overflow: auto;
+}
+.sb_page .sb_content .sb_article .sb_article_title {
+	float: left;
+}
+.sb_page .sb_content .sb_article .sb_article_date {
+	float: right;
+}
+.sb_page .sb_content .sb_article .sb_article_content {
+	margin: 2%;
+}
+.sb_page .sb_page_switches {
 	display: flex;
 	overflow: auto;
 	margin: 2px 1% 1% 1%;

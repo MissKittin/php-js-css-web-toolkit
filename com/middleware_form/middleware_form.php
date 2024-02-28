@@ -163,6 +163,10 @@
 		public function view()
 		{
 			$view=$this->registry;
+
+			if($view['inline_style'])
+				$view['csp_header']['style-src'][]='\'nonce-mainstyle\'';
+
 			require __DIR__.'/view.php';
 		}
 	}
