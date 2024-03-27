@@ -60,8 +60,6 @@
 		?>');
 	echo ' [ OK ]'.PHP_EOL;
 
-	$failed=false;
-
 	echo ' -> Starting tool'.PHP_EOL.PHP_EOL;
 		chdir(__DIR__.'/tmp/opcache-preload-generator/src');
 		system(
@@ -84,9 +82,6 @@
 		else
 		{
 			echo ' [FAIL]'.PHP_EOL;
-			$failed=true;
+			exit(1);
 		}
-
-	if($failed)
-		exit(1);
 ?>

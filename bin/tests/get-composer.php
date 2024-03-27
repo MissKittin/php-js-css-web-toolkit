@@ -44,8 +44,6 @@
 		copy(__DIR__.'/../get-composer.php', __DIR__.'/tmp/get-composer/get-composer.php');
 	echo ' [ OK ]'.PHP_EOL;
 
-	$failed=false;
-
 	echo ' -> Starting tool'.PHP_EOL.PHP_EOL;
 		system(PHP_BINARY.' '.__DIR__.'/tmp/get-composer/'.basename(__FILE__));
 	echo PHP_EOL;
@@ -56,9 +54,6 @@
 		else
 		{
 			echo ' [FAIL]'.PHP_EOL;
-			$failed=true;
+			exit(1);
 		}
-
-	if($failed)
-		exit(1);
 ?>

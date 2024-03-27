@@ -135,6 +135,10 @@
 	 *   warning:
 	 *    lv_arr_first function is required
 	 *    lv_arr_value function is required
+	 *  lv_arr_lazy_collect()
+	 *   returns a new lv_arr_lazy_collection instance with the items currently in the collection
+	 *   warning:
+	 *    lv_arr_lazy_collection class is required
 	 *  lv_arr_map()
 	 *   iterates through the array and passes each value and key to the given callback
 	 *   the array value is replaced by the value returned by the callback
@@ -418,6 +422,19 @@
 			$collection=lv_arr_collect([1, 2, 3, 4, 5, 6, 7]);
 			$chunks=$collection->chunk(4);
 			$chunks->all(); // [[1, 2, 3, 4], [5, 6, 7]]
+	 *    chunk_while()
+	 *     breaks the collection into multiple, smaller collections
+	 *     based on the evaluation of the given callback
+	 *     the $chunk variable passed to the closure may be used to
+	 *     inspect the previous element
+			$collection=lv_arr_collect(str_split('AABBCCCD'));
+			$chunks=$collection->chunk_while(function(string $value, int $key, lv_arr_collection $chunk){
+				return ($value === $chunk->last());
+			});
+			$chunks->all();
+			// [['A', 'A'], ['B', 'B'], ['C', 'C', 'C'], ['D']]
+	 *     warning:
+	 *      lazy method is required
 	 *    collapse()
 	 *     collapses a collection of arrays into a single, flat collection
 			$collection=lv_arr_collect([
@@ -435,6 +452,8 @@
 			$collection_a=lv_arr_collect([1, 2, 3]);
 			$collection_b=$collection_a->collect();
 			$collection_b->all(); // [1, 2, 3]
+	 *     warning:
+	 *      lv_arr_collection class is required
 	 *    combine()
 	 *     combines the values of the collection, as keys,
 	 *     with the values of another array or collection
@@ -495,6 +514,23 @@
 	 *     returns the total number of items in the collection
 			$collection=lv_arr_collect([1, 2, 3, 4]);
 			$collection->count(); // 4
+	 *    count_by()
+	 *     counts the occurrences of values in the collection
+	 *     by default, the method counts the occurrences of every element
+	 *     allowing you to count certain "types" of elements in the collection
+			$collection=lv_arr_collect([1, 2, 2, 2, 3]);
+			$counted=$collection->count_by();
+			$counted->all(); // [1=>1, 2=>3, 3=>1]
+	 *     you pass a closure to the count_by method
+	 *     to count all items by a custom value
+			$collection=lv_arr_collect(['alice@gmail.com', 'bob@yahoo.com', 'carlos@gmail.com']);
+			$counted=$collection->count_by(function(string $email){
+				return substr(strrchr($email, "@"), 1);
+			});
+			$counted->all();
+			// ['gmail.com'=>2, 'yahoo.com'=>1]
+	 *     warning:
+	 *      lazy method is required
 	 *    cross_join()
 	 *     cross joins the collection's values among the given arrays
 	 *     or collections, returning a Cartesian product
@@ -596,6 +632,16 @@
 			$diff->all(); // ['one'=>10, 'three'=>30, 'five'=>50]
 	 *     warning:
 	 *      get_arrayable_items method is required
+	 *    diff_keys_using()
+	 *     <lack of documentation>
+	 *     warning:
+	 *      this method was not tested
+	 *      get_arrayable_items method is required
+	 *    diff_using()
+	 *     <lack of documentation>
+	 *     warning:
+	 *      this method was not tested
+	 *      get_arrayable_items method is required
 	 *    doesnt_contain()
 	 *     determines whether the collection does not contain a given item
 	 *     you may pass a closure to the doesnt_contain method to determine
@@ -679,6 +725,8 @@
 			});
 	 *     warning:
 	 *      each method is required
+	 *    [static] empty()
+	 *     create a new instance with no items
 	 *    ensure()
 	 *     may be used to verify that all elements of a collection
 	 *     are of a given type or list of types
@@ -691,6 +739,14 @@
 	 *       will not be added to the collection at a later time
 	 *      _get_debug_type method is required
 	 *      each method is required
+	 *    esacpe_when_casting_to_string()
+	 *     indicate that the model's string representation
+	 *     should be escaped when __toString is invoked
+	 *     default: false
+			$collection=lv_arr_collect(['a'=>1, 'b'=>2, 'c'=>3])->esacpe_when_casting_to_string(true);
+			echo $collection; // '{&quot;a&quot;:1,&quot;b&quot;:2,&quot;c&quot;:3}'
+			$collection->esacpe_when_casting_to_string(false);
+			echo $collection; // '{"a":1,"b":2,"c":3}'
 	 *    every()
 	 *     may be used to verify that all elements of a collection pass a given truth test
 			lv_arr_collect([1, 2, 3, 4])->every(function(int $value, int $key){
@@ -1009,6 +1065,12 @@
 			$intersect->all(); // ['size'=>'M']
 	 *     warning:
 	 *      get_arrayable_items method is required
+	 *    intersect_assoc_using()
+	 *     <lack of documentation>
+	 *     warning:
+	 *      this method was not tested
+	 *     warning:
+	 *      get_arrayable_items method is required
 	 *    intersect_by_keys()
 	 *     removes any keys and their corresponding values
 	 *     from the original collection that are not present
@@ -1025,6 +1087,11 @@
 			]);
 			$intersect->all(); // ['type'=>'screen', 'year'=>2009]
 	 *     warning:
+	 *      get_arrayable_items method is required
+	 *    intersect_using()
+	 *     <lack of documentation>
+	 *     warning:
+	 *      this method was not tested
 	 *      get_arrayable_items method is required
 	 *    is_empty()
 	 *     returns true if the collection is empty
@@ -1095,6 +1162,27 @@
 			lv_arr_collect([1, 2, 3, 4])->last(); // 4
 	 *     warning:
 	 *      lv_arr_last function is required
+	 *    lazy()
+	 *     returns a new lv_arr_lazy_collection instance
+	 *     from the underlying array of items
+			$lazy_collection=lv_arr_collect([1, 2, 3, 4])->lazy();
+			$lazy_collection::class; // lv_arr_lazy_collection
+			$lazy_collection->all(); // [1, 2, 3, 4]
+	 *     this is especially useful when you need to perform transformations
+	 *     on a huge lv_arr_collection that contains many items
+			$count=$huge_collection
+				->lazy()
+				->where('country', 'FR')
+				->where('balance', '>', '100')
+				->count();
+	 *     by converting the collection to a lazy collection
+	 *     we avoid having to allocate a ton of additional memory
+	 *     though the original collection still keeps its values in memory
+	 *     the subsequent filters will not
+	 *     therefore, virtually no additional memory will be allocated
+	 *     when filtering the collection's results
+	 *     warning:
+	 *      lv_arr_lazy_collection class is required
 	 *    macro()
 	 *     collections are "macroable", which allows you to add
 	 *     additional methods to the lv_arr_collection class at run time
@@ -1732,6 +1820,40 @@
 			$collection->all(); // [5, 6, 7, 8, 9, 10]
 	 *     warning:
 	 *      slice method is required
+	 *    skip_until()
+	 *     skips over items from the collection
+	 *     until the given callback returns true
+	 *     and then returns the remaining items in the collection
+	 *     as a new collection instance
+			$collection=lv_arr_collect([1, 2, 3, 4]);
+			$subset=$collection->skip_until(function(int $item){
+				return ($item >= 3);
+			});
+			$subset->all(); // [3, 4]
+	 *     you may also pass a simple value to the skip_until method
+	 *     to skip all items until the given value is found
+			$collection=lv_arr_collect([1, 2, 3, 4]);
+			$subset=$collection->skip_until(3);
+			$subset->all(); // [3, 4]
+	 *     warning:
+	 *      if the given value is not found
+	 *       or the callback never returns true
+	 *       the skip_until method will return an empty collection
+	 *      lazy method is required
+	 *    skip_while()
+	 *     skips over items from the collection
+	 *     while the given callback returns true
+	 *     and then returns the remaining items in the collection
+	 *     as a new collection
+			$collection=lv_arr_collect([1, 2, 3, 4]);
+			$subset=$collection->skip_while(function(int $item){
+				return ($item <= 3);
+			});
+			$subset->all(); // [4]
+	 *     warning:
+	 *      if the callback never returns false
+	 *       the skip_while method will return an empty collection
+	 *      lazy method is required
 	 *    slice()
 	 *     returns a slice of the collection starting at the given index
 			$collection=lv_arr_collect([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
@@ -2051,6 +2173,35 @@
 			$chunk->all(); [4, 5]
 	 *     warning:
 	 *      slice method is required
+	 *    take_until()
+	 *     returns items in the collection
+	 *     until the given callback returns true
+			$collection=lv_arr_collect([1, 2, 3, 4]);
+			$subset=$collection->take_until(function(int $item){
+				return ($item >= 3);
+			});
+			$subset->all(); // [1, 2]
+	 *     you may also pass a simple value to the take_until method
+	 *     to get the items until the given value is found
+			$collection=lv_arr_collect([1, 2, 3, 4]);
+			$subset=$collection->take_until(3);
+			$subset->all(); // [1, 2]
+	 *     warning:
+	 *      if the given value is not found or the callback never returns true
+	 *       the take_until method will return all items in the collection
+	 *      lazy method is required
+	 *    take_while()
+	 *     returns items in the collection
+	 *     until the given callback returns false
+			$collection=lv_arr_collect([1, 2, 3, 4]);
+			$subset=$collection->take_while(function(int $item){
+				return ($item < 3);
+			});
+			$subset->all(); // [1, 2]
+	 *     warning:
+	 *      if the callback never returns false
+	 *       the take_while method will return all items in the collection
+	 *      lazy method is required
 	 *    tap()
 	 *     passes the collection to the given callback
 	 *     allowing you to "tap" into the collection at a specific point
@@ -2089,7 +2240,7 @@
 			$collection->to_json();
 			// '{"name":"Desk", "price":200}'
 	 *     warning:
-	 *      json_serialize method is required
+	 *      jsonSerialize method is required
 	 *    transform()
 	 *     iterates over the collection and calls the given callback
 	 *     with each item in the collection
@@ -2530,15 +2681,477 @@
 	 *     warning:
 	 *      get_arrayable_items method is required
 	 *   not implemented methods:
-	 *    chunk_while()
-	 *    count_by()
 	 *    dd()
 	 *    dump()
-	 *    lazy()
+	 *  lv_arr_lazy_collection
+	 *   implemented methods (for more info, see lv_arr_collection above):
+	 *    all()
+	 *     warning:
+	 *      get_iterator method is required
+	 *    average()
+	 *     warning:
+	 *      avg method is required
+	 *    avg()
+	 *     warning:
+	 *      collect method is required
+	 *    chunk()
+	 *     warning:
+	 *      empty static method is required
+	 *      get_iterator method is required
+	 *    chunk_while()
+	 *     warning:
+	 *      lv_arr_collection function is required
+	 *      get_iterator method is required
+	 *    collapse()
+	 *    collect()
+	 *     warning:
+	 *      lv_arr_collection class is required
+	 *    combine()
+	 *     warning:
+	 *      make_iterator method is required
+	 *    contains()
+	 *     warning:
+	 *      first method is required
+	 *      operator_for_where method is required
+	 *      use_as_callable method is required
+	 *    contains_one_item()
+	 *     warning:
+	 *      count method is required
+	 *      take method is required
+	 *    contains_strict()
+	 *     warning:
+	 *      lv_arr_data_get function is required
+	 *      first method is required
+	 *      use_as_callable method is required
+	 *    count()
+	 *     warning:
+	 *      get_iterator method is required
+	 *    count_by()
+	 *     warning:
+	 *      identity method is required
+	 *      value_retriever method is required
+	 *    cross_join()
+	 *     warning:
+	 *      passthru method is required
+	 *    diff()
+	 *     warning:
+	 *      get_arrayable_items method is required
+	 *    diff_assoc()
+	 *     warning:
+	 *      passthru method is required
+	 *    diff_assoc_using()
+	 *     warning:
+	 *      passthru method is required
+	 *    diff_keys()
+	 *     warning:
+	 *      passthru method is required
+	 *    diff_keys_using()
+	 *     warning:
+	 *      this method was not tested
+	 *      passthru method is required
+	 *    diff_using()
+	 *     warning:
+	 *      this method was not tested
+	 *      passthru method is required
+	 *    doesnt_contain()
+	 *     warning:
+	 *      contains method is required
+	 *    dot()
+	 *     warning:
+	 *      passthru method is required
+	 *    duplicates()
+	 *     warning:
+	 *      passthru method is required
+	 *    duplicates_strict()
+	 *     warning:
+	 *      passthru method is required
+	 *    each()
+	 *    each_spread()
+	 *     warning:
+	 *      each method is required
+	 *    eager()
+	 *     eager load all items into a new lazy collection
+	 *     backed by an array
+	 *     warning:
+	 *      all method is required
+	 *    [static] empty()
+	 *    ensure()
+	 *     warning:
+	 *      _get_debug_type method is required
+	 *      each method is required
+	 *    every()
+	 *     warning:
+	 *      operator_for_where method is required
+	 *      value_retriever method is required
+	 *    except()
+	 *     warning:
+	 *      passthru method is required
+	 *    filter()
+	 *    first()
+	 *     warning:
+	 *      lv_arr_value function is required
+	 *      get_iterator method is required
+	 *    first_or_fail()
+	 *     warning:
+	 *      collect method is required
+	 *      filter method is required
+	 *      operator_for_where method is required
+	 *      take method is required
+	 *      unless method is required
+	 *    first_where()
+	 *     warning:
+	 *      first method is required
+	 *      operator_for_where method is required
+	 *    flat_map()
+	 *     warning:
+	 *      collapse method is required
+	 *      map method is required
+	 *    flip()
+	 *    for_page()
+	 *     warning:
+	 *      slice method is required
+	 *    get()
+	 *     warning:
+	 *      lv_arr_value function is required
+	 *    get_iterator()
+	 *     returns the iterator
+			$iterator=lv_arr_collect([1, 2, 3, 4])->get_iterator();
+			$iterator->current(); // 1
+			$iterator->next();
+			$iterator->current(); // 2
+	 *     warning:
+	 *      make_iterator method is required
+	 *    group_by()
+	 *     warning:
+	 *      passthru method is required
+	 *    has()
+	 *    has_any()
+	 *    implode()
+	 *     warning:
+	 *      collect method is required
+	 *    intersect()
+	 *     warning:
+	 *      passthru method is required
+	 *    intersect_assoc()
+	 *     warning:
+	 *      passthru method is required
+	 *    intersect_assoc_using()
+	 *     warning:
+	 *      this method was not tested
+	 *      passthru method is required
+	 *    intersect_by_keys()
+	 *     warning:
+	 *      passthru method is required
+	 *    intersect_using()
+	 *     warning:
+	 *      this method was not tested
+	 *      passthru method is required
+	 *    is_empty()
+	 *     warning:
+	 *      get_iterator method is required
+	 *    is_not_empty()
+	 *     warning:
+	 *      is_empty method is required
+	 *    join()
+	 *     warning:
+	 *      collect method is required
+	 *    key_by()
+	 *     warning:
+	 *      value_retriever method is required
+	 *    keys()
+	 *    last()
+	 *     warning:
+	 *      lv_arr_value function is required
+	 *    macro()
+	 *    [static] make()
+	 *    map()
+	 *    map_to_dictionary()
+	 *     warning:
+	 *      passthru method is required
+	 *    map_into()
+	 *     warning:
+	 *      map method is required
+	 *    map_spread()
+	 *     warning:
+	 *      map method is required
+	 *    map_to_groups()
+	 *     warning:
+	 *      map method is required
+	 *      map_to_dictionary method is required
+	 *    map_with_keys()
+	 *    max()
+	 *     warning:
+	 *      filter method is required
+	 *      reduce method is required
+	 *      value_retriever method is required
+	 *    median()
+	 *     warning:
+	 *      collect method is required
+	 *    merge()
+	 *     warning:
+	 *      passthru method is required
+	 *    merge_recursive()
+	 *     warning:
+	 *      passthru method is required
+	 *    min()
+	 *     warning:
+	 *      filter method is required
+	 *      map method is required
+	 *      reduce method is required
+	 *      value_retriever method is required
+	 *    mode()
+	 *     warning:
+	 *      collect method is required
+	 *    only()
+	 *    pad()
+	 *     warning:
+	 *      passthru method is required
+	 *    partition()
+	 *     warning:
+	 *      operator_for_where method is required
+	 *      value_retriever method is required
+	 *    percentage()
+	 *     warning:
+	 *      count method is required
+	 *      filter method is required
+	 *      is_empty method is required
+	 *    pipe()
+	 *    pipe_into()
+	 *    pipe_through()
+	 *     warning:
+	 *      make method is required
+	 *      reduce method is required
+	 *    pluck()
+	 *     warning:
+	 *      lv_arr_data_get function is required
+	 *      explode_pluck_parameters method is required
+	 *    random()
+	 *     warning:
+	 *      collect method is required
+	 *    [static] range()
+	 *    reduce()
+	 *    reduce_spread()
+	 *     warning:
+	 *      this method was not tested
+	 *    reject()
+	 *     warning:
+	 *      filter method is required
+	 *      use_as_callable method is required
+	 *    remember()
+	 *     returns a new lazy collection that will remember any values
+	 *     that have already been enumerated and will not retrieve them
+	 *     again on subsequent collection enumerations
+			// no query has been executed yet
+			$users=User::cursor()->remember();
+			// the query is executed
+			// the first 5 users are hydrated from the database
+			$users->take(5)->all();
+			// first 5 users come from the collection's cache
+			// the rest are hydrated from the database
+			$users->take(20)->all();
+	 *     warning:
+	 *      get_iterator method is required
+	 *    replace()
+	 *     warning:
+	 *      get_arrayable_items method is required
+	 *    replace_recursive()
+	 *     warning:
+	 *      passthru method is required
+	 *    reverse()
+	 *     warning:
+	 *      passthru method is required
+	 *    search()
+	 *     warning:
+	 *      use_as_callable method is required
+	 *    select()
+	 *     warning:
+	 *      lv_arr_accessible function is required
+	 *      lv_arr_exists function is required
+	 *    shuffle()
+	 *     warning:
+	 *      passthru method is required
+	 *    skip()
+	 *     warning:
+	 *      get_iterator method is required
 	 *    skip_until()
+	 *     warning:
+	 *      equality method is required
+	 *      negate method is required
+	 *      skip_while method is required
+	 *      use_as_callable method is required
 	 *    skip_while()
+	 *     warning:
+	 *      equality method is required
+	 *      get_iterator method is required
+	 *      use_as_callable method is required
+	 *    slice()
+	 *     warning:
+	 *      passthru method is required
+	 *      skip method is required
+	 *      take method is required
+	 *    sliding()
+	 *     warning:
+	 *      get_iterator method is required
+	 *    sole()
+	 *     warning:
+	 *      collect method is required
+	 *      filter method is required
+	 *      operator_for_where method is required
+	 *      take method is required
+	 *      unless method is required
+	 *    some()
+	 *     warning:
+	 *      contains method is required
+	 *    sort()
+	 *     warning:
+	 *      passthru method is required
+	 *    sort_by()
+	 *     warning:
+	 *      passthru method is required
+	 *    sort_by_desc()
+	 *     warning:
+	 *      passthru method is required
+	 *    sort_desc()
+	 *     warning:
+	 *      passthru method is required
+	 *    sort_keys()
+	 *     warning:
+	 *      passthru method is required
+	 *    sort_keys_desc()
+	 *     warning:
+	 *      passthru method is required
+	 *    sort_keys_using()
+	 *     warning:
+	 *      passthru method is required
+	 *    split()
+	 *     warning:
+	 *      passthru method is required
+	 *    split_in()
+	 *     warning:
+	 *      chunk method is required
+	 *      count method is required
+	 *    sum()
+	 *     warning:
+	 *      identity method is required
+	 *      reduce method is required
+	 *      value_retriever method is required
+	 *    take()
+	 *     warning:
+	 *      get_iterator method is required
 	 *    take_until()
+	 *     warning:
+	 *      equality method is required
+	 *      use_as_callable method is required
 	 *    take_while()
+	 *     warning:
+	 *      equality method is required
+	 *      take_until method is required
+	 *      use_as_callable method is required
+	 *    tap()
+	 *    [static] times()
+	 *     warning:
+	 *      map method is required
+	 *      range method is required
+	 *      unless method is required
+	 *    to_array()
+	 *     warning:
+	 *      all method is required
+	 *      map method is required
+	 *    to_json()
+	 *     warning:
+	 *      jsonSerialize method is required
+	 *    undot()
+	 *     warning:
+	 *      passthru method is required
+	 *    union()
+	 *     warning:
+	 *      passthru method is required
+	 *    unique()
+	 *     warning:
+	 *      value_retriever method is required
+	 *    unique_strict()
+	 *     warning:
+	 *      unique method is required
+	 *    unless()
+	 *     warning:
+	 *      higher_order_when_proxy method is required
+	 *    unless_empty()
+	 *     warning:
+	 *      when_not_empty method is required
+	 *    unless_not_empty()
+	 *     warning:
+	 *      when_empty method is required
+	 *    [static] unwrap()
+	 *     warning:
+	 *      all method is required
+	 *    value()
+	 *     warning:
+	 *      lv_arr_data_get function is required
+	 *      lv_arr_value function is required
+	 *      first_where method is required
+	 *    values()
+	 *    when()
+	 *     warning:
+	 *      higher_order_when_proxy method is required
+	 *    when_empty()
+	 *     warning:
+	 *      is_empty method is required
+	 *      when method is required
+	 *    when_not_empty()
+	 *     warning:
+	 *      is_not_empty method is required
+	 *      when method is required
+	 *    where()
+	 *     warning:
+	 *      filter method is required
+	 *      operator_for_where method is required
+	 *    where_strict()
+	 *     warning:
+	 *      where method is required
+	 *    where_between()
+	 *     warning:
+	 *      where method is required
+	 *    where_in()
+	 *     warning:
+	 *      lv_arr_data_get function is required
+	 *      filter method is required
+	 *      get_arrayable_items method is required
+	 *    where_in_strict()
+	 *     warning:
+	 *      where_in method is required
+	 *    where_instance_of()
+	 *     warning:
+	 *      filter method is required
+	 *    where_not_between()
+	 *     warning:
+	 *      lv_arr_data_get function is required
+	 *      filter method is required
+	 *    where_not_in()
+	 *     warning:
+	 *      lv_arr_data_get function is required
+	 *      get_arrayable_items method is required
+	 *      reject method is required
+	 *    where_not_in_strict()
+	 *     warning:
+	 *      where_not_in method is required
+	 *    where_not_null()
+	 *     warning:
+	 *      where method is required
+	 *    where_null()
+	 *     warning:
+	 *      where_strict method is required
+	 *    [static] wrap()
+	 *     warning:
+	 *      lv_arr_wrap function is required
+	 *   not implemented methods:
+	 *    concat()
+	 *    dd()
+	 *    dump()
+	 *    flatten()
+	 *    nth()
+	 *    take_until_timeout()
+	 *    tap_each()
+	 *    zip()
 	 *
 	 * Not implemented functions:
 	 *  lv_arr_join()
@@ -2553,9 +3166,6 @@
 	 *  lv_arr_to_css_styles()
 	 *  lv_arr_where_not_null()
 	 *
-	 * Not implemented classes:
-	 *  lv_arr_lazy_collection
-	 *
 	 * Sources:
 	 *  https://laravel.com/docs/10.x/helpers
 	 *  https://github.com/illuminate/collections/blob/master/Arr.php
@@ -2568,6 +3178,8 @@
 	 *  https://github.com/illuminate/conditionable/blob/master/HigherOrderWhenProxy.php
 	 *  https://github.com/illuminate/collections/blob/master/HigherOrderCollectionProxy.php
 	 *  https://php.watch/versions/8.0/get_debug_type
+	 *  https://github.com/illuminate/collections/blob/master/Enumerable.php
+	 *  https://github.com/illuminate/collections/blob/master/LazyCollection.php
 	 * License: MIT
 	 */
 
@@ -2577,7 +3189,7 @@
 	{
 		return
 			is_array($value) ||
-			($value instanceof \ArrayAccess);
+			($value instanceof ArrayAccess);
 	}
 	function lv_arr_collapse(array $array)
 	{
@@ -2585,7 +3197,7 @@
 
 		foreach($array as $values)
 		{
-			if($values instanceof lv_arr_collection)
+			if($values instanceof lv_arr_enumerable)
 				$values=$values->all();
 
 			if(!is_array($values))
@@ -2641,10 +3253,10 @@
 	}
 	function lv_arr_exists($array, $key)
 	{
-		if($array instanceof lv_arr_collection) // Enumerable
+		if($array instanceof lv_arr_enumerable)
 			return $array->has($key);
 
-		if($array instanceof \ArrayAccess)
+		if($array instanceof ArrayAccess)
 			return $array->offsetExists($key);
 
 		if(!is_array($array))
@@ -2783,7 +3395,7 @@
 	}
 	function lv_arr_has($array, $keys)
 	{
-		if((!is_array($array)) && (!$array instanceof \ArrayAccess))
+		if((!is_array($array)) && (!$array instanceof ArrayAccess))
 			throw new lv_arr_exception(__METHOD__.'(): $array is not an ArrayAccess nor array');
 
 		if(empty($array))
@@ -2818,7 +3430,7 @@
 	}
 	function lv_arr_has_any($array, $keys)
 	{
-		if((!is_array($array)) && (!$array instanceof \ArrayAccess))
+		if((!is_array($array)) && (!$array instanceof ArrayAccess))
 			throw new lv_arr_exception(__METHOD__.'(): $array is not an ArrayAccess nor array');
 
 		if(empty($array))
@@ -2851,16 +3463,16 @@
 				// removed if($items instanceof Arrayable)
 				// removed if($items instanceof Jsonable)
 
-				if($items instanceof lv_arr_collection) // Enumerable
+				if($items instanceof lv_arr_enumerable)
 					return $items->all();
 
-				if($items instanceof \Traversable)
+				if($items instanceof Traversable)
 					return iterator_to_array($items);
 
-				if($items instanceof \JsonSerializable)
+				if($items instanceof JsonSerializable)
 					return (array)$items->jsonSerialize();
 
-				if($items instanceof \UnitEnum)
+				if($items instanceof UnitEnum)
 					return [$items];
 
 				return (array)$items;
@@ -2909,6 +3521,10 @@
 		}
 
 		return lv_arr_first(array_reverse($array, true), $callback, $default);
+	}
+	function lv_arr_lazy_collect($value=[])
+	{
+		return new lv_arr_lazy_collection($value);
 	}
 	function lv_arr_map(array $array, callable $callback)
 	{
@@ -3146,7 +3762,7 @@
 
 			if($segment === '*')
 			{
-				if($target instanceof lv_arr_collection)
+				if($target instanceof lv_arr_enumerable)
 					$target=$target->all();
 				else if(!is_iterable($target))
 					return lv_arr_value($default);
@@ -3277,590 +3893,153 @@
 	}
 	function lv_arr_value($value, ...$args)
 	{
-		if($value instanceof \Closure)
+		if($value instanceof Closure)
 			return $value(...$args);
 
 		return $value;
 	}
 
-	class lv_arr_collection implements ArrayAccess
+	interface lv_arr_enumerable extends Countable, JsonSerializable
 	{
-		/* trait enumerates_values */
-		/* { */
-			// use conditionable, dumpable;
+		public static function empty();
+		public static function make(array $items=[]);
+		public static function range(int $from, int $to);
+		public static function times(int $number, ?callable $callback=null);
+		public static function unwrap($value);
+		public static function wrap($value);
 
-			public static function make(array $items=[])
-			{
-				return new static($items);
-			}
-			public static function times(int $number, callable $callback=null)
-			{
-				if($number < 1)
-					return new static();
+		public function __get($key);
+		public function __toString();
 
-				return static::range(1, $number)
-					->unless($callback == null)
-					->map($callback);
-			}
-			public static function unwrap($value)
-			{
-				if($value instanceof lv_arr_collection) // Enumerable
-					return $value->all();
+		public function all();
+		public function average($callback=null);
+		public function avg($callback=null);
+		public function chunk(int $size);
+		public function chunk_while(callable $callback);
+		public function collapse();
+		public function collect();
+		public function combine($values);
+		public function contains($key, ?string $operator=null, $value=null);
+		public function contains_one_item();
+		public function contains_strict($key, $value=null);
+		public function count(): int;
+		public function count_by($count_by=null);
+		public function cross_join(...$lists);
+		public function diff($items);
+		public function diff_assoc($items);
+		public function diff_assoc_using($items, callable $callback);
+		public function diff_keys($items);
+		public function diff_keys_using($items, callable $callback);
+		public function diff_using($items, callable $callback);
+		public function doesnt_contain($key, ?string $operator=null, $value=null);
+		public function duplicates($callback=null, bool $strict=false);
+		public function duplicates_strict(?callable $callback=null);
+		public function each(callable $callback);
+		public function each_spread(callable $callback);
+		public function escape_when_casting_to_string(bool $escape=true);
+		public function every($key, ?string $operator=null, $value=null);
+		public function except($keys);
+		public function filter(callable $callback=null);
+		public function first(callable $callback=null, $default=null);
+		public function first_or_fail($key=null, ?string $operator=null, $value=null);
+		public function first_where($key, ?string $operator=null, $value=null);
+		public function flat_map(callable $callback);
+		public function flip();
+		public function for_page(int $page, int $per_page);
+		public function get($key, $default=null);
+		public function group_by($group_by, bool $preserve_keys=false);
+		public function has($key);
+		public function has_any($key);
+		public function implode($value, ?string $glue=null);
+		public function intersect($items);
+		public function intersect_assoc($items);
+		public function intersect_assoc_using($items, callable $callback);
+		public function intersect_by_keys($items);
+		public function intersect_using($items, callable $callback);
+		public function is_empty();
+		public function is_not_empty();
+		public function join(string $glue, string $final_glue='');
+		public function key_by($key_by);
+		public function keys();
+		public function last(callable $callback=null, $default=null);
+		public function map(callable $callback);
+		public function map_into(string $class);
+		public function map_spread(callable $callback);
+		public function map_to_dictionary(callable $callback);
+		public function map_to_groups(callable $callback);
+		public function map_with_keys(callable $callback);
+		public function max($callback=null);
+		public function median($key=null);
+		public function merge($items);
+		public function merge_recursive($items);
+		public function min($callback=null);
+		public function mode($key=null);
+		public function only($keys);
+		public function pad(int $size, $value);
+		public function partition($key, ?string $operator=null, $value=null);
+		public function pipe(callable $callback);
+		public function pipe_into(string $class);
+		public function pipe_through(array $pipes);
+		public function pluck($value, ?string $key=null);
+		public function random($number=null);
+		public function reduce(callable $callback, $initial=null);
+		public function reduce_spread(callable $callback, ...$initial);
+		public function reject($callback=true);
+		public function replace($items);
+		public function replace_recursive($items);
+		public function reverse();
+		public function search($value, bool $strict=false);
+		public function shuffle();
+		public function skip(int $count);
+		public function skip_until($value);
+		public function skip_while($value);
+		public function slice(int $offset, ?int $length=null);
+		public function sliding(int $size=2, int $step=1);
+		public function sole($key=null, ?string $operator=null, $value=null);
+		public function some($key, ?string $operator=null, $value=null);
+		public function sort($callback=null);
+		public function sort_by($callback, int $options=SORT_REGULAR, bool $descending=false);
+		public function sort_by_desc($callback, int $options=SORT_REGULAR);
+		public function sort_desc(int $options=SORT_REGULAR);
+		public function sort_keys(int $options=SORT_REGULAR, bool $descending=false);
+		public function sort_keys_desc(int $options=SORT_REGULAR);
+		public function sort_keys_using(callable $callback);
+		public function split(int $number_of_groups);
+		public function split_in(int $number_of_groups);
+		public function sum($callback=null);
+		public function take(int $limit);
+		public function take_until($value);
+		public function take_while($value);
+		public function tap(callable $callback);
+		public function to_array();
+		public function to_json(int $options=0);
+		public function undot();
+		public function union($items);
+		public function unique($key=null, bool $strict=false);
+		public function unique_strict($key=null);
+		public function unless($value, callable $callback, callable $default=null);
+		public function unless_empty(callable $callback, callable $default=null);
+		public function unless_not_empty(callable $callback, callable $default=null);
+		public function values();
+		public function when($value, callable $callback=null, callable $default=null);
+		public function when_empty(callable $callback, callable $default=null);
+		public function when_not_empty(callable $callback, callable $default=null);
+		public function where($key, ?string $operator=null, $value=null);
+		public function where_between(string $key, array $values);
+		public function where_in(string $key, $values, bool $strict=false);
+		public function where_instance_of($type);
+		public function where_in_strict(string $key, $values);
+		public function where_not_between(string $key, array $values);
+		public function where_not_in(string $key, $values, bool $strict=false);
+		public function where_not_in_strict(string $key, $values);
+		public function where_not_null(?string $key=null);
+		public function where_null(?string $key=null);
+		public function where_strict(string $key, $value);
+	}
 
-				return $value;
-			}
-			public static function wrap($value)
-			{
-				if($value instanceof lv_arr_collection) // Enumerable
-					return new static($value);
-
-				return new static(lv_arr_wrap($value));
-			}
-
-			public function __get($key)
-			{
-				return $this->higher_order_collection_proxy($this, 'map');
-			}
-
-			protected function get_arrayable_items($items)
-			{
-				if(is_array($items))
-					return $items;
-
-				switch(true)
-				{
-					case ($items instanceof \WeakMap): // PHP8
-						throw new lv_arr_exception('Collections can not be created using instances of WeakMap.');
-					case ($items instanceof lv_arr_collection): // Enumerable
-						return $items->all();
-					// removed ($items instanceof Arrayable):
-					case ($items instanceof \Traversable):
-						return iterator_to_array($items);
-					// removed ($items instanceof Jsonable):
-					case ($items instanceof \JsonSerializable):
-						return (array)$items->jsonSerialize();
-					case ($items instanceof \UnitEnum): // PHP8 8.1.0
-						return [$items];
-					default:
-						return (array)$items;
-				}
-			}
-			protected function higher_order_collection_proxy($collection, $method)
-			{
-				return new class($collection, $method)
-				{
-					// class HigherOrderCollectionProxy
-
-					private $collection;
-					private $method;
-
-					public function __construct($collection, $method)
-					{
-						$this->method=$method;
-						$this->collection=$collection;
-					}
-					public function __get($key)
-					{
-						return $this->collection->{$this->method}(function($value) use($key){
-							if(is_array($value))
-								return $value[$key];
-
-							return $value->$key;
-						});
-					}
-					public function __call($method, $parameters)
-					{
-						return $this->collection->{$this->method}(function($value) use($method, $parameters){
-							return $value->{$method}(...$parameters);
-						});
-					}
-				};
-			}
-			protected function identity()
-			{
-				return function($value){
-					return $value;
-				};
-			}
-			protected function json_serialize()
-			{
-				return array_map(function($value){
-					if($value instanceof \JsonSerializable)
-						return $value->jsonSerialize();
-					// removed else if($value instanceof Jsonable)
-					// removes else if($value instanceof Arrayable)
-
-					return $value;
-				}, $this->all());
-			}
-			protected function operator_for_where($key, /*string*/ $operator=null, $value=null)
-			{
-				if($this->use_as_callable($key))
-					return $key;
-
-				if(func_num_args() === 1)
-				{
-					$value=true;
-					$operator='=';
-				}
-				if(func_num_args() === 2)
-				{
-					$value=$operator;
-					$operator='=';
-				}
-
-				return function($item) use($key, $operator, $value)
-				{
-					$retrieved=lv_arr_data_get($item, $key);
-					$strings=array_filter([$retrieved, $value], function($value){
-						return (
-							is_string($value) ||
-							(is_object($value) && method_exists($value, '__toString'))
-						);
-					});
-
-					if(
-						(count($strings) < 2) &&
-						(count(array_filter([$retrieved, $value], 'is_object')) == 1)
-					)
-						return in_array($operator, ['!=', '<>', '!==']);
-
-					switch($operator)
-					{
-						default:
-						case '=':
-						case '==':
-							return ($retrieved == $value);
-						case '!=':
-						case '<>':
-							return ($retrieved != $value);
-						case '<':
-							return ($retrieved < $value);
-						case '>':
-							return ($retrieved > $value);
-						case '<=':
-							return ($retrieved <= $value);
-						case '>=':
-							return ($retrieved >= $value);
-						case '===':
-							return ($retrieved === $value);
-						case '!==':
-							return ($retrieved !== $value);
-						case '<=>':
-							return ($retrieved <=> $value);
-					}
-				};
-			}
-			protected function use_as_callable($value)
-			{
-				return ((!is_string($value)) && is_callable($value));
-			}
-			protected function value_retriever($value)
-			{
-				if($this->use_as_callable($value))
-					return $value;
-
-				return function($item) use($value){
-					return lv_arr_data_get($item, $value);
-				};
-			}
-
-			public function average($callback=null)
-			{
-				return $this->avg($callback);
-			}
-			public function collect()
-			{
-				return new static($this->all());
-			}
-			public function each(callable $callback)
-			{
-				foreach($this->items as $key=>$item)
-					if($callback($item, $key) === false)
-						break;
-
-				return $this;
-			}
-			public function each_spread(callable $callback)
-			{
-				return $this->each(function($chunk, $key) use($callback){
-					$chunk[]=$key;
-					return $callback(...$chunk);
-				});
-			}
-			public function ensure($type)
-			{
-				if(is_array($type))
-					$allowed_types=$type;
-				else
-					$allowed_types=[$type];
-
-				return $this->each(function($item) use($allowed_types){
-					$item_type=$this->_get_debug_type($item);
-
-					foreach($allowed_types as $allowed_type)
-						if(($item_type === $allowed_type) || ($item instanceof $allowed_type))
-							return true;
-
-					throw new lv_arr_exception(sprintf(
-						"Collection should only include [%s] items, but '%s' found.",
-						implode(', ', $allowed_types),
-						$item_type
-					));
-				});
-			}
-			public function every($key, string $operator=null, $value=null)
-			{
-				if(func_num_args() === 1)
-				{
-					$callback=$this->value_retriever($key);
-
-					foreach($this->items as $k=>$v)
-						if(!$callback($v, $k))
-							return false;
-
-					return true;
-				}
-
-				return (__METHOD__)($this->operator_for_where(...func_get_args()));
-			}
-			public function first_where($key, string $operator=null, $value=null)
-			{
-				return $this->first($this->operator_for_where(...func_get_args()));
-			}
-			public function flat_map(callable $callback)
-			{
-				return $this->map($callback)->collapse();
-			}
-			public function for_page(int $page, int $per_page)
-			{
-				$offset=max(0, ($page-1)*$per_page);
-				return $this->slice($offset, $per_page);
-			}
-			public function is_not_empty()
-			{
-				return (!$this->is_empty());
-			}
-			public function map_into(string $class)
-			{
-				return $this->map(function($value, $key) use($class){
-					return new $class($value, $key);
-				});
-			}
-			public function map_spread(callable $callback)
-			{
-				return $this->map(function($chunk, $key) use($callback){
-					$chunk[]=$key;
-					return $callback(...$chunk->items);
-				});
-			}
-			public function map_to_groups(callable $callback)
-			{
-				$groups=$this->map_to_dictionary($callback);
-				return $groups->map([$this, 'make']);
-			}
-			public function max($callback=null)
-			{
-				$callback=$this->value_retriever($callback);
-
-				return $this->filter(function($value){
-					return (!is_null($value));
-				})->reduce(function($result, $item) use($callback){
-					$value=$callback($item);
-
-					if(is_null($result) || ($value > $result))
-						return $value;
-
-					return $result;
-				});
-			}
-			public function min($callback=null)
-			{
-				$callback=$this->value_retriever($callback);
-
-				return $this->map(function($value) use($callback){
-					return $callback($value);
-				})->filter(function($value){
-					return (!is_null($value));
-				})->reduce(function($result, $value){
-					if(is_null($result) || ($value < $result))
-						return $value;
-
-					return $result;
-				});
-			}
-			public function partition($key, string $operator=null, $value=null)
-			{
-				$passed=[];
-				$failed=[];
-
-				if(func_num_args() === 1)
-					$callback=$this->value_retriever($key);
-				else
-					$callback=$this->operator_for_where(...func_get_args());
-
-				foreach($this->items as $key=>$item)
-					if($callback($item, $key))
-						$passed[$key]=$item;
-					else
-						$failed[$key]=$item;
-
-				return new static([new static($passed), new static($failed)]);
-			}
-			public function percentage(callable $callback, int $precision=2)
-			{
-				if($this->is_empty())
-					return null;
-
-				return round(
-					$this->filter($callback)->count()/$this->count()*100,
-					$precision
-				);
-			}
-			public function pipe(callable $callback)
-			{
-				return $callback($this);
-			}
-			public function pipe_into(string $class)
-			{
-				return new $class($this);
-			}
-			public function pipe_through(array $callbacks)
-			{
-				return static::make($callbacks)->reduce(function($carry, $callback){
-					return $callback($carry);
-				}, $this);
-			}
-			public function reduce(callable $callback, $initial=null)
-			{
-				$result=$initial;
-
-				foreach($this->items as $key=>$value)
-					$result=$callback($result, $value, $key);
-
-				return $result;
-			}
-			public function reduce_spread(callable $callback, ...$initial)
-			{
-				$result=$initial;
-
-				foreach($this->items as $key=>$value)
-				{
-					$result=call_user_func_array($callback, array_merge($result, [$value, $key]));
-
-					if(!is_array($result))
-						throw new lv_arr_exception(sprintf(
-							"%s::reduceSpread expects reducer to return an array, but got a '%s' instead.",
-							class_basename(static::class),
-							gettype($result)
-						));
-				}
-
-				return $result;
-			}
-			public function reject($callback=true)
-			{
-				$use_as_callable=$this->use_as_callable($callback);
-
-				return $this->filter(function($value, $key) use($callback, $use_as_callable){
-					if($use_as_callable)
-						return (!$callback($value, $key));
-
-					return ($value != $callback);
-				});
-			}
-			public function some($key, string $operator=null, $value=null)
-			{
-				return $this->contains(...func_get_args());
-			}
-			public function sum($callback=null)
-			{
-				if(is_null($callback))
-					$callback=$this->identity();
-				else
-					$callback=$this->value_retriever($callback);
-
-				return $this->reduce(function($result, $item) use($callback){
-					return ($result+$callback($item));
-				}, 0);
-			}
-			public function tap(callable $callback)
-			{
-				$callback($this);
-				return $this;
-			}
-			public function to_array()
-			{
-				return $this->map(function($value){
-					// removed if($value instanceof Arrayable)
-
-					return $value;
-				})->all();
-			}
-			public function to_json(int $options=0)
-			{
-				return json_encode($this->json_serialize(), $options);
-			}
-			public function unique_strict($key=null)
-			{
-				return $this->unique($key, true);
-			}
-			public function unless_empty(callable $callback, callable $default=null)
-			{
-				return $this->when_not_empty($callback, $default);
-			}
-			public function unless_not_empty(callable $callback, callable $default=null)
-			{
-				return $this->when_empty($callback, $default);
-			}
-			public function value(string $key, $default=null)
-			{
-				if($value=$this->first_where($key))
-					return lv_arr_data_get($value, $key, $default);
-
-				return lv_arr_value($default);
-			}
-			public function when_empty(callable $callback, callable $default=null)
-			{
-				return $this->when($this->is_empty(), $callback, $default);
-			}
-			public function when_not_empty(callable $callback, callable $default=null)
-			{
-				return $this->when($this->is_not_empty(), $callback, $default);
-			}
-			public function where($key, string $operator=null, $value=null)
-			{
-				return $this->filter($this->operator_for_where(...func_get_args()));
-			}
-			public function where_strict(string $key, $value)
-			{
-				return $this->where($key, '===', $value);
-			}
-			public function where_between(string $key, array $values)
-			{
-				return $this->where($key, '>=', reset($values))->where($key, '<=', end($values));
-			}
-			public function where_in(string $key, $values, bool $strict=false)
-			{
-				$values=$this->get_arrayable_items($values);
-
-				return $this->filter(function($item) use($key, $values, $strict){
-					return in_array(lv_arr_data_get($item, $key), $values, $strict);
-				});
-			}
-			public function where_in_strict(string $key, $values)
-			{
-				return $this->where_in($key, $values, true);
-			}
-			public function where_instance_of($type)
-			{
-				return $this->filter(function($value) use($type){
-					if(is_array($type))
-					{
-						foreach($type as $class_type)
-							if($value instanceof $class_type)
-								return true;
-
-						return false;
-					}
-
-					return ($value instanceof $type);
-				});
-			}
-			public function where_not_between(string $key, array $values)
-			{
-				return $this->filter(function($item) use($key, $values){
-					$data_get=lv_arr_data_get($item, $key);
-
-					return (
-						($data_get < reset($values)) ||
-						($data_get > end($values))
-					);
-				});
-			}
-			public function where_not_in(string $key, $values, bool $strict=false)
-			{
-				$values=$this->get_arrayable_items($values);
-
-				return $this->reject(function($item) use($key, $values, $strict){
-					return in_array(lv_arr_data_get($item, $key), $values, $strict);
-				});
-			}
-			public function where_not_in_strict(string $key, $values)
-			{
-				return $this->where_not_in($key, $values, true);
-			}
-			public function where_not_null(string $key=null)
-			{
-				return $this->where($key, '!==', null);
-			}
-			public function where_null(string $key=null)
-			{
-				return $this->where_strict($key, null);
-			}
-		/* } */
-
-		/* trait macroable */
-		/* { */
-			protected static $macros=[];
-
-			public static function __callStatic(string $method, array $parameters)
-			{
-				if(!static::has_macro($method))
-					throw new lv_arr_exception(sprintf(
-						'Method %s::%s does not exist.',
-						static::class,
-						$method
-					));
-
-				$macro=static::$macros[$method];
-
-				if($macro instanceof \Closure)
-					$macro=$macro->bindTo(null, static::class);
-
-				return $macro(...$parameters);
-			}
-
-			public static function macro(string $name, $macro)
-			{
-				static::$macros[$name]=$macro;
-			}
-			public static function mixin(object $mixin, bool $replace=true)
-			{
-				$methods=(new ReflectionClass($mixin))->getMethods(
-					ReflectionMethod::IS_PUBLIC|ReflectionMethod::IS_PROTECTED
-				);
-
-				foreach($methods as $method)
-					if($replace || (!static::has_macro($method->name)))
-						static::macro($method->name, $method->invoke($mixin));
-			}
-			public static function has_macro(string $name)
-			{
-				return isset(static::$macros[$name]);
-			}
-			public static function flush_macros()
-			{
-				static::$macros=[];
-			}
-
-			public function __call(string $method, array $parameters)
-			{
-				if(!static::has_macro($method))
-					throw new lv_arr_exception(sprintf(
-						'Method %s::%s does not exist.',
-						static::class,
-						$method
-					));
-
-				$macro=static::$macros[$method];
-
-				if($macro instanceof \Closure)
-					$macro=$macro->bindTo($this, static::class);
-
-				return $macro(...$parameters);
-			}
-		/* } */
+	trait lv_arr_enumerates_values
+	{
+		// use conditionable, dumpable;
 
 		/* trait conditionable */
 		/* { */
@@ -3931,7 +4110,7 @@
 
 			public function unless($value=null, callable $callback=null, callable $default=null)
 			{
-				if($value instanceof \Closure)
+				if($value instanceof Closure)
 					$value=$value($this);
 
 				if(func_num_args() === 0)
@@ -3948,7 +4127,7 @@
 			}
 			public function when($value=null, callable $callback=null, callable $default=null)
 			{
-				if($value instanceof \Closure)
+				if($value instanceof Closure)
 					$value=$value($this);
 
 				if(func_num_args() === 0)
@@ -3970,7 +4149,599 @@
 			// not implemented
 		/* } */
 
-		// use enumerates_values, macroable;
+		protected $escape_when_casting_to_string=false;
+
+		public static function empty()
+		{
+			return new static([]);
+		}
+		public static function make(array $items=[])
+		{
+			return new static($items);
+		}
+		public static function times(int $number, callable $callback=null)
+		{
+			if($number < 1)
+				return new static();
+
+			return static::range(1, $number)
+				->unless($callback == null)
+				->map($callback);
+		}
+		public static function unwrap($value)
+		{
+			if($value instanceof lv_arr_enumerable)
+				return $value->all();
+
+			return $value;
+		}
+		public static function wrap($value)
+		{
+			if($value instanceof lv_arr_enumerable)
+				return new static($value);
+
+			return new static(lv_arr_wrap($value));
+		}
+
+		public function __get($key)
+		{
+			return $this->higher_order_collection_proxy($this, 'map');
+		}
+		public function __toString()
+		{
+			if($this->escape_when_casting_to_string)
+				return htmlspecialchars($this->to_json(), ENT_QUOTES, 'UTF-8', true);
+
+			return $this->to_json();
+		}
+
+		protected function get_arrayable_items($items)
+		{
+			if(is_array($items))
+				return $items;
+
+			switch(true)
+			{
+				case ($items instanceof WeakMap): // PHP8
+					throw new lv_arr_exception('Collections can not be created using instances of WeakMap.');
+				case ($items instanceof lv_arr_enumerable):
+					return $items->all();
+				// removed ($items instanceof Arrayable):
+				case ($items instanceof Traversable):
+					return iterator_to_array($items);
+				// removed ($items instanceof Jsonable):
+				case ($items instanceof JsonSerializable):
+					return (array)$items->jsonSerialize();
+				case ($items instanceof UnitEnum): // PHP8 8.1.0
+					return [$items];
+				default:
+					return (array)$items;
+			}
+		}
+		protected function higher_order_collection_proxy($collection, $method)
+		{
+			return new class($collection, $method)
+			{
+				// class HigherOrderCollectionProxy
+
+				private $collection;
+				private $method;
+
+				public function __construct($collection, $method)
+				{
+					$this->method=$method;
+					$this->collection=$collection;
+				}
+				public function __get($key)
+				{
+					return $this->collection->{$this->method}(function($value) use($key){
+						if(is_array($value))
+							return $value[$key];
+
+						return $value->$key;
+					});
+				}
+				public function __call($method, $parameters)
+				{
+					return $this->collection->{$this->method}(function($value) use($method, $parameters){
+						return $value->{$method}(...$parameters);
+					});
+				}
+			};
+		}
+		protected function identity()
+		{
+			return function($value){
+				return $value;
+			};
+		}
+		protected function operator_for_where($key, /*string*/ $operator=null, $value=null)
+		{
+			if($this->use_as_callable($key))
+				return $key;
+
+			if(func_num_args() === 1)
+			{
+				$value=true;
+				$operator='=';
+			}
+			if(func_num_args() === 2)
+			{
+				$value=$operator;
+				$operator='=';
+			}
+
+			return function($item) use($key, $operator, $value)
+			{
+				$retrieved=lv_arr_data_get($item, $key);
+				$strings=array_filter([$retrieved, $value], function($value){
+					return (
+						is_string($value) ||
+						(is_object($value) && method_exists($value, '__toString'))
+					);
+				});
+
+				if(
+					(count($strings) < 2) &&
+					(count(array_filter([$retrieved, $value], 'is_object')) == 1)
+				)
+					return in_array($operator, ['!=', '<>', '!==']);
+
+				switch($operator)
+				{
+					default:
+					case '=':
+					case '==':
+						return ($retrieved == $value);
+					case '!=':
+					case '<>':
+						return ($retrieved != $value);
+					case '<':
+						return ($retrieved < $value);
+					case '>':
+						return ($retrieved > $value);
+					case '<=':
+						return ($retrieved <= $value);
+					case '>=':
+						return ($retrieved >= $value);
+					case '===':
+						return ($retrieved === $value);
+					case '!==':
+						return ($retrieved !== $value);
+					case '<=>':
+						return ($retrieved <=> $value);
+				}
+			};
+		}
+		protected function use_as_callable($value)
+		{
+			return ((!is_string($value)) && is_callable($value));
+		}
+		protected function value_retriever($value)
+		{
+			if($this->use_as_callable($value))
+				return $value;
+
+			return function($item) use($value){
+				return lv_arr_data_get($item, $value);
+			};
+		}
+
+		public function average($callback=null)
+		{
+			return $this->avg($callback);
+		}
+		public function collect()
+		{
+			return new lv_arr_collection($this->all());
+		}
+		public function each(callable $callback)
+		{
+			foreach($this->items as $key=>$item)
+				if($callback($item, $key) === false)
+					break;
+
+			return $this;
+		}
+		public function each_spread(callable $callback)
+		{
+			return $this->each(function($chunk, $key) use($callback){
+				$chunk[]=$key;
+				return $callback(...$chunk);
+			});
+		}
+		public function ensure($type)
+		{
+			if(is_array($type))
+				$allowed_types=$type;
+			else
+				$allowed_types=[$type];
+
+			return $this->each(function($item) use($allowed_types){
+				$item_type=$this->_get_debug_type($item);
+
+				foreach($allowed_types as $allowed_type)
+					if(($item_type === $allowed_type) || ($item instanceof $allowed_type))
+						return true;
+
+				throw new lv_arr_exception(sprintf(
+					"Collection should only include [%s] items, but '%s' found.",
+					implode(', ', $allowed_types),
+					$item_type
+				));
+			});
+		}
+		public function escape_when_casting_to_string(bool $escape=true)
+		{
+			$this->escape_when_casting_to_string=$escape;
+			return $this;
+		}
+		public function every($key, string $operator=null, $value=null)
+		{
+			if(func_num_args() === 1)
+			{
+				$callback=$this->value_retriever($key);
+
+				foreach($this->items as $k=>$v)
+					if(!$callback($v, $k))
+						return false;
+
+				return true;
+			}
+
+			return (__METHOD__)($this->operator_for_where(...func_get_args()));
+		}
+		public function first_where($key, string $operator=null, $value=null)
+		{
+			return $this->first($this->operator_for_where(...func_get_args()));
+		}
+		public function flat_map(callable $callback)
+		{
+			return $this->map($callback)->collapse();
+		}
+		public function for_page(int $page, int $per_page)
+		{
+			$offset=max(0, ($page-1)*$per_page);
+			return $this->slice($offset, $per_page);
+		}
+		public function is_not_empty()
+		{
+			return (!$this->is_empty());
+		}
+		public function jsonSerialize()
+		{
+			return array_map(function($value){
+				if($value instanceof JsonSerializable)
+					return $value->jsonSerialize();
+				// removed else if($value instanceof Jsonable)
+				// removes else if($value instanceof Arrayable)
+
+				return $value;
+			}, $this->all());
+		}
+		public function map_into(string $class)
+		{
+			return $this->map(function($value, $key) use($class){
+				return new $class($value, $key);
+			});
+		}
+		public function map_spread(callable $callback)
+		{
+			return $this->map(function($chunk, $key) use($callback){
+				$chunk[]=$key;
+				return $callback(...$chunk->items);
+			});
+		}
+		public function map_to_groups(callable $callback)
+		{
+			$groups=$this->map_to_dictionary($callback);
+			return $groups->map([$this, 'make']);
+		}
+		public function max($callback=null)
+		{
+			$callback=$this->value_retriever($callback);
+
+			return $this->filter(function($value){
+				return (!is_null($value));
+			})->reduce(function($result, $item) use($callback){
+				$value=$callback($item);
+
+				if(is_null($result) || ($value > $result))
+					return $value;
+
+				return $result;
+			});
+		}
+		public function min($callback=null)
+		{
+			$callback=$this->value_retriever($callback);
+
+			return $this->map(function($value) use($callback){
+				return $callback($value);
+			})->filter(function($value){
+				return (!is_null($value));
+			})->reduce(function($result, $value){
+				if(is_null($result) || ($value < $result))
+					return $value;
+
+				return $result;
+			});
+		}
+		public function partition($key, string $operator=null, $value=null)
+		{
+			$passed=[];
+			$failed=[];
+
+			if(func_num_args() === 1)
+				$callback=$this->value_retriever($key);
+			else
+				$callback=$this->operator_for_where(...func_get_args());
+
+			foreach($this->items as $key=>$item)
+				if($callback($item, $key))
+					$passed[$key]=$item;
+				else
+					$failed[$key]=$item;
+
+			return new static([new static($passed), new static($failed)]);
+		}
+		public function percentage(callable $callback, int $precision=2)
+		{
+			if($this->is_empty())
+				return null;
+
+			return round(
+				$this->filter($callback)->count()/$this->count()*100,
+				$precision
+			);
+		}
+		public function pipe(callable $callback)
+		{
+			return $callback($this);
+		}
+		public function pipe_into(string $class)
+		{
+			return new $class($this);
+		}
+		public function pipe_through(array $callbacks)
+		{
+			return static::make($callbacks)->reduce(function($carry, $callback){
+				return $callback($carry);
+			}, $this);
+		}
+		public function reduce(callable $callback, $initial=null)
+		{
+			$result=$initial;
+
+			foreach($this->items as $key=>$value)
+				$result=$callback($result, $value, $key);
+
+			return $result;
+		}
+		public function reduce_spread(callable $callback, ...$initial)
+		{
+			$result=$initial;
+
+			foreach($this->items as $key=>$value)
+			{
+				$result=call_user_func_array($callback, array_merge($result, [$value, $key]));
+
+				if(!is_array($result))
+					throw new lv_arr_exception(sprintf(
+						"%s::reduceSpread expects reducer to return an array, but got a '%s' instead.",
+						class_basename(static::class),
+						gettype($result)
+					));
+			}
+
+			return $result;
+		}
+		public function reject($callback=true)
+		{
+			$use_as_callable=$this->use_as_callable($callback);
+
+			return $this->filter(function($value, $key) use($callback, $use_as_callable){
+				if($use_as_callable)
+					return (!$callback($value, $key));
+
+				return ($value != $callback);
+			});
+		}
+		public function some($key, string $operator=null, $value=null)
+		{
+			return $this->contains(...func_get_args());
+		}
+		public function sum($callback=null)
+		{
+			if(is_null($callback))
+				$callback=$this->identity();
+			else
+				$callback=$this->value_retriever($callback);
+
+			return $this->reduce(function($result, $item) use($callback){
+				return ($result+$callback($item));
+			}, 0);
+		}
+		public function tap(callable $callback)
+		{
+			$callback($this);
+			return $this;
+		}
+		public function to_array()
+		{
+			return $this->map(function($value){
+				// removed if($value instanceof Arrayable)
+
+				return $value;
+			})->all();
+		}
+		public function to_json(int $options=0)
+		{
+			return json_encode($this->jsonSerialize(), $options);
+		}
+		public function unique_strict($key=null)
+		{
+			return $this->unique($key, true);
+		}
+		public function unless_empty(callable $callback, callable $default=null)
+		{
+			return $this->when_not_empty($callback, $default);
+		}
+		public function unless_not_empty(callable $callback, callable $default=null)
+		{
+			return $this->when_empty($callback, $default);
+		}
+		public function value(string $key, $default=null)
+		{
+			if($value=$this->first_where($key))
+				return lv_arr_data_get($value, $key, $default);
+
+			return lv_arr_value($default);
+		}
+		public function when_empty(callable $callback, callable $default=null)
+		{
+			return $this->when($this->is_empty(), $callback, $default);
+		}
+		public function when_not_empty(callable $callback, callable $default=null)
+		{
+			return $this->when($this->is_not_empty(), $callback, $default);
+		}
+		public function where($key, string $operator=null, $value=null)
+		{
+			return $this->filter($this->operator_for_where(...func_get_args()));
+		}
+		public function where_strict(string $key, $value)
+		{
+			return $this->where($key, '===', $value);
+		}
+		public function where_between(string $key, array $values)
+		{
+			return $this->where($key, '>=', reset($values))->where($key, '<=', end($values));
+		}
+		public function where_in(string $key, $values, bool $strict=false)
+		{
+			$values=$this->get_arrayable_items($values);
+
+			return $this->filter(function($item) use($key, $values, $strict){
+				return in_array(lv_arr_data_get($item, $key), $values, $strict);
+			});
+		}
+		public function where_in_strict(string $key, $values)
+		{
+			return $this->where_in($key, $values, true);
+		}
+		public function where_instance_of($type)
+		{
+			return $this->filter(function($value) use($type){
+				if(is_array($type))
+				{
+					foreach($type as $class_type)
+						if($value instanceof $class_type)
+							return true;
+
+					return false;
+				}
+
+				return ($value instanceof $type);
+			});
+		}
+		public function where_not_between(string $key, array $values)
+		{
+			return $this->filter(function($item) use($key, $values){
+				$data_get=lv_arr_data_get($item, $key);
+
+				return (
+					($data_get < reset($values)) ||
+					($data_get > end($values))
+				);
+			});
+		}
+		public function where_not_in(string $key, $values, bool $strict=false)
+		{
+			$values=$this->get_arrayable_items($values);
+
+			return $this->reject(function($item) use($key, $values, $strict){
+				return in_array(lv_arr_data_get($item, $key), $values, $strict);
+			});
+		}
+		public function where_not_in_strict(string $key, $values)
+		{
+			return $this->where_not_in($key, $values, true);
+		}
+		public function where_not_null(string $key=null)
+		{
+			return $this->where($key, '!==', null);
+		}
+		public function where_null(string $key=null)
+		{
+			return $this->where_strict($key, null);
+		}
+	}
+	trait lv_arr_macroable
+	{
+		protected static $macros=[];
+
+		public static function __callStatic(string $method, array $parameters)
+		{
+			if(!static::has_macro($method))
+				throw new lv_arr_exception(sprintf(
+					'Method %s::%s does not exist.',
+					static::class,
+					$method
+				));
+
+			$macro=static::$macros[$method];
+
+			if($macro instanceof Closure)
+				$macro=$macro->bindTo(null, static::class);
+
+			return $macro(...$parameters);
+		}
+
+		public static function macro(string $name, $macro)
+		{
+			static::$macros[$name]=$macro;
+		}
+		public static function mixin(object $mixin, bool $replace=true)
+		{
+			$methods=(new ReflectionClass($mixin))->getMethods(
+				ReflectionMethod::IS_PUBLIC|ReflectionMethod::IS_PROTECTED
+			);
+
+			foreach($methods as $method)
+				if($replace || (!static::has_macro($method->name)))
+					static::macro($method->name, $method->invoke($mixin));
+		}
+		public static function has_macro(string $name)
+		{
+			return isset(static::$macros[$name]);
+		}
+		public static function flush_macros()
+		{
+			static::$macros=[];
+		}
+
+		public function __call(string $method, array $parameters)
+		{
+			if(!static::has_macro($method))
+				throw new lv_arr_exception(sprintf(
+					'Method %s::%s does not exist.',
+					static::class,
+					$method
+				));
+
+			$macro=static::$macros[$method];
+
+			if($macro instanceof Closure)
+				$macro=$macro->bindTo($this, static::class);
+
+			return $macro(...$parameters);
+		}
+	}
+
+	class lv_arr_collection implements ArrayAccess, lv_arr_enumerable
+	{
+		use lv_arr_enumerates_values, lv_arr_macroable;
 
 		protected $items=[];
 
@@ -4120,7 +4891,6 @@
 
 			return new static($items);
 		}
-		//
 
 		public function all()
 		{
@@ -4151,6 +4921,20 @@
 
 			foreach(array_chunk($this->items, $size, true) as $chunk)
 				$chunks[]=new static($chunk);
+
+			return new static($chunks);
+		}
+		public function chunk_while(callable $callback)
+		{
+			$chunks=[];
+
+			foreach(
+				$this->lazy()
+					->chunk_while($callback)
+					->all()
+				as $chunk
+			)
+				$chunks[]=$chunk->all();
 
 			return new static($chunks);
 		}
@@ -4201,9 +4985,17 @@
 					return (lv_arr_data_get($item, $key) === $value);
 				});
 		}
-		public function count()
+		public function count(): int
 		{
 			return count($this->items);
+		}
+		public function count_by($count_by=null)
+		{
+			return new static(
+				$this->lazy()
+					->count_by($count_by)
+					->all()
+			);
 		}
 		public function cross_join(...$lists)
 		{
@@ -4241,6 +5033,22 @@
 				$this->get_arrayable_items($items)
 			));
 		}
+		public function diff_keys_using($items, callable $callback)
+		{
+			return new static(array_diff_ukey(
+				$this->items,
+				$this->get_arrayable_items($items),
+				$callback
+			));
+		}
+		public function diff_using($items, callable $callback)
+		{
+			return new static(array_udiff(
+				$this->items,
+				$this->get_arrayable_items($items),
+				$callback
+			));
+		}
 		public function doesnt_contain($key, string $operator=null, $value=null)
 		{
 			return (!$this->contains(...func_get_args()));
@@ -4271,16 +5079,12 @@
 		{
 			return $this->duplicates($callback, true);
 		}
-		public function empty()
-		{
-			return new static([]);
-		}
 		public function except($keys)
 		{
 			if(is_null($keys))
 				return new static($this->items);
 
-			if($keys instanceof lv_arr_collection) // Enumerable
+			if($keys instanceof lv_arr_enumerable)
 				$keys=$keys->all();
 			else if(!is_array($keys))
 				$keys=func_get_args();
@@ -4362,10 +5166,10 @@
 						case is_bool($group_key):
 							$group_key=(int)$group_key;
 						break;
-						case ($group_key instanceof \BackedEnum): // PHP8
+						case ($group_key instanceof BackedEnum): // PHP8
 							$group_key=$group_key->value;
 						break;
-						case ($group_key instanceof \Stringable): // PHP8
+						case ($group_key instanceof Stringable): // PHP8
 							$group_key=(string)$group_key;
 					}
 
@@ -4429,7 +5233,7 @@
 				is_array($first) ||
 				(
 					is_object($first) &&
-					(!($first instanceof \Stringable)) // PHP8
+					(!($first instanceof Stringable)) // PHP8
 				)
 			)
 				return implode($glue, $this->pluck($value)->all());
@@ -4453,11 +5257,27 @@
 				$this->get_arrayable_items($items)
 			));
 		}
+		public function intersect_assoc_using($items, callable $callback)
+		{
+			return new static(array_intersect_uassoc(
+				$this->items,
+				$this->get_arrayable_items($items),
+				$callback
+			));
+		}
 		public function intersect_by_keys($items)
 		{
 			return new static(array_intersect_key(
 				$this->items,
 				$this->get_arrayable_items($items)
+			));
+		}
+		public function intersect_using($items, callable $callback)
+		{
+			return new static(array_uintersect(
+				$this->items,
+				$this->get_arrayable_items($items),
+				$callback
 			));
 		}
 		public function is_empty()
@@ -4505,6 +5325,10 @@
 		public function last(callable $callback=null, $default=null)
 		{
 			return lv_arr_last($this->items, $callback, $default);
+		}
+		public function lazy()
+		{
+			return new lv_arr_lazy_collection($this->items);
 		}
 		public function map(callable $callback)
 		{
@@ -4615,7 +5439,7 @@
 			if(is_null($keys))
 				return new static($this->items);
 
-			if($keys instanceof lv_arr_collection) // Enumerable
+			if($keys instanceof lv_arr_enumerable)
 				$keys=$keys->all();
 
 			if(!is_array($keys))
@@ -4716,7 +5540,7 @@
 			if(is_null($keys))
 				return new static($this->items);
 
-			if($keys instanceof lv_arr_collection) // Enumerable
+			if($keys instanceof lv_arr_enumerable)
 				$keys=$keys->all();
 
 			if(!is_array($keys))
@@ -4747,6 +5571,22 @@
 		public function skip(int $count)
 		{
 			return $this->slice($count);
+		}
+		public function skip_until($value)
+		{
+			return new static(
+				$this->lazy()
+					->skip_until($value)
+					->all()
+			);
+		}
+		public function skip_while($value)
+		{
+			return new static(
+				$this->lazy()
+					->skip_while($value)
+					->all()
+			);
 		}
 		public function slice(int $offset, int $length=null)
 		{
@@ -4849,7 +5689,6 @@
 		public function sort_keys_using(callable $callback)
 		{
 			$items=$this->items;
-
 			uksort($items, $callback);
 
 			return new static($items);
@@ -4903,6 +5742,22 @@
 
 			return $this->slice(0, $limit);
 		}
+		public function take_until($value)
+		{
+			return new static(
+				$this->lazy()
+					->take_until($value)
+					->all()
+			);
+		}
+		public function take_while($value)
+		{
+			return new static(
+				$this->lazy()
+					->take_while($value)
+					->all()
+			);
+		}
 		public function transform(callable $callback)
 		{
 			$this->items=$this->map($callback)->all();
@@ -4955,6 +5810,975 @@
 			);
 
 			return new static(array_map(...$params));
+		}
+	}
+	class lv_arr_lazy_collection implements lv_arr_enumerable
+	{
+		use lv_arr_enumerates_values, lv_arr_macroable;
+
+		public $source;
+
+		public static function range(int $from, int $to)
+		{
+			return new static(function() use($from, $to){
+				if($from <= $to)
+					for(; $from<=$to; ++$from)
+						yield $from;
+				else
+					for(; $from>=$to; --$from)
+						yield $from;
+			});
+		}
+
+		public function __construct($source=null)
+		{
+			if(
+				($source instanceof Closure) ||
+				($source instanceof self)
+			)
+				$this->source=$source;
+			else if(is_null($source))
+				$this->source=static::empty();
+			else if($source instanceof Generator)
+				throw new lv_arr_exception(
+					'Generators should not be passed directly to lv_arr_lazy_collection. Instead, pass a generator function.'
+				);
+			else
+				$this->source=$this->get_arrayable_items($source);
+		}
+
+		protected function explode_pluck_parameters($value, $key)
+		{
+			if(is_string($value))
+				$value=explode('.', $value);
+
+			if((!is_null($key)) && (!is_array($key)))
+				$key=explode('.', $key);
+
+			return [$value, $key];
+		}
+		protected function make_iterator($source)
+		{
+			if($source instanceof IteratorAggregate)
+				return $source->getIterator();
+
+			if(is_array($source))
+				return new ArrayIterator($source);
+
+			if(is_callable($source))
+			{
+				$maybe_traversable=$source();
+
+				if($maybe_traversable instanceof Traversable)
+					return $maybe_traversable;
+
+				return new ArrayIterator(lv_arr_wrap($maybe_traversable));
+			}
+
+			return new ArrayIterator((array)$source);
+		}
+		protected function passthru($method, array $params)
+		{
+			return new static(function() use($method, $params){
+				yield from $this->collect()->$method(...$params)->to_array();
+			});
+		}
+
+		public function all()
+		{
+			if(is_array($this->source))
+				return $this->source;
+
+			return iterator_to_array($this->get_iterator());
+		}
+		public function avg($callback=null)
+		{
+			return $this->collect()->avg($callback);
+		}
+		public function chunk(int $size)
+		{
+			if($size <= 0)
+				return static::empty();
+
+			return new static(function() use($size){
+				$iterator=$this->get_iterator();
+
+				while($iterator->valid())
+				{
+					$chunk=[];
+
+					while(true)
+					{
+						$chunk[$iterator->key()]=$iterator->current();
+
+						if(count($chunk) < $size)
+						{
+							$iterator->next();
+
+							if(!$iterator->valid())
+								break;
+						}
+						else
+							break;
+					}
+
+					yield new static($chunk);
+
+					$iterator->next();
+				}
+			});
+		}
+		public function chunk_while(callable $callback)
+		{
+			return new static(function() use($callback){
+				$iterator=$this->get_iterator();
+
+				$chunk=new lv_arr_collection();
+
+				if($iterator->valid())
+				{
+					$chunk[$iterator->key()]=$iterator->current();
+					$iterator->next();
+				}
+
+				while($iterator->valid())
+				{
+					if(!$callback(
+						$iterator->current(),
+						$iterator->key(),
+						$chunk)
+					){
+						yield new static($chunk);
+
+						$chunk=new lv_arr_collection();
+					}
+
+					$chunk[$iterator->key()]=$iterator->current();
+					$iterator->next();
+				}
+
+				if($chunk->is_not_empty())
+					yield new static($chunk);
+			});
+		}
+		public function collapse()
+		{
+			return new static(function(){
+				foreach($this->source as $values)
+					if(is_array($values) || ($values instanceof lv_arr_enumerable))
+						foreach($values as $value)
+							yield $value;
+			});
+		}
+		public function combine($values)
+		{
+			return new static(function() use($values){
+				$values=$this->make_iterator($values);
+				$error_message='Both parameters should have an equal number of elements';
+
+				foreach($this->source as $key)
+				{
+					if(!$values->valid())
+					{
+						trigger_error($error_message, E_USER_WARNING);
+						break;
+					}
+
+					yield $key=>$values->current();
+
+					$values->next();
+				}
+
+				if($values->valid())
+					trigger_error($error_message, E_USER_WARNING);
+			});
+		}
+		public function contains($key, $operator=null, $value=null)
+		{
+			if(
+				(func_num_args() === 1) &&
+				$this->use_as_callable($key)
+			){
+				$placeholder=new class(){};
+
+				return ($this->first($key, $placeholder) !== $placeholder);
+			}
+
+			if(func_num_args() === 1)
+			{
+				$needle=$key;
+
+				foreach($this->source as $value)
+					if($value == $needle)
+						return true;
+
+				return false;
+			}
+
+			return $this->contains($this->operator_for_where(...func_get_args()));
+		}
+		public function contains_one_item()
+		{
+			return ($this->take(2)->count() === 1);
+		}
+		public function contains_strict($key, $value=null)
+		{
+			if(func_num_args() === 2)
+				return $this->contains(function($item) use($key, $value){
+					return (lv_arr_data_get($item, $key) === $value);
+				});
+
+			if($this->use_as_callable($key))
+				return (!is_null($this->first($key)));
+
+			foreach($this->source as $item)
+				if($item === $key)
+					return true;
+
+			return false;
+		}
+		public function count(): int
+		{
+			if(is_array($this->source))
+				return count($this->source);
+
+			return iterator_count($this->get_iterator());
+		}
+		public function count_by($count_by=null)
+		{
+			if(is_null($count_by))
+				$count_by=$this->identity();
+			else
+				$count_by=$this->value_retriever($count_by);
+
+			return new static(function() use($count_by){
+				$counts=[];
+
+				foreach($this->source as $key=>$value)
+				{
+					$group=$count_by($value, $key);
+
+					if(empty($counts[$group]))
+						$counts[$group]=0;
+
+					++$counts[$group];
+				}
+
+				yield from $counts;
+			});
+		}
+		public function cross_join(...$arrays)
+		{
+			return $this->passthru('cross_join', func_get_args());
+		}
+		public function diff($items)
+		{
+			return $this->passthru('diff', func_get_args());
+		}
+		public function diff_assoc($items)
+		{
+			return $this->passthru('diff_assoc', func_get_args());
+		}
+		public function diff_assoc_using($items, callable $callback)
+		{
+			return $this->passthru('diff_assoc_using', func_get_args());
+		}
+		public function diff_keys($items)
+		{
+			return $this->passthru('diff_keys', func_get_args());
+		}
+		public function diff_keys_using($items, callable $callback)
+		{
+			return $this->passthru('diff_keys_using', func_get_args());
+		}
+		public function diff_using($items, callable $callback)
+		{
+			return $this->passthru('diff_using', func_get_args());
+		}
+		public function doesnt_contain($key, $operator=null, $value=null)
+		{
+			return (!$this->contains(...func_get_args()));
+		}
+		public function dot()
+		{
+			return $this->passthru('dot', []);
+		}
+		public function duplicates($callback=null, bool $strict=false)
+		{
+			return $this->passthru('duplicates', func_get_args());
+		}
+		public function duplicates_strict($callback=null)
+		{
+			return $this->passthru('duplicates_strict', func_get_args());
+		}
+		public function eager()
+		{
+			return new static($this->all());
+		}
+		public function except($keys)
+		{
+			return $this->passthru('except', func_get_args());
+		}
+		public function filter(callable $callback=null)
+		{
+			if(is_null($callback))
+				$callback=function($value)
+				{
+					return (bool)$value;
+				};
+
+			return new static(function() use($callback){
+				foreach($this->source as $key=>$value)
+					if($callback($value, $key))
+						yield $key=>$value;
+			});
+		}
+		public function first(callable $callback=null, $default=null)
+		{
+			$iterator=$this->get_iterator();
+
+			if(is_null($callback))
+			{
+				if(!$iterator->valid())
+					return lv_arr_value($default);
+
+				return $iterator->current();
+			}
+
+			foreach($iterator as $key=>$value)
+				if($callback($value, $key))
+					return $value;
+
+			return lv_arr_value($default);
+		}
+		public function first_or_fail($key=null, $operator=null, $value=null)
+		{
+			if(func_num_args() > 1)
+				$filter=$this->operator_for_where(...func_get_args());
+			else
+				$filter=$key;
+
+			return $this
+				->unless($filter == null)
+				->filter($filter)
+				->take(1)
+				->collect()
+				->first_or_fail();
+		}
+		public function flip()
+		{
+			return new static(function(){
+				foreach($this->source as $key=>$value)
+					yield $value=>$key;
+			});
+		}
+		public function get($key, $default=null)
+		{
+			if(is_null($key))
+				return null;
+
+			foreach($this->source as $outer_key=>$outer_value)
+				if($outer_key == $key)
+					return $outer_value;
+
+			return lv_arr_value($default);
+		}
+		public function get_iterator()
+		{
+			return $this->make_iterator($this->source);
+		}
+		public function group_by($group_by, bool $preserve_keys=false)
+		{
+			return $this->passthru('group_by', func_get_args());
+		}
+		public function has($key)
+		{
+			if(is_array($key))
+				$keys=array_flip($key);
+			else
+				$keys=array_flip(func_get_args());
+
+			$count=count($keys);
+
+			foreach($this->source as $key=>$value)
+				if(
+					array_key_exists($key, $keys) &&
+					(--$count == 0)
+				)
+					return true;
+
+			return false;
+		}
+		public function has_any($key)
+		{
+			if(is_array($key))
+				$keys=array_flip($key);
+			else
+				$keys=array_flip(func_get_args());
+
+			foreach($this->source as $key=>$value)
+				if(array_key_exists($key, $keys))
+					return true;
+
+			return false;
+		}
+		public function implode($value, string $glue=null)
+		{
+			return $this->collect()->implode(...func_get_args());
+		}
+		public function intersect($items)
+		{
+			return $this->passthru('intersect', func_get_args());
+		}
+		public function intersect_assoc($items)
+		{
+			return $this->passthru('intersect_assoc', func_get_args());
+		}
+		public function intersect_assoc_using($items, callable $callback)
+		{
+			return $this->passthru('intersect_assoc_using', func_get_args());
+		}
+		public function intersect_by_keys($items)
+		{
+			return $this->passthru('intersect_by_keys', func_get_args());
+		}
+		public function intersect_using($items, callable $callback)
+		{
+			return $this->passthru('intersect_using', func_get_args());
+		}
+		public function is_empty()
+		{
+			return (!$this->get_iterator()->valid());
+		}
+		public function join(string $glue, string $final_glue='')
+		{
+			return $this->collect()->join(...func_get_args());
+		}
+		public function key_by($key_by)
+		{
+			return new static(function() use($key_by){
+				$key_by=$this->value_retriever($key_by);
+
+				foreach($this->source as $key=>$item)
+				{
+					$resolved_key=$key_by($item, $key);
+
+					if(is_object($resolved_key))
+						$resolved_key=(string)$resolved_key;
+
+					yield $resolved_key=>$item;
+				}
+			});
+		}
+		public function keys()
+		{
+			return new static(function(){
+				foreach($this->source as $key=>$value)
+					yield $key;
+			});
+		}
+		public function last(callable $callback=null, $default=null)
+		{
+			$needle=new class(){};
+			$placeholder=$needle;
+
+			foreach($this->source as $key=>$value)
+				if(is_null($callback) || $callback($value, $key))
+					$needle=$value;
+
+			if($needle === $placeholder)
+				return lv_arr_value($default);
+
+			return $needle;
+		}
+		public function map(callable $callback)
+		{
+			return new static(function() use($callback){
+				foreach($this->source as $key=>$value)
+					yield $key=>$callback($value, $key);
+			});
+		}
+		public function map_to_dictionary(callable $callback)
+		{
+			return $this->passthru('map_to_dictionary', func_get_args());
+		}
+		public function map_with_keys(callable $callback)
+		{
+			return new static(function() use($callback){
+				foreach($this->source as $key=>$value)
+					yield from $callback($value, $key);
+			});
+		}
+		public function median($key=null)
+		{
+			return $this->collect()->median($key);
+		}
+		public function merge($items)
+		{
+			return $this->passthru('merge', func_get_args());
+		}
+		public function merge_recursive($items)
+		{
+			return $this->passthru('merge_recursive', func_get_args());
+		}
+		public function mode($key=null)
+		{
+			return $this->collect()->mode($key);
+		}
+		public function only($keys)
+		{
+			if($keys instanceof lv_arr_enumerable)
+				$keys=$keys->all();
+			else if(!is_null($keys))
+				if(!is_array($keys))
+					$keys=func_get_args();
+
+			return new static(function() use($keys){
+				if(is_null($keys))
+					yield from $this;
+				else
+				{
+					$keys=array_flip($keys);
+
+					foreach($this->source as $key=>$value)
+						if(array_key_exists($key, $keys))
+						{
+							yield $key=>$value;
+
+							unset($keys[$key]);
+
+							if(empty($keys))
+								break;
+						}
+				}
+			});
+		}
+		public function pad(int $size, $value)
+		{
+			if($size < 0)
+				return $this->passthru('pad', func_get_args());
+
+			return new static(function() use($size, $value){
+				$yielded=0;
+
+				foreach($this->source as $index=>$item)
+				{
+					yield $index=>$item;
+
+					++$yielded;
+				}
+
+				while($yielded++ < $size)
+					yield $value;
+			});
+		}
+		public function pluck($value, $key=null)
+		{
+			return new static(function() use($value, $key){
+				[$value, $key]=$this->explode_pluck_parameters($value, $key);
+
+				foreach($this->source as $item)
+				{
+					$item_value=lv_arr_data_get($item, $value);
+
+					if(is_null($key))
+						yield $item_value;
+					else
+					{
+						$item_key=lv_arr_data_get($item, $key);
+
+						if(
+							is_object($item_key) &&
+							method_exists($item_key, '__toString')
+						)
+							$item_key=(string)$item_key;
+
+						yield $item_key=>$item_value;
+					}
+				}
+			});
+		}
+		public function random($number=null)
+		{
+			$result=$this->collect()->random(...func_get_args());
+
+			if(is_null($number))
+				return $result;
+
+			return new static($result);
+		}
+		public function replace($items)
+		{
+			return new static(function() use($items){
+				$items=$this->get_arrayable_items($items);
+
+				foreach($this->source as $key=>$value)
+					if(array_key_exists($key, $items))
+					{
+						yield $key=>$items[$key];
+
+						unset($items[$key]);
+					}
+					else
+						yield $key=>$value;
+
+				foreach($items as $key=>$value)
+					yield $key=>$value;
+			});
+		}
+		public function replace_recursive($items)
+		{
+			return $this->passthru('replace_recursive', func_get_args());
+		}
+		public function remember()
+		{
+			$iterator=$this->get_iterator();
+			$iterator_index=0;
+			$cache=[];
+
+			return new static(function() use($iterator, &$iterator_index, &$cache){
+				for($index=0; true; ++$index)
+				{
+					if(array_key_exists($index, $cache))
+					{
+						yield $cache[$index][0]=>$cache[$index][1];
+
+						continue;
+					}
+
+					if($iterator_index < $index)
+					{
+						$iterator->next();
+						++$iterator_index;
+					}
+
+					if(!$iterator->valid())
+						break;
+
+					$cache[$index]=[$iterator->key(), $iterator->current()];
+
+					yield $cache[$index][0]=>$cache[$index][1];
+				}
+			});
+		}
+		public function reverse()
+		{
+			return $this->passthru('reverse', func_get_args());
+		}
+		public function search($value, bool $strict=false)
+		{
+			if($this->use_as_callable($value))
+				$predicate=$value;
+			else
+				$predicate=function($item) use($value, $strict)
+				{
+					if($strict)
+						return ($item === $value);
+
+					return ($item == $value);
+				};
+
+			foreach($this->source as $key=>$item)
+				if($predicate($item, $key))
+					return $key;
+
+			return false;
+		}
+		public function select($keys)
+		{
+			if($keys instanceof lv_arr_enumerable)
+				$keys=$keys->all();
+			else if(!is_null($keys))
+			{
+				if(!is_array($keys))
+					$keys=func_get_args();
+			}
+
+			return new static(function() use($keys){
+				if(is_null($keys))
+					yield from $this;
+				else
+					foreach($this->source as $item)
+					{
+						$result=[];
+
+						foreach($keys as $key)
+							if(lv_arr_accessible($item) && lv_arr_exists($item, $key))
+								$result[$key]=$item[$key];
+							else if(is_object($item) && isset($item->$key))
+								$result[$key]=$item->$key;
+
+							yield $result;
+					}
+			});
+		}
+		public function shuffle()
+		{
+			return $this->passthru('shuffle', []);
+		}
+		public function skip(int $count)
+		{
+			return new static(function() use($count){
+				$iterator=$this->get_iterator();
+
+				while($iterator->valid() && $count--)
+					$iterator->next();
+
+				while($iterator->valid())
+				{
+					yield $iterator->key()=>$iterator->current();
+
+					$iterator->next();
+				}
+			});
+		}
+		public function skip_until($value)
+		{
+			if($this->use_as_callable($value))
+				$callback=$value;
+			else
+				$callback=$this->equality($value);
+
+			return $this->skip_while($this->negate($callback));
+		}
+		public function skip_while($value)
+		{
+			if($this->use_as_callable($value))
+				$callback=$value;
+			else
+				$callback=$this->equality($value);
+
+			return new static(function() use($callback){
+				$iterator=$this->get_iterator();
+
+				while(
+					$iterator->valid() &&
+					$callback(
+						$iterator->current(),
+						$iterator->key()
+					)
+				)
+					$iterator->next();
+
+				while($iterator->valid())
+				{
+					yield $iterator->key()=>$iterator->current();
+
+					$iterator->next();
+				}
+			});
+		}
+		public function slice(int $offset, int $length=null)
+		{
+			if(($offset < 0) || ($length < 0))
+				return $this->passthru('slice', func_get_args());
+
+			$instance=$this->skip($offset);
+
+			if(is_null($length))
+				return $instance;
+
+			return $instance->take($length);
+		}
+		public function sliding(int $size=2, int $step=1)
+		{
+			return new static(function() use($size, $step){
+				$iterator=$this->get_iterator();
+				$chunk=[];
+
+				while($iterator->valid())
+				{
+					$chunk[$iterator->key()]=$iterator->current();
+
+					if(count($chunk) == $size)
+					{
+						yield (new static($chunk))->tap(function() use(&$chunk, $step){
+							$chunk=array_slice($chunk, $step, null, true);
+						});
+
+						/*
+						 * if the $step between chunks is bigger than each chunk's $size
+						 * we will skip the extra items (which should never be in any
+						 * chunk) before we continue to the next chunk in the loop.
+						 */
+						if($step > $size)
+						{
+							$skip=$step-$size;
+
+							for($i=0; $i<$skip && $iterator->valid(); ++$i)
+								$iterator->next();
+						}
+					}
+
+					$iterator->next();
+				}
+			});
+		}
+		public function sole($key=null, $operator=null, $value=null)
+		{
+			if(func_num_args() > 1)
+				$filter=$this->operator_for_where(...func_get_args());
+			else
+				$filter=$key;
+
+			return $this
+				->unless($filter == null)
+				->filter($filter)
+				->take(2)
+				->collect()
+				->sole();
+		}
+		public function sort($callback=null)
+		{
+			return $this->passthru('sort', func_get_args());
+		}
+		public function sort_by($callback, int $options=SORT_REGULAR, bool $descending=false)
+		{
+			return $this->passthru('sort_by', func_get_args());
+		}
+		public function sort_by_desc($callback, int $options=SORT_REGULAR)
+		{
+			return $this->passthru('sort_by_desc', func_get_args());
+		}
+		public function sort_desc(int $options=SORT_REGULAR)
+		{
+			return $this->passthru('sort_desc', func_get_args());
+		}
+		public function sort_keys(int $options=SORT_REGULAR, bool $descending=false)
+		{
+			return $this->passthru('sort_keys', func_get_args());
+		}
+		public function sort_keys_desc(int $options=SORT_REGULAR)
+		{
+			return $this->passthru('sort_keys_desc', func_get_args());
+		}
+		public function sort_keys_using(callable $callback)
+		{
+			return $this->passthru('sort_keys_using', func_get_args());
+		}
+		public function split(int $number_of_groups)
+		{
+			return $this->passthru('split', func_get_args());
+		}
+		public function split_in(int $number_of_groups)
+		{
+			return $this->chunk(ceil($this->count()/$number_of_groups));
+		}
+		public function take(int $limit)
+		{
+			if($limit < 0)
+				return new static(function() use($limit){
+					$limit=abs($limit);
+					$ring_buffer=[];
+					$position=0;
+
+					foreach($this->source as $key=>$value)
+					{
+						$ring_buffer[$position]=[$key, $value];
+						$position=($position+1)%$limit;
+					}
+
+					for($i=0, $end=min($limit, count($ring_buffer)); $i<$end; ++$i)
+					{
+						$pointer=($position+$i)%$limit;
+
+						yield $ring_buffer[$pointer][0]=>$ring_buffer[$pointer][1];
+					}
+				});
+
+			return new static(function() use($limit){
+				$iterator=$this->get_iterator();
+
+				while($limit--)
+				{
+					if(!$iterator->valid())
+						break;
+
+					yield $iterator->key()=>$iterator->current();
+
+					if($limit)
+						$iterator->next();
+				}
+			});
+		}
+		public function take_until($value)
+		{
+			if($this->use_as_callable($value))
+				$callback=$value;
+			else
+				$callback=$this->equality($value);
+
+			return new static(function() use($callback){
+				foreach($this->source as $key=>$item)
+				{
+					if($callback($item, $key))
+						break;
+
+					yield $key=>$item;
+				}
+			});
+		}
+		public function take_while($value)
+		{
+			if($this->use_as_callable($value))
+				$callback=$value;
+			else
+				$callback=$this->equality($value);
+
+			return $this->take_until(function($item, $key) use($callback){
+				return (!$callback($item, $key));
+			});
+		}
+		public function undot()
+		{
+			return $this->passthru('undot', []);
+		}
+		public function union($items)
+		{
+			return $this->passthru('union', func_get_args());
+		}
+		public function unique($key=null, bool $strict=false)
+		{
+			$callback=$this->value_retriever($key);
+
+			return new static(function() use($callback, $strict){
+				$exists=[];
+
+				foreach($this->source as $key=>$item)
+				{
+					$id=$callback($item, $key);
+
+					if(!in_array($id, $exists, $strict))
+					{
+						yield $key=>$item;
+
+						$exists[]=$id;
+					}
+				}
+			});
+		}
+		public function values()
+		{
+			return new static(function(){
+				foreach($this->source as $item)
+					yield $item;
+			});
+		}
+
+		// from EnumeratesValues trait
+		protected function equality($value)
+		{
+			return function($item) use($value)
+			{
+				return ($item === $value);
+			};
+		}
+		protected function negate(Closure $callback)
+		{
+			return function(...$params) use($callback)
+			{
+				return (!$callback(...$params));
+			};
 		}
 	}
 ?>

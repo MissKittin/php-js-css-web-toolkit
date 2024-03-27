@@ -4,6 +4,7 @@ You can specify any form
 ## Required libraries
 * `check_var.php`
 * `sec_csrf.php`
+* `simpleblog_materialized.css` (for materialized template)
 
 ## Note  
 Throws an `middleware_form_exception` on error
@@ -73,9 +74,19 @@ Set config options with the `add_config` method
 * `submit_button_label` [string]  
 	default: `Next`
 
+## Templates
+To select a template, add an argument to the constructor:  
+```
+$middleware_form=new middleware_form(); // select default template
+$middleware_form=new middleware_form('default'); // same as above
+$middleware_form=new middleware_form('materialized'); // self explanatory
+```
+
 ## Example usage - captcha
 feat. login component & `sec_captcha.php` library
 ```
+include './com/login/login.php';
+
 if(!isset($_SESSION['captcha_verified']))
 {
 	include './lib/sec_captcha.php';
@@ -111,7 +122,7 @@ if(!isset($_SESSION['captcha_verified']))
 			]);
 
 		if($captcha_form->is_form_sent())
-			include './com/login/reload.php'; // display reload page
+			login_com_reload(false); // display reload page, do not exit()
 		else
 			$captcha_form->view();
 
@@ -120,8 +131,7 @@ if(!isset($_SESSION['captcha_verified']))
 
 	$_SESSION['captcha_verified']=true;
 
-	include './com/login/reload.php'; // display reload page
-	exit();
+	login_com_reload(); // display reload page and exit()
 }
 
 // rest of the code
@@ -165,15 +175,28 @@ if(change_password_requested())
 ```
 
 ## Assets
-Link `./assets/middleware_form_bright.css` and `./assets/middleware_form_dark.css` to the `app/assets`. This step is optional.  
+Link template assets to the `app/assets`.
+
+### default template
 for *nix:
 ```
-ln -s ../../tk/com/middleware_form/assets/middleware_form_bright.css ./app/assets/middleware_form_bright.css; ln -s ../../tk/com/middleware_form/assets/middleware_form_dark.css ./app/assets/middleware_form_dark.css
+ln -s ../../tk/com/middleware_form/templates/default/assets/middleware_form_default_bright.css ./app/assets/middleware_form_default_bright.css; ln -s ../../tk/com/middleware_form/templates/default/assets/middleware_form_default_dark.css ./app/assets/middleware_form_default_dark.css
 ```
 for windows:
 ```
-mklink /d app\assets\middleware_form_bright.css ..\..\tk\com\middleware_form\assets\middleware_form_bright.css
-mklink /d app\assets\middleware_form_dark.css ..\..\tk\com\middleware_form\assets\middleware_form_dark.css
+mklink /d app\assets\middleware_form_default_bright.css ..\..\tk\com\middleware_form\assets\middleware_form_default_bright.css
+mklink /d app\assets\middleware_form_default_dark.css ..\..\tk\com\middleware_form\assets\middleware_form_default_dark.css
+```
+
+### materialized template
+for *nix:
+```
+ln -s ../../tk/com/middleware_form/templates/materialized/assets/middleware_form_materialized.css ./app/assets/middleware_form_materialized.css; ln -s ../../tk/lib/simpleblog_materialized.css ./app/assets/simpleblog_materialized.css
+```
+for windows:
+```
+mklink /d app\assets\middleware_form_materialized.css ..\..\tk\com\middleware_form\templates\materialized\assets\middleware_form_materialized.css
+mklink app\assets\simpleblog_materialized.css ..\..\tk\lib\simpleblog_materialized.css
 ```
 
 ## Portability

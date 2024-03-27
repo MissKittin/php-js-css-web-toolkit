@@ -34,14 +34,15 @@
 	 *   TEST_PGSQL_HOST (default: 127.0.0.1)
 	 *   TEST_PGSQL_PORT (default: 5432)
 	 *   TEST_PGSQL_SOCKET (has priority over the HOST)
-	 *    eg. for pgsql (note: directory path): /var/run/postgresql
-	 *    eg. for mysql: /var/run/mysqld/mysqld.sock
+	 *    eg. /var/run/postgresql
+	 *    note: path to the directory, not socket
 	 *   TEST_PGSQL_DBNAME (default: php_toolkit_tests)
 	 *   TEST_PGSQL_USER (default: postgres)
 	 *   TEST_PGSQL_PASSWORD (default: postgres)
 	 *   TEST_MYSQL_HOST (default: [::1])
 	 *   TEST_MYSQL_PORT (default: 3306)
-	 *   TEST_MYSQL_SOCKET (has priority over the HOST
+	 *   TEST_MYSQL_SOCKET (has priority over the HOST)
+	 *    eg. /var/run/mysqld/mysqld.sock
 	 *   TEST_MYSQL_DBNAME (default: php_toolkit_tests)
 	 *   TEST_MYSQL_USER (default: root)
 	 *   TEST_MYSQL_PASSWORD
@@ -432,6 +433,71 @@
 		global $pdo_handler;
 		global $redis_handler;
 		global $memcached_handler;
+
+		// MySQL server has gone away
+		if(
+			(getenv('TEST_DB_TYPE') !== false) &&
+			(($GLOBALS['_pdo']['type'] === 'pgsql') || ($GLOBALS['_pdo']['type'] === 'mysql'))
+		){
+			global $_pdo;
+			try /* some monsters */ {
+				switch($_pdo['type'])
+				{
+					case 'pgsql':
+						echo '  -> Using '.$_pdo['type'].' driver'.PHP_EOL;
+
+						if(!extension_loaded('pdo_pgsql'))
+							throw new Exception('pdo_pgsql extension is not loaded');
+
+						if(isset($_pdo['credentials'][$_pdo['type']]['socket']))
+							$pdo_handler=new PDO('pgsql:'
+								.'host='.$_pdo['credentials'][$_pdo['type']]['socket'].';'
+								.'dbname='.$_pdo['credentials'][$_pdo['type']]['dbname'].';'
+								.'user='.$_pdo['credentials'][$_pdo['type']]['user'].';'
+								.'password='.$_pdo['credentials'][$_pdo['type']]['password'].''
+							);
+						else
+							$pdo_handler=new PDO('pgsql:'
+								.'host='.$_pdo['credentials'][$_pdo['type']]['host'].';'
+								.'port='.$_pdo['credentials'][$_pdo['type']]['port'].';'
+								.'dbname='.$_pdo['credentials'][$_pdo['type']]['dbname'].';'
+								.'user='.$_pdo['credentials'][$_pdo['type']]['user'].';'
+								.'password='.$_pdo['credentials'][$_pdo['type']]['password'].''
+							);
+					break;
+					case 'mysql':
+						echo '  -> Using '.$_pdo['type'].' driver'.PHP_EOL;
+
+						if(!extension_loaded('pdo_mysql'))
+							throw new Exception('pdo_mysql extension is not loaded');
+
+						if(isset($_pdo['credentials'][$_pdo['type']]['socket']))
+							$pdo_handler=new PDO('mysql:'
+								.'unix_socket='.$_pdo['credentials'][$_pdo['type']]['socket'].';'
+								.'dbname='.$_pdo['credentials'][$_pdo['type']]['dbname'],
+								$_pdo['credentials'][$_pdo['type']]['user'],
+								$_pdo['credentials'][$_pdo['type']]['password']
+							);
+						else
+							$pdo_handler=new PDO('mysql:'
+								.'host='.$_pdo['credentials'][$_pdo['type']]['host'].';'
+								.'port='.$_pdo['credentials'][$_pdo['type']]['port'].';'
+								.'dbname='.$_pdo['credentials'][$_pdo['type']]['dbname'],
+								$_pdo['credentials'][$_pdo['type']]['user'],
+								$_pdo['credentials'][$_pdo['type']]['password']
+							);
+					break;
+					case 'sqlite':
+						echo '  -> Using '.$_pdo['type'].' driver'.PHP_EOL;
+					break;
+					default:
+						echo '  -> '.$_pdo['type'].' driver is not supported [FAIL]'.PHP_EOL;
+				}
+			} catch(Throwable $error) {
+				echo ' Error: '.$error->getMessage().PHP_EOL;
+				exit(1);
+			}
+		}
 
 		$objects=[
 			'bruteforce_pdo'=>new bruteforce_pdo([

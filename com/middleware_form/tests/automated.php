@@ -78,7 +78,7 @@
 			$failed=true;
 		}
 
-	echo ' -> Testing parse_fields';
+	echo ' -> Testing parse_fields (default template)';
 		$GLOBALS['mock_csrf_check_token']=false;
 		$GLOBALS['mock_check_post']=null;
 		$form=new middleware_form_test();

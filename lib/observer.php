@@ -3,24 +3,24 @@
 	 * Observer design pattern
 	 *
 	 * Note:
-	 *  observer class can be inherited
+	 *  observer class can be inherited or use t_observer trait
 	 *
 	 * Example usage:
-		class logger implements observer_interface
+		class logger implements i_observer
 		{
 			public function update($observer)
 			{
 				echo __CLASS__.' update(): '.$observer->get_content().PHP_EOL;
 			}
 		}
-		class rss implements observer_interface
+		class rss implements i_observer
 		{
 			public function update($observer)
 			{
 				echo __CLASS__.' update(): '.$observer->get_content().PHP_EOL;
 			}
 		}
-		class article implements observer_interface
+		class article implements i_observer
 		{
 			public function update($observer)
 			{
@@ -30,6 +30,8 @@
 
 		class my_observer extends observer
 		{
+			// note: you can use t_observer trait instead of observer class
+
 			private $content;
 
 			public function add($content)
@@ -56,21 +58,21 @@
 		$my_observer_object->add('Second article content');
 	 */
 
-	interface observer_interface
+	interface i_observer
 	{
 		public function update($observer);
 	}
 
-	class observer
+	trait t_observer
 	{
 		protected $observers=[];
 
-		public function attach(observer_interface $observer)
+		public function attach(i_observer $observer)
 		{
 			$this->observers[spl_object_hash($observer)]=$observer;
 			return $this;
 		}
-		public function detach(observer_interface $observer)
+		public function detach(i_observer $observer)
 		{
 			unset($this->observers[spl_object_hash($observer)]);
 			return $this;
@@ -80,5 +82,10 @@
 			foreach($this->observers as $observer)
 				$observer->update($this);
 		}
+	}
+
+	class observer
+	{
+		use t_observer;
 	}
 ?>

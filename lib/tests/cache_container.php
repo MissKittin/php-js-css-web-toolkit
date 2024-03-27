@@ -28,20 +28,25 @@
 	 *   TEST_MEMCACHED_PORT (default: 11211)
 	 *
 	 * Hint:
+	 *  you can force APCu to be enabled via an environment variable:
+	 *   TEST_APCU=yes (default: no)
+	 *
+	 * Hint:
 	 *  you can setup database credentials by environment variables
 	 *  variables:
 	 *   TEST_DB_TYPE (pgsql, mysql, sqlite) (default: sqlite)
 	 *   TEST_PGSQL_HOST (default: 127.0.0.1)
 	 *   TEST_PGSQL_PORT (default: 5432)
 	 *   TEST_PGSQL_SOCKET (has priority over the HOST)
-	 *    eg. for pgsql (note: directory path): /var/run/postgresql
-	 *    eg. for mysql: /var/run/mysqld/mysqld.sock
+	 *    eg. /var/run/postgresql
+	 *    note: path to the directory, not socket
 	 *   TEST_PGSQL_DBNAME (default: php_toolkit_tests)
 	 *   TEST_PGSQL_USER (default: postgres)
 	 *   TEST_PGSQL_PASSWORD (default: postgres)
 	 *   TEST_MYSQL_HOST (default: [::1])
 	 *   TEST_MYSQL_PORT (default: 3306)
-	 *   TEST_MYSQL_SOCKET (has priority over the HOST
+	 *   TEST_MYSQL_SOCKET (has priority over the HOST)
+	 *    eg. /var/run/mysqld/mysqld.sock
 	 *   TEST_MYSQL_DBNAME (default: php_toolkit_tests)
 	 *   TEST_MYSQL_USER (default: root)
 	 *   TEST_MYSQL_PASSWORD
@@ -60,6 +65,26 @@
 	{
 		echo 'PDO extension is not loaded'.PHP_EOL;
 		exit(1);
+	}
+
+	if(
+		extension_loaded('apcu') &&
+		(getenv('TEST_APCU') === 'yes') &&
+		(!apcu_enabled())
+	){
+		if(isset($argv[1]) && ($argv[1] !== 'apcu-force'))
+		{
+			echo ' -> Force APCu apc.enable_cli=1 [FAIL]'.PHP_EOL;
+		}
+		else
+		{
+			echo ' -> Force APCu apc.enable_cli=1'.PHP_EOL;
+			system(
+				PHP_BINARY.' -d apc.enable_cli=1 '.$argv[0].' apcu-force',
+				$test_result
+			);
+			exit($test_result);
+		}
 	}
 
 	echo ' -> Including '.basename(__FILE__);
@@ -392,7 +417,7 @@
 	else
 		echo ' -> Skipping cache_driver_memcached'.PHP_EOL;
 
-	if(extension_loaded('apcu'))
+	if(extension_loaded('apcu') && (getenv('TEST_APCU') === 'yes'))
 	{
 		if(apcu_enabled())
 			$cache_drivers['cache_driver_apcu']=[

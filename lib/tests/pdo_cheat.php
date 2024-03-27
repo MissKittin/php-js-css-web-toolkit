@@ -13,14 +13,15 @@
 	 *   TEST_PGSQL_HOST (default: 127.0.0.1)
 	 *   TEST_PGSQL_PORT (default: 5432)
 	 *   TEST_PGSQL_SOCKET (has priority over the HOST)
-	 *    eg. for pgsql (note: directory path): /var/run/postgresql
-	 *    eg. for mysql: /var/run/mysqld/mysqld.sock
+	 *    eg. /var/run/postgresql
+	 *    note: path to the directory, not socket
 	 *   TEST_PGSQL_DBNAME (default: php_toolkit_tests)
 	 *   TEST_PGSQL_USER (default: postgres)
 	 *   TEST_PGSQL_PASSWORD (default: postgres)
 	 *   TEST_MYSQL_HOST (default: [::1])
 	 *   TEST_MYSQL_PORT (default: 3306)
-	 *   TEST_MYSQL_SOCKET (has priority over the HOST
+	 *   TEST_MYSQL_SOCKET (has priority over the HOST)
+	 *    eg. /var/run/mysqld/mysqld.sock
 	 *   TEST_MYSQL_DBNAME (default: php_toolkit_tests)
 	 *   TEST_MYSQL_USER (default: root)
 	 *   TEST_MYSQL_PASSWORD

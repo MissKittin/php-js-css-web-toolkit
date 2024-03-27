@@ -17,6 +17,13 @@
 			if($view['inline_style'])
 			{
 				?><style nonce="mainstyle"><?php
+					if(is_file(__DIR__.'/../../lib/simpleblog_materialized.css'))
+						readfile(__DIR__.'/../../lib/simpleblog_materialized.css');
+					else if(is_file(__DIR__.'/../../../../lib/simpleblog_materialized.css'))
+						readfile(__DIR__.'/../../../../lib/simpleblog_materialized.css');
+					else
+						echo '/* simpleblog_materialized.css library not found */';
+
 					if(is_dir(__DIR__.'/assets/'.$view['middleware_form_style']))
 						foreach(
 							array_diff(
@@ -29,11 +36,11 @@
 				?></style><?php
 			}
 			else
-			{
-				?><link rel="stylesheet" href="<?php echo $view['assets_path']; ?>/<?php echo $view['middleware_form_style']; ?>"><?php
-			}
+			{ ?>
+				<link rel="stylesheet" href="<?php echo $view['assets_path']; ?>/simpleblog_materialized.css">
+				<link rel="stylesheet" href="<?php echo $view['assets_path']; ?>/<?php echo $view['middleware_form_style']; ?>">
+			<?php }
 		?>
-		<link rel="stylesheet" href="<?php echo $view['assets_path']; ?>/<?php echo $view['middleware_form_style']; ?>">
 		<meta name="robots" content="noindex,nofollow">
 		<?php
 			if(isset($view['html_headers']))
@@ -44,12 +51,12 @@
 		<div id="middleware_form">
 			<form method="post" action="">
 				<?php $this->parse_fields($view); ?>
+				<div class="input_button"><input class="sb_full_button" type="submit" name="middleware_form" value="<?php echo $view['submit_button_label']; ?>"></div>
 				<?php if(isset($view['error_message'])) { ?>
 					<div class="message_container">
 						<?php echo $view['error_message']; ?>
 					</div>
 				<?php } ?>
-				<div class="input_button"><input type="submit" name="middleware_form" value="<?php echo $view['submit_button_label']; ?>"></div>
 				<input type="hidden" name="<?php echo csrf_print_token('parameter'); ?>" value="<?php echo csrf_print_token('value'); ?>">
 			</form>
 		</div>

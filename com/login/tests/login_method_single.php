@@ -69,24 +69,37 @@
 		}
 	echo ' [ OK ]'.PHP_EOL;
 
+	echo ' -> Including login.php';
+		try {
+			if(@(include __DIR__.'/../login.php') === false)
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				exit(1);
+			}
+		} catch(Throwable $error) {
+			echo ' [FAIL]'
+				.PHP_EOL.PHP_EOL
+				.'Caught: '.$error->getMessage()
+				.PHP_EOL;
+
+			exit(1);
+		}
+	echo ' [ OK ]'.PHP_EOL;
+
 	echo ' -> Setting up component';
-		$GLOBALS['_login']['config']['method']='login_single';
-		$GLOBALS['_login']['config']['on_login_success']=function()
+		login_com_reg_config::_()['method']='login_single';
+		login_com_reg_config::_()['on_login_success']=function()
 		{
 			echo ' -> Login success'.PHP_EOL;
 		};
 	echo ' [ OK ]'.PHP_EOL;
 
-	echo ' -> Including login.php'.PHP_EOL;
+	echo ' -> Executing login_com()'.PHP_EOL;
 		ob_start();
 		try {
-			if(@(include __DIR__.'/../login.php') === false)
-			{
-				echo ' <- Including login.php [FAIL]'.PHP_EOL;
-				exit(1);
-			}
+			login_com();
 		} catch(Throwable $error) {
-			echo ' <- Including login.php [FAIL]'
+			echo ' <- Executing login_com() [FAIL]'
 				.PHP_EOL.PHP_EOL
 				.'Caught: '.$error->getMessage()
 				.PHP_EOL;

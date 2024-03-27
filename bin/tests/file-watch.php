@@ -22,8 +22,8 @@
 			$command,
 			[
 				0=>['pipe', 'r'],
-				1=>['pipe', 'w'],
-				2=>['pipe', 'w']
+				1=>['file', __DIR__.'/tmp/file-watch/stdout.txt', 'a'],
+				2=>['file', __DIR__.'/tmp/file-watch/stderr.txt', 'a']
 			],
 			$process_pipes,
 			getcwd(),
@@ -102,6 +102,7 @@
 		}
 
 	echo ' -> Testing output file';
+		sleep(1);
 		file_put_contents(__DIR__.'/tmp/file-watch/src/input.txt', 'content');
 		sleep(1);
 		if(file_get_contents(__DIR__.'/tmp/file-watch/output.txt') === 'ScontentE')
@@ -111,8 +112,9 @@
 			echo ' [FAIL]';
 			++$failed;
 		}
+		sleep(1);
 		file_put_contents(__DIR__.'/tmp/file-watch/src/input.txt', 'mcontent');
-		sleep(3);
+		sleep(1);
 		if(file_get_contents(__DIR__.'/tmp/file-watch/output.txt') === 'SmcontentE')
 			echo ' [ OK ]';
 		else
@@ -120,8 +122,9 @@
 			echo ' [FAIL]';
 			++$failed;
 		}
+		sleep(1);
 		file_put_contents(__DIR__.'/tmp/file-watch/src/input.txt', 'mmcontent');
-		sleep(3);
+		sleep(1);
 		if(file_get_contents(__DIR__.'/tmp/file-watch/output.txt') === 'SmmcontentE')
 			echo ' [ OK ]'.PHP_EOL;
 		else

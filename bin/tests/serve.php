@@ -141,6 +141,6 @@
 		proc_close($_serve_test_handler);
 	}
 
-	if($failed === 3)
+	if($failed)
 		exit(1);
 ?>

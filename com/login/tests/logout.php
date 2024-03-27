@@ -53,26 +53,38 @@
 		}
 	echo ' [ OK ]'.PHP_EOL;
 
+	echo ' -> Including login.php';
+		try {
+			if(@(include __DIR__.'/../login.php') === false)
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				exit(1);
+			}
+		} catch(Throwable $error) {
+			echo ' [FAIL]'
+				.PHP_EOL.PHP_EOL
+				.'Caught: '.$error->getMessage()
+				.PHP_EOL;
+
+			exit(1);
+		}
+	echo ' [ OK ]'.PHP_EOL;
+
 	echo ' -> Setting up component';
-		$GLOBALS['_login']['config']['on_logout']=function()
+		login_com_reg_config::_()['on_logout']=function()
 		{
 			echo ' -> Logged out [ OK ]'.PHP_EOL;
 			exit();
 		};
 	echo ' [ OK ]'.PHP_EOL;
 
-	echo ' -> Including login.php'.PHP_EOL;
+	echo ' -> Executing login_com()'.PHP_EOL;
 		ob_start();
 		try {
-			if(@(include __DIR__.'/../login.php') === false)
-			{
-				echo ' <- Including login.php [FAIL]'.PHP_EOL;
-				exit(1);
-			}
+			login_com();
 		} catch(Throwable $error) {
-			echo ' <- Including login.php [FAIL]'.PHP_EOL;
-			echo ' -> Not logged out [FAIL]'.PHP_EOL
-				.PHP_EOL
+			echo ' [FAIL]'
+				.PHP_EOL.PHP_EOL
 				.'Caught: '.$error->getMessage()
 				.PHP_EOL;
 
