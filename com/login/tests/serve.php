@@ -6,6 +6,8 @@
 
 	if(php_sapi_name() === 'cli-server')
 	{
+		include __DIR__.'/../login.php';
+
 		error_log('Request '.$_SERVER['REQUEST_URI']);
 
 		if(substr($_SERVER['REQUEST_URI'], 0, 8) === '/assets/')
@@ -58,15 +60,15 @@
 			switch($_GET['theme'])
 			{
 				case 'dark':
-					$GLOBALS['_login']['view']['template']='default';
-					$GLOBALS['_login']['view']['login_style']='login_default_dark.css';
+					login_com_reg_view::_()['template']='default';
+					login_com_reg_view::_()['login_style']='login_default_dark.css';
 				break;
 				case 'materialized':
-					$GLOBALS['_login']['view']['template']='materialized';
-					$GLOBALS['_login']['view']['login_style']='login_materialized.css';
+					login_com_reg_view::_()['template']='materialized';
+					login_com_reg_view::_()['login_style']='login_materialized.css';
 			}
 
-		include __DIR__.'/../login.php';
+		login_com();
 
 		exit();
 	}

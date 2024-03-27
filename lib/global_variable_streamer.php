@@ -142,5 +142,9 @@
 		{
 			return false;
 		}
+		public function stream_set_option(): bool
+		{
+			return false;
+		}
 	}
 ?>

@@ -4,16 +4,20 @@
 	{
 		protected $is_form_sent=true;
 		protected $registry=[];
+		protected $template;
 
-		public function __construct()
+		public function __construct(string $template='default')
 		{
 			$this->load_function([
 				'check_var.php'=>'check_post',
 				'sec_csrf.php'=>'csrf_check_token'
 			]);
 
-			require __DIR__.'/config.php';
-			$this->registry=$view;
+			if(!file_exists(__DIR__.'/templates/'.$template))
+				throw new middleware_form_exception('The '.$template.' template does not exist');
+
+			$this->template=$template;
+			$this->setup_registry();
 
 			if((!csrf_check_token('post')) || (check_post('middleware_form') === null))
 				$this->is_form_sent=false;
@@ -32,95 +36,32 @@
 						throw new middleware_form_exception('Library '.$library_file.' not found');
 				}
 		}
-
 		protected function parse_fields($view)
 		{
-			foreach($view['form_fields'] as $form_field)
-				if($form_field['tag'] === null)
-					echo $form_field['content'];
-				else
-				{
-					if(
-						isset($form_field['type']) &&
-						($form_field['type'] === 'slider')
-					){
-						$form_field['type']='checkbox';
-						$slider_label=$form_field['slider_label'];
-						unset($form_field['slider_label']);
-						unset($form_field['tag']);
+			require __DIR__.'/templates/'.$this->template.'/parse_fields.php';
+		}
+		protected function setup_registry()
+		{
+			$this->registry=[
+				'lang'=>'en',
+				'title'=>'Middleware form',
+				'assets_path'=>'/assets',
+				'middleware_form_style'=>'middleware_form_default_bright.css',
+				'inline_style'=>false,
+				'submit_button_label'=>'Next',
+				'csp_header'=>[
+					'default-src'=>['\'none\''],
+					'script-src'=>['\'self\''],
+					'connect-src'=>['\'self\''],
+					'img-src'=>['\'self\''],
+					'style-src'=>['\'self\''],
+					'base-uri'=>['\'self\''],
+					'form-action'=>['\'self\'']
+				]
+			];
 
-						echo ''
-						.	'<div class="input_checkbox">'
-						.		'<label class="switch">'
-						;
-
-								echo '<input';
-								foreach($form_field as $parameter_name=>$parameter_value)
-									echo ' '
-									.	$parameter_name
-									.	'='
-									.	'"'.$parameter_value.'"'
-									;
-								echo '>';
-
-						echo ''
-						.			'<span class="slider"></span>'
-						.		'</label>'
-						.		'<div class="input_checkbox_text">'
-						.			$slider_label
-						.		'</div>'
-						.	'</div>'
-						;
-
-						unset($slider_label);
-					}
-					else if(
-						isset($form_field['type']) &&
-						isset($form_field['label']) &&
-						(
-							($form_field['type'] === 'checkbox') ||
-							($form_field['type'] === 'radio')
-						)
-					){
-						$label=$form_field['label'];
-						unset($form_field['label']);
-
-						echo ''
-						.	'<div class="input_checkbox">'
-						.		'<'.$form_field['tag']
-						;
-						unset($form_field['tag']);
-
-						foreach($form_field as $parameter_name=>$parameter_value)
-							if($parameter_value === null)
-								echo ' '.$parameter_name;
-							else
-								echo ' '.$parameter_name.'="'.$parameter_value.'"';
-
-						echo '>'
-						.		'<label>'.$label.'</label>'
-						.	'</div>'
-						;
-					}
-					else
-					{
-						echo ''
-						.	'<div class="input_text">'
-						.	'<'.$form_field['tag']
-						;
-						unset($form_field['tag']);
-
-						foreach($form_field as $parameter_name=>$parameter_value)
-							if($parameter_value === null)
-								echo ' '.$parameter_name;
-							else
-								echo ' '.$parameter_name.'="'.$parameter_value.'"';
-
-						echo '>'
-						.	'</div>'
-						;
-					}
-				}
+			if($this->template === 'materialized')
+				$this->registry['middleware_form_style']='middleware_form_materialized.css';
 		}
 
 		public function add_field(array $field)
@@ -167,7 +108,7 @@
 			if($view['inline_style'])
 				$view['csp_header']['style-src'][]='\'nonce-mainstyle\'';
 
-			require __DIR__.'/view.php';
+			require __DIR__.'/templates/'.$this->template.'/view.php';
 		}
 	}
 ?>

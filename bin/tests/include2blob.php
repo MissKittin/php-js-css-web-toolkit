@@ -65,8 +65,6 @@
 		?>');
 	echo ' [ OK ]'.PHP_EOL;
 
-	$failed=false;
-
 	echo ' -> Testing tool';
 		chdir(__DIR__.'/tmp/include2blob/src');
 		$output=shell_exec(PHP_BINARY.' ../'.basename(__FILE__).' ./main.php');
@@ -79,9 +77,6 @@
 		else
 		{
 			echo ' [FAIL]'.PHP_EOL;
-			$failed=true;
+			exit(1);
 		}
-
-	if($failed)
-		exit(1);
 ?>

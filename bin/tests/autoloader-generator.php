@@ -70,8 +70,6 @@
 		);
 	echo ' [ OK ]'.PHP_EOL;
 
-	$failed=false;
-
 	echo ' -> Starting tool'.PHP_EOL.PHP_EOL;
 		system(
 			PHP_BINARY.' '.__DIR__.'/../'.basename(__FILE__).' '
@@ -90,9 +88,6 @@
 		else
 		{
 			echo ' [FAIL]'.PHP_EOL;
-			$failed=true;
+			exit(1);
 		}
-
-	if($failed)
-		exit(1);
 ?>

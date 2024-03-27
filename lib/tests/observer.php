@@ -39,7 +39,7 @@
 		$GLOBALS['article']=0;
 		$GLOBALS['article_content']='';
 
-		class logger implements observer_interface
+		class logger implements i_observer
 		{
 			public function update($observer)
 			{
@@ -47,7 +47,7 @@
 				$GLOBALS[__CLASS__.'_content'].=$observer->get_content();
 			}
 		}
-		class rss implements observer_interface
+		class rss implements i_observer
 		{
 			public function update($observer)
 			{
@@ -55,7 +55,7 @@
 				$GLOBALS[__CLASS__.'_content'].=$observer->get_content();
 			}
 		}
-		class article implements observer_interface
+		class article implements i_observer
 		{
 			public function update($observer)
 			{

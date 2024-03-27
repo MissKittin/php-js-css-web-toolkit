@@ -190,7 +190,7 @@
 			.					'var data=JSON.parse(event.data);'
 			.					'if(data[0] === "get_time")'
 			.						'document.getElementById("output").innerHTML="Current timestamp: "+data[1];'
-			.					'else'
+			.					'else '
 			.						'document.getElementById("output").innerHTML="WebSocket test failed - bad response";'
 			.				'});'
 			.			'}, false);'
@@ -237,10 +237,48 @@
 				exit(1);
 			}
 
+		function do_exit($_serve_test_handler, $failed=false)
+		{
+			if(is_resource($_serve_test_handler))
+			{
+				echo ' -> Stopping tool'.PHP_EOL;
+
+				$_serve_test_handler_status=@proc_get_status($_serve_test_handler);
+				if(isset($_serve_test_handler_status['pid']))
+					@exec('taskkill.exe /F /T /PID '.$_serve_test_handler_status['pid'].' 2>&1');
+
+				proc_terminate($_serve_test_handler);
+				proc_close($_serve_test_handler);
+			}
+
+			if($failed === false)
+				exit();
+
+			if($failed === true)
+				exit(1);
+
+			echo PHP_EOL.PHP_EOL
+			.	$failed.PHP_EOL;
+
+			exit(1);
+		}
+
 		echo ' -> Testing tool';
 			$sock=socket_create(AF_INET, SOCK_STREAM, 0);
-			socket_connect($sock, '127.0.0.1', 8081);
-			socket_write($sock, ''
+			if($sock === false)
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				do_exit($_serve_test_handler, 'socket_create() failed');
+			}
+
+			if(!socket_connect($sock, '127.0.0.1', 8081))
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				socket_close($sock);
+				do_exit($_serve_test_handler, 'socket_connect() failed');
+			}
+
+			if(socket_write($sock, ''
 			.	'GET / HTTP/1.1'."\n"
 			.	'Upgrade: WebSocket'."\n"
 			.	'Connection: Upgrade'."\n"
@@ -248,11 +286,35 @@
 			.	'Origin: http://localhost/'."\n"
 			.	'Host: 127.0.0.1'."\n"
 			.	"\n"
-			);
-			$headers=socket_read($sock, 2000);;
-			socket_write($sock, hybi10_encode('get_time'));
+			) === false){
+				echo ' [FAIL]'.PHP_EOL;
+				socket_close($sock);
+				do_exit($_serve_test_handler, 'socket_write() headers failed');
+			}
+
+			$headers=socket_read($sock, 2000);
+			if($headers === false)
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				socket_close($sock);
+				do_exit($_serve_test_handler, 'socket_read() headers failed');
+			}
+
+			if(socket_write($sock, hybi10_encode('get_time')) === false)
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				socket_close($sock);
+				do_exit($_serve_test_handler, 'socket_write() get_time failed');
+			}
+
 			$current_time=time();
 			$ws_data=socket_read($sock, 2000);
+			if($ws_data === false)
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				socket_close($sock);
+				do_exit($_serve_test_handler, 'socket_read() ws_data failed');
+			}
 			socket_close($sock);
 
 			if(md5($headers) === '777f015a23caf2f805acdb741269f46e')
@@ -271,20 +333,5 @@
 			}
 	}
 
-	if(is_resource($_serve_test_handler))
-		{
-			echo ' -> Stopping tool'.PHP_EOL;
-
-			$_serve_test_handler_status=@proc_get_status($_serve_test_handler);
-			if(isset($_serve_test_handler_status['pid']))
-				@exec('taskkill.exe /F /T /PID '.$_serve_test_handler_status['pid'].' 2>&1');
-
-			proc_terminate($_serve_test_handler);
-			proc_close($_serve_test_handler);
-		}
-
-	if($failed)
-		exit(1);
-
-	exit();
+	do_exit($_serve_test_handler, $failed);
 ?>

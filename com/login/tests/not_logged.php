@@ -34,16 +34,7 @@
 	session_start();
 	echo ' -> Session mocked'.PHP_EOL;
 
-	echo ' -> Setting up component';
-		$GLOBALS['not_logged']=false;
-		$GLOBALS['_login']['config']['on_login_prompt']=function()
-		{
-			$GLOBALS['not_logged']=true;
-		};
-	echo ' [ OK ]'.PHP_EOL;
-
 	echo ' -> Including login.php';
-		ob_start();
 		try {
 			if(@(include __DIR__.'/../login.php') === false)
 			{
@@ -58,13 +49,35 @@
 
 			exit(1);
 		}
+	echo ' [ OK ]'.PHP_EOL;
+
+	echo ' -> Setting up component';
+		$GLOBALS['test_not_logged']=false;
+		login_com_reg_config::_()['on_login_prompt']=function()
+		{
+			$GLOBALS['test_not_logged']=true;
+		};
+	echo ' [ OK ]'.PHP_EOL;
+
+	echo ' -> Executing login_com()';
+		ob_start();
+		try {
+			login_com();
+		} catch(Throwable $error) {
+			echo ' [FAIL]'
+				.PHP_EOL.PHP_EOL
+				.'Caught: '.$error->getMessage()
+				.PHP_EOL;
+
+			exit(1);
+		}
 		ob_end_clean();
 	echo ' [ OK ]'.PHP_EOL;
 
 	$failed=false;
 
 	echo ' -> Checking on_login_prompt callback';
-		if($GLOBALS['not_logged'])
+		if($GLOBALS['test_not_logged'])
 			echo ' [ OK ]'.PHP_EOL;
 		else
 		{

@@ -77,7 +77,7 @@
 	 *   constructor array parameters:
 	 *    memcached_handler (object)
 	 *    [prefix] => string, adds to the name of each key (default: cache_container__)
-	 *   note: flush method is not implemented
+	 *   warning: Memcached does not support the flush method
 	 *  cache_driver_apcu -> use APCu
 	 *   constructor array parameters:
 	 *    [prefix] => string, adds to the name of each key (default: cache_container__)
@@ -800,7 +800,7 @@
 		}
 		public function flush(): void
 		{
-			throw new cache_container_exception('flush method is not implemented in memcached driver');
+			throw new cache_container_exception('Memcached does not support the flush method');
 		}
 	}
 	class cache_driver_apcu implements cache_driver

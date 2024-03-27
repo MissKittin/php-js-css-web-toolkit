@@ -1,28 +1,28 @@
 <!DOCTYPE html>
-<html lang="<?php echo $GLOBALS['_login']['view']['lang']; ?>">
+<html lang="<?php echo login_com_reg_view::_()['lang']; ?>">
 	<head>
-		<title><?php echo $GLOBALS['_login']['view']['loading_title']; ?></title>
+		<title><?php echo login_com_reg_view::_()['loading_title']; ?></title>
 		<meta charset="utf-8">
-		<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'self'<?php if($GLOBALS['_login']['view']['inline_style']) echo ' \'nonce-mainstyle\'';?>;">
+		<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'self'<?php if(login_com_reg_view::_()['inline_style']) echo ' \'nonce-mainstyle\'';?>;">
 		<meta name="viewport" content="width=device-width, initial-scale=1">
 		<?php
-			if($GLOBALS['_login']['view']['inline_style'])
+			if(login_com_reg_view::_()['inline_style'])
 			{
 				?><style nonce="mainstyle"><?php
-					if(is_dir(__DIR__.'/../assets/'.$GLOBALS['_login']['view']['login_style']))
+					if(is_dir(__DIR__.'/../assets/'.login_com_reg_view::_()['login_style']))
 						foreach(
 							array_diff(
-								scandir(__DIR__.'/../assets/'.$GLOBALS['_login']['view']['login_style']),
+								scandir(__DIR__.'/../assets/'.login_com_reg_view::_()['login_style']),
 								['.', '..']
 							)
 							as $inline_style
 						)
-							readfile(__DIR__.'/../assets/'.$GLOBALS['_login']['view']['login_style'].'/'.$inline_style);
+							readfile(__DIR__.'/../assets/'.login_com_reg_view::_()['login_style'].'/'.$inline_style);
 				?></style><?php
 			}
 			else
 			{
-				?><link rel="stylesheet" href="<?php echo $GLOBALS['_login']['view']['assets_path']; ?>/<?php echo $GLOBALS['_login']['view']['login_style']; ?>"><?php
+				?><link rel="stylesheet" href="<?php echo login_com_reg_view::_()['assets_path']; ?>/<?php echo login_com_reg_view::_()['login_style']; ?>"><?php
 			}
 		?>
 		<meta name="robots" content="noindex,nofollow">
@@ -30,7 +30,7 @@
 	</head>
 	<body>
 		<h1 id="reload_label">
-			<?php echo $GLOBALS['_login']['view']['loading_label']; ?>
+			<?php echo login_com_reg_view::_()['loading_label']; ?>
 		</h1>
 	</body>
 </html>

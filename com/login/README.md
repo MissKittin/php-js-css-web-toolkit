@@ -3,21 +3,28 @@ Simple middleware
 
 ## Required libraries
 * `check_var.php`
+* `registry.php`
 * `sec_csrf.php`
 * `sec_login.php`
 * `simpleblog_materialized.css` (for materialized template)
 
 ## Reserved variables
-* `$GLOBALS['_login']`
 * `$_SESSION['_login_remember_me']`
 
 ## Note
-Throws an `Exception` if the library is not found  
-Throws an `login_component_exception` on error
+Throws an `login_com_exception` on error
 
-## Config sections
-Roadmap of `$GLOBALS['_login']` array
-* `config`
+## Configuration registers
+Component are configured using registers.  
+To set the desired value use `login_com_reg_name::_()['key']='value'` (except `login_com_reg_csp`)
+* `login_com_reg`
+	* `credentials` [array]  
+		data for the login_single and login_multi methods  
+		see [Example usage](#example-usage)
+	* `callback` [closure]  
+		a function that returns a hash for the login_callback method  
+		see [Example usage](#example-usage)
+* `login_com_reg_config`
 	* `method` [string]  
 		available: login_single login_multi login_callback  
 		see `sec_login.php` library for more info
@@ -36,7 +43,7 @@ Roadmap of `$GLOBALS['_login']` array
 		do on failed login
 	* `on_logout` [closure]  
 		do before logout
-* `view`
+* `login_com_reg_view`
 	* `template` [string]  
 		default or materialized
 	* `lang` [string]  
@@ -87,26 +94,26 @@ Roadmap of `$GLOBALS['_login']` array
 		`<title>` for `views/reload.php`
 	* `loading_label` [string]  
 		`views/reload.php` content
-* `csp_header`  
+* `login_com_reg_csp`  
 	section for the CSP generator  
-	to add element to the policy, do eg `$GLOBALS['_login']['csp_header']['script-src'][]='\'myhash\'';`
+	to add element to the policy, do eg `login_com_reg_csp::add('script-src', '\'myhash\'');`
 
 ## Event callbacks
 You can define functions that will be run at the right moment, eg
 ```
-$GLOBALS['_login']['config']['on_login_prompt']=function()
+login_com_reg_config::_()['on_login_prompt']=function()
 {
 	error_log('Login prompt requested');
 };
-$GLOBALS['_login']['config']['on_login_success']=function()
+login_com_reg_config::_()['on_login_success']=function()
 {
 	error_log('User logged in');
 };
-$GLOBALS['_login']['config']['on_login_failed']=function()
+login_com_reg_config::_()['on_login_failed']=function()
 {
 	error_log('Login failed');
 };
-$GLOBALS['_login']['config']['on_logout']=function()
+login_com_reg_config::_()['on_logout']=function()
 {
 	error_log('User logged out');
 };
@@ -114,28 +121,32 @@ $GLOBALS['_login']['config']['on_logout']=function()
 
 ## Example usage
 ```
+// include component
+include './com/login/login.php';
+
 // set credentials for single method
-$GLOBALS['_login']['credentials']=['login', 'bcrypted-password'];
+login_com_reg::_()['credentials']=['login', 'bcrypted-password'];
 
 // set credentials for multi method
-$GLOBALS['_login']['credentials']=[
+login_com_reg::_()['credentials']=[
 	['login1', 'bcrypted-password1'],
 	['login2', 'bcrypted-password2']
 ];
 
 // set callback for callback method
-$GLOBALS['_login']['callback']=function($login)
+login_com_reg::_()['callback']=function($login)
 {
 	if($login === 'login')
 		return 'bcrypted-password';
+
 	return null;
 };
 
 // set method
-$GLOBALS['_login']['config']['method']='login_single';
+login_com_reg_config::_()['method']='login_single';
 
 // display login prompt
-include './com/login/login.php';
+login_com();
 
 // check if user is authenticated
 if(is_logged())
@@ -152,8 +163,11 @@ if(is_logged())
 
 ## Display reload page only
 ```
-include './com/login/reload.php';
-exit();
+login_com_reload();
+```
+or if you don't want to exit()
+```
+login_com_reload(false);
 ```
 
 ## Custom session reloader for "Remember Me"
@@ -161,7 +175,7 @@ If you want to use session_start() with parameters other than the default,
 you can define the function `$GLOBALS['_login']['config']['session_reload']`.  
 eg. for the `sec_lv_encrypter.php` library the function will look like this:
 ```
-$GLOBALS['_login']['config']['session_reload']=function($cookie_lifetime)
+login_com_reg_config::_()['session_reload']=function($cookie_lifetime)
 {
 	lv_cookie_session_handler::session_start([
 		'cookie_lifetime'=>$cookie_lifetime
