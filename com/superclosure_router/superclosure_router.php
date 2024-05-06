@@ -1,24 +1,19 @@
 <?php
-	if(!class_exists('uri_router'))
-	{
-		if(file_exists(__DIR__.'/lib/uri_router.php'))
-			require __DIR__.'/lib/uri_router.php';
-		else if(file_exists(__DIR__.'/../../lib/uri_router.php'))
-			require __DIR__.'/../../lib/uri_router.php';
-		else
-			throw new Exception('uri_router.php library not found');
-	}
-	if(!class_exists('superclosure'))
-	{
-		if(file_exists(__DIR__.'/lib/superclosure.php'))
-			require __DIR__.'/lib/superclosure.php';
-		else if(file_exists(__DIR__.'/../../lib/superclosure.php'))
-			require __DIR__.'/../../lib/superclosure.php';
-		else
-			throw new Exception('superclosure.php library not found');
-	}
-
 	class superclosure_router_exception extends Exception {}
+
+	(function($libraries){
+		foreach($libraries as $library)
+			if(!class_exists($library))
+			{
+				if(file_exists(__DIR__.'/lib/'.$library.'.php'))
+					require __DIR__.'/lib/'.$library.'.php';
+				else if(file_exists(__DIR__.'/../../lib/'.$library.'.php'))
+					require __DIR__.'/../../lib/'.$library.'.php';
+				else
+					throw new superclosure_router_exception($library.'.php library not found');
+			}
+	})(['superclosure', 'uri_router']);
+
 	abstract class superclosure_router extends uri_router
 	{
 		protected static $source_variable=null;
@@ -68,7 +63,7 @@
 
 		public static function add(
 			array $source,
-			closure $callback,
+			callable $callback,
 			bool $use_regex=false,
 			$request_method=null
 		){

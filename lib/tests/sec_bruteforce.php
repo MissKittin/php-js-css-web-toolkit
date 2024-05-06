@@ -5,6 +5,7 @@
 	 * Note:
 	 *  looks for a library at ../lib
 	 *  looks for a library at ..
+	 *  looks for a tool at ../../bin
 	 *
 	 * Hint:
 	 *  you can setup Redis credentials by environment variables
@@ -17,6 +18,8 @@
 	 *   TEST_REDIS_DBINDEX (default: 0)
 	 *   TEST_REDIS_USER
 	 *   TEST_REDIS_PASSWORD
+	 *  you can also use the Predis package instead of PHPRedis extension:
+	 *   TEST_REDIS_PREDIS=yes (default: no)
 	 *
 	 * Hint:
 	 *  you can setup Memcached credentials by environment variables
@@ -48,19 +51,15 @@
 	 *   TEST_MYSQL_PASSWORD
 	 *
 	 * Warning:
-	 *  PDO extension is required
+	 *  predis-connect.php library is required for predis
 	 *  memcached extension is recommended
+	 *  PDO extension is recommended
 	 *  pdo_pgsql extension is recommended
 	 *  pdo_mysql extension is recommended
 	 *  pdo_sqlite extension is recommended
 	 *  redis extension is recommended
+	 *  get-composer.php tool is recommended for predis
 	 */
-
-	if(!extension_loaded('PDO'))
-	{
-		echo 'PDO extension is not loaded'.PHP_EOL;
-		exit(1);
-	}
 
 	echo ' -> Including '.basename(__FILE__);
 		if(is_file(__DIR__.'/../lib/'.basename(__FILE__)))
@@ -107,12 +106,22 @@
 			'sec_bruteforce_resume.json.lock',
 			'sec_bruteforce_ondemand_resume.json',
 			'sec_bruteforce_ondemand_resume.json.lock',
+			'sec_bruteforce_mixed_temp_ban.json',
+			'sec_bruteforce_mixed_temp_ban.json.lock',
+			'sec_bruteforce_mixed_perm_ban.json',
+			'sec_bruteforce_mixed_perm_ban.json.lock'
 		] as $file)
 			@unlink(__DIR__.'/tmp/sec_bruteforce/'.$file);
 	echo ' [ OK ]'.PHP_EOL;
 
 	if(getenv('TEST_DB_TYPE') !== false)
 	{
+		if(!extension_loaded('PDO'))
+		{
+			echo 'PDO extension is not loaded'.PHP_EOL;
+			exit(1);
+		}
+
 		echo ' -> Configuring PDO'.PHP_EOL;
 
 		$_pdo=[
@@ -196,10 +205,13 @@
 						);
 				break;
 				case 'sqlite':
+					if(!extension_loaded('pdo_sqlite'))
+						throw new Exception('pdo_sqlite extension is not loaded');
+
 					echo '  -> Using '.$_pdo['type'].' driver'.PHP_EOL;
 				break;
 				default:
-					echo '  -> '.$_pdo['type'].' driver is not supported [FAIL]'.PHP_EOL;
+					throw new Exception($_pdo['type'].' driver is not supported');
 			}
 		} catch(Throwable $error) {
 			echo ' Error: '.$error->getMessage().PHP_EOL;
@@ -216,25 +228,15 @@
 			$pdo_handler->exec('DROP TABLE sec_bruteforce_mixed_perm_ban');
 		}
 	}
-	if(!isset($pdo_handler))
-	{
-		if(!extension_loaded('pdo_sqlite'))
-		{
-			echo 'pdo_sqlite extension is not loaded'.PHP_EOL;
-			exit(1);
-		}
-
+	if(
+		(!isset($pdo_handler)) &&
+		extension_loaded('PDO') &&
+		extension_loaded('pdo_sqlite')
+	)
 		$pdo_handler=new PDO('sqlite:'.__DIR__.'/tmp/sec_bruteforce/sec_bruteforce.sqlite3');
-	}
 
 	if(getenv('TEST_REDIS') === 'yes')
 	{
-		if(!extension_loaded('redis'))
-		{
-			echo 'redis extension is not loaded'.PHP_EOL;
-			exit(1);
-		}
-
 		echo ' -> Configuring Redis'.PHP_EOL;
 
 		$_redis=[
@@ -276,40 +278,148 @@
 		if($_redis['credentials']['password'] !== null)
 			$_redis['_credentials_auth']['pass']=$_redis['credentials']['password'];
 
-		try {
-			$redis_handler=new Redis();
+		if(getenv('TEST_REDIS_PREDIS') === 'yes')
+		{
+			echo '  -> Including predis_connect.php';
+				if(is_file(__DIR__.'/../lib/predis_connect.php'))
+				{
+					if(@(include __DIR__.'/../lib/predis_connect.php') === false)
+					{
+						echo ' [FAIL]'.PHP_EOL;
+						exit(1);
+					}
+				}
+				else if(is_file(__DIR__.'/../predis_connect.php'))
+				{
+					if(@(include __DIR__.'/../predis_connect.php') === false)
+					{
+						echo ' [FAIL]'.PHP_EOL;
+						exit(1);
+					}
+				}
+				else
+				{
+					echo ' [FAIL]'.PHP_EOL;
+					exit(1);
+				}
+			echo ' [ OK ]'.PHP_EOL;
 
-			if($redis_handler->connect(
-				$_redis['credentials']['host'],
-				$_redis['credentials']['port'],
-				$_redis['connection_options']['timeout'],
-				null,
-				$_redis['connection_options']['retry_interval'],
-				$_redis['connection_options']['read_timeout']
-			) === false){
-				echo '  -> Redis connection error'.PHP_EOL;
-				unset($redis_handler);
+			if(!file_exists(__DIR__.'/tmp/.composer/vendor/predis'))
+			{
+				echo '  -> Installing Predis'.PHP_EOL;
+
+				@mkdir(__DIR__.'/tmp');
+				@mkdir(__DIR__.'/tmp/.composer');
+
+				if(file_exists(__DIR__.'/../../bin/composer.phar'))
+					system(PHP_BINARY.' '.__DIR__.'/../../bin/composer.phar --no-cache --working-dir='.__DIR__.'/tmp/.composer require predis/predis');
+				else if(file_exists(__DIR__.'/tmp/.composer/composer.phar'))
+					system(PHP_BINARY.' '.__DIR__.'/tmp/.composer/composer.phar --no-cache --working-dir='.__DIR__.'/tmp/.composer require predis/predis');
+				else if(file_exists(__DIR__.'/../../bin/get-composer.php'))
+				{
+					system(PHP_BINARY.' '.__DIR__.'/../../bin/get-composer.php '.__DIR__.'/tmp/.composer');
+					system(PHP_BINARY.' '.__DIR__.'/tmp/.composer/composer.phar --no-cache --working-dir='.__DIR__.'/tmp/.composer require predis/predis');
+				}
+				else
+				{
+					echo 'Error: get-composer.php tool not found'.PHP_EOL;
+					exit(1);
+				}
 			}
 
-			if(
-				(isset($redis_handler)) &&
-				(isset($_redis['_credentials_auth'])) &&
-				(!$redis_handler->auth($_redis['_credentials_auth']))
-			){
-				echo '  -> Redis auth error'.PHP_EOL;
-				unset($redis_handler);
+			echo '  -> Including composer autoloader';
+				if(@(include __DIR__.'/tmp/.composer/vendor/autoload.php') === false)
+				{
+					echo ' [FAIL]'.PHP_EOL;
+					exit(1);
+				}
+			echo ' [ OK ]'.PHP_EOL;
+
+			if(!class_exists('\Predis\Client'))
+			{
+				echo '  <- predis package is not installed [FAIL]'.PHP_EOL;
+				exit(1);
 			}
 
-			if(
-				(isset($redis_handler)) &&
-				(!$redis_handler->select($_redis['credentials']['dbindex']))
-			){
-				echo '  -> Redis database select error'.PHP_EOL;
-				unset($redis_handler);
+			echo '  -> Configuring Predis'.PHP_EOL;
+				$_redis['_predis']=[
+					[
+						'scheme'=>'tcp',
+						'host'=>$_redis['credentials']['host'],
+						'port'=>$_redis['credentials']['port'],
+						'database'=>$_redis['credentials']['dbindex']
+					],
+					[
+						'scheme'=>'unix',
+						'path'=>$_redis['credentials']['socket'],
+						'database'=>$_redis['credentials']['dbindex']
+					]
+				];
+
+				if($_redis['credentials']['password'] !== null)
+				{
+					$_redis['_predis'][0]['password']=$_redis['credentials']['password'];
+					$_redis['_predis'][1]['password']=$_redis['credentials']['password'];
+				}
+
+			echo '  -> Connecting to the redis server (predis)'.PHP_EOL;
+				try {
+					if($_redis['credentials']['socket'] === null)
+						$redis_handler=new predis_phpredis_proxy(new \Predis\Client($_redis['_predis'][0]));
+					else
+						$redis_handler=new predis_phpredis_proxy(new \Predis\Client($_redis['_predis'][1]));
+
+					$redis_handler->connect();
+				} catch(Throwable $error) {
+					echo ' Error: '.$error->getMessage().PHP_EOL;
+					exit(1);
+				}
+		}
+		else
+		{
+			if(!extension_loaded('redis'))
+			{
+				echo 'redis extension is not loaded'.PHP_EOL;
+				exit(1);
 			}
-		} catch(Throwable $error) {
-			echo ' Error: '.$error->getMessage().PHP_EOL;
-			exit(1);
+
+			echo '  -> Connecting to the redis server (phpredis)'.PHP_EOL;
+
+			try {
+				$redis_handler=new Redis();
+
+				if($redis_handler->connect(
+					$_redis['credentials']['host'],
+					$_redis['credentials']['port'],
+					$_redis['connection_options']['timeout'],
+					null,
+					$_redis['connection_options']['retry_interval'],
+					$_redis['connection_options']['read_timeout']
+				) === false){
+					echo '  -> Redis connection error'.PHP_EOL;
+					unset($redis_handler);
+				}
+
+				if(
+					(isset($redis_handler)) &&
+					(isset($_redis['_credentials_auth'])) &&
+					(!$redis_handler->auth($_redis['_credentials_auth']))
+				){
+					echo '  -> Redis auth error'.PHP_EOL;
+					unset($redis_handler);
+				}
+
+				if(
+					(isset($redis_handler)) &&
+					(!$redis_handler->select($_redis['credentials']['dbindex']))
+				){
+					echo '  -> Redis database select error'.PHP_EOL;
+					unset($redis_handler);
+				}
+			} catch(Throwable $error) {
+				echo ' Error: '.$error->getMessage().PHP_EOL;
+				exit(1);
+			}
 		}
 
 		if(isset($redis_handler))
@@ -385,13 +495,6 @@
 		global $memcached_handler;
 
 		$objects=[
-			'bruteforce_pdo'=>new bruteforce_pdo([
-				'pdo_handler'=>$pdo_handler,
-				'table_name'=>'sec_bruteforce',
-				'max_attempts'=>3,
-				'ip'=>'1.2.3.4',
-				'on_ban'=>'on_ban_callback'
-			]),
 			'bruteforce_json'=>new bruteforce_json([
 				'file'=>__DIR__.'/tmp/sec_bruteforce/sec_bruteforce.json',
 				'lock_file'=>__DIR__.'/tmp/sec_bruteforce/sec_bruteforce.json.lock',
@@ -407,6 +510,15 @@
 				'on_ban'=>'on_ban_callback'
 			])
 		];
+
+		if(isset($pdo_handler))
+			$objects['bruteforce_pdo']=new bruteforce_pdo([
+				'pdo_handler'=>$pdo_handler,
+				'table_name'=>'sec_bruteforce',
+				'max_attempts'=>3,
+				'ip'=>'1.2.3.4',
+				'on_ban'=>'on_ban_callback'
+			]);
 
 		if(isset($redis_handler))
 			$objects['bruteforce_redis']=new bruteforce_redis([
@@ -439,6 +551,14 @@
 			(getenv('TEST_DB_TYPE') !== false) &&
 			(($GLOBALS['_pdo']['type'] === 'pgsql') || ($GLOBALS['_pdo']['type'] === 'mysql'))
 		){
+			if(!extension_loaded('PDO'))
+			{
+				echo 'PDO extension is not loaded'.PHP_EOL;
+				exit(1);
+			}
+
+			echo ' -> Configuring PDO'.PHP_EOL;
+
 			global $_pdo;
 			try /* some monsters */ {
 				switch($_pdo['type'])
@@ -488,6 +608,9 @@
 							);
 					break;
 					case 'sqlite':
+						if(!extension_loaded('pdo_sqlite'))
+							throw new Exception('pdo_sqlite extension is not loaded');
+
 						echo '  -> Using '.$_pdo['type'].' driver'.PHP_EOL;
 					break;
 					default:
@@ -500,13 +623,6 @@
 		}
 
 		$objects=[
-			'bruteforce_pdo'=>new bruteforce_pdo([
-				'pdo_handler'=>$pdo_handler,
-				'table_name'=>'sec_bruteforce',
-				'max_attempts'=>3,
-				'ip'=>'1.2.3.4',
-				'on_ban'=>'on_ban_callback'
-			]),
 			'bruteforce_json'=>new bruteforce_json([
 				'file'=>__DIR__.'/tmp/sec_bruteforce/sec_bruteforce_resume.json',
 				'lock_file'=>__DIR__.'/tmp/sec_bruteforce/sec_bruteforce_resume.json.lock',
@@ -522,6 +638,15 @@
 				'on_ban'=>'on_ban_callback'
 			])
 		];
+
+		if(isset($pdo_handler))
+			$objects['bruteforce_pdo']=new bruteforce_pdo([
+				'pdo_handler'=>$pdo_handler,
+				'table_name'=>'sec_bruteforce',
+				'max_attempts'=>3,
+				'ip'=>'1.2.3.4',
+				'on_ban'=>'on_ban_callback'
+			]);
 
 		if(isset($redis_handler))
 			$objects['bruteforce_redis']=new bruteforce_redis([
@@ -550,14 +675,6 @@
 		global $memcached_handler;
 
 		$objects=[
-			'bruteforce_timeout_pdo'=>new bruteforce_timeout_pdo([
-				'pdo_handler'=>$pdo_handler,
-				'table_name'=>'sec_bruteforce_timeout',
-				'max_attempts'=>3,
-				'ip'=>'1.2.3.4',
-				'ban_time'=>2,
-				'on_ban'=>'on_ban_callback'
-			]),
 			'bruteforce_timeout_json'=>new bruteforce_timeout_json([
 				'file'=>__DIR__.'/tmp/sec_bruteforce/sec_bruteforce_timeout.json',
 				'lock_file'=>__DIR__.'/tmp/sec_bruteforce/sec_bruteforce_timeout.json.lock',
@@ -575,6 +692,16 @@
 				'on_ban'=>'on_ban_callback'
 			])
 		];
+
+		if(isset($pdo_handler))
+			$objects['bruteforce_timeout_pdo']=new bruteforce_timeout_pdo([
+				'pdo_handler'=>$pdo_handler,
+				'table_name'=>'sec_bruteforce_timeout',
+				'max_attempts'=>3,
+				'ip'=>'1.2.3.4',
+				'ban_time'=>2,
+				'on_ban'=>'on_ban_callback'
+			]);
 
 		if(isset($redis_handler))
 			$objects['bruteforce_timeout_redis']=new bruteforce_timeout_redis([
@@ -837,7 +964,10 @@
 				}
 	}
 
-	echo ' -> Testing bruteforce_mixed (PDO)'.PHP_EOL;
+	if(isset($pdo_handler))
+	{
+		echo ' -> Testing bruteforce_mixed (PDO)'.PHP_EOL;
+
 		$tempban_hook=new bruteforce_timeout_pdo([
 			'pdo_handler'=>$pdo_handler,
 			'table_name'=>'sec_bruteforce_mixed_temp_ban',
@@ -864,7 +994,7 @@
 					else
 					{
 						echo ' [FAIL]'.PHP_EOL;
-						$errors[]='bruteforce_mixed temp ban '.$i.' phase 1';
+						$errors[]='bruteforce_mixed pdo temp ban '.$i.' phase 1';
 					}
 				echo '   -> sleep 3'.PHP_EOL;
 					sleep(3);
@@ -874,7 +1004,7 @@
 					else
 					{
 						echo ' [FAIL]'.PHP_EOL;
-						$errors[]='bruteforce_mixed temp ban '.$i.' phase 2';
+						$errors[]='bruteforce_mixed pdo temp ban '.$i.' phase 2';
 					}
 		}
 		echo '  -> perm ban'.PHP_EOL;
@@ -887,7 +1017,7 @@
 				else
 				{
 					echo ' [FAIL]'.PHP_EOL;
-					$errors[]='bruteforce_mixed perm ban '.$i.' phase 1';
+					$errors[]='bruteforce_mixed pdo perm ban '.$i.' phase 1';
 				}
 			echo '   -> sleep 3'.PHP_EOL;
 				sleep(3);
@@ -897,117 +1027,198 @@
 				else
 				{
 					echo ' [FAIL]';
-					$errors[]='bruteforce_mixed perm ban '.$i.' phase 2/1';
+					$errors[]='bruteforce_mixed pdo perm ban '.$i.' phase 2/1';
 				}
 				if($permban_hook->check())
 					echo ' [ OK ]'.PHP_EOL;
 				else
 				{
 					echo ' [FAIL]'.PHP_EOL;
-					$errors[]='bruteforce_mixed perm ban phase 2/2';
+					$errors[]='bruteforce_mixed pdo perm ban phase 2/2';
+				}
+	}
+	else
+		echo ' -> Testing bruteforce_mixed (PDO) [SKIP]'.PHP_EOL;
+
+	echo ' -> Testing bruteforce_mixed (JSON)'.PHP_EOL;
+		$tempban_hook=new bruteforce_timeout_json([
+			'file'=>__DIR__.'/tmp/sec_bruteforce/sec_bruteforce_mixed_temp_ban.json',
+			'lock_file'=>__DIR__.'/tmp/sec_bruteforce/sec_bruteforce_mixed_temp_ban.json.lock',
+			'max_attempts'=>3,
+			'ip'=>'1.2.3.4',
+			'ban_time'=>2
+		]);
+		$permban_hook=new bruteforce_json([
+			'file'=>__DIR__.'/tmp/sec_bruteforce/sec_bruteforce_mixed_perm_ban.json',
+			'lock_file'=>__DIR__.'/tmp/sec_bruteforce/sec_bruteforce_mixed_perm_ban.json.lock',
+			'max_attempts'=>3,
+			'ip'=>'1.2.3.4'
+		]);
+
+		for($i=1; $i<=2; ++$i)
+		{
+			echo '  -> temp ban no '.$i.PHP_EOL;
+				echo '   -> phase 1';
+					for($y=1; $y<=3; ++$y)
+						$tempban_hook->add();
+
+					if(bruteforce_mixed($tempban_hook, $permban_hook, true, 2))
+						echo ' [ OK ]'.PHP_EOL;
+					else
+					{
+						echo ' [FAIL]'.PHP_EOL;
+						$errors[]='bruteforce_mixed json temp ban '.$i.' phase 1';
+					}
+				echo '   -> sleep 3'.PHP_EOL;
+					sleep(3);
+				echo '   -> phase 2';
+					if(!bruteforce_mixed($tempban_hook, $permban_hook, true, 2))
+						echo ' [ OK ]'.PHP_EOL;
+					else
+					{
+						echo ' [FAIL]'.PHP_EOL;
+						$errors[]='bruteforce_mixed json temp ban '.$i.' phase 2';
+					}
+		}
+		echo '  -> perm ban'.PHP_EOL;
+			echo '   -> phase 1';
+				for($y=1; $y<=3; ++$y)
+					$tempban_hook->add();
+
+				if(bruteforce_mixed($tempban_hook, $permban_hook, true, 2))
+					echo ' [ OK ]'.PHP_EOL;
+				else
+				{
+					echo ' [FAIL]'.PHP_EOL;
+					$errors[]='bruteforce_mixed json perm ban '.$i.' phase 1';
+				}
+			echo '   -> sleep 3'.PHP_EOL;
+				sleep(3);
+			echo '   -> phase 2';
+				if(bruteforce_mixed($tempban_hook, $permban_hook, true, 2))
+					echo ' [ OK ]';
+				else
+				{
+					echo ' [FAIL]';
+					$errors[]='bruteforce_mixed json perm ban '.$i.' phase 2/1';
+				}
+				if($permban_hook->check())
+					echo ' [ OK ]'.PHP_EOL;
+				else
+				{
+					echo ' [FAIL]'.PHP_EOL;
+					$errors[]='bruteforce_mixed json perm ban phase 2/2';
 				}
 
 	echo ' -> Testing clean_database'.PHP_EOL;
-		echo '  -> bruteforce_pdo'.PHP_EOL;
-			echo '   -> add/sleep 2/add/clean_database'.PHP_EOL;
-				$class=new bruteforce_pdo([
-					'pdo_handler'=>$pdo_handler,
-					'table_name'=>'sec_bruteforce_clean_database',
-					'max_attempts'=>3,
-					'ip'=>'1.2.3.4'
-				]);
-				$class->add();
-				$class=new bruteforce_pdo([
-					'pdo_handler'=>$pdo_handler,
-					'table_name'=>'sec_bruteforce_clean_database',
-					'max_attempts'=>3,
-					'ip'=>'5.6.7.8'
-				]);
-				$class->add();
-				$class=new bruteforce_pdo([
-					'pdo_handler'=>$pdo_handler,
-					'table_name'=>'sec_bruteforce_clean_database',
-					'max_attempts'=>3,
-					'ip'=>'1.2.7.8'
-				]);
-				$class->add();
-			// -> sleep 2
-				sleep(2);
-			// -> add
-				$class=new bruteforce_pdo([
-					'pdo_handler'=>$pdo_handler,
-					'table_name'=>'sec_bruteforce_clean_database',
-					'max_attempts'=>3,
-					'ip'=>'1.2.7.9'
-				]);
-				$class->add();
-			// -> clean_database
-				$class=new bruteforce_pdo([
-					'pdo_handler'=>$pdo_handler,
-					'table_name'=>'sec_bruteforce_clean_database',
-					'max_attempts'=>3,
-					'ip'=>'1.2.7.8'
-				]);
-				$class->clean_database(1);
-			echo '   -> check';
-				$query=$pdo_handler->query('SELECT COUNT(*) FROM sec_bruteforce_clean_database');
-				if(count($query->fetch(PDO::FETCH_NUM)) === 1)
-					echo ' [ OK ]'.PHP_EOL;
-				else
-				{
-					echo ' [FAIL]'.PHP_EOL;
-					$errors[]='clean_database bruteforce_pdo';
-				}
-		echo '  -> bruteforce_timeout_pdo'.PHP_EOL;
-			echo '   -> add/sleep 2/add/clean_database'.PHP_EOL;
-				$class=new bruteforce_timeout_pdo([
-					'pdo_handler'=>$pdo_handler,
-					'table_name'=>'sec_bruteforce_timeout_clean_database',
-					'max_attempts'=>3,
-					'ip'=>'1.2.3.4'
-				]);
-				$class->add();
-				$class=new bruteforce_timeout_pdo([
-					'pdo_handler'=>$pdo_handler,
-					'table_name'=>'sec_bruteforce_timeout_clean_database',
-					'max_attempts'=>3,
-					'ip'=>'5.6.7.8'
-				]);
-				$class->add();
-				$class=new bruteforce_timeout_pdo([
-					'pdo_handler'=>$pdo_handler,
-					'table_name'=>'sec_bruteforce_timeout_clean_database',
-					'max_attempts'=>3,
-					'ip'=>'1.2.7.8'
-				]);
-				$class->add();
-			// -> sleep 2
-				sleep(2);
-			// -> add
-				$class=new bruteforce_timeout_pdo([
-					'pdo_handler'=>$pdo_handler,
-					'table_name'=>'sec_bruteforce_timeout_clean_database',
-					'max_attempts'=>3,
-					'ip'=>'1.2.7.9'
-				]);
-				$class->add();
-			// -> clean_database
-				$class=new bruteforce_timeout_pdo([
-					'pdo_handler'=>$pdo_handler,
-					'table_name'=>'sec_bruteforce_timeout_clean_database',
-					'max_attempts'=>3,
-					'ip'=>'1.2.7.8'
-				]);
-				$class->clean_database(1);
-			echo '   -> check';
-				$query=$pdo_handler->query('SELECT COUNT(*) FROM sec_bruteforce_timeout_clean_database');
-				if(count($query->fetch(PDO::FETCH_NUM)) === 1)
-					echo ' [ OK ]'.PHP_EOL;
-				else
-				{
-					echo ' [FAIL]'.PHP_EOL;
-					$errors[]='clean_database bruteforce_timeout_pdo';
-				}
+		if(isset($pdo_handler))
+		{
+			echo '  -> bruteforce_pdo'.PHP_EOL;
+				echo '   -> add/sleep 2/add/clean_database'.PHP_EOL;
+					$class=new bruteforce_pdo([
+						'pdo_handler'=>$pdo_handler,
+						'table_name'=>'sec_bruteforce_clean_database',
+						'max_attempts'=>3,
+						'ip'=>'1.2.3.4'
+					]);
+					$class->add();
+					$class=new bruteforce_pdo([
+						'pdo_handler'=>$pdo_handler,
+						'table_name'=>'sec_bruteforce_clean_database',
+						'max_attempts'=>3,
+						'ip'=>'5.6.7.8'
+					]);
+					$class->add();
+					$class=new bruteforce_pdo([
+						'pdo_handler'=>$pdo_handler,
+						'table_name'=>'sec_bruteforce_clean_database',
+						'max_attempts'=>3,
+						'ip'=>'1.2.7.8'
+					]);
+					$class->add();
+				// -> sleep 2
+					sleep(2);
+				// -> add
+					$class=new bruteforce_pdo([
+						'pdo_handler'=>$pdo_handler,
+						'table_name'=>'sec_bruteforce_clean_database',
+						'max_attempts'=>3,
+						'ip'=>'1.2.7.9'
+					]);
+					$class->add();
+				// -> clean_database
+					$class=new bruteforce_pdo([
+						'pdo_handler'=>$pdo_handler,
+						'table_name'=>'sec_bruteforce_clean_database',
+						'max_attempts'=>3,
+						'ip'=>'1.2.7.8'
+					]);
+					$class->clean_database(1);
+				echo '   -> check';
+					$query=$pdo_handler->query('SELECT COUNT(*) FROM sec_bruteforce_clean_database');
+					if(count($query->fetch(PDO::FETCH_NUM)) === 1)
+						echo ' [ OK ]'.PHP_EOL;
+					else
+					{
+						echo ' [FAIL]'.PHP_EOL;
+						$errors[]='clean_database bruteforce_pdo';
+					}
+			echo '  -> bruteforce_timeout_pdo'.PHP_EOL;
+				echo '   -> add/sleep 2/add/clean_database'.PHP_EOL;
+					$class=new bruteforce_timeout_pdo([
+						'pdo_handler'=>$pdo_handler,
+						'table_name'=>'sec_bruteforce_timeout_clean_database',
+						'max_attempts'=>3,
+						'ip'=>'1.2.3.4'
+					]);
+					$class->add();
+					$class=new bruteforce_timeout_pdo([
+						'pdo_handler'=>$pdo_handler,
+						'table_name'=>'sec_bruteforce_timeout_clean_database',
+						'max_attempts'=>3,
+						'ip'=>'5.6.7.8'
+					]);
+					$class->add();
+					$class=new bruteforce_timeout_pdo([
+						'pdo_handler'=>$pdo_handler,
+						'table_name'=>'sec_bruteforce_timeout_clean_database',
+						'max_attempts'=>3,
+						'ip'=>'1.2.7.8'
+					]);
+					$class->add();
+				// -> sleep 2
+					sleep(2);
+				// -> add
+					$class=new bruteforce_timeout_pdo([
+						'pdo_handler'=>$pdo_handler,
+						'table_name'=>'sec_bruteforce_timeout_clean_database',
+						'max_attempts'=>3,
+						'ip'=>'1.2.7.9'
+					]);
+					$class->add();
+				// -> clean_database
+					$class=new bruteforce_timeout_pdo([
+						'pdo_handler'=>$pdo_handler,
+						'table_name'=>'sec_bruteforce_timeout_clean_database',
+						'max_attempts'=>3,
+						'ip'=>'1.2.7.8'
+					]);
+					$class->clean_database(1);
+				echo '   -> check';
+					$query=$pdo_handler->query('SELECT COUNT(*) FROM sec_bruteforce_timeout_clean_database');
+					if(count($query->fetch(PDO::FETCH_NUM)) === 1)
+						echo ' [ OK ]'.PHP_EOL;
+					else
+					{
+						echo ' [FAIL]'.PHP_EOL;
+						$errors[]='clean_database bruteforce_timeout_pdo';
+					}
+		}
+		else
+		{
+			echo '  -> bruteforce_pdo [SKIP]'.PHP_EOL;
+			echo '  -> bruteforce_timeout_pdo [SKIP]'.PHP_EOL;
+		}
 		echo '  -> bruteforce_json'.PHP_EOL;
 			echo '   -> add/sleep 2/add/clean_database'.PHP_EOL;
 				$class=new bruteforce_json([

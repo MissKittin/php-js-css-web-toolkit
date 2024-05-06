@@ -43,11 +43,18 @@
 
 	if(isset($argv[1]) && ($argv[1] === 'serve'))
 	{
+		$extended='';
+
+		if(isset($argv[2]) && ($argv[2] === 'extended'))
+			$extended=' --extended';
+
 		system(
 			PHP_BINARY.' '.__DIR__.'/../'.basename(__FILE__).' '
 			.'"'.PHP_BINARY.' '.__DIR__.'/tmp/file-watch/process.php" '
 			.__DIR__.'/tmp/file-watch/src'
+			.$extended
 		);
+
 		exit();
 	}
 
@@ -83,15 +90,19 @@
 		mkdir(__DIR__.'/tmp/file-watch/src');
 		file_put_contents(
 			__DIR__.'/tmp/file-watch/process.php',
-			'<?php file_put_contents(__DIR__."/output.txt", "S".file_get_contents(__DIR__."/src/input.txt")."E"); ?>'
+			'<?php '
+				.'file_put_contents(__DIR__."/output.txt", "S".file_get_contents(__DIR__."/src/input.txt")."E");'
+				.'if(file_exists(__DIR__."/src/input2.txt"))'
+				.	'file_put_contents(__DIR__."/output.txt", "X".file_get_contents(__DIR__."/src/input2.txt")."Y", FILE_APPEND);'
+			.' ?>'
 		);
 		file_put_contents(__DIR__.'/tmp/file-watch/src/input.txt', '');
 		file_put_contents(__DIR__.'/tmp/file-watch/output.txt', '');
 	echo ' [ OK ]'.PHP_EOL;
 
-	$failed=0;
+	$failed=false;
 
-	echo ' -> Starting tool';
+	echo ' -> Starting tool (standard)';
 		try {
 			$_serve_test_handler=_serve_test(PHP_BINARY.' '.$argv[0].' serve');
 			echo ' [ OK ]'.PHP_EOL;
@@ -110,7 +121,7 @@
 		else
 		{
 			echo ' [FAIL]';
-			++$failed;
+			$failed=true;
 		}
 		sleep(1);
 		file_put_contents(__DIR__.'/tmp/file-watch/src/input.txt', 'mcontent');
@@ -120,7 +131,7 @@
 		else
 		{
 			echo ' [FAIL]';
-			++$failed;
+			$failed=true;
 		}
 		sleep(1);
 		file_put_contents(__DIR__.'/tmp/file-watch/src/input.txt', 'mmcontent');
@@ -130,21 +141,101 @@
 		else
 		{
 			echo ' [FAIL]'.PHP_EOL;
-			++$failed;
+			$failed=true;
 		}
 
 	if(is_resource($_serve_test_handler))
 	{
-		echo ' -> Stopping tool'.PHP_EOL;
+		echo ' -> Stopping tool (standard)'.PHP_EOL;
 
 		$_serve_test_handler_status=@proc_get_status($_serve_test_handler);
 		if(isset($_serve_test_handler_status['pid']))
+		{
 			@exec('taskkill.exe /F /T /PID '.$_serve_test_handler_status['pid'].' 2>&1');
 
-		proc_terminate($_serve_test_handler);
+			$ch_pid=$_serve_test_handler_status['pid'];
+			$ch_pid_ex=$ch_pid;
+			while(($ch_pid_ex !== null) && ($ch_pid_ex !== ''))
+			{
+				$ch_pid=$ch_pid_ex;
+				$ch_pid_ex=@shell_exec('pgrep -P '.$ch_pid);
+			}
+			if($ch_pid === $_serve_test_handler_status['pid'])
+				proc_terminate($_serve_test_handler);
+			else
+				@exec('kill '.rtrim($ch_pid).' 2>&1');
+		}
+
 		proc_close($_serve_test_handler);
 	}
 
-	if($failed === 3)
+	echo ' -> Starting tool (extended)';
+		try {
+			$_serve_test_handler=_serve_test(PHP_BINARY.' '.$argv[0].' serve extended');
+			echo ' [ OK ]'.PHP_EOL;
+		} catch(Exception $error) {
+			echo ' [FAIL]'.PHP_EOL;
+			echo 'Error: '.$error->getMessage().PHP_EOL;
+			exit(1);
+		}
+
+	echo ' -> Testing output file';
+		sleep(1);
+		file_put_contents(__DIR__.'/tmp/file-watch/src/input.txt', 'content');
+		sleep(1);
+		if(file_get_contents(__DIR__.'/tmp/file-watch/output.txt') === 'ScontentE')
+			echo ' [ OK ]';
+		else
+		{
+			echo ' [FAIL]';
+			$failed=true;
+		}
+		sleep(1);
+		file_put_contents(__DIR__.'/tmp/file-watch/src/input.txt', 'mcontent');
+		sleep(1);
+		if(file_get_contents(__DIR__.'/tmp/file-watch/output.txt') === 'SmcontentE')
+			echo ' [ OK ]';
+		else
+		{
+			echo ' [FAIL]';
+			$failed=true;
+		}
+		sleep(1);
+		file_put_contents(__DIR__.'/tmp/file-watch/src/input2.txt', 'mmcontent');
+		sleep(1);
+		if(file_get_contents(__DIR__.'/tmp/file-watch/output.txt') === 'SmcontentEXmmcontentY')
+			echo ' [ OK ]'.PHP_EOL;
+		else
+		{
+			echo ' [FAIL]'.PHP_EOL;
+			$failed=true;
+		}
+
+	if(is_resource($_serve_test_handler))
+	{
+		echo ' -> Stopping tool (extended)'.PHP_EOL;
+
+		$_serve_test_handler_status=@proc_get_status($_serve_test_handler);
+		if(isset($_serve_test_handler_status['pid']))
+		{
+			@exec('taskkill.exe /F /T /PID '.$_serve_test_handler_status['pid'].' 2>&1');
+
+			$ch_pid=$_serve_test_handler_status['pid'];
+			$ch_pid_ex=$ch_pid;
+			while(($ch_pid_ex !== null) && ($ch_pid_ex !== ''))
+			{
+				$ch_pid=$ch_pid_ex;
+				$ch_pid_ex=@shell_exec('pgrep -P '.$ch_pid);
+			}
+			if($ch_pid === $_serve_test_handler_status['pid'])
+				proc_terminate($_serve_test_handler);
+			else
+				@exec('kill '.rtrim($ch_pid).' 2>&1');
+		}
+
+		proc_close($_serve_test_handler);
+	}
+
+	if($failed)
 		exit(1);
 ?>

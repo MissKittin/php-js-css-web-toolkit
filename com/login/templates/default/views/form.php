@@ -50,7 +50,7 @@
 						<div class="input_checkbox_text"><?php echo login_com_reg_view::_()['remember_me_label']; ?></div>
 					</div>
 				<?php } ?>
-				<?php if(isset($GLOBALS['_login']['wrong_credentials'])) { ?>
+				<?php if(isset(login_com_reg::_()['wrong_credentials'])) { ?>
 					<div class="message_container">
 						<?php echo login_com_reg_view::_()['wrong_credentials_label']; ?>
 					</div>

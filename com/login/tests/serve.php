@@ -2,12 +2,11 @@
 	/*
 	 * add ?theme=dark in url to apply login_default_dark.css
 	 * add ?theme=materialized in url to apply login_materialized.css
+	 * set TEST_INLINE_STYLE=yes to test inline styles option
 	 */
 
 	if(php_sapi_name() === 'cli-server')
 	{
-		include __DIR__.'/../login.php';
-
 		error_log('Request '.$_SERVER['REQUEST_URI']);
 
 		if(substr($_SERVER['REQUEST_URI'], 0, 8) === '/assets/')
@@ -54,6 +53,11 @@
 			exit();
 		}
 
+		include __DIR__.'/../login.php';
+
+		if(getenv('TEST_INLINE_STYLE') === 'yes')
+			login_com_reg_view::_()['inline_style']=true;
+
 		session_start();
 
 		if(isset($_GET['theme']))
@@ -76,11 +80,15 @@
 	if(!isset($argv[1]))
 	{
 		echo 'Use "serve.php serve" to start built-in server'.PHP_EOL;
+		echo 'Note:'.PHP_EOL;
+		echo ' set TEST_INLINE_STYLE=yes to test inline styles option'.PHP_EOL;
 		exit();
 	}
 	if($argv[1] !== 'serve')
 	{
 		echo 'Use "serve.php serve" to start built-in server'.PHP_EOL;
+		echo 'Note:'.PHP_EOL;
+		echo ' set TEST_INLINE_STYLE=yes to test inline styles option'.PHP_EOL;
 		exit();
 	}
 

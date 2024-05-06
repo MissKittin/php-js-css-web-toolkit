@@ -1,23 +1,5 @@
 <?php
 	/*
-	 * Error polyfill
-	 */
-
-	if(!class_exists('Error'))
-	{
-		class Error extends Exception {}
-	}
-
-	/*
-	 * ValueError polyfill
-	 */
-
-	if(!class_exists('ValueError'))
-	{
-		class ValueError extends Error {}
-	}
-
-	/*
 	 * json_validate() polyfill
 	 *
 	 * Source: https://github.com/symfony/polyfill-php83/blob/1.x/Php83.php

@@ -5,6 +5,7 @@
 	 * Note:
 	 *  looks for a library at ../lib
 	 *  looks for a library at ..
+	 *  looks for a tool at ../../bin
 	 *
 	 * Hint:
 	 *  you can setup Redis credentials by environment variables
@@ -17,6 +18,8 @@
 	 *   TEST_REDIS_DBINDEX (default: 0)
 	 *   TEST_REDIS_USER
 	 *   TEST_REDIS_PASSWORD
+	 *  you can also use the Predis package instead of PHPRedis extension:
+	 *   TEST_REDIS_PREDIS=yes (default: no)
 	 *
 	 * Hint:
 	 *  you can setup Memcached credentials by environment variables
@@ -50,15 +53,17 @@
 	 * Warning:
 	 *  openssl extension is required
 	 *  mbstring extensions is required
-	 *  PDO extension is required
+	 *  predis-connect.php library is required for predis
 	 *  memcached extension is recommended
+	 *  PDO extension is recommended
 	 *  pdo_pgsql extension is recommended
 	 *  pdo_mysql extension is recommended
 	 *  pdo_sqlite extension is recommended
 	 *  redis extension is recommended
+	 *  get-composer.php tool is recommended for predis
 	 */
 
-	foreach(['openssl', 'mbstring', 'PDO'] as $extension)
+	foreach(['openssl', 'mbstring'] as $extension)
 		if(!extension_loaded($extension))
 		{
 			echo $extension.' extension is not loaded'.PHP_EOL;
@@ -107,6 +112,12 @@
 
 	if(getenv('TEST_DB_TYPE') !== false)
 	{
+		if(!extension_loaded('PDO'))
+		{
+			echo 'PDO extension is not loaded'.PHP_EOL;
+			exit(1);
+		}
+
 		echo ' -> Configuring PDO'.PHP_EOL;
 
 		$_pdo=[
@@ -190,10 +201,13 @@
 						);
 				break;
 				case 'sqlite':
+					if(!extension_loaded('pdo_sqlite'))
+						throw new Exception('pdo_sqlite extension is not loaded');
+
 					echo '  -> Using '.$_pdo['type'].' driver'.PHP_EOL;
 				break;
 				default:
-					echo '  -> '.$_pdo['type'].' driver is not supported [FAIL]'.PHP_EOL;
+					throw new Exception($_pdo['type'].' driver is not supported');
 			}
 		} catch(Throwable $error) {
 			echo ' Error: '.$error->getMessage().PHP_EOL;
@@ -205,25 +219,15 @@
 		if(!(isset($argv[1]) && ($argv[1] === '_restart_test_')))
 			$pdo_handler->exec('DROP TABLE sec_lv_encrypter_pdo_session_handler');
 	}
-	else
-	{
-		if(!extension_loaded('pdo_sqlite'))
-		{
-			echo 'pdo_sqlite extension is not loaded'.PHP_EOL;
-			exit(1);
-		}
-
+	else if(
+		(!isset($pdo_handler)) &&
+		extension_loaded('PDO') &&
+		extension_loaded('pdo_sqlite')
+	)
 		$pdo_handler=new PDO('sqlite:'.__DIR__.'/tmp/sec_lv_encrypter/sec_lv_encrypter.sqlite3');
-	}
 
 	if(getenv('TEST_REDIS') === 'yes')
 	{
-		if(!extension_loaded('redis'))
-		{
-			echo 'redis extension is not loaded'.PHP_EOL;
-			exit(1);
-		}
-
 		echo ' -> Configuring Redis'.PHP_EOL;
 
 		$_redis=[
@@ -265,40 +269,148 @@
 		if($_redis['credentials']['password'] !== null)
 			$_redis['_credentials_auth']['pass']=$_redis['credentials']['password'];
 
-		try {
-			$redis_handler=new Redis();
+		if(getenv('TEST_REDIS_PREDIS') === 'yes')
+		{
+			echo '  -> Including predis_connect.php';
+				if(is_file(__DIR__.'/../lib/predis_connect.php'))
+				{
+					if(@(include __DIR__.'/../lib/predis_connect.php') === false)
+					{
+						echo ' [FAIL]'.PHP_EOL;
+						exit(1);
+					}
+				}
+				else if(is_file(__DIR__.'/../predis_connect.php'))
+				{
+					if(@(include __DIR__.'/../predis_connect.php') === false)
+					{
+						echo ' [FAIL]'.PHP_EOL;
+						exit(1);
+					}
+				}
+				else
+				{
+					echo ' [FAIL]'.PHP_EOL;
+					exit(1);
+				}
+			echo ' [ OK ]'.PHP_EOL;
 
-			if($redis_handler->connect(
-				$_redis['credentials']['host'],
-				$_redis['credentials']['port'],
-				$_redis['connection_options']['timeout'],
-				null,
-				$_redis['connection_options']['retry_interval'],
-				$_redis['connection_options']['read_timeout']
-			) === false){
-				echo '  -> Redis connection error'.PHP_EOL;
-				unset($redis_handler);
+			if(!file_exists(__DIR__.'/tmp/.composer/vendor/predis'))
+			{
+				echo '  -> Installing Predis'.PHP_EOL;
+
+				@mkdir(__DIR__.'/tmp');
+				@mkdir(__DIR__.'/tmp/.composer');
+
+				if(file_exists(__DIR__.'/../../bin/composer.phar'))
+					system(PHP_BINARY.' '.__DIR__.'/../../bin/composer.phar --no-cache --working-dir='.__DIR__.'/tmp/.composer require predis/predis');
+				else if(file_exists(__DIR__.'/tmp/.composer/composer.phar'))
+					system(PHP_BINARY.' '.__DIR__.'/tmp/.composer/composer.phar --no-cache --working-dir='.__DIR__.'/tmp/.composer require predis/predis');
+				else if(file_exists(__DIR__.'/../../bin/get-composer.php'))
+				{
+					system(PHP_BINARY.' '.__DIR__.'/../../bin/get-composer.php '.__DIR__.'/tmp/.composer');
+					system(PHP_BINARY.' '.__DIR__.'/tmp/.composer/composer.phar --no-cache --working-dir='.__DIR__.'/tmp/.composer require predis/predis');
+				}
+				else
+				{
+					echo 'Error: get-composer.php tool not found'.PHP_EOL;
+					exit(1);
+				}
 			}
 
-			if(
-				(isset($redis_handler)) &&
-				(isset($_redis['_credentials_auth'])) &&
-				(!$redis_handler->auth($_redis['_credentials_auth']))
-			){
-				echo '  -> Redis auth error'.PHP_EOL;
-				unset($redis_handler);
+			echo '  -> Including composer autoloader';
+				if(@(include __DIR__.'/tmp/.composer/vendor/autoload.php') === false)
+				{
+					echo ' [FAIL]'.PHP_EOL;
+					exit(1);
+				}
+			echo ' [ OK ]'.PHP_EOL;
+
+			if(!class_exists('\Predis\Client'))
+			{
+				echo '  <- predis package is not installed [FAIL]'.PHP_EOL;
+				exit(1);
 			}
 
-			if(
-				(isset($redis_handler)) &&
-				(!$redis_handler->select($_redis['credentials']['dbindex']))
-			){
-				echo '  -> Redis database select error'.PHP_EOL;
-				unset($redis_handler);
+			echo '  -> Configuring Predis'.PHP_EOL;
+				$_redis['_predis']=[
+					[
+						'scheme'=>'tcp',
+						'host'=>$_redis['credentials']['host'],
+						'port'=>$_redis['credentials']['port'],
+						'database'=>$_redis['credentials']['dbindex']
+					],
+					[
+						'scheme'=>'unix',
+						'path'=>$_redis['credentials']['socket'],
+						'database'=>$_redis['credentials']['dbindex']
+					]
+				];
+
+				if($_redis['credentials']['password'] !== null)
+				{
+					$_redis['_predis'][0]['password']=$_redis['credentials']['password'];
+					$_redis['_predis'][1]['password']=$_redis['credentials']['password'];
+				}
+
+			echo '  -> Connecting to the redis server (predis)'.PHP_EOL;
+				try {
+					if($_redis['credentials']['socket'] === null)
+						$redis_handler=new predis_phpredis_proxy(new \Predis\Client($_redis['_predis'][0]));
+					else
+						$redis_handler=new predis_phpredis_proxy(new \Predis\Client($_redis['_predis'][1]));
+
+					$redis_handler->connect();
+				} catch(Throwable $error) {
+					echo ' Error: '.$error->getMessage().PHP_EOL;
+					exit(1);
+				}
+		}
+		else
+		{
+			if(!extension_loaded('redis'))
+			{
+				echo 'redis extension is not loaded'.PHP_EOL;
+				exit(1);
 			}
-		} catch(Throwable $error) {
-			echo ' Error: '.$error->getMessage().PHP_EOL;
-			exit(1);
+
+			echo '  -> Connecting to the redis server (phpredis)'.PHP_EOL;
+
+			try {
+				$redis_handler=new Redis();
+
+				if($redis_handler->connect(
+					$_redis['credentials']['host'],
+					$_redis['credentials']['port'],
+					$_redis['connection_options']['timeout'],
+					null,
+					$_redis['connection_options']['retry_interval'],
+					$_redis['connection_options']['read_timeout']
+				) === false){
+					echo '  -> Redis connection error'.PHP_EOL;
+					unset($redis_handler);
+				}
+
+				if(
+					(isset($redis_handler)) &&
+					(isset($_redis['_credentials_auth'])) &&
+					(!$redis_handler->auth($_redis['_credentials_auth']))
+				){
+					echo '  -> Redis auth error'.PHP_EOL;
+					unset($redis_handler);
+				}
+
+				if(
+					(isset($redis_handler)) &&
+					(!$redis_handler->select($_redis['credentials']['dbindex']))
+				){
+					echo '  -> Redis database select error'.PHP_EOL;
+					unset($redis_handler);
+				}
+			} catch(Throwable $error) {
+				echo ' Error: '.$error->getMessage().PHP_EOL;
+				exit(1);
+			}
 		}
 	}
 
@@ -368,65 +480,74 @@
 	echo ' -> Testing lv_cookie_session_handler [SKIP]'.PHP_EOL;
 
 	echo ' -> Testing lv_pdo_session_handler';
-		if(is_file(__DIR__.'/tmp/sec_lv_encrypter/sec_lv_encrypter_pdo_handler_key'))
+		if(isset($pdo_handler))
 		{
-			$lv_pdo_session_handler_key=file_get_contents(__DIR__.'/tmp/sec_lv_encrypter/sec_lv_encrypter_pdo_handler_key');
-			$lv_pdo_session_handler_do_save=false;
-		}
-		else
-		{
-			$lv_pdo_session_handler_key=lv_encrypter::generate_key();
-			file_put_contents(__DIR__.'/tmp/sec_lv_encrypter/sec_lv_encrypter_pdo_handler_key', $lv_pdo_session_handler_key);
-			$lv_pdo_session_handler_do_save=true;
-		}
+			if(is_file(__DIR__.'/tmp/sec_lv_encrypter/sec_lv_encrypter_pdo_handler_key'))
+			{
+				$lv_pdo_session_handler_key=file_get_contents(__DIR__.'/tmp/sec_lv_encrypter/sec_lv_encrypter_pdo_handler_key');
+				$lv_pdo_session_handler_do_save=false;
+			}
+			else
+			{
+				$lv_pdo_session_handler_key=lv_encrypter::generate_key();
+				file_put_contents(__DIR__.'/tmp/sec_lv_encrypter/sec_lv_encrypter_pdo_handler_key', $lv_pdo_session_handler_key);
+				$lv_pdo_session_handler_do_save=true;
+			}
 
-		session_set_save_handler(new lv_pdo_session_handler([
-			'key'=>$lv_pdo_session_handler_key,
-			'pdo_handler'=>$pdo_handler,
-			'table_name'=>'sec_lv_encrypter_pdo_session_handler'
-		]), true);
-		session_id('123abc');
-		session_start([
-			'use_cookies'=>0,
-			'cache_limiter'=>''
-		]);
-		if($lv_pdo_session_handler_do_save)
-		{
-			echo PHP_EOL.'  -> the $_SESSION will be saved to the database [SKIP]';
+			session_set_save_handler(new lv_pdo_session_handler([
+				'key'=>$lv_pdo_session_handler_key,
+				'pdo_handler'=>$pdo_handler,
+				'table_name'=>'sec_lv_encrypter_pdo_session_handler'
+			]), true);
+			session_id('123abc');
+			session_start([
+				'use_cookies'=>0,
+				'cache_limiter'=>''
+			]);
+			if($lv_pdo_session_handler_do_save)
+			{
+				echo PHP_EOL.'  -> the $_SESSION will be saved to the database [SKIP]';
 
-			$_SESSION['test_variable_a']='test_value_a';
-			$_SESSION['test_variable_b']='test_value_b';
+				$_SESSION['test_variable_a']='test_value_a';
+				$_SESSION['test_variable_b']='test_value_b';
 
-			$restart_test=true;
-		}
-		else
-		{
-			echo PHP_EOL.'  -> the $_SESSION was fetched from the database';
-				if(isset($_SESSION['test_variable_a']))
-					echo ' [ OK ]';
+				$restart_test=true;
+			}
+			else
+			{
+				echo PHP_EOL.'  -> the $_SESSION was fetched from the database';
+					if(isset($_SESSION['test_variable_a']))
+						echo ' [ OK ]';
+					else
+					{
+						echo ' [FAIL]';
+						$errors[]='lv_pdo_session_handler fetch check phase 1';
+					}
+					if(isset($_SESSION['test_variable_b']))
+						echo ' [ OK ]';
+					else
+					{
+						echo ' [FAIL]';
+						$errors[]='lv_pdo_session_handler fetch check phase 2';
+					}
+			}
+			session_write_close();
+			unset($_SESSION['test_variable_a']);
+			unset($_SESSION['test_variable_b']);
+
+			$output=$pdo_handler->query('SELECT * FROM sec_lv_encrypter_pdo_session_handler')->fetchAll();
+			if(isset($output[0]['payload']))
+			{
+				$lv_pdo_session_handler_encrypter=new lv_encrypter($lv_pdo_session_handler_key);
+				if($lv_pdo_session_handler_encrypter->decrypt($output[0]['payload'], false) === 'test_variable_a|s:12:"test_value_a";test_variable_b|s:12:"test_value_b";')
+					echo ' [ OK ]'.PHP_EOL;
 				else
 				{
-					echo ' [FAIL]';
-					$errors[]='lv_pdo_session_handler fetch check phase 1';
+					echo ' [FAIL]'.PHP_EOL;
+					$errors[]='lv_pdo_session_handler';
+					$restart_test=false;
 				}
-				if(isset($_SESSION['test_variable_b']))
-					echo ' [ OK ]';
-				else
-				{
-					echo ' [FAIL]';
-					$errors[]='lv_pdo_session_handler fetch check phase 2';
-				}
-		}
-		session_write_close();
-		unset($_SESSION['test_variable_a']);
-		unset($_SESSION['test_variable_b']);
-
-		$output=$pdo_handler->query('SELECT * FROM sec_lv_encrypter_pdo_session_handler')->fetchAll();
-		if(isset($output[0]['payload']))
-		{
-			$lv_pdo_session_handler_encrypter=new lv_encrypter($lv_pdo_session_handler_key);
-			if($lv_pdo_session_handler_encrypter->decrypt($output[0]['payload'], false) === 'test_variable_a|s:12:"test_value_a";test_variable_b|s:12:"test_value_b";')
-				echo ' [ OK ]'.PHP_EOL;
+			}
 			else
 			{
 				echo ' [FAIL]'.PHP_EOL;
@@ -435,11 +556,7 @@
 			}
 		}
 		else
-		{
-			echo ' [FAIL]'.PHP_EOL;
-			$errors[]='lv_pdo_session_handler';
-			$restart_test=false;
-		}
+			echo ' [SKIP]'.PHP_EOL;
 
 	echo ' -> Testing lv_redis_session_handler';
 		if(isset($redis_handler))

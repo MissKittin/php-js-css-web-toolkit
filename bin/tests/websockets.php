@@ -10,8 +10,15 @@
 	 * Warning:
 	 *  serve.php tool is required
 	 *  rmdir_recursive.php library is required
+	 *  sockets extension is required
 	 *  proc_* functions are required
 	 */
+
+	if(!extension_loaded('sockets'))
+	{
+		echo 'Error: sockets extension is not loaded'.PHP_EOL;
+		exit(1);
+	}
 
 	$_serve_test_handler=null;
 	function _serve_test($command)
@@ -245,17 +252,35 @@
 
 				$_serve_test_handler_status=@proc_get_status($_serve_test_handler);
 				if(isset($_serve_test_handler_status['pid']))
+				{
 					@exec('taskkill.exe /F /T /PID '.$_serve_test_handler_status['pid'].' 2>&1');
 
-				proc_terminate($_serve_test_handler);
+					$ch_pid=$_serve_test_handler_status['pid'];
+					$ch_pid_ex=$ch_pid;
+					$ch_pid_tokill=[];
+					while(($ch_pid_ex !== null) && ($ch_pid_ex !== ''))
+					{
+						$ch_pid=$ch_pid_ex;
+						$ch_pid_tokill[]=$ch_pid_ex;
+						$ch_pid_ex=@shell_exec('pgrep -P '.$ch_pid);
+					}
+					if($ch_pid === $_serve_test_handler_status['pid'])
+						proc_terminate($_serve_test_handler);
+					else
+						foreach(array_reverse($ch_pid_tokill) as $ch_pid)
+							exec('kill '.rtrim($ch_pid).' 2>&1');
+				}
+
 				proc_close($_serve_test_handler);
 			}
 
-			if($failed === false)
-				exit();
-
-			if($failed === true)
-				exit(1);
+			switch($failed)
+			{
+				case false:
+					exit();
+				case true:
+					exit(1);
+			}
 
 			echo PHP_EOL.PHP_EOL
 			.	$failed.PHP_EOL;

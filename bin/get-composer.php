@@ -15,6 +15,14 @@
 	 *  __DIR__/../lib
 	 */
 
+	if(
+		isset($argv[1]) &&
+		(($argv[1] === '-h') || ($argv[1] === '--help'))
+	){
+		echo 'get-composer.php [path/to/directory]'.PHP_EOL;
+		exit();
+	}
+
 	$composer_meta=[
 		'signature_url'=>'https://composer.github.io/installer.sig',
 		'installer_url'=>'https://getcomposer.org/installer',
@@ -44,7 +52,18 @@
 			$GLOBALS['force_copy']=true;
 		}
 
-	chdir(__DIR__);
+	if(isset($argv[1]))
+	{
+		if(!is_dir($argv[1]))
+		{
+			echo 'Error: '.$argv[1].' is not a directory'.PHP_EOL;
+			exit(1);
+		}
+
+		chdir($argv[1]);
+	}
+	else
+		chdir(__DIR__);
 
 	foreach(['signature', 'installer'] as $file)
 		if(file_exists($composer_meta[$file.'_file']))
@@ -106,7 +125,16 @@
 		}
 
 	echo 'Verifying installer';
-		if(isset($argv[1]) && ($argv[1] === '--no-installer-verification'))
+		if(
+			(
+				isset($argv[1]) &&
+				($argv[1] === '--no-installer-verification')
+			) ||
+			(
+				isset($argv[2]) &&
+				($argv[2] === '--no-installer-verification')
+			)
+		)
 			echo ' [SKIP] !!!'.PHP_EOL;
 		else
 		{

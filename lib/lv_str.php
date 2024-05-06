@@ -11,11 +11,50 @@
 			$string='The event will take place between :start and :end';
 			$replaced=preg_replace_array('/:[a-z_]+/', ['8:30', '9:00'], $string);
 			// The event will take place between 8:30 and 9:00
+	 *  lv_str_after()
+	 *   returns everything after the given value in a string
+	 *   the entire string will be returned
+	 *   if the value does not exist within the string
+			$slice=lv_str_after('This is my name', 'This is');
+			// ' my name'
+	 *  lv_str_after_last()
+	 *   returns everything after the last occurrence
+	 *   of the given value in a string
+	 *   the entire string will be returned
+	 *   if the value does not exist within the string
+			$slice=lv_str_after_last('App\Http\Controllers\Controller', '\\');
+			// 'Controller'
+	 *  lv_str_before()
+	 *   returns everything before the given value in a string
+			$slice=lv_str_before('This is my name', 'my name');
+			// 'This is '
+	 *  lv_str_before_last()
+	 *   returns everything before the last occurrence
+	 *   of the given value in a string
+			$slice=lv_str_before_last('This is my name', 'is');
+			// 'This '
+	 *   warning:
+	 *    mbstring extension is required
+	 *  lv_str_between()
+	 *   returns the portion of a string between two values
+			$slice=lv_str_between('This is my name', 'This', 'name');
+			// ' is my '
+	 *   warning:
+	 *    lv_str_after function is required
+	 *    lv_str_before_last function is required
+	 *  lv_str_between_first()
+	 *   returns the smallest possible portion of a string between two values
+			$slice=lv_str_between_first('[a] bc [d]', '[', ']');
+			// 'a'
+	 *   warning:
+	 *    lv_str_after function is required
+	 *    lv_str_before function is required
 	 *  lv_str_camel(string_value)
 	 *   converts the given string to camelCase
 			$converted=lv_str_camel('foo_bar');
 			// fooBar
-	 *   warning: lv_str_studly function is required
+	 *   warning:
+	 *    lv_str_studly function is required
 	 *  lv_str_finish(string_value, string_cap)
 	 *   adds a single instance of the given value to a string
 	 *   if it does not already end with that value
@@ -43,14 +82,84 @@
 	 *  lv_str_kebab(string_value)
 	 *   converts the given string to kebab-case
 			$converted=lv_str_kebab('fooBar'); // foo-bar
-	 *   warning: lv_str_snake function is required
+	 *   warning:
+	 *    lv_str_snake function is required
+	 *  lv_str_lcfirst()
+	 *   returns the given string with the first character lowercased
+			$string=lv_str_lcfirst('Foo Bar'); // foo Bar
+	 *   warning:
+	 *    mbstring extension is required
+	 *  lv_str_length()
+	 *   returns the length of the given string
+			$length=lv_str_length('Laravel'); // 7
+	 *   warning:
+	 *    mbstring extension is required
+	 *  lv_str_limit()
+	 *   truncates the given string to the specified length
+			$truncated=lv_str_limit('The quick brown fox jumps over the lazy dog', 20);
+			// The quick brown fox...
+	 *   you may pass a third argument to the method
+	 *   to change the string that will be appended
+	 *   to the end of the truncated string
+			$truncated=lv_str_limit('The quick brown fox jumps over the lazy dog', 20, ' (...)');
+			// The quick brown fox (...)
+	 *   warning:
+	 *    mbstring extension is required
+	 *  lv_str_lower()
+	 *   converts the given string to lowercase
+			$converted=lv_str_lower('LARAVEL'); // laravel
+	 *   warning:
+	 *    mbstring extension is required
 	 *  lv_str_mask(string_string, string_character, int_index, int_length=null, string_encoding='UTF-8')
 	 *   masks a portion of a string with a repeated character,
 	 *   and may be used to obfuscate segments of strings
 	 *   such as email addresses and phone numbers
 			$string=lv_str_mask('taylor@example.com', '*', 3);
 			// tay***************
-	 *   warning: mbstring extension is required
+	 *   warning:
+	 *    mbstring extension is required
+	 *  lv_str_pad_both()
+	 *   wraps PHP's str_pad function, padding both sides
+	 *   of a string with another string
+	 *   until the final string reaches a desired length
+			$padded=lv_str_pad_both('James', 10, '_'); // '__James___'
+			$padded=lv_str_pad_both('James', 10); // '  James   '
+	 *   warning:
+	 *    mbstring extension is required
+	 *  lv_str_pad_left()
+	 *   wraps PHP's str_pad function, padding the left side
+	 *   of a string with another string
+	 *   until the final string reaches a desired length
+			$padded=lv_str_pad_left('James', 10, '-='); // '-=-=-James'
+			$padded=lv_str_pad_left('James', 10); // '     James'
+	 *   warning:
+	 *    mbstring extension is required
+	 *  lv_str_pad_right()
+	 *   wraps PHP's str_pad function, padding the right side
+	 *   of a string with another string
+	 *   until the final string reaches a desired length
+			$padded=lv_str_pad_right('James', 10, '-'); // 'James-----'
+			$padded=lv_str_pad_right('James', 10); // 'James     '
+	 *   warning:
+	 *    mbstring extension is required
+	 *  lv_str_random()
+	 *   generates a random string of the specified length
+	 *   this function uses PHP's random_bytes function
+			$random=lv_str_random(40);
+	 *  lv_str_repeat()
+	 *   repeats the given string
+			$string='a';
+			$repeat=lv_str_repeat($string, 5); // aaaaa
+	 *  lv_str_replace_first()
+	 *   replaces the first occurrence of a given value in a string
+			$replaced=lv_str_replace_first('the', 'a', 'the quick brown fox jumps over the lazy dog');
+			// a quick brown fox jumps over the lazy dog
+	 *  lv_str_replace_last()
+	 *   replaces the last occurrence of a given value in a string
+			$replaced=lv_str_replace_last('the', 'a', 'the quick brown fox jumps over the lazy dog');
+			// the quick brown fox jumps over a lazy dog
+	 *   warning:
+	 *    mbstring extension is required
 	 *  lv_str_snake(string_valuem string_delimiter)
 	 *   converts the given string to snake_case
 			$converted=lv_str_snake('fooBar'); // foo_bar
@@ -73,75 +182,112 @@
 	 *  lv_str_studly(string_value)
 	 *   converts the given string to StudlyCase
 			$converted=lv_str_studly('foo_bar'); // FooBar
-	 *   warning: lv_str_ucfirst function is required
+	 *   warning:
+	 *    lv_str_ucfirst function is required
+	 *  lv_str_substr()
+	 *   returns the portion of string
+	 *   specified by the start and length parameters
+			$converted=lv_str_substr('The Laravel Framework', 4, 7);
+			// Laravel
+	 *   warning:
+	 *    mbstring extension is required
+	 *  lv_str_substr_count()
+	 *   returns the number of occurrences
+	 *   of a given value in the given string
+			$count=lv_str_substr_count('If you like ice cream, you will like snow cones.', 'like');
+			// 2
+	 *  lv_str_substr_replace()
+	 *   replaces text within a portion of a string
+	 *   starting at the position specified by the third argument
+	 *   and replacing the number of characters specified
+	 *   by the fourth argument
+	 *   passing 0 to the method's fourth argument will insert
+	 *   the string at the specified position without replacing
+	 *   any of the existing characters in the string
+			$result=lv_str_substr_replace('1300', ':', 2); // 13:
+			$result=lv_str_ssubstr_replace('1300', ':', 2, 0); // 13:00
+	 *  lv_str_swap()
+	 *   replaces multiple values in the given string
+	 *   using PHP's strtr function
+			$string=lv_str_swap([
+				'Tacos'=>'Burritos',
+				'great'=>'fantastic'
+			], 'Tacos are great!');
+			// Burritos are fantastic!
 	 *  lv_str_title(string_value)
 	 *   converts the given string to Title Case
 			$converted=lv_str_title('a nice title uses the correct case');
 			// A Nice Title Uses The Correct Case
-	 *   warning: mbstring extension is required
+	 *   warning:
+	 *    mbstring extension is required
 	 *  lv_str_ucfirst(string_string)
 	 *   returns the given string with the first character capitalized
 			$string=lv_str_ucfirst('foo bar'); // Foo bar
-	 *   warning: mbstring extension is required
+	 *   warning:
+	 *    mbstring extension is required
 	 *  lv_str_ucsplit(string_string)
 	 *   splits the given string into an array by uppercase characters
 			$segments=lv_str_ucsplit('FooBar');
 			// [0=>'Foo', 1=>'Bar']
+	 *  lv_str_upper()
+	 *   converts the given string to uppercase
+			$string=lv_str_upper('laravel'); // LARAVEL
+	 *   warning:
+	 *    mbstring extension is required
+	 *  lv_str_word_count()
+	 *   returns the number of words that a string contains
+			lv_str_word_count('Hello, world!'); // 2
+	 *  lv_str_word_wrap()
+	 *   wraps a string to a given number of characters
+			$text='The quick brown fox jumped over the lazy dog.';
+			lv_str_word_wrap($text, 20, "<br />\n");
+			// The quick brown fox<br />
+			// jumped over the lazy<br />
+			// dog.
+	 *  lv_str_words()
+	 *   limits the number of words in a string
+	 *   an additional string may be passed to this method
+	 *   via its third argument to specify which string
+	 *   should be appended to the end of the truncated string
+			return lv_str_words('Perfectly balanced, as all things should be.', 3, ' >>>');
+			// Perfectly balanced, as >>>
+	 *   warning:
+	 *    mbstring extension is required
+	 *  lv_str_wrap()
+	 *   wraps the given string with an additional string or pair of strings
+			lv_str_wrap('Laravel', '"'); // "Laravel"
+			lv_str_wrap('is', 'This ', ' Laravel!'); // This is Laravel!
 	 *
-	 * Not implemented functions:
-	 *  lv_str_after()
-	 *  lv_str_after_last()
-	 *  lv_str_before()
-	 *  lv_str_before_last()
-	 *  lv_str_between()
-	 *  lv_str_between_first()
+	 * Functions implemented in the lv_hlp component:
+	 *  lv_str_ascii()
 	 *  lv_str_contains()
 	 *  lv_str_contains_all()
-	 *  lv_str_excerpt()
-	 *  lv_str_limit()
-	 *  lv_str_replace_array()
-	 *  lv_str_replace_first()
-	 *  lv_str_replace_last()
-	 *  lv_str_replace_start()
-	 *  lv_str_replace_end()
-	 *  lv_str_words()
-	 *  lv_str_ascii()
 	 *  lv_str_ends_with()
 	 *  lv_str_inline_markdown()
 	 *  lv_str_is_ascii()
 	 *  lv_str_is_json()
 	 *  lv_str_is_ulid()
 	 *  lv_str_is_uuid()
-	 *  lv_str_lcfirst()
-	 *  lv_str_length()
-	 *  lv_str_lower()
 	 *  lv_str_markdown()
 	 *  lv_str_ordered_uuid()
-	 *  lv_str_pad_both()
-	 *  lv_str_pad_left()
-	 *  lv_str_pad_right()
 	 *  lv_str_password()
-	 *  lv_str_plural()
-	 *  lv_str_plural_studly()
-	 *  lv_str_random()
 	 *  lv_str_remove()
-	 *  lv_str_repeat()
 	 *  lv_str_replace()
+	 *  lv_str_replace_array()
+	 *  lv_str_replace_end()
+	 *  lv_str_replace_start()
 	 *  lv_str_reverse()
-	 *  lv_str_singular()
 	 *  lv_str_slug()
 	 *  lv_str_starts_with()
-	 *  lv_str_substr()
-	 *  lv_str_substr_count()
-	 *  lv_str_substr_replace()
-	 *  lv_str_swap()
-	 *  lv_str_to_html_string()
-	 *  lv_str_upper()
 	 *  lv_str_ulid()
 	 *  lv_str_uuid()
-	 *  lv_str_word_count()
-	 *  lv_str_word_wrap()
-	 *  lv_str_wrap()
+	 *
+	 * Not implemented functions:
+	 *  lv_str_excerpt()
+	 *  lv_str_plural()
+	 *  lv_str_plural_studly()
+	 *  lv_str_singular()
+	 *  lv_str_to_html_string()
 	 *
 	 * Sources:
 	 *  https://laravel.com/docs/10.x/helpers
@@ -167,6 +313,57 @@
 				$subject
 			);
 		}
+	}
+	function lv_str_after(string $subject, string $search)
+	{
+		if($search === '')
+			return $subject;
+
+		return array_reverse(explode($search, $subject, 2))[0];
+	}
+	function lv_str_after_last(string $subject, string $search)
+	{
+		if($search === '')
+			return $subject;
+
+		$position=strrpos($subject, (string)$search);
+
+		if($position === false)
+			return $subject;
+
+		return substr($subject, $position+strlen($search));
+	}
+	function lv_str_before(string $subject, string $search)
+	{
+		if($search === '')
+			return $subject;
+
+		$result=strstr($subject, (string)$search, true);
+
+		if($result === false)
+			return $subject;
+
+		return $result;
+	}
+	function lv_str_between(string $subject, string $from, string $to)
+	{
+		if(($from === '') || ($to === ''))
+			return $subject;
+
+		return lv_str_before_last(
+			lv_str_after($subject, $from),
+			$to
+		);
+	}
+	function lv_str_between_first(string $subject, string $from, string $to)
+	{
+		if(($from === '') || ($to === ''))
+			return $subject;
+
+		return lv_str_before(
+			lv_str_after($subject, $from),
+			$to
+		);
 	}
 	function lv_str_camel(string $value)
 	{
@@ -266,79 +463,61 @@
 	{
 		return lv_str_snake($value, '-');
 	}
-	function lv_str_mask(
-		string $string,
-		string $character,
-		int $index,
-		int $length=null,
-		string $encoding='UTF-8'
-	){
-		if(!extension_loaded('mbstring'))
-			throw new lv_str_exception('mbstring extension is not loaded');
+	function lv_str_random(int $length=16)
+	{
+		$string='';
+		$len=0;
 
-		if($character === '')
-			return $string;
-
-		$segment=mb_substr($string, $index, $length, $encoding);
-
-		if($segment === '')
-			return $string;
-
-		$strlen=mb_strlen($string, $encoding);
-		$start_index=$index;
-
-		if($index < 0)
+		while($len < $length)
 		{
-			if($index < -$strlen)
-				$start_index=0;
-			else
-				$start_index=$strlen+$index;
+			$size=$length-$len;
+			$bytes_size=(int)ceil($size/3)*3;
+			$bytes=random_bytes($bytes_size);
+			$string.=substr(
+				str_replace(
+					['/', '+', '='],
+					'',
+					base64_encode($bytes)
+				),
+				0,
+				$size
+			);
+			$len=strlen($string);
 		}
 
-		$start=mb_substr($string, 0, $start_index, $encoding);
-		$segment_len=mb_strlen($segment, $encoding);
-		$end=mb_substr($string, $start_index+$segment_len);
-
-		return ''
-		.	$start
-		.	str_repeat(
-				mb_substr($character, 0, 1, $encoding),
-				$segment_len
-			)
-		.	$end
-		;
+		return $string;
 	}
-	function lv_str_snake(string $value, string $delimiter='_')
+	function lv_str_repeat(string $string, int $times)
 	{
-		if(!extension_loaded('ctype'))
-			throw new lv_str_exception('ctype extension is not loaded');
+		return str_repeat($string, $times);
+	}
+	function lv_str_replace_first(string $search, string $replace, string $subject)
+	{
+		$search=(string)$search;
 
-		if(!extension_loaded('mbstring'))
-			throw new lv_str_exception('mbstring extension is not loaded');
+		if($search === '')
+			return $subject;
 
-		static $cache=[];
+		$position=strpos($subject, $search);
 
-		$key=$value;
-		if(isset($cache[$key][$delimiter]))
-			return $cache[$key][$delimiter];
+		if($position !== false)
+			return substr_replace($subject, $replace, $position, strlen($search));
 
-		if(!ctype_lower($value))
-			$value=mb_strtolower(
-				preg_replace(
-					'/(.)(?=[A-Z])/u',
-					'$1'.$delimiter,
-					preg_replace(
-						'/\s+/u',
-						'',
-						ucwords($value)
-					)
-				),
-				'UTF-8'
-			);
+		return $subject;
+	}
+	function lv_str_replace_last(string $search, string $replace, string $subject)
+	{
+		$search=(string)$search;
 
-		$cache[$key][$delimiter]=$value;
+		if($search === '')
+			return $subject;
 
-		return $value;
+		$position=strrpos($subject, $search);
+
+		if($position !== false)
+			return substr_replace($subject, $replace, $position, strlen($search));
+
+		return $subject;
 	}
 	function lv_str_squish(string $value)
 	{
@@ -362,8 +541,7 @@
 			.	')+/u',
 				'',
 				$value
-			)
-		;
+			);
 	}
 	function lv_str_studly(string $value)
 	{
@@ -386,27 +564,286 @@
 
 		return $cache[$value];
 	}
-	function lv_str_title(string $value)
-	{
-		if(!extension_loaded('mbstring'))
-			throw new lv_str_exception('mbstring extension is not loaded');
+	function lv_str_substr_count(
+		string $haystack,
+		string $needle,
+		int $offset=0,
+		int $length=null
+	){
+		if(!is_null($length))
+			return substr_count($haystack, $needle, $offset, $length);
 
-		return mb_convert_case($value, MB_CASE_TITLE, 'UTF-8');
+		return substr_count($haystack, $needle, $offset);
 	}
-	function lv_str_ucfirst(string $string)
+	function lv_str_substr_replace($string, $replace, $offset=0, $length=null)
 	{
-		if(!extension_loaded('mbstring'))
-			throw new lv_str_exception('mbstring extension is not loaded');
+		if($length === null)
+			$length=strlen($string);
 
-		return
-			mb_strtoupper(
-				mb_substr($string, 0, 1, 'UTF-8'),
-				'UTF-8'
-			)
-		.	mb_substr($string, 1, null, 'UTF-8');
+		return substr_replace($string, $replace, $offset, $length);
+	}
+	function lv_str_swap(array $map, string $subject)
+	{
+		return strtr($subject, $map);
 	}
 	function lv_str_ucsplit(string $string)
 	{
 		return preg_split('/(?=\p{Lu})/u', $string, -1, PREG_SPLIT_NO_EMPTY);
+	}
+	function lv_str_word_count(string $string, string $characters=null)
+	{
+		return str_word_count($string, 0, $characters);
+	}
+	function lv_str_word_wrap(
+		string $string,
+		int $characters=75,
+		string $break="\n",
+		bool $cut_long_words=false
+	){
+		return wordwrap($string, $characters, $break, $cut_long_words);
+	}
+	function lv_str_wrap(string $value, string $before, string $after=null)
+	{
+		if($after === null)
+			return $before.$value.$before;
+
+		return $before.$value.$after;
+	}
+
+	if(extension_loaded('mbstring'))
+	{
+		function lv_str_before_last(string $subject, string $search)
+		{
+			if($search === '')
+				return $subject;
+
+			$pos=mb_strrpos($subject, $search);
+
+			if($pos === false)
+				return $subject;
+
+			return mb_substr($subject, 0, $pos, 'UTF-8');
+		}
+		function lv_str_lcfirst(string $string)
+		{
+			return ''
+			.	mb_strtolower(mb_substr($string, 0, 1, 'UTF-8'), 'UTF-8')
+			.	mb_substr($string, 1, null, 'UTF-8');
+		}
+		function lv_str_length(string $value, string $encoding='UTF-8')
+		{
+			return mb_strlen($value, $encoding);
+		}
+		function lv_str_limit(string $value, int $limit=100, string $end='...')
+		{
+			if(mb_strwidth($value, 'UTF-8') <= $limit)
+				return $value;
+
+			return rtrim(mb_strimwidth(
+				$value, 0, $limit, '', 'UTF-8'
+			)).$end;
+		}
+		function lv_str_lower(string $value)
+		{
+			return mb_strtolower($value, 'UTF-8');
+		}
+		function lv_str_mask(
+			string $string,
+			string $character,
+			int $index,
+			int $length=null,
+			string $encoding='UTF-8'
+		){
+			if($character === '')
+				return $string;
+
+			$segment=mb_substr($string, $index, $length, $encoding);
+
+			if($segment === '')
+				return $string;
+
+			$strlen=mb_strlen($string, $encoding);
+			$start_index=$index;
+
+			if($index < 0)
+			{
+				if($index < -$strlen)
+					$start_index=0;
+				else
+					$start_index=$strlen+$index;
+			}
+
+			$start=mb_substr($string, 0, $start_index, $encoding);
+			$segment_len=mb_strlen($segment, $encoding);
+			$end=mb_substr($string, $start_index+$segment_len);
+
+			return ''
+			.	$start
+			.	str_repeat(
+					mb_substr($character, 0, 1, $encoding),
+					$segment_len
+				)
+			.	$end;
+		}
+		function lv_str_pad_both(string $value, int $length, string $pad=' ')
+		{
+			$short=max(0, $length-mb_strlen($value));
+			$short_left=floor($short/2);
+			$short_right=ceil($short/2);
+
+			return ''
+			.	mb_substr(str_repeat($pad, $short_left), 0, $short_left)
+			.	$value
+			.	mb_substr(str_repeat($pad, $short_right), 0, $short_right);
+		}
+		function lv_str_pad_left(string $value, int $length, string $pad=' ')
+		{
+			$short=max(0, $length-mb_strlen($value));
+
+			return mb_substr(str_repeat($pad, $short), 0, $short).$value;
+		}
+		function lv_str_pad_right(string $value, int $length, string $pad=' ')
+		{
+			$short=max(0, $length-mb_strlen($value));
+
+			return $value.mb_substr(str_repeat($pad, $short), 0, $short);
+		}
+		function lv_str_substr(
+			string $string,
+			int $start,
+			int $length=null,
+			string $encoding='UTF-8'
+		){
+			return mb_substr($string, $start, $length, $encoding);
+		}
+		function lv_str_title(string $value)
+		{
+			return mb_convert_case($value, MB_CASE_TITLE, 'UTF-8');
+		}
+		function lv_str_ucfirst(string $string)
+		{
+			return
+				mb_strtoupper(
+					mb_substr($string, 0, 1, 'UTF-8'),
+					'UTF-8'
+				)
+			.	mb_substr($string, 1, null, 'UTF-8');
+		}
+		function lv_str_upper(string $value)
+		{
+			return mb_strtoupper($value, 'UTF-8');
+		}
+		function lv_str_words(string $value, int $words=100, string $end='...')
+		{
+			preg_match('/^\s*+(?:\S++\s*+){1,'.$words.'}/u', $value, $matches);
+
+			if(
+				(!isset($matches[0])) ||
+				(mb_strlen($value, 'UTF-8') === mb_strlen($matches[0], 'UTF-8'))
+			)
+					return $value;
+
+			return rtrim($matches[0]).$end;
+		}
+
+		if(extension_loaded('ctype'))
+		{
+			function lv_str_snake(string $value, string $delimiter='_')
+			{
+				static $cache=[];
+
+				$key=$value;
+				if(isset($cache[$key][$delimiter]))
+					return $cache[$key][$delimiter];
+
+				if(!ctype_lower($value))
+					$value=mb_strtolower(
+						preg_replace(
+							'/(.)(?=[A-Z])/u',
+							'$1'.$delimiter,
+							preg_replace(
+								'/\s+/u',
+								'',
+								ucwords($value)
+							)
+						),
+						'UTF-8'
+					);
+
+				$cache[$key][$delimiter]=$value;
+
+				return $value;
+			}
+		}
+		else
+		{
+			function lv_str_snake()
+			{
+				throw new lv_str_exception('ctype extension is not loaded');
+			}
+		}
+	}
+	else /* some boilerplate */
+	{
+		function lv_str_before_last()
+		{
+			throw new lv_str_exception('mbstring extension is not loaded');
+		}
+		function lv_str_lcfirst()
+		{
+			throw new lv_str_exception('mbstring extension is not loaded');
+		}
+		function lv_str_length()
+		{
+			throw new lv_str_exception('mbstring extension is not loaded');
+		}
+		function lv_str_limit()
+		{
+			throw new lv_str_exception('mbstring extension is not loaded');
+		}
+		function lv_str_lower()
+		{
+			throw new lv_str_exception('mbstring extension is not loaded');
+		}
+		function lv_str_mask()
+		{
+			throw new lv_str_exception('mbstring extension is not loaded');
+		}
+		function lv_str_pad_both()
+		{
+			throw new lv_str_exception('mbstring extension is not loaded');
+		}
+		function lv_str_pad_left()
+		{
+			throw new lv_str_exception('mbstring extension is not loaded');
+		}
+		function lv_str_pad_right()
+		{
+			throw new lv_str_exception('mbstring extension is not loaded');
+		}
+		function lv_str_snake()
+		{
+			throw new lv_str_exception('mbstring extension is not loaded');
+		}
+		function lv_str_substr()
+		{
+			throw new lv_str_exception('mbstring extension is not loaded');
+		}
+		function lv_str_title()
+		{
+			throw new lv_str_exception('mbstring extension is not loaded');
+		}
+		function lv_str_ucfirst()
+		{
+			throw new lv_str_exception('mbstring extension is not loaded');
+		}
+		function lv_str_upper()
+		{
+			throw new lv_str_exception('mbstring extension is not loaded');
+		}
+		function lv_str_words()
+		{
+			throw new lv_str_exception('mbstring extension is not loaded');
+		}
 	}
 ?>

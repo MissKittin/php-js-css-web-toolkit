@@ -66,7 +66,7 @@
 						</div>
 					<?php } ?>
 					<div class="input_button"><input class="sb_full_button" type="submit" value="<?php echo login_com_reg_view::_()['submit_button_label']; ?>"<?php if(login_com_reg_view::_()['submit_button_disabled']) echo ' disabled'; ?>></div>
-					<?php if(isset($GLOBALS['_login']['wrong_credentials'])) { ?>
+					<?php if(isset(login_com_reg::_()['wrong_credentials'])) { ?>
 						<div class="message_container">
 							<?php echo login_com_reg_view::_()['wrong_credentials_label']; ?>
 						</div>

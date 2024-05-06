@@ -8,7 +8,6 @@ A small framework
 * `rmdir_recursive.php` (for tests)
 
 ## Note
-Throws an `Exception` if the library is not found  
 Throws an `admin_panel_exception` on error  
 The logout button action is the current URL via POST
 

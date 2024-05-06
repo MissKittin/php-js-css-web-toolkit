@@ -1,33 +1,27 @@
 <?php
 	class login_com_exception extends Exception {}
 
-	if(!function_exists('check_post'))
-	{
-		if(file_exists(__DIR__.'/lib/check_var.php'))
-			require __DIR__.'/lib/check_var.php';
-		else if(file_exists(__DIR__.'/../../lib/check_var.php'))
-			require __DIR__.'/../../lib/check_var.php';
-		else
-			throw new login_com_exception('check_var.php library not found');
-	}
-	if(!class_exists('static_registry'))
-	{
-		if(file_exists(__DIR__.'/lib/registry.php'))
-			require __DIR__.'/lib/registry.php';
-		else if(file_exists(__DIR__.'/../../lib/registry.php'))
-			require __DIR__.'/../../lib/registry.php';
-		else
-			throw new login_com_exception('registry.php library not found');
-	}
-	if(!function_exists('is_logged'))
-	{
-		if(file_exists(__DIR__.'/lib/sec_login.php'))
-			require __DIR__.'/lib/sec_login.php';
-		else if(file_exists(__DIR__.'/../../lib/sec_login.php'))
-			require __DIR__.'/../../lib/sec_login.php';
-		else
-			throw new login_com_exception('sec_login.php library not found');
-	}
+	(function($libraries){
+		foreach($libraries as $check_function=>$library_meta)
+			foreach($library_meta as $library_file=>$library_function)
+				if(!$check_function($library_function))
+				{
+					if(file_exists(__DIR__.'/lib/'.$library_file))
+						require __DIR__.'/lib/'.$library_file;
+					else if(file_exists(__DIR__.'/../../lib/'.$library_file))
+						require __DIR__.'/../../lib/'.$library_file;
+					else
+						throw new login_com_exception($library_file.' library not found');
+				}
+	})([
+		'class_exists'=>[
+			'registry.php'=>'static_registry'
+		],
+		'function_exists'=>[
+			'check_var.php'=>'check_post',
+			'sec_login.php'=>'is_logged'
+		]
+	]);
 
 	abstract class login_com_reg extends static_registry { protected static $registry=null; }
 	abstract class login_com_reg_config extends static_registry { protected static $registry=null; }
@@ -144,6 +138,12 @@
 				switch(login_com_reg_config::_()['method'])
 				{
 					case 'login_single':
+						if(!is_array(login_com_reg::_()['credentials']))
+						{
+							login_com_reg::_()['result']=false;
+							break;
+						}
+
 						login_com_reg::_()['result']=login_single(
 							check_post('login'),
 							check_post('password'),

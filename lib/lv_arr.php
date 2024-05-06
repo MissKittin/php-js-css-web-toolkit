@@ -12,6 +12,13 @@
 			$is_accessible=lv_arr_accessible(new Collection()); // not implemented
 			$is_accessible=lv_arr_accessible('abc'); // false
 			$is_accessible=lv_arr_accessible(new stdClass()); // false
+	 *  lv_arr_add()
+	 *   adds a given key / value pair to an array if the given key
+	 *   doesn't already exist in the array or is set to null
+			$array=lv_arr_add(['name'=>'Desk'], 'price', 100);
+			// ['name'=>'Desk', 'price'=>100]
+			$array=lv_arr_add(['name'=>'Desk', 'price'=>null], 'price', 100);
+			// ['name'=>'Desk', 'price'=>100]
 	 *  lv_arr_collapse()
 	 *   collapses an array of arrays into a single array
 			$array=lv_arr_collapse([[1, 2, 3], [4, 5, 6], [7, 8, 9]]);
@@ -108,6 +115,15 @@
 			$contains=lv_arr_has_any($array, ['category', 'product.discount']); // false
 	 *   warning:
 	 *    lv_arr_has function is required
+	 *  lv_arr_join()
+	 *   joins array elements with a string
+	 *   using this method's second argument, you may also specify
+	 *   the joining string for the final element of the array
+			$array=['Tailwind', 'Alpine', 'Laravel', 'Livewire'];
+			$joined=lv_arr_join($array, ', ');
+			// Tailwind, Alpine, Laravel, Livewire
+			$joined=lv_arr_join($array, ', ', ' and ');
+			// Tailwind, Alpine, Laravel and Livewire
 	 *  lv_arr_key_by()
 	 *   keys the array by the given key.
 	 *   if multiple items have the same key,
@@ -198,6 +214,17 @@
 			$array=['price'=>100];
 			$array=lv_arr_prepend($array, 'Desk', 'name');
 			// ['name'=>'Desk', 'price'=>100]
+	 *  lv_arr_prepend_keys_with()
+	 *   prepends all key names of an associative array with the given prefix
+			$array=[
+				'name'=>'Desk',
+				'price'=>100
+			];
+			$keyed=lv_arr_prepend_keys_with($array, 'product.');
+			// [
+			//  'product.name'=>'Desk',
+			//  'product.price'=>100
+			// ]
 	 *  lv_arr_pull()
 	 *   returns and removes a key/value pair from an array
 			$array=['name'=>'Desk', 'price'=>100];
@@ -249,6 +276,55 @@
 	 *   comes from branch 10.x
 	 *   randomly shuffles the items in the array
 			$array=lv_arr_shuffle([1, 2, 3, 4, 5]); // [3, 2, 5, 1, 4] - (generated randomly)
+	 *  lv_arr_sort()
+	 *   sorts an array by its values
+			$array=['Desk', 'Table', 'Chair'];
+			$sorted=lv_arr_sort($array);
+			// ['Chair', 'Desk', 'Table']
+	 *   you may also sort the array by the results of a given closure
+			$array=[
+				['name'=>'Desk'],
+				['name'=>'Table'],
+				['name'=>'Chair']
+			];
+			$sorted=array_values(lv_arr_sort($array, function(array $value){
+				return $value['name'];
+			}));
+			// [
+			//  ['name'=>'Chair'],
+			//  ['name'=>'Desk'],
+			//  ['name'=>'Table']
+			// ]
+	 *  lv_arr_sort_desc()
+	 *   sorts an array in descending order by its values
+			$array=['Desk', 'Table', 'Chair'];
+			$sorted=lv_arr_sort_desc($array);
+			// ['Table', 'Desk', 'Chair']
+	 *   you may also sort the array by the results of a given closure
+			$array=[
+				['name'=>'Desk'],
+				['name'=>'Table'],
+				['name'=>'Chair']
+			];
+			$sorted=array_values(lv_arr_sort_desc($array, function(array $value){
+				return $value['name'];
+			}));
+			// [
+			//  ['name'=>'Table'],
+			//  ['name'=>'Desk'],
+			//  ['name'=>'Chair']
+			// ]
+	 *  lv_arr_to_css_classes()
+	 *   conditionally compiles a CSS class string
+	 *   the method accepts an array of classes where the array key contains
+	 *   the class or classes you wish to add, while the value is a boolean expression
+	 *   if the array element has a numeric key
+	 *   it will always be included in the rendered class list
+			$is_active=false;
+			$has_error=true;
+			$array=['p-4', 'font-bold'=>$is_active, 'bg-red'=>$has_error];
+			$classes=lv_arr_to_css_classes($array);
+			// 'p-4 bg-red'
 	 *  lv_arr_undot()
 	 *   expands a single-dimensional array that uses "dot" notation
 	 *   into a multi-dimensional array
@@ -267,6 +343,11 @@
 				return is_string($value);
 			});
 			// [1=>'200', 3=>'400']
+	 *  lv_arr_where_not_null()
+	 *   removes all null values from the given array
+			$array=[0, null];
+			$filtered=lv_arr_where_not_null($array);
+			// [0=>0]
 	 *  lv_arr_wrap()
 	 *   wraps the given value in an array
 	 *   if the given value is already an array it will be returned without modification
@@ -727,18 +808,6 @@
 	 *      each method is required
 	 *    [static] empty()
 	 *     create a new instance with no items
-	 *    ensure()
-	 *     may be used to verify that all elements of a collection
-	 *     are of a given type or list of types
-			return $collection->ensure(User::class);
-			return $collection->ensure([User::class, Customer::class]);
-	 *     primitive types such as string, int, float, bool, and array may also be specified
-			return $collection->ensure('int');
-	 *     warning:
-	 *      does not guarantee that elements of different types
-	 *       will not be added to the collection at a later time
-	 *      _get_debug_type method is required
-	 *      each method is required
 	 *    esacpe_when_casting_to_string()
 	 *     indicate that the model's string representation
 	 *     should be escaped when __toString is invoked
@@ -1183,32 +1252,6 @@
 	 *     when filtering the collection's results
 	 *     warning:
 	 *      lv_arr_lazy_collection class is required
-	 *    macro()
-	 *     collections are "macroable", which allows you to add
-	 *     additional methods to the lv_arr_collection class at run time
-	 *     the lv_arr_ollection class' macro method accepts a closure
-	 *     that will be executed when your macro is called
-	 *     the macro closure may access the collection's other methods
-	 *     via $this, just as if it were a real method of the collection class
-	 *     for example, the following code adds a to_upper method
-	 *     to the lv_arr_collection class
-			lv_arr_collection::macro('to_upper', function(){
-				return $this->map(function(string $value){
-					return strtoupper($value);
-				});
-			});
-			$collection=lv_arr_collect(['first', 'second']);
-			$upper=$collection->to_upper();
-			// ['FIRST', 'SECOND']
-	 *     if necessary, you may define macros
-	 *     that accept additional arguments
-			lv_arr_collection::macro('to_locale', function(string $locale){
-				return $this->map(function(string $value) use($locale){
-					return lang::get($value, [], $locale);
-				});
-			});
-			$collection=lv_arr_collect(['first', 'second']);
-			$translated=$collection->to_locale('es');
 	 *    [static] make()
 	 *     returns a new lv_arr_collection instance with the items currently in the collection
 			$collection=lv_arr_collection::make([1, 2, 3]);
@@ -2680,9 +2723,11 @@
 			// [['Chair', 100], ['Desk', 200]]
 	 *     warning:
 	 *      get_arrayable_items method is required
-	 *   not implemented methods:
+	 *   methods implemented in the lv_hlp component:
 	 *    dd()
 	 *    dump()
+	 *    ensure()
+	 *    macro()
 	 *  lv_arr_lazy_collection
 	 *   implemented methods (for more info, see lv_arr_collection above):
 	 *    all()
@@ -2700,8 +2745,13 @@
 	 *      get_iterator method is required
 	 *    chunk_while()
 	 *     warning:
-	 *      lv_arr_collection function is required
+	 *      chunk_while_collection method is required
 	 *      get_iterator method is required
+	 *    [protected] chunk_while_collection()
+	 *     this method is overridden by the lv_hlp component
+	 *     and is created for this purpose only
+	 *     warning:
+	 *      lv_arr_collection class is required
 	 *    collapse()
 	 *    collect()
 	 *     warning:
@@ -2733,6 +2783,9 @@
 	 *    cross_join()
 	 *     warning:
 	 *      passthru method is required
+	 *    dd()
+	 *     warning:
+	 *      symfony/var-dumper package is required
 	 *    diff()
 	 *     warning:
 	 *      get_arrayable_items method is required
@@ -2759,6 +2812,9 @@
 	 *    dot()
 	 *     warning:
 	 *      passthru method is required
+	 *    dump()
+	 *     warning:
+	 *      symfony/var-dumper package is required
 	 *    duplicates()
 	 *     warning:
 	 *      passthru method is required
@@ -2775,10 +2831,6 @@
 	 *     warning:
 	 *      all method is required
 	 *    [static] empty()
-	 *    ensure()
-	 *     warning:
-	 *      _get_debug_type method is required
-	 *      each method is required
 	 *    every()
 	 *     warning:
 	 *      operator_for_where method is required
@@ -2862,7 +2914,6 @@
 	 *    last()
 	 *     warning:
 	 *      lv_arr_value function is required
-	 *    macro()
 	 *    [static] make()
 	 *    map()
 	 *    map_to_dictionary()
@@ -3143,28 +3194,21 @@
 	 *    [static] wrap()
 	 *     warning:
 	 *      lv_arr_wrap function is required
-	 *   not implemented methods:
-	 *    concat()
+	 *   methods implemented in the lv_hlp component:
 	 *    dd()
 	 *    dump()
+	 *    ensure()
+	 *    macro()
+	 *   not implemented methods:
+	 *    concat()
 	 *    flatten()
 	 *    nth()
 	 *    take_until_timeout()
 	 *    tap_each()
 	 *    zip()
 	 *
-	 * Not implemented functions:
-	 *  lv_arr_join()
-	 *  lv_arr_add()
-	 *  lv_arr_is_assoc()
-	 *  lv_arr_is_list()
-	 *  lv_arr_prepend_keys_with()
-	 *  lv_arr_sort()
-	 *  lv_arr_sort_desc()
-	 *  lv_arr_sort_recursive()
-	 *  lv_arr_to_css_classes()
+	 * Functions implemented in the lv_hlp component:
 	 *  lv_arr_to_css_styles()
-	 *  lv_arr_where_not_null()
 	 *
 	 * Sources:
 	 *  https://laravel.com/docs/10.x/helpers
@@ -3173,11 +3217,9 @@
 	 *  https://github.com/illuminate/collections/blob/master/Collection.php
 	 *  https://github.com/illuminate/collections/blob/master/Traits/EnumeratesValues.php
 	 *  https://laravel.com/docs/10.x/collections
-	 *  https://github.com/illuminate/macroable/blob/master/Traits/Macroable.php
 	 *  https://github.com/illuminate/conditionable/blob/master/Traits/Conditionable.php
 	 *  https://github.com/illuminate/conditionable/blob/master/HigherOrderWhenProxy.php
 	 *  https://github.com/illuminate/collections/blob/master/HigherOrderCollectionProxy.php
-	 *  https://php.watch/versions/8.0/get_debug_type
 	 *  https://github.com/illuminate/collections/blob/master/Enumerable.php
 	 *  https://github.com/illuminate/collections/blob/master/LazyCollection.php
 	 * License: MIT
@@ -3187,9 +3229,17 @@
 
 	function lv_arr_accessible($value)
 	{
-		return
+		return (
 			is_array($value) ||
-			($value instanceof ArrayAccess);
+			($value instanceof ArrayAccess)
+		);
+	}
+	function lv_arr_add(array $array, $key, $value)
+	{
+		if(is_null(lv_arr_get($array, $key)))
+			lv_arr_set($array, $key, $value);
+
+		return $array;
 	}
 	function lv_arr_collapse(array $array)
 	{
@@ -3327,7 +3377,7 @@
 			$keys=[$keys];
 
 		if(count($keys) === 0)
-			return;
+			return null;
 
 		foreach($keys as $key)
 		{
@@ -3447,6 +3497,25 @@
 				return true;
 
 		return false;
+	}
+	function lv_arr_head(array $array)
+	{
+		return reset($array);
+	}
+	function lv_arr_join(array $array, string $glue, string $final_glue='')
+	{
+		if($final_glue === '')
+			return implode($glue, $array);
+
+		if(count($array) === 0)
+			return '';
+
+		if(count($array) === 1)
+			return end($array);
+
+		$final_item=array_pop($array);
+
+		return implode($glue, $array).$final_glue.$final_item;
 	}
 	function lv_arr_key_by(array $array, $key_by)
 	{
@@ -3604,10 +3673,15 @@
 
 		return $array;
 	}
+	function lv_arr_prepend_keys_with(array $array, string $prepend_with)
+	{
+		return lv_arr_map_with_keys($array, function($item, $key) use($prepend_with){
+			return [$prepend_with.$key=>$item];
+		});
+	}
 	function lv_arr_pull(array &$array, $key, $default=null)
 	{
 		$value=lv_arr_get($array, $key, $default);
-
 		lv_arr_forget($array, $key);
 
 		return $value;
@@ -3715,6 +3789,27 @@
 
 		return $array;
 	}
+	function lv_arr_sort(array $array, $callback=null)
+	{
+		return lv_arr_collection::make($array)->sort_by($callback)->all();
+	}
+	function lv_arr_sort_desc(array $array, $callback=null)
+	{
+		return lv_arr_collection::make($array)->sort_by_desc($callback)->all();
+	}
+	function lv_arr_to_css_classes(array $array)
+	{
+		$class_list=lv_arr_wrap($array);
+		$classes=[];
+
+		foreach($class_list as $class=>$constraint)
+			if(is_numeric($class))
+				$classes[]=$constraint;
+			else if($constraint)
+				$classes[]=$class;
+
+		return implode(' ', $classes);
+	}
 	function lv_arr_undot(array $array)
 	{
 		$results=[];
@@ -3727,6 +3822,12 @@
 	function lv_arr_where(array $array, callable $callback)
 	{
 		return array_filter($array, $callback, ARRAY_FILTER_USE_BOTH);
+	}
+	function lv_arr_where_not_null(array $array)
+	{
+		return lv_arr_where($array, function($value){
+			return (!is_null($value));
+		});
 	}
 	function lv_arr_wrap($value)
 	{
@@ -3901,140 +4002,150 @@
 
 	interface lv_arr_enumerable extends Countable, JsonSerializable
 	{
-		public static function empty();
-		public static function make(array $items=[]);
-		public static function range(int $from, int $to);
-		public static function times(int $number, ?callable $callback=null);
-		public static function unwrap($value);
-		public static function wrap($value);
+		// trait conditionable -> lv_arr_enumerates_values
+			public function unless($value, callable $callback, callable $default=null);
+			public function when($value, callable $callback=null, callable $default=null);
 
-		public function __get($key);
-		public function __toString();
+		// lv_arr_enumerates_values
+			public static function empty();
+			public static function make(array $items=[]);
+			public static function times(int $number, callable $callback=null);
+			public static function unwrap($value);
+			public static function wrap($value);
 
-		public function all();
-		public function average($callback=null);
-		public function avg($callback=null);
-		public function chunk(int $size);
-		public function chunk_while(callable $callback);
-		public function collapse();
-		public function collect();
-		public function combine($values);
-		public function contains($key, ?string $operator=null, $value=null);
-		public function contains_one_item();
-		public function contains_strict($key, $value=null);
-		public function count(): int;
-		public function count_by($count_by=null);
-		public function cross_join(...$lists);
-		public function diff($items);
-		public function diff_assoc($items);
-		public function diff_assoc_using($items, callable $callback);
-		public function diff_keys($items);
-		public function diff_keys_using($items, callable $callback);
-		public function diff_using($items, callable $callback);
-		public function doesnt_contain($key, ?string $operator=null, $value=null);
-		public function duplicates($callback=null, bool $strict=false);
-		public function duplicates_strict(?callable $callback=null);
-		public function each(callable $callback);
-		public function each_spread(callable $callback);
-		public function escape_when_casting_to_string(bool $escape=true);
-		public function every($key, ?string $operator=null, $value=null);
-		public function except($keys);
-		public function filter(callable $callback=null);
-		public function first(callable $callback=null, $default=null);
-		public function first_or_fail($key=null, ?string $operator=null, $value=null);
-		public function first_where($key, ?string $operator=null, $value=null);
-		public function flat_map(callable $callback);
-		public function flip();
-		public function for_page(int $page, int $per_page);
-		public function get($key, $default=null);
-		public function group_by($group_by, bool $preserve_keys=false);
-		public function has($key);
-		public function has_any($key);
-		public function implode($value, ?string $glue=null);
-		public function intersect($items);
-		public function intersect_assoc($items);
-		public function intersect_assoc_using($items, callable $callback);
-		public function intersect_by_keys($items);
-		public function intersect_using($items, callable $callback);
-		public function is_empty();
-		public function is_not_empty();
-		public function join(string $glue, string $final_glue='');
-		public function key_by($key_by);
-		public function keys();
-		public function last(callable $callback=null, $default=null);
-		public function map(callable $callback);
-		public function map_into(string $class);
-		public function map_spread(callable $callback);
-		public function map_to_dictionary(callable $callback);
-		public function map_to_groups(callable $callback);
-		public function map_with_keys(callable $callback);
-		public function max($callback=null);
-		public function median($key=null);
-		public function merge($items);
-		public function merge_recursive($items);
-		public function min($callback=null);
-		public function mode($key=null);
-		public function only($keys);
-		public function pad(int $size, $value);
-		public function partition($key, ?string $operator=null, $value=null);
-		public function pipe(callable $callback);
-		public function pipe_into(string $class);
-		public function pipe_through(array $pipes);
-		public function pluck($value, ?string $key=null);
-		public function random($number=null);
-		public function reduce(callable $callback, $initial=null);
-		public function reduce_spread(callable $callback, ...$initial);
-		public function reject($callback=true);
-		public function replace($items);
-		public function replace_recursive($items);
-		public function reverse();
-		public function search($value, bool $strict=false);
-		public function shuffle();
-		public function skip(int $count);
-		public function skip_until($value);
-		public function skip_while($value);
-		public function slice(int $offset, ?int $length=null);
-		public function sliding(int $size=2, int $step=1);
-		public function sole($key=null, ?string $operator=null, $value=null);
-		public function some($key, ?string $operator=null, $value=null);
-		public function sort($callback=null);
-		public function sort_by($callback, int $options=SORT_REGULAR, bool $descending=false);
-		public function sort_by_desc($callback, int $options=SORT_REGULAR);
-		public function sort_desc(int $options=SORT_REGULAR);
-		public function sort_keys(int $options=SORT_REGULAR, bool $descending=false);
-		public function sort_keys_desc(int $options=SORT_REGULAR);
-		public function sort_keys_using(callable $callback);
-		public function split(int $number_of_groups);
-		public function split_in(int $number_of_groups);
-		public function sum($callback=null);
-		public function take(int $limit);
-		public function take_until($value);
-		public function take_while($value);
-		public function tap(callable $callback);
-		public function to_array();
-		public function to_json(int $options=0);
-		public function undot();
-		public function union($items);
-		public function unique($key=null, bool $strict=false);
-		public function unique_strict($key=null);
-		public function unless($value, callable $callback, callable $default=null);
-		public function unless_empty(callable $callback, callable $default=null);
-		public function unless_not_empty(callable $callback, callable $default=null);
-		public function values();
-		public function when($value, callable $callback=null, callable $default=null);
-		public function when_empty(callable $callback, callable $default=null);
-		public function when_not_empty(callable $callback, callable $default=null);
-		public function where($key, ?string $operator=null, $value=null);
-		public function where_between(string $key, array $values);
-		public function where_in(string $key, $values, bool $strict=false);
-		public function where_instance_of($type);
-		public function where_in_strict(string $key, $values);
-		public function where_not_between(string $key, array $values);
-		public function where_not_in(string $key, $values, bool $strict=false);
-		public function where_not_in_strict(string $key, $values);
-		public function where_not_null(?string $key=null);
-		public function where_null(?string $key=null);
-		public function where_strict(string $key, $value);
+			public function __get($key);
+			public function __toString();
+
+			public function average($callback=null);
+			public function collect();
+			public function each(callable $callback);
+			public function each_spread(callable $callback);
+			public function escape_when_casting_to_string(bool $escape=true);
+			public function every($key, string $operator=null, $value=null);
+			public function first_where($key, string $operator=null, $value=null);
+			public function flat_map(callable $callback);
+			public function for_page(int $page, int $per_page);
+			public function is_not_empty();
+			public function map_into(string $class);
+			public function map_spread(callable $callback);
+			public function map_to_groups(callable $callback);
+			public function max($callback=null);
+			public function min($callback=null);
+			public function partition($key, string $operator=null, $value=null);
+			public function percentage(callable $callback, int $precision=2);
+			public function pipe(callable $callback);
+			public function pipe_into(string $class);
+			public function pipe_through(array $pipes);
+			public function reduce(callable $callback, $initial=null);
+			public function reduce_spread(callable $callback, ...$initial);
+			public function reject($callback=true);
+			public function some($key, string $operator=null, $value=null);
+			public function sum($callback=null);
+			public function tap(callable $callback);
+			public function to_array();
+			public function to_json(int $options=0);
+			public function unique_strict($key=null);
+			public function unless_empty(callable $callback, callable $default=null);
+			public function unless_not_empty(callable $callback, callable $default=null);
+			public function value(string $key, $default=null);
+			public function when_empty(callable $callback, callable $default=null);
+			public function when_not_empty(callable $callback, callable $default=null);
+			public function where($key, string $operator=null, $value=null);
+			public function where_strict(string $key, $value);
+			public function where_between(string $key, array $values);
+			public function where_in(string $key, $values, bool $strict=false);
+			public function where_in_strict(string $key, $values);
+			public function where_instance_of($type);
+			public function where_not_between(string $key, array $values);
+			public function where_not_in(string $key, $values, bool $strict=false);
+			public function where_not_in_strict(string $key, $values);
+			public function where_not_null(string $key=null);
+			public function where_null(string $key=null);
+
+		// collections
+			public static function range(int $from, int $to);
+
+			public function all();
+			public function avg($callback=null);
+			public function chunk(int $size);
+			public function chunk_while(callable $callback);
+			public function collapse();
+			public function combine($values);
+			public function contains($key, string $operator=null, $value=null);
+			public function contains_one_item();
+			public function contains_strict($key, $value=null);
+			public function count(): int;
+			public function count_by($count_by=null);
+			public function cross_join(...$lists);
+			public function diff($items);
+			public function diff_assoc($items);
+			public function diff_assoc_using($items, callable $callback);
+			public function diff_keys($items);
+			public function diff_keys_using($items, callable $callback);
+			public function diff_using($items, callable $callback);
+			public function doesnt_contain($key, string $operator=null, $value=null);
+			public function dot();
+			public function duplicates($callback=null, bool $strict=false);
+			public function duplicates_strict(callable $callback=null);
+			public function except($keys);
+			public function filter(callable $callback=null);
+			public function first(callable $callback=null, $default=null);
+			public function first_or_fail($key=null, string $operator=null, $value=null);
+			public function flip();
+			public function get($key, $default=null);
+			public function group_by($group_by, bool $preserve_keys=false);
+			public function has($key);
+			public function has_any($key);
+			public function implode($value, string $glue=null);
+			public function intersect($items);
+			public function intersect_assoc($items);
+			public function intersect_assoc_using($items, callable $callback);
+			public function intersect_by_keys($items);
+			public function intersect_using($items, callable $callback);
+			public function is_empty();
+			public function join(string $glue, string $final_glue='');
+			public function key_by($key_by);
+			public function keys();
+			public function last(callable $callback=null, $default=null);
+			public function map(callable $callback);
+			public function map_to_dictionary(callable $callback);
+			public function map_with_keys(callable $callback);
+			public function median($key=null);
+			public function merge($items);
+			public function merge_recursive($items);
+			public function mode($key=null);
+			public function only($keys);
+			public function pad(int $size, $value);
+			public function pluck($value, string $key=null);
+			public function random($number=null);
+			public function replace($items);
+			public function replace_recursive($items);
+			public function reverse();
+			public function search($value, bool $strict=false);
+			public function select($keys);
+			public function shuffle();
+			public function skip(int $count);
+			public function skip_until($value);
+			public function skip_while($value);
+			public function slice(int $offset, int $length=null);
+			public function sliding(int $size=2, int $step=1);
+			public function sole($key=null, string $operator=null, $value=null);
+			public function sort($callback=null);
+			public function sort_by($callback, int $options=SORT_REGULAR, bool $descending=false);
+			public function sort_by_desc($callback, int $options=SORT_REGULAR);
+			public function sort_desc(int $options=SORT_REGULAR);
+			public function sort_keys(int $options=SORT_REGULAR, bool $descending=false);
+			public function sort_keys_desc(int $options=SORT_REGULAR);
+			public function sort_keys_using(callable $callback);
+			public function split(int $number_of_groups);
+			public function split_in(int $number_of_groups);
+			public function take(int $limit);
+			public function take_until($value);
+			public function take_while($value);
+			public function undot();
+			public function union($items);
+			public function unique($key=null, bool $strict=false);
+			public function values();
 	}
 
 	trait lv_arr_enumerates_values
@@ -4146,7 +4257,7 @@
 
 		/* trait dumpable */
 		/* { */
-			// not implemented
+			// implemented in the lv_hlp component
 		/* } */
 
 		protected $escape_when_casting_to_string=false;
@@ -4348,27 +4459,6 @@
 			return $this->each(function($chunk, $key) use($callback){
 				$chunk[]=$key;
 				return $callback(...$chunk);
-			});
-		}
-		public function ensure($type)
-		{
-			if(is_array($type))
-				$allowed_types=$type;
-			else
-				$allowed_types=[$type];
-
-			return $this->each(function($item) use($allowed_types){
-				$item_type=$this->_get_debug_type($item);
-
-				foreach($allowed_types as $allowed_type)
-					if(($item_type === $allowed_type) || ($item instanceof $allowed_type))
-						return true;
-
-				throw new lv_arr_exception(sprintf(
-					"Collection should only include [%s] items, but '%s' found.",
-					implode(', ', $allowed_types),
-					$item_type
-				));
 			});
 		}
 		public function escape_when_casting_to_string(bool $escape=true)
@@ -4677,71 +4767,10 @@
 			return $this->where_strict($key, null);
 		}
 	}
-	trait lv_arr_macroable
-	{
-		protected static $macros=[];
-
-		public static function __callStatic(string $method, array $parameters)
-		{
-			if(!static::has_macro($method))
-				throw new lv_arr_exception(sprintf(
-					'Method %s::%s does not exist.',
-					static::class,
-					$method
-				));
-
-			$macro=static::$macros[$method];
-
-			if($macro instanceof Closure)
-				$macro=$macro->bindTo(null, static::class);
-
-			return $macro(...$parameters);
-		}
-
-		public static function macro(string $name, $macro)
-		{
-			static::$macros[$name]=$macro;
-		}
-		public static function mixin(object $mixin, bool $replace=true)
-		{
-			$methods=(new ReflectionClass($mixin))->getMethods(
-				ReflectionMethod::IS_PUBLIC|ReflectionMethod::IS_PROTECTED
-			);
-
-			foreach($methods as $method)
-				if($replace || (!static::has_macro($method->name)))
-					static::macro($method->name, $method->invoke($mixin));
-		}
-		public static function has_macro(string $name)
-		{
-			return isset(static::$macros[$name]);
-		}
-		public static function flush_macros()
-		{
-			static::$macros=[];
-		}
-
-		public function __call(string $method, array $parameters)
-		{
-			if(!static::has_macro($method))
-				throw new lv_arr_exception(sprintf(
-					'Method %s::%s does not exist.',
-					static::class,
-					$method
-				));
-
-			$macro=static::$macros[$method];
-
-			if($macro instanceof Closure)
-				$macro=$macro->bindTo($this, static::class);
-
-			return $macro(...$parameters);
-		}
-	}
 
 	class lv_arr_collection implements ArrayAccess, lv_arr_enumerable
 	{
-		use lv_arr_enumerates_values, lv_arr_macroable;
+		use lv_arr_enumerates_values;
 
 		protected $items=[];
 
@@ -4776,67 +4805,6 @@
 			$this->items=$this->get_arrayable_items($items);
 		}
 
-		protected function _get_debug_type($value)
-		{
-			/*
-			 * get_debug_type() polyfill
-			 *
-			 * Source:
-			 *  https://php.watch/versions/8.0/get_debug_type
-			 */
-
-			if(function_exists('get_debug_type'))
-				return get_debug_type($value);
-
-			switch(true)
-			{
-				case (null === $value):
-					return 'null';
-				case is_bool($value):
-					return 'bool';
-				case is_string($value):
-					return 'string';
-				case is_array($value):
-					return 'array';
-				case is_int($value):
-					return 'int';
-				case is_float($value):
-					return 'float';
-				case is_object($value):
-				break;
-				case ($value instanceof __PHP_Incomplete_Class):
-					return '__PHP_Incomplete_Class';
-				default:
-					if(is_resource($value))
-					{
-						$type=get_resource_type($value);
-
-						if($type === 'Unknown')
-							$type='closed';
-
-						return 'resource ('.$type.')';
-					}
-
-					return 'resource (unknown)';
-			}
-
-			$class=get_class($value);
-
-			if(strpos($class, '@') === false)
-				return $class;
-
-			$return=get_parent_class($class);
-
-			if($return !== false)
-				return $return.'@anonymous';
-
-			$return=key(class_implements($class));
-
-			if($return !== false)
-				return $return.'@anonymous';
-
-			return 'class@anonymous';
-		}
 		protected function duplicate_comparator($strict)
 		{
 			if($strict)
@@ -5814,7 +5782,7 @@
 	}
 	class lv_arr_lazy_collection implements lv_arr_enumerable
 	{
-		use lv_arr_enumerates_values, lv_arr_macroable;
+		use lv_arr_enumerates_values;
 
 		public $source;
 
@@ -5841,12 +5809,16 @@
 				$this->source=static::empty();
 			else if($source instanceof Generator)
 				throw new lv_arr_exception(
-					'Generators should not be passed directly to lv_arr_lazy_collection. Instead, pass a generator function.'
+					'Generators should not be passed directly to '.static::class.'. Instead, pass a generator function.'
 				);
 			else
 				$this->source=$this->get_arrayable_items($source);
 		}
 
+		protected function chunk_while_collection()
+		{
+			return new lv_arr_collection();
+		}
 		protected function explode_pluck_parameters($value, $key)
 		{
 			if(is_string($value))
@@ -5933,7 +5905,7 @@
 			return new static(function() use($callback){
 				$iterator=$this->get_iterator();
 
-				$chunk=new lv_arr_collection();
+				$chunk=$this->chunk_while_collection();
 
 				if($iterator->valid())
 				{
@@ -5950,7 +5922,7 @@
 					){
 						yield new static($chunk);
 
-						$chunk=new lv_arr_collection();
+						$chunk=$this->chunk_while_collection();
 					}
 
 					$chunk[$iterator->key()]=$iterator->current();
@@ -5993,7 +5965,7 @@
 					trigger_error($error_message, E_USER_WARNING);
 			});
 		}
-		public function contains($key, $operator=null, $value=null)
+		public function contains($key, string $operator=null, $value=null)
 		{
 			if(
 				(func_num_args() === 1) &&
@@ -6095,7 +6067,7 @@
 		{
 			return $this->passthru('diff_using', func_get_args());
 		}
-		public function doesnt_contain($key, $operator=null, $value=null)
+		public function doesnt_contain($key, string $operator=null, $value=null)
 		{
 			return (!$this->contains(...func_get_args()));
 		}
@@ -6107,7 +6079,7 @@
 		{
 			return $this->passthru('duplicates', func_get_args());
 		}
-		public function duplicates_strict($callback=null)
+		public function duplicates_strict(callable $callback=null)
 		{
 			return $this->passthru('duplicates_strict', func_get_args());
 		}
@@ -6151,7 +6123,7 @@
 
 			return lv_arr_value($default);
 		}
-		public function first_or_fail($key=null, $operator=null, $value=null)
+		public function first_or_fail($key=null, string $operator=null, $value=null)
 		{
 			if(func_num_args() > 1)
 				$filter=$this->operator_for_where(...func_get_args());
@@ -6372,7 +6344,7 @@
 					yield $value;
 			});
 		}
-		public function pluck($value, $key=null)
+		public function pluck($value, string $key=null)
 		{
 			return new static(function() use($value, $key){
 				[$value, $key]=$this->explode_pluck_parameters($value, $key);
@@ -6614,7 +6586,7 @@
 				}
 			});
 		}
-		public function sole($key=null, $operator=null, $value=null)
+		public function sole($key=null, string $operator=null, $value=null)
 		{
 			if(func_num_args() > 1)
 				$filter=$this->operator_for_where(...func_get_args());

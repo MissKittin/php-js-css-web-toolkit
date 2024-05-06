@@ -9,7 +9,6 @@
 	 * Hint:
 	 *  you can setup Redis credentials by environment variables
 	 *  variables:
-	 *   TEST_REDIS=yes (default: no)
 	 *   TEST_REDIS_HOST (default: 127.0.0.1)
 	 *   TEST_REDIS_SOCKET (has priority over the HOST)
 	 *    eg. /var/run/redis/redis.sock
@@ -19,6 +18,7 @@
 	 *   TEST_REDIS_PASSWORD
 	 *
 	 * Warning:
+	 *  you must set TEST_REDIS=yes
 	 *  rmdir_recursive.php library is required
 	 *  redis extension is required
 	 */
@@ -26,6 +26,12 @@
 	if(!extension_loaded('redis'))
 	{
 		echo 'redis extension is not loaded'.PHP_EOL;
+		exit(1);
+	}
+
+	if(getenv('TEST_REDIS') !== 'yes')
+	{
+		echo 'TEST_REDIS environment variable is not "yes"'.PHP_EOL;
 		exit(1);
 	}
 

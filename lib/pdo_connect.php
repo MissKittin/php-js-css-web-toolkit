@@ -53,6 +53,7 @@
 	 */
 
 	class pdo_connect_exception extends Exception {}
+
 	function pdo_connect(string $db, callable $on_error=null)
 	{
 		/*
@@ -68,6 +69,7 @@
 		 *
 		 * Note:
 		 *  throws an pdo_connect_exception on error
+		 *  seeder always run when sqlite host is :memory:
 		 *
 		 * Configuration:
 		 *  1) create a directory for database config files
@@ -136,22 +138,35 @@
 			throw new pdo_connect_exception('The db_type parameter was not specified');
 
 		$do_seed=false;
-		if(is_file($db.'/seed.php'))
-			$do_seed=true;
+		$do_seed_sqlite=false; // set true when (seeded_path === null) or (host === ':memory:')
 
-		if($do_seed)
+		if(is_file($db.'/seed.php'))
 		{
-			if(!isset($db_config['seeded_path']))
-				$db_config['seeded_path']=$db;
+			$do_seed=true;
 
 			if(
 				($db_config['db_type'] === 'sqlite') &&
-				isset($db_config['host']) &&
-				($db_config['host'] !== ':memory:') &&
-				(!file_exists($db_config['host'])) &&
-				file_exists($db_config['seeded_path'].'/database_seeded')
-			)
-				unlink($db_config['seeded_path'].'/database_seeded');
+				isset($db_config['host'])
+			){
+				if($db_config['host'] === ':memory:')
+					$do_seed_sqlite=true;
+				else if(!file_exists($db_config['host']))
+				{
+					// null is only for sqlite
+					if(!isset($db_config['seeded_path']))
+						$db_config['seeded_path']=null;
+
+					if($db_config['seeded_path'] === null)
+						$do_seed_sqlite=true;
+					else if(
+						(!file_exists($db_config['host'])) &&
+						file_exists($db_config['seeded_path'].'/database_seeded')
+					)
+						unlink($db_config['seeded_path'].'/database_seeded');
+				}
+			}
+			else if(!isset($db_config['seeded_path']))
+				$db_config['seeded_path']=$db;
 		}
 
 		$pdo_handler=pdo_connect_array($db_config, $on_error, false);
@@ -161,13 +176,16 @@
 
 		if($do_seed)
 		{
-			if(
-				isset($db_config['host']) &&
-				($db_config['db_type'].$db_config['host'] === 'sqlite:memory:')
-			)
-				include $db.'/seed.php';
-			else if(!file_exists($db_config['seeded_path'].'/database_seeded'))
+			if($do_seed_sqlite)
 			{
+				include $db.'/seed.php';
+				return $pdo_handler;
+			}
+
+			if(
+				isset($db_config['seeded_path']) &&
+				(!file_exists($db_config['seeded_path'].'/database_seeded'))
+			){
 				if(file_put_contents($db_config['seeded_path'].'/database_seed_w_test', '') === false)
 					throw new pdo_connect_exception('Could not create database_seed_w_test file in '.$db_config['seeded_path']);
 

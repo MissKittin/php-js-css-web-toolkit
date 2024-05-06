@@ -27,7 +27,7 @@
 	 *   TEST_MYSQL_PASSWORD
 	 *
 	 * Warning:
-	 *  PDO extension is required
+	 *  PDO extension is recommended
 	 *  pdo_pgsql extension is recommended
 	 *  pdo_mysql extension is recommended
 	 *  pdo_sqlite extension is recommended
@@ -50,12 +50,6 @@
 			include_into_namespace($namespace, $code, has_php_close_tag($code));
 
 			return true;
-		}
-
-		if(!extension_loaded('PDO'))
-		{
-			echo 'PDO extension is not loaded'.PHP_EOL;
-			exit(1);
 		}
 
 		echo ' -> Mocking functions and classes';
@@ -132,6 +126,12 @@
 
 		if(getenv('TEST_DB_TYPE') !== false)
 		{
+			if(!extension_loaded('PDO'))
+			{
+				echo 'PDO extension is not loaded'.PHP_EOL;
+				exit(1);
+			}
+
 			echo ' -> Configuring PDO'.PHP_EOL;
 
 			$_pdo=[
@@ -215,10 +215,13 @@
 							);
 					break;
 					case 'sqlite':
+						if(!extension_loaded('pdo_sqlite'))
+							throw new Exception('pdo_sqlite extension is not loaded');
+
 						echo '  -> Using '.$_pdo['type'].' driver'.PHP_EOL;
 					break;
 					default:
-						echo '  -> '.$_pdo['type'].' driver is not supported [FAIL]'.PHP_EOL;
+						throw new Exception($_pdo['type'].' driver is not supported');
 				}
 			} catch(Throwable $error) {
 				echo ' Error: '.$error->getMessage().PHP_EOL;
@@ -228,16 +231,12 @@
 			if(isset($pdo_handler))
 				$pdo_handler->exec('DROP TABLE logger');
 		}
-		if(!isset($pdo_handler))
-		{
-			if(!extension_loaded('pdo_sqlite'))
-			{
-				echo 'pdo_sqlite extension is not loaded'.PHP_EOL;
-				exit(1);
-			}
-
+		if(
+			(!isset($pdo_handler)) &&
+			extension_loaded('PDO') &&
+			extension_loaded('pdo_sqlite')
+		)
 			$pdo_handler=new PDO('sqlite:'.__DIR__.'/tmp/logger/log.sqlite3');
-		}
 
 		$failed=false;
 
@@ -283,7 +282,7 @@
 			'Test\log_to_txt',
 			'Test\log_to_xml'
 		] as $class){
-			echo ' -> Testing '.$class;
+			echo ' -> Testing '.substr($class, strpos($class, '\\')+1);;
 
 			switch($class)
 			{
@@ -293,6 +292,12 @@
 				case 'Test\log_to_json':
 					$log_params['file']=__DIR__.'/tmp/logger/log.json';
 				break;
+				case 'Test\log_to_pdo':
+					if(!isset($pdo_handler))
+					{
+						echo ' [SKIP]'.PHP_EOL;
+						continue 2;
+					}
 				case 'Test\log_to_txt':
 					$log_params['file']=__DIR__.'/tmp/logger/log.txt';
 				break;

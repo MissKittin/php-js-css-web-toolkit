@@ -1,6 +1,8 @@
 <?php
 	$polyfill_map=[
+		PHP_INT_MAX=>['getallheaders'], // all PHP versions
 		70200=>[
+			'mbstring', // mb_chr() mb_ord() mb_scrub()
 			'php_float',
 			'php_os_family',
 			'stream_isatty',
@@ -10,16 +12,21 @@
 			'array', // array_key_first() array_key_last()
 			'is_countable'
 		],
+		70400=>['mbstring'], // mb_str_split()
 		80000=>[
+			'get_debug_type',
 			'str', // str_contains() str_ends_with() str_starts_with()
 			'Stringable',
 			'ValueError'
 		],
 		80100=>['array'], // array_is_list()
-		80300=>['json_validate']
+		80300=>[
+			'mbstring', // mb_str_pad()
+			'json_validate'
+		]
 	];
 
-	function append_library($libraries, $single=false)
+	function append_library($libraries)
 	{
 		foreach($libraries as $library)
 		{
@@ -46,15 +53,48 @@
 					' ?>',
 					FILE_APPEND
 				);
-
 		}
 
-		if(!$single)
+		file_put_contents(
+				__DIR__.'/../_php_polyfill_cache',
+				'<?php }',
+				FILE_APPEND
+			);
+	}
+	function render_content()
+	{
+		global $polyfill_map;
+
+		file_put_contents(
+			__DIR__.'/../_php_polyfill_cache',
+			'<?php '
+		);
+
+		foreach($polyfill_map as $php_version=>$libraries)
+		{
 			file_put_contents(
-					__DIR__.'/../_php_polyfill_cache',
-					'<?php }',
-					FILE_APPEND
-				);
+				__DIR__.'/../_php_polyfill_cache',
+				'if(PHP_VERSION_ID < '.$php_version.'){ ?>',
+				FILE_APPEND
+			);
+
+			append_library($libraries);
+		}
+
+		file_put_contents(
+			__DIR__.'/../_php_polyfill_cache',
+			' ?>',
+			FILE_APPEND
+		);
+
+		file_put_contents(
+			__DIR__.'/../_php_polyfill_cache',
+			str_replace(
+				['<?php'."\n", '<?php'."\r\n", '?><?php'],
+				['<?php ', '<?php', ''],
+				file_get_contents(__DIR__.'/../_php_polyfill_cache')
+			)
+		);
 	}
 
 	if(isset($argv[1]))
@@ -98,44 +138,7 @@
 		exit(1);
 	}
 
-	file_put_contents(
-		__DIR__.'/../_php_polyfill_cache',
-		'<?php '
-	);
-
-	foreach($polyfill_map as $php_version=>$libraries)
-	{
-		file_put_contents(
-			__DIR__.'/../_php_polyfill_cache',
-			'if(PHP_VERSION_ID < '.$php_version.'){ ?>',
-			FILE_APPEND
-		);
-
-		append_library($libraries);
-	}
-
-	file_put_contents(
-		__DIR__.'/../_php_polyfill_cache',
-		' ?>',
-		FILE_APPEND
-	);
-	append_library(['getallheaders'], true);
-
-	if(!has_php_close_tag(file_get_contents(__DIR__.'/../_php_polyfill_cache')))
-		file_put_contents(
-			__DIR__.'/../_php_polyfill_cache',
-			' ?>',
-			FILE_APPEND
-		);
-
-	file_put_contents(
-		__DIR__.'/../_php_polyfill_cache',
-		str_replace(
-			['<?php'."\n", '<?php'."\r\n", '?><?php'],
-			['<?php ', '<?php', ''],
-			file_get_contents(__DIR__.'/../_php_polyfill_cache')
-		)
-	);
+	render_content();
 
 	if(file_exists(__DIR__.'/../php_polyfill.php'))
 		rename(

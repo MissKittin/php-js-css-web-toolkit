@@ -41,6 +41,7 @@
 				class ImagickDraw extends \ImagickDraw {}
 				class ImagickPixel extends \ImagickPixel {}
 			}
+			class Exception extends \Exception {}
 		echo ' [ OK ]'.PHP_EOL;
 
 		foreach(['has_php_close_tag.php', 'include_into_namespace.php'] as $library)
@@ -112,36 +113,44 @@
 			echo PHP_EOL;
 
 			foreach(['jpeg', 'bmp', 'gif', 'png'] as $format)
-			{
-				echo '  -> Testing '.$format.PHP_EOL;
+				switch($format)
+				{
+					case 'bmp':
+						if(!function_exists('\imagebmp'))
+						{
+							echo '  -> Testing '.$format.' [SKIP]'.PHP_EOL;
+							continue 2;
+						}
+					default:
+						echo '  -> Testing '.$format.PHP_EOL;
 
-				echo '   -> captcha_get';
-					$image=captcha_get('Test\captcha_gd2', [$format]);
-					file_put_contents(__DIR__.'/tmp/sec_captcha/sec_captcha_gd2-'.$_SESSION['_captcha']['token'].'.'.$format, $image);
-					if(!empty($image))
-						echo ' [ OK ]'.PHP_EOL;
-					else
-					{
-						echo ' [FAIL]'.PHP_EOL;
-						$failed=true;
-					}
+						echo '   -> captcha_get';
+							$image=captcha_get('Test\captcha_gd2', [$format]);
+							file_put_contents(__DIR__.'/tmp/sec_captcha/sec_captcha_gd2-'.$_SESSION['_captcha']['token'].'.'.$format, $image);
+							if(!empty($image))
+								echo ' [ OK ]'.PHP_EOL;
+							else
+							{
+								echo ' [FAIL]'.PHP_EOL;
+								$failed=true;
+							}
 
-				echo '   -> captcha_check';
-					if(captcha_check($_SESSION['_captcha']['token']))
-						echo ' [ OK ]';
-					else
-					{
-						echo ' [FAIL]';
-						$failed=true;
-					}
-					if(!isset($_SESSION['_captcha']))
-						echo ' [ OK ]'.PHP_EOL;
-					else
-					{
-						echo ' [FAIL]'.PHP_EOL;
-						$failed=true;
-					}
-			}
+						echo '   -> captcha_check';
+							if(captcha_check($_SESSION['_captcha']['token']))
+								echo ' [ OK ]';
+							else
+							{
+								echo ' [FAIL]';
+								$failed=true;
+							}
+							if(!isset($_SESSION['_captcha']))
+								echo ' [ OK ]'.PHP_EOL;
+							else
+							{
+								echo ' [FAIL]'.PHP_EOL;
+								$failed=true;
+							}
+				}
 		}
 		else
 		{

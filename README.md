@@ -9,8 +9,8 @@ Supported cache databases: Redis, Memcached, APCu
 * respect the KISS rule
 * respect the DRY rule
 * PHP and CSS have a snake_case, Js - camelCase
-* if you are writing a new library, keep it independent of the other libraries
-* if you are writing a new component, keep it independent of the other components
+* if you are writing a new library, keep it independent of the other libraries, components and tools
+* if you are writing a new component, keep it independent of the other components and tools
 * if you are writing a new tool, keep it independent of the other tools
 
 ## PHP CLI tools
@@ -69,6 +69,7 @@ Supported cache databases: Redis, Memcached, APCu
 * `logger.php` - easily write logs
 * `logrotate.php` - journalists rotation machine
 * `lv_arr.php` - Laravel array helpers & collections (MIT)
+* `lv_macroable.php` - add extra functionality to a class (MIT)
 * `lv_str.php` - Laravel string helpers (MIT)
 * `maintenance_break.php` - check to send the maintenance break pattern
 * `measure_exec_time.php` - debugging
@@ -82,9 +83,11 @@ Supported cache databases: Redis, Memcached, APCu
 * `pdo_connect.php` - open preconfigured connection to the database and optionally seed
 * `pdo_crud_builder.php` - OOP SQL builder
 * `pf_array.php` - `array_is_list()`, `array_key_first()` and `array_key_last()` polyfill
+* `pf_get_debug_type.php` - `get_debug_type()` polyfill
 * `pf_getallheaders.php` - `getallheaders()` polyfill
 * `pf_is_countable.php` - `is_countable()` polyfill (MIT)
 * `pf_json_validate.php` - `json_validate()` polyfill (MIT)
+* `pf_mbstring.php` - `mb_chr()`, `mb_ord()`, `mb_scrub()`, `mb_str_split()` and `mb_str_pad()` polyfill (MIT)
 * `pf_php_float.php` - `PHP_FLOAT_*` polyfill
 * `pf_php_os_family.php` - `PHP_OS_FAMILY` polyfill (MIT)
 * `pf_spl_object_id.php` - `spl_object_id()` polyfill (MIT)
@@ -92,6 +95,7 @@ Supported cache databases: Redis, Memcached, APCu
 * `pf_stream_isatty.php` - `stream_isatty()` polyfill (MIT)
 * `pf_Stringable.php` - `Stringable` polyfill
 * `pf_ValueError.php` - `Error` and `ValueError` polyfill
+* `predis_connect.php` - Predis support library
 * `print_file.php` - set HTTP headers and send specified file to the client
 * `queue_worker.php` - execute jobs outside the HTTP server
 * `rand_str.php` - random string generator
@@ -107,6 +111,7 @@ Supported cache databases: Redis, Memcached, APCu
 * `sec_login.php` - login/logout helpers
 * `sec_lv_encrypter.php` - Laravel encrypter class for cookies and sessions (MIT)
 * `sec_prevent_direct.php` - for historical purposes
+* `sess_array.php` - store the session in an array (mainly for testing purposes)
 * `simple_html_dom.php` - S.C. Chen's HTML DOM parser v1.9.1 (MIT)
 * `simpleblog_db.php` - key-value database that can be edited in notepad
 * `singleton.php` - each time you use a singleton, one little kitten dies
@@ -166,6 +171,7 @@ Supported cache databases: Redis, Memcached, APCu
 * `admin_panel` - a small framework
 * `herring` - device for tracking users
 * `login` - quickly create login-restricted content
+* `lv_hlp` - Laravel helpers (MIT)
 * `middleware_form` - customizable HTML form
 * `php_polyfill` - backport some features
 * `superclosure_router` - cacheable `uri_router.php`

@@ -9,13 +9,13 @@
 	 * Hint:
 	 *  you can setup Memcached credentials by environment variables
 	 *  variables:
-	 *   TEST_MEMCACHED=yes (default: no)
 	 *   TEST_MEMCACHED_HOST (default: 127.0.0.1)
 	 *   TEST_MEMCACHED_SOCKET (has priority over the HOST)
 	 *    eg. /var/run/memcached/memcached.sock
 	 *   TEST_MEMCACHED_PORT (default: 11211)
 	 *
 	 * Warning:
+	 *  you must set TEST_MEMCACHED=yes
 	 *  rmdir_recursive.php library is required
 	 *  memcached extension is required
 	 */
@@ -23,6 +23,12 @@
 	if(!extension_loaded('memcached'))
 	{
 		echo 'memcached extension is not loaded'.PHP_EOL;
+		exit(1);
+	}
+
+	if(getenv('TEST_MEMCACHED') !== 'yes')
+	{
+		echo 'TEST_MEMCACHED environment variable is not "yes"'.PHP_EOL;
 		exit(1);
 	}
 

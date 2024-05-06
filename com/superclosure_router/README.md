@@ -7,14 +7,13 @@ Allows you to convert defined rules to PHP code
 * `uri_router.php`
 
 ## Note
-Throws an `Exception` if the library is not found  
 Throws an `superclosure_router_exception` on error
 
 ## Usage
 Before defining the rules, check if the cache file exists
 ```
 if(file_exists('./tmp/routing-cache.php'))
-	include './tmp/routing-cache.php';
+	require './tmp/routing-cache.php';
 else {
 ```
 Use the same as `uri_router` (see `uri_router.php`)  

@@ -188,7 +188,25 @@
 	if(is_resource($_serve_test_handler))
 	{
 		echo ' -> Stopping test server'.PHP_EOL;
-		proc_terminate($_serve_test_handler);
+
+		$_serve_test_handler_status=@proc_get_status($_serve_test_handler);
+		if(isset($_serve_test_handler_status['pid']))
+		{
+			@exec('taskkill.exe /F /T /PID '.$_serve_test_handler_status['pid'].' 2>&1');
+
+			$ch_pid=$_serve_test_handler_status['pid'];
+			$ch_pid_ex=$ch_pid;
+			while(($ch_pid_ex !== null) && ($ch_pid_ex !== ''))
+			{
+				$ch_pid=$ch_pid_ex;
+				$ch_pid_ex=@shell_exec('pgrep -P '.$ch_pid);
+			}
+			if($ch_pid === $_serve_test_handler_status['pid'])
+				proc_terminate($_serve_test_handler);
+			else
+				@exec('kill '.rtrim($ch_pid).' 2>&1');
+		}
+
 		proc_close($_serve_test_handler);
 	}
 

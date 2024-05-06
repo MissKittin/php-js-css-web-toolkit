@@ -170,7 +170,7 @@
 			file_put_contents(__DIR__.'/tmp/automatic/result_notfound.html', $result);
 			echo ' ('.md5($result).')';
 		}
-		if(md5($result) === 'b5ea9b579dccc754664ffce07996f4e2')
+		if(md5($result) === '68c98ebb368deea075b0391ee8edd153')
 			echo ' [ OK ]'.PHP_EOL;
 		else
 		{
@@ -187,7 +187,7 @@
 			file_put_contents(__DIR__.'/tmp/automatic/result_default.html', $result);
 			echo ' ('.md5($result).')';
 		}
-		if(md5($result) === 'c11b791eda7886dd19594711b03f0c72')
+		if(md5($result) === 'a00a878cb8eff70718cdc28539314961')
 			echo ' [ OK ]'.PHP_EOL;
 		else
 		{
@@ -204,7 +204,7 @@
 			file_put_contents(__DIR__.'/tmp/automatic/result_dashboard.html', $result);
 			echo ' ('.md5($result).')';
 		}
-		if(md5($result) === '59d81887d3b0eecbfa6179675f09e8ed')
+		if(md5($result) === 'e1b5cf31b5c56d03ccb2d223d98ee314')
 			echo ' [ OK ]'.PHP_EOL;
 		else
 		{
@@ -222,7 +222,7 @@
 			file_put_contents(__DIR__.'/tmp/automatic/result_posts-new.html', $result);
 			echo ' ('.md5($result).')';
 		}
-		if(md5($result) === '49a493799649544f07ba705f1d601cbc')
+		if(md5($result) === '48a3dd2b44868cca2b33ad6bc41b9db2')
 			echo ' [ OK ]'.PHP_EOL;
 		else
 		{
@@ -238,7 +238,7 @@
 			file_put_contents(__DIR__.'/tmp/automatic/result_posts-edit.html', $result);
 			echo ' ('.md5($result).')';
 		}
-		if(md5($result) === '1ba7c18844b895feda7d9b0e76166d69')
+		if(md5($result) === 'c1a4c37eef9ad6ec84eeee7cd0b8f517')
 			echo ' [ OK ]'.PHP_EOL;
 		else
 		{
@@ -254,7 +254,7 @@
 			file_put_contents(__DIR__.'/tmp/automatic/result_posts-delete.html', $result);
 			echo ' ('.md5($result).')';
 		}
-		if(md5($result) === '926b75a9388e340dd71b9b5dda295357')
+		if(md5($result) === 'eb8a2ef8bc6880c338c5dda91b7dcd49')
 			echo ' [ OK ]'.PHP_EOL;
 		else
 		{

@@ -1,6 +1,6 @@
 <?php
 	/*
-	 * pf_json_validate.php library test
+	 * pf_get_debug_type.php library test
 	 *
 	 * Note:
 	 *  looks for a library at ../lib
@@ -11,15 +11,10 @@
 	 *  include_into_namespace.php library is required
 	 */
 
-	namespace
-	{
-		if(!class_exists('Error'))
-		{
-			class Error extends Exception {}
-		}
-	}
 	namespace Test
 	{
+		use stdClass;
+
 		function _include_tested_library($namespace, $file)
 		{
 			if(!is_file($file))
@@ -39,13 +34,6 @@
 			function function_exists()
 			{
 				return false;
-			}
-		echo ' [ OK ]'.PHP_EOL;
-
-		echo ' -> Mocking classes';
-			if(!class_exists('Test\ValueError'))
-			{
-				class ValueError extends \Error {}
 			}
 		echo ' [ OK ]'.PHP_EOL;
 
@@ -108,23 +96,46 @@
 
 		$failed=false;
 
-		echo ' -> Testing json_validate'.PHP_EOL;
-		echo '  -> returns true';
-			if(json_validate('{ "test": { "foo": "bar" } }'))
-				echo ' [ OK ]'.PHP_EOL;
-			else
-			{
-				echo ' [FAIL]'.PHP_EOL;
-				$failed=true;
+		echo ' -> Testing library'.PHP_EOL;
+			class incomplete_class_test {}
+			$test_set=[
+				'null'=>null,
+				'bool'=>true,
+				'int'=>1,
+				'float'=>0.1,
+				'string'=>'foo',
+				'array'=>[],
+				'resource (stream)'=>fopen(__FILE__, 'r'),
+				'resource (closed)'=>fopen(__FILE__, 'r'),
+				'stdClass'=>new stdClass(),
+				'class@anonymous'=>new class {},
+				'Closure'=>function(){},
+				'stdClass@anonymous'=>new class extends stdClass {},
+				'__PHP_Incomplete_Class'=>unserialize(serialize(new incomplete_class_test()), ['allowed_classes'=>false])
+			];
+			fclose($test_set['resource (closed)']);
+			foreach($test_set as $return_value=>$param){
+				echo '  -> '.$return_value;
+				//echo ' ['.get_debug_type($param).']';
+
+				switch($return_value)
+				{
+					case '__PHP_Incomplete_Class':
+						if(get_debug_type($param) === $return_value)
+							echo ' [ OK ]'.PHP_EOL;
+						else
+							echo ' [FAIL]'.PHP_EOL;
+					break;
+					default:
+						if(get_debug_type($param) === $return_value)
+							echo ' [ OK ]'.PHP_EOL;
+						else
+						{
+							echo ' [FAIL]'.PHP_EOL;
+							$failed=true;
+						}
+				}
 			}
-		echo '  -> returns false';
-			if(json_validate('{ "": "": "" } }'))
-			{
-				echo ' [FAIL]'.PHP_EOL;
-				$failed=true;
-			}
-			else
-				echo ' [ OK ]'.PHP_EOL;
 
 		if($failed)
 			exit(1);

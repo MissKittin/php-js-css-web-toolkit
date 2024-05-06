@@ -239,6 +239,28 @@
 					("ba", "bb")
 			\');
 		?>');
+		mkdir(__DIR__.'/tmp/pdo_connect/db_sqlite_seeded_path');
+		file_put_contents(__DIR__.'/tmp/pdo_connect/db_sqlite_seeded_path/config.php', '<?php
+			return [
+				"db_type"=>"sqlite",
+				"host"=>$db."/database.sqlite3",
+				"seeded_path"=>$db
+			];
+		?>');
+		file_put_contents(__DIR__.'/tmp/pdo_connect/db_sqlite_seeded_path/seed.php', '<?php
+			$pdo_handler->exec(\'
+				CREATE TABLE pdo_connect_test_table(
+					id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+					a TEXT,
+					b TEXT
+				)
+			\');
+			$pdo_handler->exec(\'
+				INSERT INTO pdo_connect_test_table(a, b) VALUES
+					("aa", "ab"),
+					("ba", "bb")
+			\');
+		?>');
 		mkdir(__DIR__.'/tmp/pdo_connect/db_pgsql');
 		if(isset($_db_credentials['pgsql']['socket']))
 			file_put_contents(__DIR__.'/tmp/pdo_connect/db_pgsql/config.php', '<?php
@@ -321,10 +343,14 @@
 	echo ' [ OK ]'.PHP_EOL;
 
 	try {
-		_test_driver($_db_driver, $errors, false);
-
 		if($_db_driver === 'sqlite')
+		{
+			_test_driver($_db_driver, $errors, true);
 			_test_driver($_db_driver.'_memory', $errors, true);
+			_test_driver($_db_driver.'_seeded_path', $errors, false);
+		}
+		else
+			_test_driver($_db_driver, $errors, false);
 	} catch(Throwable $error) {
 		echo ' <- Testing pdo_connect with '.$_db_driver.' [FAIL]'.PHP_EOL;
 		$errors[]=$_db_driver.' caught: '.$error->getMessage();

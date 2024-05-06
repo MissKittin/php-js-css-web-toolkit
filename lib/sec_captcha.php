@@ -8,6 +8,9 @@
 	 *  captcha_imagick and captcha_imagick2 requires imagick extension
 	 *  $_SESSION['_captcha'] is reserved
 	 *
+	 * Note:
+	 *  throws an sec_captcha_exception on error
+	 *
 	 * Functions:
 	 *  captcha_get('module_name', ['module_param_a', 'module_param_b'])
 	 *   where the second parameter is optional
@@ -42,6 +45,8 @@
 	 *  if(!captcha_check(check_post('captcha')))
 	 */
 
+	class sec_captcha_exception extends Exception {}
+
 	function captcha_gd2(string $encoding='jpeg')
 	{
 		/*
@@ -50,14 +55,20 @@
 		 * Warning:
 		 *  gd extension is required
 		 *
+		 * Note:
+		 *  throws an sec_captcha_exception on error
+		 *
 		 * Usage: captcha_gd2(string_image_format)
-		 *  where string_image_format is optional and can be bmp gif png or jpeg (default)
+		 *  where string_image_format is optional and can be bmp (>=7.2), gif, png or jpeg (default)
 		 *
 		 * Source: https://stackoverflow.com/questions/5274563/php-imagecreate-error
 		 */
 
 		if(!extension_loaded('gd'))
-			throw new Exception('gd extension is not loaded');
+			throw new sec_captcha_exception('gd extension is not loaded');
+
+		if(($encoding === 'bmp') && (!function_exists('imagebmp')))
+			throw new sec_captcha_exception('imagebmp function is not available');
 
 		$token_string=substr(md5(rand(0, 999)), 15, 5);
 
@@ -151,16 +162,19 @@
 		 * Warning:
 		 *  imagick extension is required
 		 *
+		 * Note:
+		 *  throws an sec_captcha_exception on error
+		 *
 		 * Usage: captcha_imagick(string_image_format, string_token_font_name, int_token_font_size)
 		 *  where all args are optional
 		 *  and string_image_format can be bmp gif png or jpeg (default)
 		 */
 
 		if(!extension_loaded('imagick'))
-			throw new Exception('imagick extension is not loaded');
+			throw new sec_captcha_exception('imagick extension is not loaded');
 
 		if(empty(Imagick::queryFonts()))
-			throw new Exception('Imagick::queryFonts - no fonts found');
+			throw new sec_captcha_exception('Imagick::queryFonts - no fonts found');
 
 		$token_string=substr(md5(rand(0, 999)), 15, 5);
 
@@ -218,6 +232,9 @@
 		 * Warning:
 		 *  imagick extension is required
 		 *
+		 * Note:
+		 *  throws an sec_captcha_exception on error
+		 *
 		 * Usage: captcha_imagick(string_image_format, string_token_font_name, int_token_font_size)
 		 *  where all args are optional
 		 *  and string_image_format can be bmp gif png or jpeg (default)
@@ -227,10 +244,10 @@
 		 */
 
 		if(!extension_loaded('imagick'))
-			throw new Exception('imagick extension is not loaded');
+			throw new sec_captcha_exception('imagick extension is not loaded');
 
 		if(empty(Imagick::queryFonts()))
-			throw new Exception('Imagick::queryFonts - no fonts found');
+			throw new sec_captcha_exception('Imagick::queryFonts - no fonts found');
 
 		$token_string=substr(md5(rand(0, 999)), 15, 5);
 
@@ -279,7 +296,7 @@
 	function captcha_get(callable $module, array $module_params=[])
 	{
 		if(session_status() !== PHP_SESSION_ACTIVE)
-			throw new Exception('Session not started');
+			throw new sec_captcha_exception('Session not started');
 
 		$captcha=call_user_func_array($module, $module_params);
 		$_SESSION['_captcha']['token']=$captcha[0];
@@ -296,10 +313,10 @@
 	function captcha_check(string $input_token)
 	{
 		if(session_status() !== PHP_SESSION_ACTIVE)
-			throw new Exception('Session not started');
+			throw new sec_captcha_exception('Session not started');
 
 		if(!isset($_SESSION['_captcha']['token']))
-			throw new Excaption('Run captcha_get() or captcha_get_once() first');
+			throw new sec_captcha_exception('Run captcha_get() or captcha_get_once() first');
 
 		if($_SESSION['_captcha']['token'] === $input_token)
 		{

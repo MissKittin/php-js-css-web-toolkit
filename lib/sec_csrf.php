@@ -20,8 +20,13 @@
 	 *  csrf_check_token('post')
 	*/
 
+	class csrf_exception extends Exception {}
+
 	function csrf_checkToken(string $method)
 	{
+		if(!isset($_SESSION['_csrf_token']))
+			return false;
+
 		switch($method)
 		{
 			case 'get':
@@ -47,35 +52,29 @@
 		{
 			case 'parameter':
 				return '_csrf_token';
-			break;
 			case 'value':
 				return $_SESSION['_csrf_token'];
 		}
 
-		return false;
+		throw new csrf_exception('$parameter argument must be "parameter" or "value"');
 	}
 
-	function csrf_check_token(string $method)
+	function csrf_check_token($method)
 	{
 		return csrf_checkToken($method);
 	}
-	function csrf_print_token(string $parameter)
+	function csrf_print_token($parameter)
 	{
 		return csrf_printToken($parameter);
 	}
 
 	if(session_status() !== PHP_SESSION_ACTIVE)
-	{
-		class csrf_exception extends Exception {}
 		throw new csrf_exception('Session not started');
-	}
 
 	if((!csrf_checkToken('get')) && (!csrf_checkToken('post')))
 		$_SESSION['_csrf_token']=substr(
 			base_convert(
-				sha1(
-					uniqid(mt_rand())
-				),
+				sha1(uniqid(mt_rand())),
 				16, 36
 			),
 			0, 32

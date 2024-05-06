@@ -8,9 +8,10 @@
 		 *
 		 * Warning:
 		 *  proc_* and stream_* functions are required
+		 *  may not work with builds that are non-thread safe
 		 *  reading methods wait for stream
-		 *  and may hang if nothing is returned
-		 *  you have been warned
+		 *   and may hang if nothing is returned
+		 *   you have been warned
 		 *
 		 * Methods:
 		 *  Constructor parameters:

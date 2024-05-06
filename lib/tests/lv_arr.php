@@ -6,6 +6,15 @@
 	 *  looks for a library at ../lib
 	 *  looks for a library at ..
 	 *
+	 * Dev note:
+	 *  you can change the lv_arr_collect
+	 *  and lv_arr_lazy_collect functions for collection tests:
+	 *   $lv_helpers_skip // do not test helpers, default: false
+	 *   $lv_collection_header // label, default: 'lv_arr_collection'
+	 *   $lv_collect_function // default: 'lv_arr_collect'
+	 *   $lv_lazy_collection_header // label, default: 'lv_arr_lazy_collection'
+	 *   $lv_lazy_collect_function // default: 'lv_arr_lazy_collect'
+	 *
 	 * Warning:
 	 *  var_export_contains.php library is required
 	 */
@@ -34,653 +43,803 @@
 		}
 	echo ' [ OK ]'.PHP_EOL;
 
-	echo ' -> Including '.basename(__FILE__);
-		if(is_file(__DIR__.'/../lib/'.basename(__FILE__)))
-		{
-			if(@(include __DIR__.'/../lib/'.basename(__FILE__)) === false)
+	if(class_exists('lv_arr_exception'))
+		echo ' -> Including '.basename(__FILE__).' [SKIP]'.PHP_EOL;
+	else
+	{
+		echo ' -> Including '.basename(__FILE__);
+			if(is_file(__DIR__.'/../lib/'.basename(__FILE__)))
+			{
+				if(@(include __DIR__.'/../lib/'.basename(__FILE__)) === false)
+				{
+					echo ' [FAIL]'.PHP_EOL;
+					exit(1);
+				}
+			}
+			else if(is_file(__DIR__.'/../'.basename(__FILE__)))
+			{
+				if(@(include __DIR__.'/../'.basename(__FILE__)) === false)
+				{
+					echo ' [FAIL]'.PHP_EOL;
+					exit(1);
+				}
+			}
+			else
 			{
 				echo ' [FAIL]'.PHP_EOL;
 				exit(1);
 			}
-		}
-		else if(is_file(__DIR__.'/../'.basename(__FILE__)))
-		{
-			if(@(include __DIR__.'/../'.basename(__FILE__)) === false)
-			{
-				echo ' [FAIL]'.PHP_EOL;
-				exit(1);
-			}
-		}
-		else
-		{
-			echo ' [FAIL]'.PHP_EOL;
-			exit(1);
-		}
-	echo ' [ OK ]'.PHP_EOL;
+		echo ' [ OK ]'.PHP_EOL;
+	}
 
 	$failed=false;
 
-	echo ' -> Testing lv_arr_accessible';
-		if(lv_arr_accessible(['a'=>1, 'b'=>2]))
-			echo ' [ OK ]';
-		else
-		{
-			echo ' [FAIL]';
-			$failed=true;
-		}
-		if(lv_arr_accessible('abc'))
-		{
-			echo ' [FAIL]';
-			$failed=true;
-		}
-		else
-			echo ' [ OK ]';
-		if(lv_arr_accessible(new stdClass()))
-		{
-			echo ' [FAIL]'.PHP_EOL;
-			$failed=true;
-		}
-		else
-			echo ' [ OK ]'.PHP_EOL;
-	echo ' -> Testing lv_arr_collapse';
-		if(var_export_contains(
-			lv_arr_collapse([[1, 2, 3], [4, 5, 6], [7, 8, 9]]),
-			'array(0=>1,1=>2,2=>3,3=>4,4=>5,5=>6,6=>7,7=>8,8=>9,)'
-		))
-			echo ' [ OK ]'.PHP_EOL;
-		else
-		{
-			echo ' [FAIL]'.PHP_EOL;
-			$failed=true;
-		}
-	echo ' -> Testing lv_arr_collect [LATR]'.PHP_EOL;
-	echo ' -> Testing lv_arr_cross_join';
-		if(var_export_contains(
-			lv_arr_cross_join([1, 2], ['a', 'b']),
-			"array(0=>array(0=>1,1=>'a',),1=>array(0=>1,1=>'b',),2=>array(0=>2,1=>'a',),3=>array(0=>2,1=>'b',),)"
-		))
-			echo ' [ OK ]';
-		else
-		{
-			echo ' [FAIL]';
-			$failed=true;
-		}
-		if(var_export_contains(
-			lv_arr_cross_join([1, 2], ['a', 'b'], ['I', 'II']),
-			"array(0=>array(0=>1,1=>'a',2=>'I',),1=>array(0=>1,1=>'a',2=>'II',),2=>array(0=>1,1=>'b',2=>'I',),3=>array(0=>1,1=>'b',2=>'II',),4=>array(0=>2,1=>'a',2=>'I',),5=>array(0=>2,1=>'a',2=>'II',),6=>array(0=>2,1=>'b',2=>'I',),7=>array(0=>2,1=>'b',2=>'II',),)"
-		))
-			echo ' [ OK ]'.PHP_EOL;
-		else
-		{
-			echo ' [FAIL]'.PHP_EOL;
-			$failed=true;
-		}
-	echo ' -> Testing lv_arr_divide';
-		if(lv_arr_divide(['name'=>'Desk'])[0][0] === 'name')
-			echo ' [ OK ]';
-		else
-		{
-			echo ' [FAIL]';
-			$failed=true;
-		}
-		if(lv_arr_divide(['name'=>'Desk'])[1][0] === 'Desk')
-			echo ' [ OK ]'.PHP_EOL;
-		else
-		{
-			echo ' [FAIL]'.PHP_EOL;
-			$failed=true;
-		}
-	echo ' -> Testing lv_arr_dot';
-		if(var_export_contains(
-			lv_arr_dot(['products'=>['desk'=>['price'=>100]]]),
-			"array('products.desk.price'=>100,)"
-		))
-			echo ' [ OK ]'.PHP_EOL;
-		else
-		{
-			echo ' [FAIL]'.PHP_EOL;
-			$failed=true;
-		}
-	echo ' -> Testing lv_arr_except';
-		if(var_export_contains(
-			lv_arr_except(['name'=>'Desk', 'price'=>100], ['price']),
-			"array('name'=>'Desk',)"
-		))
-			echo ' [ OK ]'.PHP_EOL;
-		else
-		{
-			echo ' [FAIL]'.PHP_EOL;
-			$failed=true;
-		}
-	echo ' -> Testing lv_arr_exists';
-		if(lv_arr_exists(['name'=>'John Doe', 'age'=>17], 'name'))
-			echo ' [ OK ]';
-		else
-		{
-			echo ' [FAIL]';
-			$failed=true;
-		}
-		if(lv_arr_exists(['name'=>'John Doe', 'age'=>17], 'salary'))
-		{
-			echo ' [FAIL]'.PHP_EOL;
-			$failed=true;
-		}
-		else
-			echo ' [ OK ]'.PHP_EOL;
-	echo ' -> Testing lv_arr_first';
-		if(lv_arr_first([100, 200, 300], function(int $value, int $key){
-			return ($value >= 150);
-		}) === 200)
-			echo ' [ OK ]'.PHP_EOL;
-		else
-		{
-			echo ' [FAIL]'.PHP_EOL;
-			$failed=true;
-		}
-	echo ' -> Testing lv_arr_flatten';
-		if(var_export_contains(
-			lv_arr_flatten(['name'=>'Joe', 'languages'=>['PHP', 'Ruby']]),
-			"array(0=>'Joe',1=>'PHP',2=>'Ruby',)"
-		))
-			echo ' [ OK ]'.PHP_EOL;
-		else
-		{
-			echo ' [FAIL]'.PHP_EOL;
-			$failed=true;
-		}
-	echo ' -> Testing lv_arr_forget';
-		$lv_arr_forget_array=['products'=>['desk'=>['price'=>100]]];
-		lv_arr_forget($lv_arr_forget_array, 'products.desk');
-		if(var_export_contains($lv_arr_forget_array, "array('products'=>array(),)"))
-			echo ' [ OK ]'.PHP_EOL;
-		else
-		{
-			echo ' [FAIL]'.PHP_EOL;
-			$failed=true;
-		}
-	echo ' -> Testing lv_arr_get';
-		if(lv_arr_get(
-			['products'=>['desk'=>['price'=>100]]],
-			'products.desk.price')
-		=== 100)
-			echo ' [ OK ]';
-		else
-		{
-			echo ' [FAIL]';
-			$failed=true;
-		}
-		if(lv_arr_get(
-			['products'=>['desk'=>['price'=>100]]],
-			'products.desk.discount', 0)
-		=== 0)
-			echo ' [ OK ]'.PHP_EOL;
-		else
-		{
-			echo ' [FAIL]'.PHP_EOL;
-			$failed=true;
-		}
-	echo ' -> Testing lv_arr_has';
-		if(lv_arr_has(
-			['product'=>['name'=>'Desk', 'price'=>100]],
-			'product.name'
-		))
-			echo ' [ OK ]';
-		else
-		{
-			echo ' [FAIL]';
-			$failed=true;
-		}
-		if(lv_arr_has(
-			['product'=>['name'=>'Desk', 'price'=>100]],
-			['product.price', 'product.discount']
-		)){
-			echo ' [FAIL]'.PHP_EOL;
-			$failed=true;
-		}
-		else
-			echo ' [ OK ]'.PHP_EOL;
-	echo ' -> Testing lv_arr_has_any';
-		if(lv_arr_has_any(
-			['product'=>['name'=>'Desk', 'price'=>100]],
-			'product.name'
-		))
-			echo ' [ OK ]';
-		else
-		{
-			echo ' [FAIL]';
-			$failed=true;
-		}
-		if(lv_arr_has_any(
-			['product'=>['name'=>'Desk', 'price'=>100]],
-			['product.price', 'product.discount']
-		))
-			echo ' [ OK ]';
-		else
-		{
-			echo ' [FAIL]';
-			$failed=true;
-		}
-		if(lv_arr_has_any(
-			['product'=>['name'=>'Desk', 'price'=>100]],
-			['category', 'product.discount']
-		)){
-			echo ' [FAIL]'.PHP_EOL;
-			$failed=true;
-		}
-		else
-			echo ' [ OK ]'.PHP_EOL;
-	echo ' -> Testing lv_arr_key_by';
-		if(var_export_contains(
-			lv_arr_key_by(
-				[
-					['product_id'=>'prod-100', 'name'=>'Desk'],
-					['product_id'=>'prod-200', 'name'=>'Chair']
-				],
-				'product_id'
-			),
-			"array('prod-100'=>array('product_id'=>'prod-100','name'=>'Desk',),'prod-200'=>array('product_id'=>'prod-200','name'=>'Chair',),)"
-		))
-			echo ' [ OK ]'.PHP_EOL;
-		else
-		{
-			echo ' [FAIL]'.PHP_EOL;
-			$failed=true;
-		}
-	echo ' -> Testing lv_arr_last';
-		if(lv_arr_last([100, 200, 300, 110], function(int $value, int $key){
-			return ($value >= 150);
-		}) === 300)
-			echo ' [ OK ]'.PHP_EOL;
-		else
-		{
-			echo ' [FAIL]'.PHP_EOL;
-			$failed=true;
-		}
-	echo ' -> Testing lv_arr_lazy_collect [LATR]'.PHP_EOL;
-	echo ' -> Testing lv_arr_map';
-		if(var_export_contains(
-			lv_arr_map(['first'=>'james', 'last'=>'kirk'], function(string $value, string $key){
-				return ucfirst($value);
-			}),
-			"array('first'=>'James','last'=>'Kirk',)"
-		))
-			echo ' [ OK ]'.PHP_EOL;
-		else
-		{
-			echo ' [FAIL]'.PHP_EOL;
-			$failed=true;
-		}
-	echo ' -> Testing lv_arr_map_with_keys';
-		if(var_export_contains(
-			lv_arr_map_with_keys(
-				[
-					[
-						'name'=>'John',
-						'department'=>'Sales',
-						'email'=>'john@example.com',
-					],
-					[
-						'name'=>'Jane',
-						'department'=>'Marketing',
-						'email'=>'jane@example.com',
-					]
-				],
-				function(array $item, int $key){
-					return [
-						$item['email']=>$item['name']
-					];
-				}
-			),
-			"array('john@example.com'=>'John','jane@example.com'=>'Jane',)"
-		))
-			echo ' [ OK ]'.PHP_EOL;
-		else
-		{
-			echo ' [FAIL]'.PHP_EOL;
-			$failed=true;
-		}
-	echo ' -> Testing lv_arr_only';
-		if(var_export_contains(
-			lv_arr_only(
-				['name'=>'Desk', 'price'=>100, 'orders'=>10],
-				['name', 'price']
-			),
-			"array('name'=>'Desk','price'=>100,)"
-		))
-			echo ' [ OK ]'.PHP_EOL;
-		else
-		{
-			echo ' [FAIL]'.PHP_EOL;
-			$failed=true;
-		}
-	echo ' -> Testing lv_arr_pluck';
-		if(var_export_contains(
-			lv_arr_pluck(
-				[
-					['developer'=>['id'=>1, 'name'=>'Taylor']],
-					['developer'=>['id'=>2, 'name'=>'Abigail']]
-				],
-				'developer.name'
-			),
-			"array(0=>'Taylor',1=>'Abigail',)"
-		))
-			echo ' [ OK ]'.PHP_EOL;
-		else
-		{
-			echo ' [FAIL]'.PHP_EOL;
-			$failed=true;
-		}
-	echo ' -> Testing lv_arr_prepend';
-		if(var_export_contains(
-			lv_arr_prepend(['one', 'two', 'three', 'four'], 'zero'),
-			"array(0=>'zero',1=>'one',2=>'two',3=>'three',4=>'four',)"
-		))
-			echo ' [ OK ]'.PHP_EOL;
-		else
-		{
-			echo ' [FAIL]'.PHP_EOL;
-			$failed=true;
-		}
-	echo ' -> Testing lv_arr_pull';
-		$lv_arr_pull_array=['name'=>'Desk', 'price'=>100];
-		if(lv_arr_pull($lv_arr_pull_array, 'name') === 'Desk')
-			echo ' [ OK ]';
-		else
-		{
-			echo ' [FAIL]';
-			$failed=true;
-		}
-		if(var_export_contains($lv_arr_pull_array, "array('price'=>100,)"))
-			echo ' [ OK ]'.PHP_EOL;
-		else
-		{
-			echo ' [FAIL]'.PHP_EOL;
-			$failed=true;
-		}
-	echo ' -> Testing lv_arr_query';
-		if(lv_arr_query([
-				'name'=>'Taylor',
-				'order'=>[
-					'column'=>'created_at',
-					'direction'=>'desc'
-				]
-			])
-			===
-			'name=Taylor&order%5Bcolumn%5D=created_at&order%5Bdirection%5D=desc'
-		)
-			echo ' [ OK ]'.PHP_EOL;
-		else
-		{
-			echo ' [FAIL]'.PHP_EOL;
-			$failed=true;
-		}
-	echo ' -> Testing lv_arr_random';
-		$lv_arr_random_number=lv_arr_random([1, 2, 'A']);
-		if($lv_arr_random_number === 1)
-			echo ' [OK 1]'.PHP_EOL;
-		else if($lv_arr_random_number === 2)
-			echo ' [OK 2]'.PHP_EOL;
-		else if($lv_arr_random_number === 'A')
-			echo ' [OK A]'.PHP_EOL;
-		else
-		{
-			echo ' [FAIL]'.PHP_EOL;
-			$failed=true;
-		}
-	echo ' -> Testing lv_arr_select [LATR]'.PHP_EOL;
-	echo ' -> Testing lv_arr_set';
-		$lv_arr_set_array=['products'=>['desk'=>['price'=>100]]];
-		lv_arr_set($lv_arr_set_array, 'products.desk.price', 200);
-		if(var_export_contains(
-			$lv_arr_set_array,
-			"array('products'=>array('desk'=>array('price'=>200,),),)"
-		))
-			echo ' [ OK ]'.PHP_EOL;
-		else
-		{
-			echo ' [FAIL]'.PHP_EOL;
-			$failed=true;
-		}
-	echo ' -> Testing lv_arr_shuffle';
-		switch(var_export_contains(lv_arr_shuffle([1, 2, 3]), '', true))
-		{
-			case "array(0=>1,1=>2,2=>3,)":
-				echo ' [OK 1]'.PHP_EOL;
-			break;
-			case "array(0=>2,1=>1,2=>3,)":
-				echo ' [OK 2]'.PHP_EOL;
-			break;
-			case "array(0=>2,1=>3,2=>1,)":
-				echo ' [OK 3]'.PHP_EOL;
-			break;
-			case "array(0=>3,1=>2,2=>1,)":
-				echo ' [OK 4]'.PHP_EOL;
-			break;
-			case "array(0=>3,1=>1,2=>2,)":
-				echo ' [OK 5]'.PHP_EOL;
-			break;
-			case "array(0=>1,1=>3,2=>2,)":
-				echo ' [OK 6]'.PHP_EOL;
-			break;
-			default:
+	if(isset($lv_helpers_skip) && ($lv_helpers_skip === true))
+		echo ' -> Skipping helpers test'.PHP_EOL;
+	else
+	{
+		echo ' -> Testing lv_arr_accessible';
+			if(lv_arr_accessible(['a'=>1, 'b'=>2]))
+				echo ' [ OK ]';
+			else
+			{
+				echo ' [FAIL]';
+				$failed=true;
+			}
+			if(lv_arr_accessible('abc'))
+			{
+				echo ' [FAIL]';
+				$failed=true;
+			}
+			else
+				echo ' [ OK ]';
+			if(lv_arr_accessible(new stdClass()))
+			{
 				echo ' [FAIL]'.PHP_EOL;
 				$failed=true;
-		}
-	echo ' -> Testing lv_arr_undot';
-		if(var_export_contains(
-			lv_arr_undot([
-				'user.name'=>'Kevin Malone',
-				'user.occupation'=>'Accountant'
-			]),
-			"array('user'=>array('name'=>'KevinMalone','occupation'=>'Accountant',),)"
-		))
-			echo ' [ OK ]'.PHP_EOL;
-		else
-		{
-			echo ' [FAIL]'.PHP_EOL;
-			$failed=true;
-		}
-	echo ' -> Testing lv_arr_where';
-		if(var_export_contains(
-			lv_arr_where([100, '200', 300, '400', 500], function($value, int $key){
-				return is_string($value);
-			}),
-			"array(1=>'200',3=>'400',)"
-		))
-			echo ' [ OK ]'.PHP_EOL;
-		else
-		{
-			echo ' [FAIL]'.PHP_EOL;
-			$failed=true;
-		}
-	echo ' -> Testing lv_arr_wrap';
-		if(var_export_contains(
-			lv_arr_wrap('Laravel'),
-			"array(0=>'Laravel',)"
-		))
-			echo ' [ OK ]'.PHP_EOL;
-		else
-		{
-			echo ' [FAIL]'.PHP_EOL;
-			$failed=true;
-		}
-	echo ' -> Testing lv_arr_data_fill';
-		$lv_arr_data_fill_array=['products'=>['desk'=>['price'=>100]]];
-		lv_arr_data_fill($lv_arr_data_fill_array, 'products.desk.price', 200);
-		if(var_export_contains(
-			$lv_arr_data_fill_array,
-			"array('products'=>array('desk'=>array('price'=>100,),),)"
-		))
-			echo ' [ OK ]';
-		else
-		{
-			echo ' [FAIL]';
-			$failed=true;
-		}
-		lv_arr_data_fill($lv_arr_data_fill_array, 'products.desk.discount', 10);
-		if(var_export_contains(
-			$lv_arr_data_fill_array,
-			"array('products'=>array('desk'=>array('price'=>100,'discount'=>10,),),)"
-		))
-			echo ' [ OK ]';
-		else
-		{
-			echo ' [FAIL]';
-			$failed=true;
-		}
-		$lv_arr_data_fill_array=[
-			'products'=>[
-				['name'=>'Desk 1', 'price'=>100],
-				['name'=>'Desk 2']
-			]
-		];
-		lv_arr_data_fill($lv_arr_data_fill_array, 'products.*.price', 200);
-		if(var_export_contains(
-			$lv_arr_data_fill_array,
-			"array('products'=>array(0=>array('name'=>'Desk1','price'=>100,),1=>array('name'=>'Desk2','price'=>200,),),)"
-		))
-			echo ' [ OK ]'.PHP_EOL;
-		else
-		{
-			echo ' [FAIL]'.PHP_EOL;
-			$failed=true;
-		}
-	echo ' -> Testing lv_arr_data_get';
-		if(lv_arr_data_get(['products'=>['desk'=>['price'=>100]]], 'products.desk.price') === 100)
-			echo ' [ OK ]';
-		else
-		{
-			echo ' [FAIL]';
-			$failed=true;
-		}
-		if(lv_arr_data_get(['products'=>['desk'=>['price'=>100]]], 'products.desk.discount', 0) === 0)
-			echo ' [ OK ]';
-		else
-		{
-			echo ' [FAIL]';
-			$failed=true;
-		}
-		if(var_export_contains(
-			lv_arr_data_get(
-				[
-					'product-one'=>['name'=>'Desk 1', 'price'=>100],
-					'product-two'=>['name'=>'Desk 2', 'price'=>150]
-				],
-				'*.name'
-			),
-			"array(0=>'Desk1',1=>'Desk2',)"
-		))
-			echo ' [ OK ]'.PHP_EOL;
-		else
-		{
-			echo ' [FAIL]'.PHP_EOL;
-			$failed=true;
-		}
-	echo ' -> Testing lv_arr_data_set';
-		$lv_arr_data_set_array=['products'=>['desk'=>['price'=>100]]];
-		lv_arr_data_set($lv_arr_data_set_array, 'products.desk.price', 200);
-		if(var_export_contains(
-			$lv_arr_data_set_array,
-			"array('products'=>array('desk'=>array('price'=>200,),),)"
-		))
-			echo ' [ OK ]';
-		else
-		{
-			echo ' [FAIL]';
-			$failed=true;
-		}
-		$lv_arr_data_set_array=[
-			'products'=>[
-				['name'=>'Desk 1', 'price'=>100],
-				['name'=>'Desk 2', 'price'=>150]
-			]
-		];
-		lv_arr_data_set($lv_arr_data_set_array, 'products.*.price', 200);
-		if(var_export_contains(
-			$lv_arr_data_set_array,
-			"array('products'=>array(0=>array('name'=>'Desk1','price'=>200,),1=>array('name'=>'Desk2','price'=>200,),),)"
-		))
-			echo ' [ OK ]';
-		else
-		{
-			echo ' [FAIL]';
-			$failed=true;
-		}
-		$lv_arr_data_set_array=['products'=>['desk'=>['price'=>100]]];
-		lv_arr_data_set($data, 'products.desk.price', 200, false);
-		if(var_export_contains(
-			$lv_arr_data_set_array,
-			"array('products'=>array('desk'=>array('price'=>100,),),)"
-		))
-			echo ' [ OK ]'.PHP_EOL;
-		else
-		{
-			echo ' [FAIL]'.PHP_EOL;
-			$failed=true;
-		}
-	echo ' -> Testing lv_arr_data_forget';
-		$lv_arr_data_forget_array=['products'=>['desk'=>['price'=>100]]];
-		lv_arr_data_forget($lv_arr_data_forget_array, 'products.desk.price');
-		if(var_export_contains(
-			$lv_arr_data_forget_array,
-			"array('products'=>array('desk'=>array(),),)"
-		))
-			echo ' [ OK ]';
-		else
-		{
-			echo ' [FAIL]';
-			$failed=true;
-		}
-		$lv_arr_data_forget_array=[
-			'products'=>[
-				['name'=>'Desk 1', 'price'=>100],
-				['name'=>'Desk 2', 'price'=>150]
-			]
-		];
-		lv_arr_data_forget($lv_arr_data_forget_array, 'products.*.price');
-		if(var_export_contains(
-			$lv_arr_data_forget_array,
-			"array('products'=>array(0=>array('name'=>'Desk1',),1=>array('name'=>'Desk2',),),)"
-		))
-			echo ' [ OK ]'.PHP_EOL;
-		else
-		{
-			echo ' [FAIL]'.PHP_EOL;
-			$failed=true;
-		}
-	echo ' -> Testing lv_arr_value';
-		if(lv_arr_value(true))
-			echo ' [ OK ]';
-		else
-		{
-			echo ' [FAIL]';
-			$failed=true;
-		}
-		if(lv_arr_value(function(){
-			return false;
-		})){
-			echo ' [FAIL]';
-			$failed=true;
-		}
-		else
-			echo ' [ OK ]';
-		if(lv_arr_value(
-			function(string $name){
-				return $name;
-			},
-			'Taylor'
-		) === 'Taylor')
-			echo ' [ OK ]'.PHP_EOL;
-		else
-		{
-			echo ' [FAIL]'.PHP_EOL;
-			$failed=true;
-		}
+			}
+			else
+				echo ' [ OK ]'.PHP_EOL;
+		echo ' -> Testing lv_arr_add';
+			if(var_export_contains(
+				lv_arr_add(['name'=>'Desk'], 'price', 100),
+				"array('name'=>'Desk','price'=>100,)"
+			))
+				echo ' [ OK ]';
+			else
+			{
+				echo ' [FAIL]';
+				$failed=true;
+			}
+			if(var_export_contains(
+				lv_arr_add(['name'=>'Desk', 'price'=>null], 'price', 100),
+				"array('name'=>'Desk','price'=>100,)"
+			))
+				echo ' [ OK ]'.PHP_EOL;
+			else
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				$failed=true;
+			}
+		echo ' -> Testing lv_arr_collapse';
+			if(var_export_contains(
+				lv_arr_collapse([[1, 2, 3], [4, 5, 6], [7, 8, 9]]),
+				'array(0=>1,1=>2,2=>3,3=>4,4=>5,5=>6,6=>7,7=>8,8=>9,)'
+			))
+				echo ' [ OK ]'.PHP_EOL;
+			else
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				$failed=true;
+			}
+		echo ' -> Testing lv_arr_collect [LATR]'.PHP_EOL;
+		echo ' -> Testing lv_arr_cross_join';
+			if(var_export_contains(
+				lv_arr_cross_join([1, 2], ['a', 'b']),
+				"array(0=>array(0=>1,1=>'a',),1=>array(0=>1,1=>'b',),2=>array(0=>2,1=>'a',),3=>array(0=>2,1=>'b',),)"
+			))
+				echo ' [ OK ]';
+			else
+			{
+				echo ' [FAIL]';
+				$failed=true;
+			}
+			if(var_export_contains(
+				lv_arr_cross_join([1, 2], ['a', 'b'], ['I', 'II']),
+				"array(0=>array(0=>1,1=>'a',2=>'I',),1=>array(0=>1,1=>'a',2=>'II',),2=>array(0=>1,1=>'b',2=>'I',),3=>array(0=>1,1=>'b',2=>'II',),4=>array(0=>2,1=>'a',2=>'I',),5=>array(0=>2,1=>'a',2=>'II',),6=>array(0=>2,1=>'b',2=>'I',),7=>array(0=>2,1=>'b',2=>'II',),)"
+			))
+				echo ' [ OK ]'.PHP_EOL;
+			else
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				$failed=true;
+			}
+		echo ' -> Testing lv_arr_divide';
+			if(lv_arr_divide(['name'=>'Desk'])[0][0] === 'name')
+				echo ' [ OK ]';
+			else
+			{
+				echo ' [FAIL]';
+				$failed=true;
+			}
+			if(lv_arr_divide(['name'=>'Desk'])[1][0] === 'Desk')
+				echo ' [ OK ]'.PHP_EOL;
+			else
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				$failed=true;
+			}
+		echo ' -> Testing lv_arr_dot';
+			if(var_export_contains(
+				lv_arr_dot(['products'=>['desk'=>['price'=>100]]]),
+				"array('products.desk.price'=>100,)"
+			))
+				echo ' [ OK ]'.PHP_EOL;
+			else
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				$failed=true;
+			}
+		echo ' -> Testing lv_arr_except';
+			if(var_export_contains(
+				lv_arr_except(['name'=>'Desk', 'price'=>100], ['price']),
+				"array('name'=>'Desk',)"
+			))
+				echo ' [ OK ]'.PHP_EOL;
+			else
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				$failed=true;
+			}
+		echo ' -> Testing lv_arr_exists';
+			if(lv_arr_exists(['name'=>'John Doe', 'age'=>17], 'name'))
+				echo ' [ OK ]';
+			else
+			{
+				echo ' [FAIL]';
+				$failed=true;
+			}
+			if(lv_arr_exists(['name'=>'John Doe', 'age'=>17], 'salary'))
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				$failed=true;
+			}
+			else
+				echo ' [ OK ]'.PHP_EOL;
+		echo ' -> Testing lv_arr_first';
+			if(lv_arr_first([100, 200, 300], function(int $value, int $key){
+				return ($value >= 150);
+			}) === 200)
+				echo ' [ OK ]'.PHP_EOL;
+			else
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				$failed=true;
+			}
+		echo ' -> Testing lv_arr_flatten';
+			if(var_export_contains(
+				lv_arr_flatten(['name'=>'Joe', 'languages'=>['PHP', 'Ruby']]),
+				"array(0=>'Joe',1=>'PHP',2=>'Ruby',)"
+			))
+				echo ' [ OK ]'.PHP_EOL;
+			else
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				$failed=true;
+			}
+		echo ' -> Testing lv_arr_forget';
+			$lv_arr_forget_array=['products'=>['desk'=>['price'=>100]]];
+			lv_arr_forget($lv_arr_forget_array, 'products.desk');
+			if(var_export_contains($lv_arr_forget_array, "array('products'=>array(),)"))
+				echo ' [ OK ]'.PHP_EOL;
+			else
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				$failed=true;
+			}
+		echo ' -> Testing lv_arr_get';
+			if(lv_arr_get(
+				['products'=>['desk'=>['price'=>100]]],
+				'products.desk.price'
+			) === 100)
+				echo ' [ OK ]';
+			else
+			{
+				echo ' [FAIL]';
+				$failed=true;
+			}
+			if(lv_arr_get(
+				['products'=>['desk'=>['price'=>100]]],
+				'products.desk.discount', 0)
+			=== 0)
+				echo ' [ OK ]'.PHP_EOL;
+			else
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				$failed=true;
+			}
+		echo ' -> Testing lv_arr_has';
+			if(lv_arr_has(
+				['product'=>['name'=>'Desk', 'price'=>100]],
+				'product.name'
+			))
+				echo ' [ OK ]';
+			else
+			{
+				echo ' [FAIL]';
+				$failed=true;
+			}
+			if(lv_arr_has(
+				['product'=>['name'=>'Desk', 'price'=>100]],
+				['product.price', 'product.discount']
+			)){
+				echo ' [FAIL]'.PHP_EOL;
+				$failed=true;
+			}
+			else
+				echo ' [ OK ]'.PHP_EOL;
+		echo ' -> Testing lv_arr_has_any';
+			if(lv_arr_has_any(
+				['product'=>['name'=>'Desk', 'price'=>100]],
+				'product.name'
+			))
+				echo ' [ OK ]';
+			else
+			{
+				echo ' [FAIL]';
+				$failed=true;
+			}
+			if(lv_arr_has_any(
+				['product'=>['name'=>'Desk', 'price'=>100]],
+				['product.price', 'product.discount']
+			))
+				echo ' [ OK ]';
+			else
+			{
+				echo ' [FAIL]';
+				$failed=true;
+			}
+			if(lv_arr_has_any(
+				['product'=>['name'=>'Desk', 'price'=>100]],
+				['category', 'product.discount']
+			)){
+				echo ' [FAIL]'.PHP_EOL;
+				$failed=true;
+			}
+			else
+				echo ' [ OK ]'.PHP_EOL;
+		echo ' -> Testing lv_arr_join';
+			if(lv_arr_join(['Tailwind', 'Alpine', 'Laravel', 'Livewire'], ', ') === 'Tailwind, Alpine, Laravel, Livewire')
+				echo ' [ OK ]';
+			else
+			{
+				echo ' [FAIL]';
+				$failed=true;
+			}
+			if(lv_arr_join(['Tailwind', 'Alpine', 'Laravel', 'Livewire'], ', ', ' and ') === 'Tailwind, Alpine, Laravel and Livewire')
+				echo ' [ OK ]'.PHP_EOL;
+			else
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				$failed=true;
+			}
+		echo ' -> Testing lv_arr_key_by';
+			if(var_export_contains(
+				lv_arr_key_by(
+					[
+						['product_id'=>'prod-100', 'name'=>'Desk'],
+						['product_id'=>'prod-200', 'name'=>'Chair']
+					],
+					'product_id'
+				),
+				"array('prod-100'=>array('product_id'=>'prod-100','name'=>'Desk',),'prod-200'=>array('product_id'=>'prod-200','name'=>'Chair',),)"
+			))
+				echo ' [ OK ]'.PHP_EOL;
+			else
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				$failed=true;
+			}
+		echo ' -> Testing lv_arr_last';
+			if(lv_arr_last([100, 200, 300, 110], function(int $value, int $key){
+				return ($value >= 150);
+			}) === 300)
+				echo ' [ OK ]'.PHP_EOL;
+			else
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				$failed=true;
+			}
+		echo ' -> Testing lv_arr_lazy_collect [LATR]'.PHP_EOL;
+		echo ' -> Testing lv_arr_map';
+			if(var_export_contains(
+				lv_arr_map(['first'=>'james', 'last'=>'kirk'], function(string $value, string $key){
+					return ucfirst($value);
+				}),
+				"array('first'=>'James','last'=>'Kirk',)"
+			))
+				echo ' [ OK ]'.PHP_EOL;
+			else
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				$failed=true;
+			}
+		echo ' -> Testing lv_arr_map_with_keys';
+			if(var_export_contains(
+				lv_arr_map_with_keys(
+					[
+						[
+							'name'=>'John',
+							'department'=>'Sales',
+							'email'=>'john@example.com',
+						],
+						[
+							'name'=>'Jane',
+							'department'=>'Marketing',
+							'email'=>'jane@example.com',
+						]
+					],
+					function(array $item, int $key){
+						return [
+							$item['email']=>$item['name']
+						];
+					}
+				),
+				"array('john@example.com'=>'John','jane@example.com'=>'Jane',)"
+			))
+				echo ' [ OK ]'.PHP_EOL;
+			else
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				$failed=true;
+			}
+		echo ' -> Testing lv_arr_only';
+			if(var_export_contains(
+				lv_arr_only(
+					['name'=>'Desk', 'price'=>100, 'orders'=>10],
+					['name', 'price']
+				),
+				"array('name'=>'Desk','price'=>100,)"
+			))
+				echo ' [ OK ]'.PHP_EOL;
+			else
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				$failed=true;
+			}
+		echo ' -> Testing lv_arr_pluck';
+			if(var_export_contains(
+				lv_arr_pluck(
+					[
+						['developer'=>['id'=>1, 'name'=>'Taylor']],
+						['developer'=>['id'=>2, 'name'=>'Abigail']]
+					],
+					'developer.name'
+				),
+				"array(0=>'Taylor',1=>'Abigail',)"
+			))
+				echo ' [ OK ]'.PHP_EOL;
+			else
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				$failed=true;
+			}
+		echo ' -> Testing lv_arr_prepend';
+			if(var_export_contains(
+				lv_arr_prepend(['one', 'two', 'three', 'four'], 'zero'),
+				"array(0=>'zero',1=>'one',2=>'two',3=>'three',4=>'four',)"
+			))
+				echo ' [ OK ]'.PHP_EOL;
+			else
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				$failed=true;
+			}
+		echo ' -> Testing lv_arr_pull';
+			$lv_arr_pull_array=['name'=>'Desk', 'price'=>100];
+			if(lv_arr_pull($lv_arr_pull_array, 'name') === 'Desk')
+				echo ' [ OK ]';
+			else
+			{
+				echo ' [FAIL]';
+				$failed=true;
+			}
+			if(var_export_contains($lv_arr_pull_array, "array('price'=>100,)"))
+				echo ' [ OK ]'.PHP_EOL;
+			else
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				$failed=true;
+			}
+		echo ' -> Testing lv_arr_prepend_keys_with';
+			if(var_export_contains(
+				lv_arr_prepend_keys_with(['name'=>'Desk', 'price'=>100], 'product.'),
+				"array('product.name'=>'Desk','product.price'=>100,)"
+			))
+				echo ' [ OK ]'.PHP_EOL;
+			else
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				$failed=true;
+			}
+		echo ' -> Testing lv_arr_pull';
+			$array=['name'=>'Desk', 'price'=>100];
+			if(lv_arr_pull($array, 'name') === 'Desk')
+				echo ' [ OK ]';
+			else
+			{
+				echo ' [FAIL]';
+				$failed=true;
+			}
+			if(var_export_contains($array, "array('price'=>100,)"))
+				echo ' [ OK ]'.PHP_EOL;
+			else
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				$failed=true;
+			}
+		echo ' -> Testing lv_arr_query';
+			if(lv_arr_query([
+					'name'=>'Taylor',
+					'order'=>[
+						'column'=>'created_at',
+						'direction'=>'desc'
+					]
+				])
+				===
+				'name=Taylor&order%5Bcolumn%5D=created_at&order%5Bdirection%5D=desc'
+			)
+				echo ' [ OK ]'.PHP_EOL;
+			else
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				$failed=true;
+			}
+		echo ' -> Testing lv_arr_random';
+			$lv_arr_random_number=lv_arr_random([1, 2, 'A']);
+			if($lv_arr_random_number === 1)
+				echo ' [OK 1]'.PHP_EOL;
+			else if($lv_arr_random_number === 2)
+				echo ' [OK 2]'.PHP_EOL;
+			else if($lv_arr_random_number === 'A')
+				echo ' [OK A]'.PHP_EOL;
+			else
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				$failed=true;
+			}
+		echo ' -> Testing lv_arr_select [LATR]'.PHP_EOL;
+		echo ' -> Testing lv_arr_set';
+			$lv_arr_set_array=['products'=>['desk'=>['price'=>100]]];
+			lv_arr_set($lv_arr_set_array, 'products.desk.price', 200);
+			if(var_export_contains(
+				$lv_arr_set_array,
+				"array('products'=>array('desk'=>array('price'=>200,),),)"
+			))
+				echo ' [ OK ]'.PHP_EOL;
+			else
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				$failed=true;
+			}
+		echo ' -> Testing lv_arr_shuffle';
+			switch(var_export_contains(lv_arr_shuffle([1, 2, 3]), '', true))
+			{
+				case "array(0=>1,1=>2,2=>3,)":
+					echo ' [OK 1]'.PHP_EOL;
+				break;
+				case "array(0=>2,1=>1,2=>3,)":
+					echo ' [OK 2]'.PHP_EOL;
+				break;
+				case "array(0=>2,1=>3,2=>1,)":
+					echo ' [OK 3]'.PHP_EOL;
+				break;
+				case "array(0=>3,1=>2,2=>1,)":
+					echo ' [OK 4]'.PHP_EOL;
+				break;
+				case "array(0=>3,1=>1,2=>2,)":
+					echo ' [OK 5]'.PHP_EOL;
+				break;
+				case "array(0=>1,1=>3,2=>2,)":
+					echo ' [OK 6]'.PHP_EOL;
+				break;
+				default:
+					echo ' [FAIL]'.PHP_EOL;
+					$failed=true;
+			}
+		echo ' -> Testing lv_arr_sort';
+			if(var_export_contains(
+				lv_arr_sort(['Desk', 'Table', 'Chair']),
+				"array(2=>'Chair',0=>'Desk',1=>'Table',)"
+			))
+				echo ' [ OK ]';
+			else
+			{
+				echo ' [FAIL]';
+				$failed=true;
+			}
+			if(var_export_contains(
+				array_values(lv_arr_sort([
+					['name'=>'Desk'],
+					['name'=>'Table'],
+					['name'=>'Chair']
+				], function(array $value){
+					return $value['name'];
+				})),
+				"array(0=>array('name'=>'Chair',),1=>array('name'=>'Desk',),2=>array('name'=>'Table',),)"
+			))
+				echo ' [ OK ]'.PHP_EOL;
+			else
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				$failed=true;
+			}
+		echo ' -> Testing lv_arr_sort_desc';
+			if(var_export_contains(
+				lv_arr_sort_desc(['Desk', 'Table', 'Chair']),
+				"array(1=>'Table',0=>'Desk',2=>'Chair',)"
+			))
+				echo ' [ OK ]';
+			else
+			{
+				echo ' [FAIL]';
+				$failed=true;
+			}
+			if(var_export_contains(
+				array_values(lv_arr_sort_desc([
+					['name'=>'Desk'],
+					['name'=>'Table'],
+					['name'=>'Chair']
+				], function(array $value){
+					return $value['name'];
+				})),
+				"array(0=>array('name'=>'Table',),1=>array('name'=>'Desk',),2=>array('name'=>'Chair',),)"
+			))
+				echo ' [ OK ]'.PHP_EOL;
+			else
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				$failed=true;
+			}
+		echo ' -> Testing lv_arr_to_css_classes';
+			if(lv_arr_to_css_classes(['p-4', 'font-bold'=>false, 'bg-red'=>true]) === 'p-4 bg-red')
+				echo ' [ OK ]'.PHP_EOL;
+			else
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				$failed=true;
+			}
+		echo ' -> Testing lv_arr_undot';
+			if(var_export_contains(
+				lv_arr_undot([
+					'user.name'=>'Kevin Malone',
+					'user.occupation'=>'Accountant'
+				]),
+				"array('user'=>array('name'=>'KevinMalone','occupation'=>'Accountant',),)"
+			))
+				echo ' [ OK ]'.PHP_EOL;
+			else
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				$failed=true;
+			}
+		echo ' -> Testing lv_arr_where';
+			if(var_export_contains(
+				lv_arr_where([100, '200', 300, '400', 500], function($value, int $key){
+					return is_string($value);
+				}),
+				"array(1=>'200',3=>'400',)"
+			))
+				echo ' [ OK ]'.PHP_EOL;
+			else
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				$failed=true;
+			}
+		echo ' -> Testing lv_arr_where_not_null';
+			if(var_export_contains(
+				lv_arr_where_not_null([0, null]),
+				'array(0=>0,)'
+			))
+				echo ' [ OK ]'.PHP_EOL;
+			else
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				$failed=true;
+			}
+		echo ' -> Testing lv_arr_wrap';
+			if(var_export_contains(
+				lv_arr_wrap('Laravel'),
+				"array(0=>'Laravel',)"
+			))
+				echo ' [ OK ]'.PHP_EOL;
+			else
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				$failed=true;
+			}
+		echo ' -> Testing lv_arr_data_fill';
+			$lv_arr_data_fill_array=['products'=>['desk'=>['price'=>100]]];
+			lv_arr_data_fill($lv_arr_data_fill_array, 'products.desk.price', 200);
+			if(var_export_contains(
+				$lv_arr_data_fill_array,
+				"array('products'=>array('desk'=>array('price'=>100,),),)"
+			))
+				echo ' [ OK ]';
+			else
+			{
+				echo ' [FAIL]';
+				$failed=true;
+			}
+			lv_arr_data_fill($lv_arr_data_fill_array, 'products.desk.discount', 10);
+			if(var_export_contains(
+				$lv_arr_data_fill_array,
+				"array('products'=>array('desk'=>array('price'=>100,'discount'=>10,),),)"
+			))
+				echo ' [ OK ]';
+			else
+			{
+				echo ' [FAIL]';
+				$failed=true;
+			}
+			$lv_arr_data_fill_array=[
+				'products'=>[
+					['name'=>'Desk 1', 'price'=>100],
+					['name'=>'Desk 2']
+				]
+			];
+			lv_arr_data_fill($lv_arr_data_fill_array, 'products.*.price', 200);
+			if(var_export_contains(
+				$lv_arr_data_fill_array,
+				"array('products'=>array(0=>array('name'=>'Desk1','price'=>100,),1=>array('name'=>'Desk2','price'=>200,),),)"
+			))
+				echo ' [ OK ]'.PHP_EOL;
+			else
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				$failed=true;
+			}
+		echo ' -> Testing lv_arr_data_get';
+			if(lv_arr_data_get(['products'=>['desk'=>['price'=>100]]], 'products.desk.price') === 100)
+				echo ' [ OK ]';
+			else
+			{
+				echo ' [FAIL]';
+				$failed=true;
+			}
+			if(lv_arr_data_get(['products'=>['desk'=>['price'=>100]]], 'products.desk.discount', 0) === 0)
+				echo ' [ OK ]';
+			else
+			{
+				echo ' [FAIL]';
+				$failed=true;
+			}
+			if(var_export_contains(
+				lv_arr_data_get(
+					[
+						'product-one'=>['name'=>'Desk 1', 'price'=>100],
+						'product-two'=>['name'=>'Desk 2', 'price'=>150]
+					],
+					'*.name'
+				),
+				"array(0=>'Desk1',1=>'Desk2',)"
+			))
+				echo ' [ OK ]'.PHP_EOL;
+			else
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				$failed=true;
+			}
+		echo ' -> Testing lv_arr_data_set';
+			$lv_arr_data_set_array=['products'=>['desk'=>['price'=>100]]];
+			lv_arr_data_set($lv_arr_data_set_array, 'products.desk.price', 200);
+			if(var_export_contains(
+				$lv_arr_data_set_array,
+				"array('products'=>array('desk'=>array('price'=>200,),),)"
+			))
+				echo ' [ OK ]';
+			else
+			{
+				echo ' [FAIL]';
+				$failed=true;
+			}
+			$lv_arr_data_set_array=[
+				'products'=>[
+					['name'=>'Desk 1', 'price'=>100],
+					['name'=>'Desk 2', 'price'=>150]
+				]
+			];
+			lv_arr_data_set($lv_arr_data_set_array, 'products.*.price', 200);
+			if(var_export_contains(
+				$lv_arr_data_set_array,
+				"array('products'=>array(0=>array('name'=>'Desk1','price'=>200,),1=>array('name'=>'Desk2','price'=>200,),),)"
+			))
+				echo ' [ OK ]';
+			else
+			{
+				echo ' [FAIL]';
+				$failed=true;
+			}
+			$lv_arr_data_set_array=['products'=>['desk'=>['price'=>100]]];
+			lv_arr_data_set($data, 'products.desk.price', 200, false);
+			if(var_export_contains(
+				$lv_arr_data_set_array,
+				"array('products'=>array('desk'=>array('price'=>100,),),)"
+			))
+				echo ' [ OK ]'.PHP_EOL;
+			else
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				$failed=true;
+			}
+		echo ' -> Testing lv_arr_data_forget';
+			$lv_arr_data_forget_array=['products'=>['desk'=>['price'=>100]]];
+			lv_arr_data_forget($lv_arr_data_forget_array, 'products.desk.price');
+			if(var_export_contains(
+				$lv_arr_data_forget_array,
+				"array('products'=>array('desk'=>array(),),)"
+			))
+				echo ' [ OK ]';
+			else
+			{
+				echo ' [FAIL]';
+				$failed=true;
+			}
+			$lv_arr_data_forget_array=[
+				'products'=>[
+					['name'=>'Desk 1', 'price'=>100],
+					['name'=>'Desk 2', 'price'=>150]
+				]
+			];
+			lv_arr_data_forget($lv_arr_data_forget_array, 'products.*.price');
+			if(var_export_contains(
+				$lv_arr_data_forget_array,
+				"array('products'=>array(0=>array('name'=>'Desk1',),1=>array('name'=>'Desk2',),),)"
+			))
+				echo ' [ OK ]'.PHP_EOL;
+			else
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				$failed=true;
+			}
+		echo ' -> Testing lv_arr_value';
+			if(lv_arr_value(true))
+				echo ' [ OK ]';
+			else
+			{
+				echo ' [FAIL]';
+				$failed=true;
+			}
+			if(lv_arr_value(function(){
+				return false;
+			})){
+				echo ' [FAIL]';
+				$failed=true;
+			}
+			else
+				echo ' [ OK ]';
+			if(lv_arr_value(
+				function(string $name){
+					return $name;
+				},
+				'Taylor'
+			) === 'Taylor')
+				echo ' [ OK ]'.PHP_EOL;
+			else
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				$failed=true;
+			}
+	}
 
-	echo ' -> Testing lv_arr_collection'.PHP_EOL;
+	if(!isset($lv_collection_header))
+		$lv_collection_header='lv_arr_collection';
+	echo ' -> Testing '.$lv_collection_header.PHP_EOL;
+		if(!isset($lv_collect_function))
+			$lv_collect_function='lv_arr_collect';
 		echo '  -> all';
-			//echo ' ['.var_export_contains(lv_arr_collect([1, 2, 3])->all(), '', true).']';
-			if(var_export_contains(lv_arr_collect([1, 2, 3])->all(), "array(0=>1,1=>2,2=>3,)"))
+			//echo ' ['.var_export_contains($lv_collect_function([1, 2, 3])->all(), '', true).']';
+			if(var_export_contains($lv_collect_function([1, 2, 3])->all(), "array(0=>1,1=>2,2=>3,)"))
 				echo ' [ OK ]'.PHP_EOL;
 			else
 			{
@@ -689,13 +848,13 @@
 			}
 		echo '  -> average [SKIP]'.PHP_EOL;
 		echo '  -> avg';
-			//echo ' ['.var_export_contains(lv_arr_collect([
+			//echo ' ['.var_export_contains($lv_collect_function([
 			//	['foo'=>10],
 			//	['foo'=>10],
 			//	['foo'=>20],
 			//	['foo'=>40]
 			//])->avg('foo'), '', true).']';
-			if(lv_arr_collect([
+			if($lv_collect_function([
 				['foo'=>10],
 				['foo'=>10],
 				['foo'=>20],
@@ -707,8 +866,8 @@
 				echo ' [FAIL]';
 				$failed=true;
 			}
-			//echo ' ['.var_export_contains($average=lv_arr_collect([1, 1, 2, 4])->avg(), '', true).']';
-			if($average=lv_arr_collect([1, 1, 2, 4])->avg() === 2)
+			//echo ' ['.var_export_contains($average=$lv_collect_function([1, 1, 2, 4])->avg(), '', true).']';
+			if($average=$lv_collect_function([1, 1, 2, 4])->avg() === 2)
 				echo ' [ OK ]'.PHP_EOL;
 			else
 			{
@@ -716,7 +875,7 @@
 				$failed=true;
 			}
 		echo '  -> chunk';
-			$collection=lv_arr_collect([1, 2, 3, 4, 5, 6, 7]);
+			$collection=$lv_collect_function([1, 2, 3, 4, 5, 6, 7]);
 			$chunks=$collection->chunk(4);
 			//echo ' ['.var_export_contains($chunks->__toString(), '', true).']';
 			if($chunks->__toString() === '[[1,2,3,4],{"4":5,"5":6,"6":7}]')
@@ -727,7 +886,7 @@
 				$failed=true;
 			}
 		echo '  -> chunk_while';
-			$collection=lv_arr_collect(str_split('AABBCCCD'));
+			$collection=$lv_collect_function(str_split('AABBCCCD'));
 			$chunks=$collection->chunk_while(function(string $value, int $key, lv_arr_collection $chunk){
 				return ($value === $chunk->last());
 			});
@@ -743,7 +902,7 @@
 				$failed=true;
 			}
 		echo '  -> collapse';
-			$collection=lv_arr_collect([
+			$collection=$lv_collect_function([
 				[1, 2, 3],
 				[4, 5, 6],
 				[7, 8, 9]
@@ -761,7 +920,7 @@
 				$failed=true;
 			}
 		echo '  -> collect';
-			$collection_a=lv_arr_collect([1, 2, 3]);
+			$collection_a=$lv_collect_function([1, 2, 3]);
 			$collection_b=$collection_a->collect();
 			//echo ' ['.var_export_contains($collection_b->all(), '', true).']';
 			if(var_export_contains($collection_b->all(), "array(0=>1,1=>2,2=>3,)"))
@@ -772,7 +931,7 @@
 				$failed=true;
 			}
 		echo '  -> combine';
-			$collection=lv_arr_collect(['name', 'age']);
+			$collection=$lv_collect_function(['name', 'age']);
 			$combined=$collection->combine(['George', 29]);
 			//echo ' ['.var_export_contains($combined->all(), '', true).']';
 			if(var_export_contains(
@@ -786,7 +945,7 @@
 				$failed=true;
 			}
 		echo '  -> concat';
-			$collection=lv_arr_collect(['John Doe']);
+			$collection=$lv_collect_function(['John Doe']);
 			$concatenated=$collection->concat(['Jane Doe'])->concat(['name'=>'Johnny Doe']);
 			//echo ' ['.var_export_contains($concatenated->all(), '', true).']';
 			if(var_export_contains(
@@ -800,7 +959,7 @@
 				$failed=true;
 			}
 		echo '  -> contains';
-			$collection=lv_arr_collect([1, 2, 3, 4, 5]);
+			$collection=$lv_collect_function([1, 2, 3, 4, 5]);
 			//echo ' ['.var_export_contains($collection->contains(function(int $value, int $key){
 			//	return ($value > 5);
 			//}), '', true).']';
@@ -813,7 +972,7 @@
 				echo ' [FAIL]';
 				$failed=true;
 			}
-			$collection=lv_arr_collect(['name'=>'Desk', 'price'=>100]);
+			$collection=$lv_collect_function(['name'=>'Desk', 'price'=>100]);
 			//echo ' ['.var_export_contains($collection->contains('Desk'), '', true).']';
 			if($collection->contains('Desk') === true)
 				echo ' [ OK ]';
@@ -830,7 +989,7 @@
 				echo ' [FAIL]';
 				$failed=true;
 			}
-			$collection=lv_arr_collect([
+			$collection=$lv_collect_function([
 				['product'=>'Desk', 'price'=>200],
 				['product'=>'Chair', 'price'=>100]
 			]);
@@ -843,24 +1002,24 @@
 				$failed=true;
 			}
 		echo '  -> contains_one_item';
-			//echo ' ['.var_export_contains(lv_arr_collect([])->contains_one_item(), '', true).']';
-			if(lv_arr_collect([])->contains_one_item() === false)
+			//echo ' ['.var_export_contains($lv_collect_function([])->contains_one_item(), '', true).']';
+			if($lv_collect_function([])->contains_one_item() === false)
 				echo ' [ OK ]';
 			else
 			{
 				echo ' [FAIL]';
 				$failed=true;
 			}
-			//echo ' ['.var_export_contains(lv_arr_collect(['1'])->contains_one_item(), '', true).']';
-			if(lv_arr_collect(['1'])->contains_one_item() === true)
+			//echo ' ['.var_export_contains($lv_collect_function(['1'])->contains_one_item(), '', true).']';
+			if($lv_collect_function(['1'])->contains_one_item() === true)
 				echo ' [ OK ]';
 			else
 			{
 				echo ' [FAIL]';
 				$failed=true;
 			}
-			//echo ' ['.var_export_contains(lv_arr_collect(['1', '2'])->contains_one_item(), '', true).']';
-			if(lv_arr_collect(['1', '2'])->contains_one_item() === false)
+			//echo ' ['.var_export_contains($lv_collect_function(['1', '2'])->contains_one_item(), '', true).']';
+			if($lv_collect_function(['1', '2'])->contains_one_item() === false)
 				echo ' [ OK ]'.PHP_EOL;
 			else
 			{
@@ -869,7 +1028,7 @@
 			}
 		echo '  -> contains_strict [SKIP]'.PHP_EOL;
 		echo '  -> count';
-			$collection=lv_arr_collect([1, 2, 3, 4]);
+			$collection=$lv_collect_function([1, 2, 3, 4]);
 			//echo ' ['.var_export_contains($collection->count(), '', true).']';
 			if($collection->count() === 4)
 				echo ' [ OK ]'.PHP_EOL;
@@ -879,7 +1038,7 @@
 				$failed=true;
 			}
 		echo '  -> count_by';
-			$collection=lv_arr_collect([1, 2, 2, 2, 3]);
+			$collection=$lv_collect_function([1, 2, 2, 2, 3]);
 			$counted=$collection->count_by();
 			//echo ' ['.var_export_contains($counted->all(), '', true).']';
 			if(var_export_contains(
@@ -892,7 +1051,7 @@
 				echo ' [FAIL]';
 				$failed=true;
 			}
-			$collection=lv_arr_collect(['alice@gmail.com', 'bob@yahoo.com', 'carlos@gmail.com']);
+			$collection=$lv_collect_function(['alice@gmail.com', 'bob@yahoo.com', 'carlos@gmail.com']);
 			$counted=$collection->count_by(function(string $email){
 				return substr(strrchr($email, "@"), 1);
 			});
@@ -908,7 +1067,7 @@
 				$failed=true;
 			}
 		echo '  -> cross_join';
-			$collection=lv_arr_collect([1, 2]);
+			$collection=$lv_collect_function([1, 2]);
 			$matrix=$collection->cross_join(['a', 'b']);
 			//echo ' ['.var_export_contains($matrix->all(), '', true).']';
 			if(var_export_contains(
@@ -921,7 +1080,7 @@
 				echo ' [FAIL]';
 				$failed=true;
 			}
-			$collection=lv_arr_collect([1, 2]);
+			$collection=$lv_collect_function([1, 2]);
 			$matrix=$collection->cross_join(['a', 'b'], ['I', 'II']);
 			//echo ' ['.var_export_contains($matrix->all(), '', true).']';
 			if(var_export_contains(
@@ -934,8 +1093,9 @@
 				echo ' [FAIL]'.PHP_EOL;
 				$failed=true;
 			}
+		echo '  -> dd [SKIP]'.PHP_EOL;
 		echo '  -> diff';
-			$collection=lv_arr_collect([1, 2, 3, 4, 5]);
+			$collection=$lv_collect_function([1, 2, 3, 4, 5]);
 			$diff=$collection->diff([2, 4, 6, 8]);
 			//echo ' ['.var_export_contains($diff->all(), '', true).']';
 			if(var_export_contains($diff->all(), "array(0=>1,2=>3,4=>5,)"))
@@ -946,7 +1106,7 @@
 				$failed=true;
 			}
 		echo '  -> diff_assoc';
-			$collection=lv_arr_collect([
+			$collection=$lv_collect_function([
 				'color'=>'orange',
 				'type'=>'fruit',
 				'remain'=>6
@@ -969,7 +1129,7 @@
 				$failed=true;
 			}
 		echo '  -> diff_assoc_using';
-			$collection=lv_arr_collect([
+			$collection=$lv_collect_function([
 				'color'=>'orange',
 				'type'=>'fruit',
 				'remain'=>6
@@ -991,7 +1151,7 @@
 				$failed=true;
 			}
 		echo '  -> diff_keys';
-			$collection=lv_arr_collect([
+			$collection=$lv_collect_function([
 				'one'=>10,
 				'two'=>20,
 				'three'=>30,
@@ -1018,7 +1178,7 @@
 		echo '  -> diff_keys_using [SKIP]'.PHP_EOL;
 		echo '  -> diff_using [SKIP]'.PHP_EOL;
 		echo '  -> doesnt_contain';
-			$collection=lv_arr_collect([1, 2, 3, 4, 5]);
+			$collection=$lv_collect_function([1, 2, 3, 4, 5]);
 			//echo ' ['.var_export_contains($collection->doesnt_contain(function(int $value, int $key){
 			//	return ($value < 5);
 			//}), '', true).']';
@@ -1031,7 +1191,7 @@
 				echo ' [FAIL]';
 				$failed=true;
 			}
-			$collection=lv_arr_collect(['name'=>'Desk', 'price'=>100]);
+			$collection=$lv_collect_function(['name'=>'Desk', 'price'=>100]);
 			//echo ' ['.var_export_contains($collection->doesnt_contain('Table'), '', true).']';
 			if($collection->doesnt_contain('Table') === true)
 				echo ' [ OK ]';
@@ -1048,7 +1208,7 @@
 				echo ' [FAIL]';
 				$failed=true;
 			}
-			$collection=lv_arr_collect([
+			$collection=$lv_collect_function([
 				['product'=>'Desk', 'price'=>200],
 				['product'=>'Chair', 'price'=>100]
 			]);
@@ -1061,7 +1221,7 @@
 				$failed=true;
 			}
 		echo '  -> dot';
-			$collection=lv_arr_collect(['products'=>['desk'=>['price'=>100]]]);
+			$collection=$lv_collect_function(['products'=>['desk'=>['price'=>100]]]);
 			$flattened=$collection->dot();
 			//echo ' ['.var_export_contains($flattened->all(), '', true).']';
 			if(var_export_contains(
@@ -1074,12 +1234,13 @@
 				echo ' [FAIL]'.PHP_EOL;
 				$failed=true;
 			}
+		echo '  -> dump [SKIP]'.PHP_EOL;
 		echo '  -> duplicates';
-			$collection=lv_arr_collect(['a', 'b', 'a', 'c', 'b']);
-			//echo ' ['.var_export_contains($collection->duplicates(), '', true).']';
+			$collection=$lv_collect_function(['a', 'b', 'a', 'c', 'b']);
+			//echo ' ['.var_export_contains($collection->duplicates()->all(), '', true).']';
 			if(var_export_contains(
-				$collection->duplicates(),
-				"lv_arr_collection::__set_state(array('items'=>array(2=>'a',4=>'b',),'escape_when_casting_to_string'=>false,))"
+				$collection->duplicates()->all(),
+				"array(2=>'a',4=>'b',)"
 			))
 				echo ' [ OK ]';
 			else
@@ -1087,15 +1248,15 @@
 				echo ' [FAIL]';
 				$failed=true;
 			}
-			$employees=lv_arr_collect([
+			$employees=$lv_collect_function([
 				['email'=>'abigail@example.com', 'position'=>'Developer'],
 				['email'=>'james@example.com', 'position'=>'Designer'],
 				['email'=>'victoria@example.com', 'position'=>'Developer']
 			]);
-			//echo ' ['.var_export_contains($employees->duplicates('position'), '', true).']';
+			//echo ' ['.var_export_contains($employees->duplicates('position')->all(), '', true).']';
 			if(var_export_contains(
-				$employees->duplicates('position'),
-				"lv_arr_collection::__set_state(array('items'=>array(2=>'Developer',),'escape_when_casting_to_string'=>false,))"
+				$employees->duplicates('position')->all(),
+				"array(2=>'Developer',)"
 			))
 				echo ' [ OK ]'.PHP_EOL;
 			else
@@ -1106,7 +1267,7 @@
 		echo '  -> duplicates_strict [SKIP]'.PHP_EOL;
 		echo '  -> each';
 			$GLOBALS['each_f']='';
-			$collection=lv_arr_collect([1, 2, 3, 4]);
+			$collection=$lv_collect_function([1, 2, 3, 4]);
 			$collection->each(function(int $item, int $key){
 				$GLOBALS['each_f'].=$key.$item;
 			});
@@ -1120,7 +1281,7 @@
 			}
 		echo '  -> each_spread';
 			$GLOBALS['each_spread_ret']='';
-			$collection=lv_arr_collect([['John Doe', 35], ['Jane Doe', 33]]);
+			$collection=$lv_collect_function([['John Doe', 35], ['Jane Doe', 33]]);
 			$collection->each_spread(function(string $name, int $age){
 				$GLOBALS['each_spread_ret'].=$name.$age;
 			});
@@ -1133,35 +1294,11 @@
 				$failed=true;
 			}
 		echo '  -> empty [SKIP]'.PHP_EOL;
-		echo '  -> ensure';
-			try {
-				//echo ' ['.var_export_contains(lv_arr_collect([1, 2, 3])->ensure('int'), '', true).']';
-				if(var_export_contains(
-					lv_arr_collect([1, 2, 3])->ensure('int'),
-					"lv_arr_collection::__set_state(array('items'=>array(0=>1,1=>2,2=>3,),'escape_when_casting_to_string'=>false,))"
-				))
-					echo ' [ OK ]';
-				else
-				{
-					echo ' [FAIL]';
-					$failed=true;
-				}
-			} catch(lv_arr_exception $error) {
-				echo ' [FAIL]';
-				$failed=true;
-			}
-			try {
-				lv_arr_collect([1, 2, 3])->ensure('float');
-				echo ' [FAIL]'.PHP_EOL;
-				$failed=true;
-			} catch(lv_arr_exception $error) {
-				echo ' [ OK ]'.PHP_EOL;
-			}
 		echo '  -> every';
-			//echo ' ['.var_export_contains(lv_arr_collect([1, 2, 3, 4])->every(function(int $value, int $key){
+			//echo ' ['.var_export_contains($lv_collect_function([1, 2, 3, 4])->every(function(int $value, int $key){
 			//	return ($value > 2);
 			//}), '', true).']';
-			if(lv_arr_collect([1, 2, 3, 4])->every(function(int $value, int $key){
+			if($lv_collect_function([1, 2, 3, 4])->every(function(int $value, int $key){
 				return ($value > 2);
 			}) === false)
 				echo ' [ OK ]';
@@ -1170,7 +1307,7 @@
 				echo ' [FAIL]';
 				$failed=true;
 			}
-			$collection=lv_arr_collect([]);
+			$collection=$lv_collect_function([]);
 			//echo ' ['.var_export_contains($collection->every(function(int $value, int $key){
 			//	return ($value > 2);
 			//}), '', true).']';
@@ -1184,7 +1321,7 @@
 				$failed=true;
 			}
 		echo '  -> except';
-			$collection=lv_arr_collect(['product_id'=>1, 'price'=>100, 'discount'=>false]);
+			$collection=$lv_collect_function(['product_id'=>1, 'price'=>100, 'discount'=>false]);
 			$filtered=$collection->except(['price', 'discount']);
 			//echo ' ['.var_export_contains($filtered->all(), '', true).']';
 			if(var_export_contains($filtered->all(), "array('product_id'=>1,)"))
@@ -1195,7 +1332,7 @@
 				$failed=true;
 			}
 		echo '  -> filter';
-			$collection=lv_arr_collect([1, 2, 3, 4]);
+			$collection=$lv_collect_function([1, 2, 3, 4]);
 			$filtered=$collection->filter(function(int $value, int $key){
 				return ($value > 2);
 			});
@@ -1207,7 +1344,7 @@
 				echo ' [FAIL]';
 				$failed=true;
 			}
-			$collection=lv_arr_collect([1, 2, 3, null, false, '', 0, []]);
+			$collection=$lv_collect_function([1, 2, 3, null, false, '', 0, []]);
 			//echo ' ['.var_export_contains($collection->filter()->all(), '', true).']';
 			if(var_export_contains($collection->filter()->all(), "array(0=>1,1=>2,2=>3,)"))
 				echo ' [ OK ]'.PHP_EOL;
@@ -1217,10 +1354,10 @@
 				$failed=true;
 			}
 		echo '  -> first';
-			//echo ' ['.var_export_contains(lv_arr_collect([1, 2, 3, 4])->first(function(int $value, int $key){
+			//echo ' ['.var_export_contains($lv_collect_function([1, 2, 3, 4])->first(function(int $value, int $key){
 			//	return ($value > 2);
 			//}), '', true).']';
-			if(lv_arr_collect([1, 2, 3, 4])->first(function(int $value, int $key){
+			if($lv_collect_function([1, 2, 3, 4])->first(function(int $value, int $key){
 				return ($value > 2);
 			}) === 3)
 				echo ' [ OK ]';
@@ -1229,8 +1366,8 @@
 				echo ' [FAIL]';
 				$failed=true;
 			}
-			//echo ' ['.var_export_contains(lv_arr_collect([1, 2, 3, 4])->first(), '', true).']';
-			if(lv_arr_collect([1, 2, 3, 4])->first() === 1)
+			//echo ' ['.var_export_contains($lv_collect_function([1, 2, 3, 4])->first(), '', true).']';
+			if($lv_collect_function([1, 2, 3, 4])->first() === 1)
 				echo ' [ OK ]'.PHP_EOL;
 			else
 			{
@@ -1239,7 +1376,7 @@
 			}
 		echo '  -> first_or_fail';
 			try {
-				lv_arr_collect([1, 2, 3, 4])->first_or_fail(function(int $value, int $key){
+				$lv_collect_function([1, 2, 3, 4])->first_or_fail(function(int $value, int $key){
 					return ($value > 5);
 				});
 				echo ' [FAIL]';
@@ -1248,14 +1385,14 @@
 				echo ' [ OK ]';
 			}
 			try {
-				lv_arr_collect([])->first_or_fail();
+				$lv_collect_function([])->first_or_fail();
 				echo ' [FAIL]'.PHP_EOL;
 				$failed=true;
 			} catch(lv_arr_exception $error) {
 				echo ' [ OK ]'.PHP_EOL;
 			}
 		echo '  -> first_where';
-			$collection=lv_arr_collect([
+			$collection=$lv_collect_function([
 				['name'=>'Regena', 'age'=>null],
 				['name'=>'Linda', 'age'=>14],
 				['name'=>'Diego', 'age'=>23],
@@ -1295,7 +1432,7 @@
 				$failed=true;
 			}
 		echo '  -> flat_map';
-			$collection=lv_arr_collect([
+			$collection=$lv_collect_function([
 				['name'=>'Sally'],
 				['school'=>'Arkansas'],
 				['age'=>28]
@@ -1315,7 +1452,7 @@
 				$failed=true;
 			}
 		echo '  -> flatten';
-			$collection=lv_arr_collect([
+			$collection=$lv_collect_function([
 				'name'=>'taylor',
 				'languages'=>['php', 'javascript']
 			]);
@@ -1331,7 +1468,7 @@
 				echo ' [FAIL]';
 				$failed=true;
 			}
-			$collection=lv_arr_collect([
+			$collection=$lv_collect_function([
 				'Apple'=>[
 					[
 						'name'=>'iPhone 6S',
@@ -1358,7 +1495,7 @@
 				$failed=true;
 			}
 		echo '  -> flip';
-			$collection=lv_arr_collect(['name'=>'taylor', 'framework'=>'laravel']);
+			$collection=$lv_collect_function(['name'=>'taylor', 'framework'=>'laravel']);
 			$flipped=$collection->flip();
 			//echo ' ['.var_export_contains($flipped->all(), '', true).']';
 			if(var_export_contains(
@@ -1372,7 +1509,7 @@
 				$failed=true;
 			}
 		echo '  -> forget';
-			$collection=lv_arr_collect(['name'=>'taylor', 'framework'=>'laravel']);
+			$collection=$lv_collect_function(['name'=>'taylor', 'framework'=>'laravel']);
 			$collection->forget('name');
 			//echo ' ['.var_export_contains($collection->all(), '', true).']';
 			if(var_export_contains($collection->all(), "array('framework'=>'laravel',)"))
@@ -1383,7 +1520,7 @@
 				$failed=true;
 			}
 		echo '  -> for_page';
-			$collection=lv_arr_collect([1, 2, 3, 4, 5, 6, 7, 8, 9]);
+			$collection=$lv_collect_function([1, 2, 3, 4, 5, 6, 7, 8, 9]);
 			$chunk=$collection->for_page(2, 3);
 			//echo ' ['.var_export_contains($chunk->all(), '', true).']';
 			if(var_export_contains($chunk->all(), "array(3=>4,4=>5,5=>6,)"))
@@ -1394,7 +1531,7 @@
 				$failed=true;
 			}
 		echo '  -> get';
-			$collection=lv_arr_collect(['name'=>'taylor', 'framework'=>'laravel']);
+			$collection=$lv_collect_function(['name'=>'taylor', 'framework'=>'laravel']);
 			//echo ' ['.var_export_contains($collection->get('name'), '', true).']';
 			if($collection->get('name') === 'taylor')
 				echo ' [ OK ]';
@@ -1424,7 +1561,7 @@
 				$failed=true;
 			}
 		echo '  -> group_by';
-			$collection=lv_arr_collect([
+			$collection=$lv_collect_function([
 				['account_id'=>'account-x10', 'product'=>'Chair'],
 				['account_id'=>'account-x10', 'product'=>'Bookcase'],
 				['account_id'=>'account-x11', 'product'=>'Desk']
@@ -1477,7 +1614,7 @@
 				$failed=true;
 			}
 		echo '  -> has';
-			$collection=lv_arr_collect(['account_id'=>1, 'product'=>'Desk', 'amount'=>5]);
+			$collection=$lv_collect_function(['account_id'=>1, 'product'=>'Desk', 'amount'=>5]);
 			//echo ' ['.var_export_contains($collection->has('product'), '', true).']';
 			if($collection->has('product') === true)
 				echo ' [ OK ]';
@@ -1503,7 +1640,7 @@
 				$failed=true;
 			}
 		echo '  -> has_any';
-			$collection=lv_arr_collect(['account_id'=>1, 'product'=>'Desk', 'amount'=>5]);
+			$collection=$lv_collect_function(['account_id'=>1, 'product'=>'Desk', 'amount'=>5]);
 			//echo ' ['.var_export_contains($collection->has_any(['product', 'price']), '', true).']';
 			if($collection->has_any(['product', 'price']) === true)
 				echo ' [ OK ]';
@@ -1521,7 +1658,7 @@
 				$failed=true;
 			}
 		echo '  -> implode';
-			$collection=lv_arr_collect([
+			$collection=$lv_collect_function([
 				['account_id'=>1, 'product'=>'Desk'],
 				['account_id'=>2, 'product'=>'Chair']
 			]);
@@ -1533,8 +1670,8 @@
 				echo ' [FAIL]';
 				$failed=true;
 			}
-			//echo ' ['.var_export_contains(lv_arr_collect([1, 2, 3, 4, 5])->implode('-'), '', true).']';
-			if(lv_arr_collect([1, 2, 3, 4, 5])->implode('-') === '1-2-3-4-5')
+			//echo ' ['.var_export_contains($lv_collect_function([1, 2, 3, 4, 5])->implode('-'), '', true).']';
+			if($lv_collect_function([1, 2, 3, 4, 5])->implode('-') === '1-2-3-4-5')
 				echo ' [ OK ]';
 			else
 			{
@@ -1554,7 +1691,7 @@
 				$failed=true;
 			}
 		echo '  -> intersect';
-			$collection=lv_arr_collect(['Desk', 'Sofa', 'Chair']);
+			$collection=$lv_collect_function(['Desk', 'Sofa', 'Chair']);
 			$intersect=$collection->intersect(['Desk', 'Chair', 'Bookcase']);
 			//echo ' ['.var_export_contains($intersect->all(), '', true).']';
 			if(var_export_contains($intersect->all(), "array(0=>'Desk',2=>'Chair',)"))
@@ -1565,7 +1702,7 @@
 				$failed=true;
 			}
 		echo '  -> intersect_assoc';
-			$collection=lv_arr_collect([
+			$collection=$lv_collect_function([
 				'color'=>'red',
 				'size'=>'M',
 				'material'=>'cotton'
@@ -1585,7 +1722,7 @@
 			}
 		echo '  -> intersect_assoc_using [SKIP]'.PHP_EOL;
 		echo '  -> intersect_by_keys';
-			$collection=lv_arr_collect([
+			$collection=$lv_collect_function([
 				'serial'=>'UX301',
 				'type'=>'screen',
 				'year'=>2009
@@ -1608,7 +1745,7 @@
 			}
 		echo '  -> intersect_using [SKIP]'.PHP_EOL;
 		echo '  -> is_empty';
-			if(lv_arr_collect([])->is_empty())
+			if($lv_collect_function([])->is_empty())
 				echo ' [ OK ]'.PHP_EOL;
 			else
 			{
@@ -1616,7 +1753,7 @@
 				$failed=true;
 			}
 		echo '  -> is_not_empty';
-			if(lv_arr_collect([])->is_not_empty())
+			if($lv_collect_function([])->is_not_empty())
 			{
 				echo ' [FAIL]'.PHP_EOL;
 				$failed=true;
@@ -1624,40 +1761,40 @@
 			else
 				echo ' [ OK ]'.PHP_EOL;
 		echo '  -> join';
-			//echo ' ['.var_export_contains(lv_arr_collect(['a', 'b', 'c'])->join(', '), '', true).']';
-			if(lv_arr_collect(['a', 'b', 'c'])->join(', ') === 'a, b, c')
+			//echo ' ['.var_export_contains($lv_collect_function(['a', 'b', 'c'])->join(', '), '', true).']';
+			if($lv_collect_function(['a', 'b', 'c'])->join(', ') === 'a, b, c')
 				echo ' [ OK ]';
 			else
 			{
 				echo ' [FAIL]';
 				$failed=true;
 			}
-			//echo ' ['.var_export_contains(lv_arr_collect(['a', 'b', 'c'])->join(', ', ', and '), '', true).']';
-			if(lv_arr_collect(['a', 'b', 'c'])->join(', ', ', and ') === 'a, b, and c')
+			//echo ' ['.var_export_contains($lv_collect_function(['a', 'b', 'c'])->join(', ', ', and '), '', true).']';
+			if($lv_collect_function(['a', 'b', 'c'])->join(', ', ', and ') === 'a, b, and c')
 				echo ' [ OK ]';
 			else
 			{
 				echo ' [FAIL]';
 				$failed=true;
 			}
-			//echo ' ['.var_export_contains(lv_arr_collect(['a', 'b'])->join(', ', ' and '), '', true).']';
-			if(lv_arr_collect(['a', 'b'])->join(', ', ' and ') === 'a and b')
+			//echo ' ['.var_export_contains($lv_collect_function(['a', 'b'])->join(', ', ' and '), '', true).']';
+			if($lv_collect_function(['a', 'b'])->join(', ', ' and ') === 'a and b')
 				echo ' [ OK ]';
 			else
 			{
 				echo ' [FAIL]';
 				$failed=true;
 			}
-			//echo ' ['.var_export_contains(lv_arr_collect(['a'])->join(', ', ' and '), '', true).']';
-			if(lv_arr_collect(['a'])->join(', ', ' and ') === 'a')
+			//echo ' ['.var_export_contains($lv_collect_function(['a'])->join(', ', ' and '), '', true).']';
+			if($lv_collect_function(['a'])->join(', ', ' and ') === 'a')
 				echo ' [ OK ]';
 			else
 			{
 				echo ' [FAIL]';
 				$failed=true;
 			}
-			//echo ' ['.var_export_contains(lv_arr_collect([])->join(', ', ' and '), '', true).']';
-			if(lv_arr_collect([])->join(', ', ' and ') === '')
+			//echo ' ['.var_export_contains($lv_collect_function([])->join(', ', ' and '), '', true).']';
+			if($lv_collect_function([])->join(', ', ' and ') === '')
 				echo ' [ OK ]'.PHP_EOL;
 			else
 			{
@@ -1665,7 +1802,7 @@
 				$failed=true;
 			}
 		echo '  -> key_by';
-			$collection=lv_arr_collect([
+			$collection=$lv_collect_function([
 				['product_id'=>'prod-100', 'name'=>'Desk'],
 				['product_id'=>'prod-200', 'name'=>'Chair']
 			]);
@@ -1696,7 +1833,7 @@
 				$failed=true;
 			}
 		echo '  -> keys';
-			$collection=lv_arr_collect([
+			$collection=$lv_collect_function([
 				'prod-100'=>['product_id'=>'prod-100', 'name'=>'Desk'],
 				'prod-200'=>['product_id'=>'prod-200', 'name'=>'Chair']
 			]);
@@ -1713,10 +1850,10 @@
 				$failed=true;
 			}
 		echo '  -> last';
-			//echo ' ['.var_export_contains(lv_arr_collect([1, 2, 3, 4])->last(function(int $value, int $key){
+			//echo ' ['.var_export_contains($lv_collect_function([1, 2, 3, 4])->last(function(int $value, int $key){
 			//	return ($value < 3);
 			//}), '', true).']';
-			if(lv_arr_collect([1, 2, 3, 4])->last(function(int $value, int $key){
+			if($lv_collect_function([1, 2, 3, 4])->last(function(int $value, int $key){
 				return ($value < 3);
 			}) === 2)
 				echo ' [ OK ]';
@@ -1725,8 +1862,8 @@
 				echo ' [FAIL]';
 				$failed=true;
 			}
-			//echo ' ['.var_export_contains(lv_arr_collect([1, 2, 3, 4])->last(), '', true).']';
-			if(lv_arr_collect([1, 2, 3, 4])->last() === 4)
+			//echo ' ['.var_export_contains($lv_collect_function([1, 2, 3, 4])->last(), '', true).']';
+			if($lv_collect_function([1, 2, 3, 4])->last() === 4)
 				echo ' [ OK ]'.PHP_EOL;
 			else
 			{
@@ -1734,21 +1871,6 @@
 				$failed=true;
 			}
 		echo '  -> lazy [SKIP]'.PHP_EOL;
-		echo '  -> macro';
-			lv_arr_collection::macro('to_upper', function(){
-				return $this->map(function(string $value){
-					return strtoupper($value);
-				});
-			});
-			$collection=lv_arr_collect(['first', 'second']);
-			//echo ' ['.var_export_contains($collection->to_upper()->__toString(), '', true).']';
-			if($collection->to_upper()->__toString() === '["FIRST","SECOND"]')
-				echo ' [ OK ]'.PHP_EOL;
-			else
-			{
-				echo ' [FAIL]'.PHP_EOL;
-				$failed=true;
-			}
 		echo '  -> make';
 			$collection=lv_arr_collection::make([1, 2, 3]);
 			//echo ' ['.var_export_contains($collection->all(), '', true).']';
@@ -1760,7 +1882,7 @@
 				$failed=true;
 			}
 		echo '  -> map';
-			$collection=lv_arr_collect([1, 2, 3, 4, 5]);
+			$collection=$lv_collect_function([1, 2, 3, 4, 5]);
 			$multiplied=$collection->map(function(int $item, int $key){
 				return ($item * 2);
 			});
@@ -1780,7 +1902,7 @@
 			{
 				public function __construct(string $code) {}
 			}
-			$collection=lv_arr_collect(['USD', 'EUR', 'GBP']);
+			$collection=$lv_collect_function(['USD', 'EUR', 'GBP']);
 			$currencies=$collection->map_into(currency::class);
 			//echo ' ['.var_export_contains($currencies->all(), '', true).']';
 			if(var_export_contains(
@@ -1794,7 +1916,7 @@
 				$failed=true;
 			}
 		echo '  -> map_spread';
-			$collection=lv_arr_collect([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
+			$collection=$lv_collect_function([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
 			$chunks=$collection->chunk(2);
 			$sequence=$chunks->map_spread(function(int $even, int $odd){
 				return ($even + $odd);
@@ -1811,7 +1933,7 @@
 				$failed=true;
 			}
 		echo '  -> map_to_dictionary';
-			$collection=lv_arr_collect([
+			$collection=$lv_collect_function([
 				['score'=>0.84, 'name'=>'Bob'],
 				['score'=>0.95, 'name'=>'Alice'],
 				['score'=>0.78, 'name'=>'Charlie'],
@@ -1833,7 +1955,7 @@
 				$failed=true;
 			}
 		echo '  -> map_to_groups';
-			$collection=lv_arr_collect([
+			$collection=$lv_collect_function([
 				[
 					'name'=>'John Doe',
 					'department'=>'Sales'
@@ -1870,7 +1992,7 @@
 				$failed=true;
 			}
 		echo '  -> map_with_keys';
-			$collection=lv_arr_collect([
+			$collection=$lv_collect_function([
 				[
 					'name'=>'John',
 					'department'=>'Sales',
@@ -1897,11 +2019,11 @@
 				$failed=true;
 			}
 		echo '  -> max';
-			//echo ' ['.var_export_contains(lv_arr_collect([
+			//echo ' ['.var_export_contains($lv_collect_function([
 			//	['foo'=>10],
 			//	['foo'=>20]
 			//])->max('foo'), '', true).']';
-			if(lv_arr_collect([
+			if($lv_collect_function([
 				['foo'=>10],
 				['foo'=>20]
 			])->max('foo') === 20)
@@ -1911,8 +2033,8 @@
 				echo ' [FAIL]';
 				$failed=true;
 			}
-			//echo ' ['.var_export_contains(lv_arr_collect([1, 2, 3, 4, 5])->max(), '', true).']';
-			if(lv_arr_collect([1, 2, 3, 4, 5])->max() === 5)
+			//echo ' ['.var_export_contains($lv_collect_function([1, 2, 3, 4, 5])->max(), '', true).']';
+			if($lv_collect_function([1, 2, 3, 4, 5])->max() === 5)
 				echo ' [ OK ]'.PHP_EOL;
 			else
 			{
@@ -1920,13 +2042,13 @@
 				$failed=true;
 			}
 		echo '  -> median';
-			//echo ' ['.var_export_contains(lv_arr_collect([
+			//echo ' ['.var_export_contains($lv_collect_function([
 			//	['foo'=>10],
 			//	['foo'=>10],
 			//	['foo'=>20],
 			//	['foo'=>40]
 			//])->median('foo'), '', true).']';
-			if(lv_arr_collect([
+			if($lv_collect_function([
 				['foo'=>10],
 				['foo'=>10],
 				['foo'=>20],
@@ -1938,8 +2060,8 @@
 				echo ' [FAIL]';
 				$failed=true;
 			}
-			//echo ' ['.var_export_contains(lv_arr_collect([1, 1, 2, 4])->median(), '', true).']';
-			if(var_export_contains(lv_arr_collect([1, 1, 2, 4])->median(), '1.5'))
+			//echo ' ['.var_export_contains($lv_collect_function([1, 1, 2, 4])->median(), '', true).']';
+			if(var_export_contains($lv_collect_function([1, 1, 2, 4])->median(), '1.5'))
 				echo ' [ OK ]'.PHP_EOL;
 			else
 			{
@@ -1947,7 +2069,7 @@
 				$failed=true;
 			}
 		echo '  -> merge';
-			$collection=lv_arr_collect(['product_id'=>1, 'price'=>100]);
+			$collection=$lv_collect_function(['product_id'=>1, 'price'=>100]);
 			$merged=$collection->merge(['price'=>200, 'discount'=>false]);
 			//echo ' ['.var_export_contains($merged->all(), '', true).']';
 			if(var_export_contains(
@@ -1960,7 +2082,7 @@
 				echo ' [FAIL]';
 				$failed=true;
 			}
-			$collection=lv_arr_collect(['Desk', 'Chair']);
+			$collection=$lv_collect_function(['Desk', 'Chair']);
 			$merged=$collection->merge(['Bookcase', 'Door']);
 			//echo ' ['.var_export_contains($merged->all(), '', true).']';
 			if(var_export_contains(
@@ -1974,7 +2096,7 @@
 				$failed=true;
 			}
 		echo '  -> merge_recursive';
-			$collection=lv_arr_collect(['product_id'=>1, 'price'=>100]);
+			$collection=$lv_collect_function(['product_id'=>1, 'price'=>100]);
 			$merged=$collection->merge_recursive([
 				'product_id'=>2,
 				'price'=>200,
@@ -1992,11 +2114,11 @@
 				$failed=true;
 			}
 		echo '  -> min';
-			//echo ' ['.var_export_contains(lv_arr_collect([
+			//echo ' ['.var_export_contains($lv_collect_function([
 			//	['foo'=>10],
 			//	['foo'=>20]
 			//])->min('foo'), '', true).']';
-			if(lv_arr_collect([
+			if($lv_collect_function([
 				['foo'=>10],
 				['foo'=>20]
 			])->min('foo') === 10)
@@ -2006,8 +2128,8 @@
 				echo ' [FAIL]';
 				$failed=true;
 			}
-			//echo ' ['.var_export_contains(lv_arr_collect([1, 2, 3, 4, 5])->min(), '', true).']';
-			if(lv_arr_collect([1, 2, 3, 4, 5])->min() === 1)
+			//echo ' ['.var_export_contains($lv_collect_function([1, 2, 3, 4, 5])->min(), '', true).']';
+			if($lv_collect_function([1, 2, 3, 4, 5])->min() === 1)
 				echo ' [ OK ]'.PHP_EOL;
 			else
 			{
@@ -2015,13 +2137,13 @@
 				$failed=true;
 			}
 		echo '  -> mode';
-			//echo ' ['.var_export_contains(lv_arr_collect([
+			//echo ' ['.var_export_contains($lv_collect_function([
 			//	['foo'=>10],
 			//	['foo'=>10],
 			//	['foo'=>20],
 			//	['foo'=>40]
 			//])->mode('foo'), '', true).']';
-			if(var_export_contains(lv_arr_collect([
+			if(var_export_contains($lv_collect_function([
 				['foo'=>10],
 				['foo'=>10],
 				['foo'=>20],
@@ -2033,9 +2155,9 @@
 				echo ' [FAIL]';
 				$failed=true;
 			}
-			//echo ' ['.var_export_contains(lv_arr_collect([1, 1, 2, 4])->mode(), '', true).']';
+			//echo ' ['.var_export_contains($lv_collect_function([1, 1, 2, 4])->mode(), '', true).']';
 			if(var_export_contains(
-				lv_arr_collect([1, 1, 2, 4])->mode(),
+				$lv_collect_function([1, 1, 2, 4])->mode(),
 				"array(0=>1,)"
 			))
 				echo ' [ OK ]';
@@ -2044,9 +2166,9 @@
 				echo ' [FAIL]';
 				$failed=true;
 			}
-			//echo ' ['.var_export_contains(lv_arr_collect([1, 1, 2, 2])->mode(), '', true).']';
+			//echo ' ['.var_export_contains($lv_collect_function([1, 1, 2, 2])->mode(), '', true).']';
 			if(var_export_contains(
-				lv_arr_collect([1, 1, 2, 2])->mode(),
+				$lv_collect_function([1, 1, 2, 2])->mode(),
 				"array(0=>1,1=>2,)"
 			))
 				echo ' [ OK ]'.PHP_EOL;
@@ -2056,7 +2178,7 @@
 				$failed=true;
 			}
 		echo '  -> nth';
-			$collection=lv_arr_collect(['a', 'b', 'c', 'd', 'e', 'f']);
+			$collection=$lv_collect_function(['a', 'b', 'c', 'd', 'e', 'f']);
 			//echo ' ['.var_export_contains($collection->nth(4)->__toString(), '', true).']';
 			if($collection->nth(4)->__toString() === '["a","e"]')
 				echo ' [ OK ]';
@@ -2074,7 +2196,7 @@
 				$failed=true;
 			}
 		echo '  -> only';
-			$collection=lv_arr_collect([
+			$collection=$lv_collect_function([
 				'product_id'=>1,
 				'name'=>'Desk',
 				'price'=>100,
@@ -2093,7 +2215,7 @@
 				$failed=true;
 			}
 		echo '  -> pad';
-			$collection=lv_arr_collect(['A', 'B', 'C']);
+			$collection=$lv_collect_function(['A', 'B', 'C']);
 			$filtered=$collection->pad(5, 0);
 			//echo ' ['.var_export_contains($filtered->all(), '', true).']';
 			if(var_export_contains(
@@ -2119,7 +2241,7 @@
 				$failed=true;
 			}
 		echo '  -> partition';
-			$collection=lv_arr_collect([1, 2, 3, 4, 5, 6]);
+			$collection=$lv_collect_function([1, 2, 3, 4, 5, 6]);
 			[$under_three, $equal_or_above_three]=$collection->partition(function(int $i){
 				return ($i < 3);
 			});
@@ -2146,7 +2268,7 @@
 				$failed=true;
 			}
 		echo '  -> percentage';
-			$collection=lv_arr_collect([1, 1, 2, 2, 2, 3]);
+			$collection=$lv_collect_function([1, 1, 2, 2, 2, 3]);
 			//echo ' ['.var_export_contains($collection->percentage(function($value){
 			//	return ($value === 1);
 			//}), '', true).']';
@@ -2172,7 +2294,7 @@
 				$failed=true;
 			}
 		echo '  -> pipe';
-			$collection=lv_arr_collect([1, 2, 3]);
+			$collection=$lv_collect_function([1, 2, 3]);
 			//echo ' ['.var_export_contains($collection->pipe(function(lv_arr_collection $collection){
 			//	return $collection->sum();
 			//}), '', true).']';
@@ -2194,7 +2316,7 @@
 					$this->collection=$collection;
 				}
 			}
-			$collection=lv_arr_collect([1, 2, 3]);
+			$collection=$lv_collect_function([1, 2, 3]);
 			$resource=$collection->pipe_into(resource_collection::class);
 			//echo ' ['.var_export_contains($resource->collection->all(), '', true).']';
 			if(var_export_contains(
@@ -2208,7 +2330,7 @@
 				$failed=true;
 			}
 		echo '  -> pipe_through';
-			$collection=lv_arr_collect([1, 2, 3]);
+			$collection=$lv_collect_function([1, 2, 3]);
 			//echo ' ['.var_export_contains($collection->pipe_through([
 			//	function(lv_arr_collection $collection)
 			//	{
@@ -2236,7 +2358,7 @@
 				$failed=true;
 			}
 		echo '  -> pluck';
-			$collection=lv_arr_collect([
+			$collection=$lv_collect_function([
 				['product_id'=>'prod-100', 'name'=>'Desk'],
 				['product_id'=>'prod-200', 'name'=>'Chair']
 			]);
@@ -2264,7 +2386,7 @@
 				echo ' [FAIL]';
 				$failed=true;
 			}
-			$collection=lv_arr_collect([
+			$collection=$lv_collect_function([
 				[
 					'name'=>'Laracon',
 					'speakers'=>[
@@ -2290,7 +2412,7 @@
 				echo ' [FAIL]';
 				$failed=true;
 			}
-			$collection=lv_arr_collect([
+			$collection=$lv_collect_function([
 				['brand'=>'Tesla', 'color'=>'red'],
 				['brand'=>'Pagani', 'color'=>'white'],
 				['brand'=>'Tesla', 'color'=>'black'],
@@ -2309,7 +2431,7 @@
 				$failed=true;
 			}
 		echo '  -> pop';
-			$collection=lv_arr_collect([1, 2, 3, 4, 5]);
+			$collection=$lv_collect_function([1, 2, 3, 4, 5]);
 			//echo ' ['.var_export_contains($collection->pop(), '', true).']';
 			if($collection->pop() === 5)
 				echo ' [ OK ]';
@@ -2326,7 +2448,7 @@
 				echo ' [FAIL]';
 				$failed=true;
 			}
-			$collection=lv_arr_collect([1, 2, 3, 4, 5]);
+			$collection=$lv_collect_function([1, 2, 3, 4, 5]);
 			//echo ' ['.var_export_contains($collection->pop(3)->__toString(), '', true).']';
 			if($collection->pop(3)->__toString() === '[5,4,3]')
 				echo ' [ OK ]';
@@ -2344,7 +2466,7 @@
 				$failed=true;
 			}
 		echo '  -> prepend';
-			$collection=lv_arr_collect([1, 2, 3, 4, 5]);
+			$collection=$lv_collect_function([1, 2, 3, 4, 5]);
 			$collection->prepend(0);
 			//echo ' ['.var_export_contains($collection->all(), '', true).']';
 			if(var_export_contains(
@@ -2357,7 +2479,7 @@
 				echo ' [FAIL]';
 				$failed=true;
 			}
-			$collection=lv_arr_collect(['one'=>1, 'two'=>2]);
+			$collection=$lv_collect_function(['one'=>1, 'two'=>2]);
 			$collection->prepend(0, 'zero');
 			//echo ' ['.var_export_contains($collection->all(), '', true).']';
 			if(var_export_contains(
@@ -2371,7 +2493,7 @@
 				$failed=true;
 			}
 		echo '  -> pull';
-			$collection=lv_arr_collect(['product_id'=>'prod-100', 'name'=>'Desk']);
+			$collection=$lv_collect_function(['product_id'=>'prod-100', 'name'=>'Desk']);
 			//echo ' ['.var_export_contains($collection->pull('name'), '', true).']';
 			if($collection->pull('name') === 'Desk')
 				echo ' [ OK ]';
@@ -2392,7 +2514,7 @@
 				$failed=true;
 			}
 		echo '  -> push';
-			$collection=lv_arr_collect([1, 2, 3, 4]);
+			$collection=$lv_collect_function([1, 2, 3, 4]);
 			$collection->push(5);
 			//echo ' ['.var_export_contains($collection->all(), '', true).']';
 			if(var_export_contains(
@@ -2406,7 +2528,7 @@
 				$failed=true;
 			}
 		echo '  -> put';
-			$collection=lv_arr_collect(['product_id'=>1, 'name'=>'Desk']);
+			$collection=$lv_collect_function(['product_id'=>1, 'name'=>'Desk']);
 			$collection->put('price', 100);
 			//echo ' ['.var_export_contains($collection->all(), '', true).']';
 			if(var_export_contains(
@@ -2420,7 +2542,7 @@
 				$failed=true;
 			}
 		echo '  -> random';
-			$collection=lv_arr_collect([1, 2, 3]);
+			$collection=$lv_collect_function([1, 2, 3]);
 			$random=$collection->random();
 			//echo ' ['.var_export_contains($random, '', true).']';
 			if(
@@ -2464,7 +2586,7 @@
 				$failed=true;
 			}
 		echo '  -> range';
-			$collection=lv_arr_collect()->range(3, 6);
+			$collection=$lv_collect_function()->range(3, 6);
 			//echo ' ['.var_export_contains($collection->all(), '', true).']';
 			if(var_export_contains(
 				$collection->all(),
@@ -2477,7 +2599,7 @@
 				$failed=true;
 			}
 		echo '  -> reduce';
-			$collection=lv_arr_collect([1, 2, 3]);
+			$collection=$lv_collect_function([1, 2, 3]);
 			//echo ' ['.var_export_contains($collection->reduce(function(?int $carry, int $item){
 			//	return ($carry + $item);
 			//}), '', true).']';
@@ -2502,7 +2624,7 @@
 				echo ' [FAIL]';
 				$failed=true;
 			}
-			$collection=lv_arr_collect([
+			$collection=$lv_collect_function([
 				'usd'=>1400,
 				'gbp'=>1200,
 				'eur'=>1000
@@ -2526,7 +2648,7 @@
 			}
 		echo '  -> reduce_spread [SKIP]'.PHP_EOL;
 		echo '  -> reject';
-			$collection=lv_arr_collect([1, 2, 3, 4]);
+			$collection=$lv_collect_function([1, 2, 3, 4]);
 			$filtered=$collection->reject(function(int $value, int $key){
 				return ($value > 2);
 			});
@@ -2539,7 +2661,7 @@
 				$failed=true;
 			}
 		echo '  -> replace';
-			$collection=lv_arr_collect(['Taylor', 'Abigail', 'James']);
+			$collection=$lv_collect_function(['Taylor', 'Abigail', 'James']);
 			$replaced=$collection->replace([1=>'Victoria', 3=>'Finn']);
 			//echo ' ['.var_export_contains($replaced->all(), '', true).']';
 			if(var_export_contains(
@@ -2553,7 +2675,7 @@
 				$failed=true;
 			}
 		echo '  -> replace_recursive';
-			$collection=lv_arr_collect([
+			$collection=$lv_collect_function([
 				'Taylor',
 				'Abigail',
 				[
@@ -2578,7 +2700,7 @@
 				$failed=true;
 			}
 		echo '  -> reverse';
-			$collection=lv_arr_collect(['a', 'b', 'c', 'd', 'e']);
+			$collection=$lv_collect_function(['a', 'b', 'c', 'd', 'e']);
 			$reversed=$collection->reverse();
 			//echo ' ['.var_export_contains($reversed->all(), '', true).']';
 			if(var_export_contains(
@@ -2592,7 +2714,7 @@
 				$failed=true;
 			}
 		echo '  -> search';
-			$collection=lv_arr_collect([2, 4, 6, 8]);
+			$collection=$lv_collect_function([2, 4, 6, 8]);
 			//echo ' ['.var_export_contains($collection->search(4), '', true).']';
 			if($collection->search(4) === 1)
 				echo ' [ OK ]';
@@ -2601,18 +2723,18 @@
 				echo ' [FAIL]';
 				$failed=true;
 			}
-			//echo ' ['.var_export_contains(lv_arr_collect([2, 4, 6, 8])->search('4', true), '', true).']';
-			if(lv_arr_collect([2, 4, 6, 8])->search('4', true) === false)
+			//echo ' ['.var_export_contains($lv_collect_function([2, 4, 6, 8])->search('4', true), '', true).']';
+			if($lv_collect_function([2, 4, 6, 8])->search('4', true) === false)
 				echo ' [ OK ]';
 			else
 			{
 				echo ' [FAIL]';
 				$failed=true;
 			}
-			//echo ' ['.var_export_contains(lv_arr_collect([2, 4, 6, 8])->search(function(int $item, int $key){
+			//echo ' ['.var_export_contains($lv_collect_function([2, 4, 6, 8])->search(function(int $item, int $key){
 			//	return ($item > 5);
 			//}), '', true).']';
-			if(lv_arr_collect([2, 4, 6, 8])->search(function(int $item, int $key){
+			if($lv_collect_function([2, 4, 6, 8])->search(function(int $item, int $key){
 				return ($item > 5);
 			}) === 2)
 				echo ' [ OK ]'.PHP_EOL;
@@ -2622,7 +2744,7 @@
 				$failed=true;
 			}
 		echo '  -> select/lv_arr_select';
-			$users=lv_arr_collect([
+			$users=$lv_collect_function([
 				['name'=>'Taylor Otwell', 'role'=>'Developer', 'status'=>'active'],
 				['name'=>'Victoria Faith', 'role'=>'Researcher', 'status'=>'active']
 			]);
@@ -2635,7 +2757,7 @@
 				$failed=true;
 			}
 		echo '  -> shift';
-			$collection=lv_arr_collect([1, 2, 3, 4, 5]);
+			$collection=$lv_collect_function([1, 2, 3, 4, 5]);
 			//echo ' ['.var_export_contains($collection->shift(), '', true).']';
 			if($collection->shift() === 1)
 				echo ' [ OK ]';
@@ -2655,7 +2777,7 @@
 				echo ' [FAIL]';
 				$failed=true;
 			}
-			$collection=lv_arr_collect([1, 2, 3, 4, 5]);
+			$collection=$lv_collect_function([1, 2, 3, 4, 5]);
 			//echo ' ['.var_export_contains($collection->shift(3)->__toString(), '', true).']';
 			if($collection->shift(3)->__toString() === '[1,2,3]')
 				echo ' [ OK ]';
@@ -2673,7 +2795,7 @@
 				$failed=true;
 			}
 		echo '  -> shuffle';
-			$collection=lv_arr_collect([1, 2, 3]);
+			$collection=$lv_collect_function([1, 2, 3]);
 			$shuffled=$collection->shuffle();
 			//echo ' ['.var_export_contains($shuffled->all(), '', true).']';
 			switch(var_export_contains($shuffled->all(), '', true))
@@ -2701,7 +2823,7 @@
 					$failed=true;
 			}
 		echo '  -> skip';
-			$collection=lv_arr_collect([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+			$collection=$lv_collect_function([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
 			$collection=$collection->skip(4);
 			//echo ' ['.var_export_contains($collection->all(), '', true).']';
 			if(var_export_contains(
@@ -2715,7 +2837,7 @@
 				$failed=true;
 			}
 		echo '  -> skip_until';
-			$collection=lv_arr_collect([1, 2, 3, 4]);
+			$collection=$lv_collect_function([1, 2, 3, 4]);
 			$subset=$collection->skip_until(function(int $item){
 				return ($item >= 3);
 			});
@@ -2743,7 +2865,7 @@
 				$failed=true;
 			}
 		echo '  -> skip_while';
-			$collection=lv_arr_collect([1, 2, 3, 4]);
+			$collection=$lv_collect_function([1, 2, 3, 4]);
 			$subset=$collection->skip_while(function(int $item){
 				return ($item <= 3);
 			});
@@ -2759,7 +2881,7 @@
 				$failed=true;
 			}
 		echo '  -> slice';
-			$collection=lv_arr_collect([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+			$collection=$lv_collect_function([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
 			$slice=$collection->slice(4);
 			//echo ' ['.var_export_contains($slice->all(), '', true).']';
 			if(var_export_contains(
@@ -2782,37 +2904,28 @@
 				$failed=true;
 			}
 		echo '  -> sliding';
-			$collection=lv_arr_collect([1, 2, 3, 4, 5]);
+			$collection=$lv_collect_function([1, 2, 3, 4, 5]);
 			$chunks=$collection->sliding(2);
-			//echo ' ['.var_export_contains($chunks->to_array(), '', true).']';
-			if(var_export_contains(
-				$chunks->to_array(),
-				"array(0=>lv_arr_collection::__set_state(array('items'=>array(0=>1,1=>2,),'escape_when_casting_to_string'=>false,)),1=>lv_arr_collection::__set_state(array('items'=>array(1=>2,2=>3,),'escape_when_casting_to_string'=>false,)),2=>lv_arr_collection::__set_state(array('items'=>array(2=>3,3=>4,),'escape_when_casting_to_string'=>false,)),3=>lv_arr_collection::__set_state(array('items'=>array(3=>4,4=>5,),'escape_when_casting_to_string'=>false,)),)"
-			))
+			//echo ' ['.var_export_contains($chunks->to_json(), '', true).']';
+			if(
+				$chunks->to_json()
+				===
+				'[[1,2],{"1":2,"2":3},{"2":3,"3":4},{"3":4,"4":5}]'
+			)
 				echo ' [ OK ]';
 			else
 			{
 				echo ' [FAIL]';
 				$failed=true;
 			}
-			//echo ' ['.var_export_contains(lv_arr_collect([1, 2, 3])->all(), '', true).']';
-			if(var_export_contains(
-				lv_arr_collect([1, 2, 3])->all(),
-				"array(0=>1,1=>2,2=>3,)"
-			))
-				echo ' [ OK ]';
-			else
-			{
-				echo ' [FAIL]';
-				$failed=true;
-			}
-			$collection=lv_arr_collect([1, 2, 3, 4, 5]);
+			$collection=$lv_collect_function([1, 2, 3, 4, 5]);
 			$chunks=$collection->sliding(3, 2);
-			//echo ' ['.var_export_contains($chunks->to_array(), '', true).']';
-			if(var_export_contains(
-				$chunks->to_array(),
-				"array(0=>lv_arr_collection::__set_state(array('items'=>array(0=>1,1=>2,2=>3,),'escape_when_casting_to_string'=>false,)),1=>lv_arr_collection::__set_state(array('items'=>array(2=>3,3=>4,4=>5,),'escape_when_casting_to_string'=>false,)),)"
-			))
+			//echo ' ['.var_export_contains($chunks->to_json(), '', true).']';
+			if(
+				$chunks->to_json()
+				===
+				'[[1,2,3],{"2":3,"3":4,"4":5}]'
+			)
 				echo ' [ OK ]'.PHP_EOL;
 			else
 			{
@@ -2820,10 +2933,10 @@
 				$failed=true;
 			}
 		echo '  -> sole';
-			//echo ' ['.var_export_contains(lv_arr_collect([1, 2, 3, 4])->sole(function(int $value, int $key){
+			//echo ' ['.var_export_contains($lv_collect_function([1, 2, 3, 4])->sole(function(int $value, int $key){
 			//	return ($value === 2);
 			//}), '', true).']';
-			if(lv_arr_collect([1, 2, 3, 4])->sole(function(int $value, int $key){
+			if($lv_collect_function([1, 2, 3, 4])->sole(function(int $value, int $key){
 				return ($value === 2);
 			}) === 2)
 				echo ' [ OK ]';
@@ -2832,7 +2945,7 @@
 				echo ' [FAIL]';
 				$failed=true;
 			}
-			$collection=lv_arr_collect([
+			$collection=$lv_collect_function([
 				['product'=>'Desk', 'price'=>200],
 				['product'=>'Chair', 'price'=>100]
 			]);
@@ -2847,7 +2960,7 @@
 				echo ' [FAIL]';
 				$failed=true;
 			}
-			$collection=lv_arr_collect([
+			$collection=$lv_collect_function([
 				['product'=>'Desk', 'price'=>200]
 			]);
 			//echo ' ['.var_export_contains($collection->sole(), '', true).']';
@@ -2863,7 +2976,7 @@
 			}
 		echo '  -> some [SKIP]'.PHP_EOL;
 		echo '  -> sort';
-			$collection=lv_arr_collect([5, 3, 1, 2, 4]);
+			$collection=$lv_collect_function([5, 3, 1, 2, 4]);
 			$sorted=$collection->sort();
 			//echo ' ['.var_export_contains($sorted->values()->all(), '', true).']';
 			if(var_export_contains(
@@ -2877,7 +2990,7 @@
 				$failed=true;
 			}
 		echo '  -> sort_by';
-			$collection=lv_arr_collect([
+			$collection=$lv_collect_function([
 				['name'=> 'Desk', 'price'=>200],
 				['name'=> 'Chair', 'price'=>100],
 				['name'=> 'Bookcase', 'price'=>150]
@@ -2894,7 +3007,7 @@
 				echo ' [FAIL]';
 				$failed=true;
 			}
-			$collection=lv_arr_collect([
+			$collection=$lv_collect_function([
 				['title'=>'Item 1'],
 				['title'=> 'Item 12'],
 				['title'=>'Item 3']
@@ -2911,7 +3024,7 @@
 				echo ' [FAIL]';
 				$failed=true;
 			}
-			$collection=lv_arr_collect([
+			$collection=$lv_collect_function([
 				['name'=>'Desk', 'colors'=>['Black', 'Mahogany']],
 				['name'=>'Chair', 'colors'=>['Black']],
 				['name'=>'Bookcase', 'colors'=>['Red', 'Beige', 'Brown']]
@@ -2930,7 +3043,7 @@
 				echo ' [FAIL]';
 				$failed=true;
 			}
-			$collection=lv_arr_collect([
+			$collection=$lv_collect_function([
 				['name'=>'Taylor Otwell', 'age'=>34],
 				['name'=>'Abigail Otwell', 'age'=>30],
 				['name'=>'Taylor Otwell', 'age'=>36],
@@ -2951,7 +3064,7 @@
 				echo ' [FAIL]';
 				$failed=true;
 			}
-			$collection=lv_arr_collect([
+			$collection=$lv_collect_function([
 				['name'=>'Taylor Otwell', 'age'=>34],
 				['name'=>'Abigail Otwell', 'age'=>30],
 				['name'=>'Taylor Otwell', 'age'=>36],
@@ -2980,7 +3093,7 @@
 			}
 		echo '  -> sort_by_desc [SKIP]'.PHP_EOL;
 		echo '  -> sort_desc';
-			$collection=lv_arr_collect([5, 3, 1, 2, 4]);
+			$collection=$lv_collect_function([5, 3, 1, 2, 4]);
 			$sorted=$collection->sort_desc();
 			//echo ' ['.var_export_contains($sorted->values()->all(), '', true).']';
 			if(var_export_contains(
@@ -2994,7 +3107,7 @@
 				$failed=true;
 			}
 		echo '  -> sort_keys';
-			$collection=lv_arr_collect([
+			$collection=$lv_collect_function([
 				'id'=>22345,
 				'first'=>'John',
 				'last'=>'Doe'
@@ -3013,7 +3126,7 @@
 			}
 		echo '  -> sort_keys_desc [SKIP]'.PHP_EOL;
 		echo '  -> sort_keys_using';
-			$collection=lv_arr_collect([
+			$collection=$lv_collect_function([
 				'ID'=>22345,
 				'first'=>'John',
 				'last'=>'Doe'
@@ -3031,7 +3144,7 @@
 				$failed=true;
 			}
 		echo '  -> splice';
-			$collection=lv_arr_collect([1, 2, 3, 4, 5]);
+			$collection=$lv_collect_function([1, 2, 3, 4, 5]);
 			$chunk=$collection->splice(2);
 			//echo ' ['.var_export_contains($chunk->all(), '', true).']';
 			if(var_export_contains(
@@ -3055,7 +3168,7 @@
 				echo ' [FAIL]';
 				$failed=true;
 			}
-			$collection=lv_arr_collect([1, 2, 3, 4, 5]);
+			$collection=$lv_collect_function([1, 2, 3, 4, 5]);
 			$chunk=$collection->splice(2, 1);
 			//echo ' ['.var_export_contains($chunk->all(), '', true).']';
 			if(var_export_contains(
@@ -3079,7 +3192,7 @@
 				echo ' [FAIL]';
 				$failed=true;
 			}
-			$collection=lv_arr_collect([1, 2, 3, 4, 5]);
+			$collection=$lv_collect_function([1, 2, 3, 4, 5]);
 			$chunk=$collection->splice(2, 1, [10, 11]);
 			//echo ' ['.var_export_contains($chunk->all(), '', true).']';
 			if(var_export_contains(
@@ -3104,7 +3217,7 @@
 				$failed=true;
 			}
 		echo '  -> split';
-			$collection=lv_arr_collect([1, 2, 3, 4, 5]);
+			$collection=$lv_collect_function([1, 2, 3, 4, 5]);
 			$groups=$collection->split(3);
 			//echo ' ['.var_export_contains($groups->__toString(), '', true).']';
 			if($groups->__toString() === '[[1,2],[3,4],[5]]')
@@ -3115,7 +3228,7 @@
 				$failed=true;
 			}
 		echo '  -> split_in';
-			$collection=lv_arr_collect([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+			$collection=$lv_collect_function([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
 			$groups=$collection->split_in(3);
 			//echo ' ['.var_export_contains($groups->__toString(), '', true).']';
 			if($groups->__toString() === '[[1,2,3,4],{"4":5,"5":6,"6":7,"7":8},{"8":9,"9":10}]')
@@ -3126,15 +3239,15 @@
 				$failed=true;
 			}
 		echo '  -> sum';
-			//echo ' ['.var_export_contains(lv_arr_collect([1, 2, 3, 4, 5])->sum(), '', true).']';
-			if(lv_arr_collect([1, 2, 3, 4, 5])->sum() === 15)
+			//echo ' ['.var_export_contains($lv_collect_function([1, 2, 3, 4, 5])->sum(), '', true).']';
+			if($lv_collect_function([1, 2, 3, 4, 5])->sum() === 15)
 				echo ' [ OK ]';
 			else
 			{
 				echo ' [FAIL]';
 				$failed=true;
 			}
-			$collection=lv_arr_collect([
+			$collection=$lv_collect_function([
 				[
 					'name'=>'JavaScript: The Good Parts',
 					'pages'=>176
@@ -3152,7 +3265,7 @@
 				echo ' [FAIL]';
 				$failed=true;
 			}
-			$collection=lv_arr_collect([
+			$collection=$lv_collect_function([
 				['name'=>'Chair', 'colors'=>['Black']],
 				['name'=>'Desk', 'colors'=>['Black', 'Mahogany']],
 				['name'=>'Bookcase', 'colors'=>['Red', 'Beige', 'Brown']]
@@ -3170,7 +3283,7 @@
 				$failed=true;
 			}
 		echo '  -> take';
-			$collection=lv_arr_collect([0, 1, 2, 3, 4, 5]);
+			$collection=$lv_collect_function([0, 1, 2, 3, 4, 5]);
 			$chunk=$collection->take(3);
 			//echo ' ['.var_export_contains($chunk->all(), '', true).']';
 			if(var_export_contains($chunk->all(), "array(0=>0,1=>1,2=>2,)"))
@@ -3180,7 +3293,7 @@
 				echo ' [FAIL]';
 				$failed=true;
 			}
-			$collection=lv_arr_collect([0, 1, 2, 3, 4, 5]);
+			$collection=$lv_collect_function([0, 1, 2, 3, 4, 5]);
 			$chunk=$collection->take(-2);
 			//echo ' ['.var_export_contains($chunk->all(), '', true).']';
 			if(var_export_contains($chunk->all(), "array(4=>4,5=>5,)"))
@@ -3191,7 +3304,7 @@
 				$failed=true;
 			}
 		echo '  -> take_until';
-			$collection=lv_arr_collect([1, 2, 3, 4]);
+			$collection=$lv_collect_function([1, 2, 3, 4]);
 			$subset=$collection->take_until(function(int $item){
 				return ($item >= 3);
 			});
@@ -3213,7 +3326,7 @@
 				$failed=true;
 			}
 		echo '  -> take_while';
-			$collection=lv_arr_collect([1, 2, 3, 4]);
+			$collection=$lv_collect_function([1, 2, 3, 4]);
 			$subset=$collection->take_while(function(int $item){
 				return ($item < 3);
 			});
@@ -3227,13 +3340,13 @@
 			}
 		echo '  -> tap';
 			$GLOBALS['tap_va']='';
-			//echo ' ['.var_export_contains(lv_arr_collect([2, 4, 3, 1, 5])
+			//echo ' ['.var_export_contains($lv_collect_function([2, 4, 3, 1, 5])
 			//	->sort()
 			//	->tap(function(lv_arr_collection $collection){
 			//		$GLOBALS['tap_va']=$collection->values()->all();
 			//	})
 			//	->shift(), '', true).']';
-			if(lv_arr_collect([2, 4, 3, 1, 5])
+			if($lv_collect_function([2, 4, 3, 1, 5])
 				->sort()
 				->tap(function(lv_arr_collection $collection){
 					$GLOBALS['tap_va']=$collection->values()->all();
@@ -3273,7 +3386,7 @@
 				$failed=true;
 			}
 		echo '  -> to_array';
-			$collection=lv_arr_collect(['name'=>'Desk', 'price'=>200]);
+			$collection=$lv_collect_function(['name'=>'Desk', 'price'=>200]);
 			//echo ' ['.var_export_contains($collection->to_array(), '', true).']';
 			if(var_export_contains(
 				$collection->to_array(),
@@ -3286,7 +3399,7 @@
 				$failed=true;
 			}
 		echo '  -> to_json';
-			$collection=lv_arr_collect(['name'=>'Desk', 'price'=>200]);
+			$collection=$lv_collect_function(['name'=>'Desk', 'price'=>200]);
 			//echo ' ['.var_export_contains($collection->to_json(), '', true).']';
 			if($collection->to_json() === '{"name":"Desk","price":200}')
 				echo ' [ OK ]'.PHP_EOL;
@@ -3296,7 +3409,7 @@
 				$failed=true;
 			}
 		echo '  -> transform';
-			$collection=lv_arr_collect([1, 2, 3, 4, 5]);
+			$collection=$lv_collect_function([1, 2, 3, 4, 5]);
 			$collection->transform(function(int $item, int $key){
 				return ($item * 2);
 			});
@@ -3312,7 +3425,7 @@
 				$failed=true;
 			}
 		echo '  -> undot';
-			$person=lv_arr_collect([
+			$person=$lv_collect_function([
 				'name.first_name'=>'Marie',
 				'name.last_name'=>'Valentine',
 				'address.line_1'=>'2992 Eagle Drive',
@@ -3334,7 +3447,7 @@
 				$failed=true;
 			}
 		echo '  -> union';
-			$collection=lv_arr_collect([1=>['a'], 2=>['b']]);
+			$collection=$lv_collect_function([1=>['a'], 2=>['b']]);
 			$union=$collection->union([3=>['c'], 1=>['d']]);
 			//echo ' ['.var_export_contains($union->all(), '', true).']';
 			if(var_export_contains(
@@ -3348,7 +3461,7 @@
 				$failed=true;
 			}
 		echo '  -> unique';
-			$collection=lv_arr_collect([1, 1, 2, 2, 3, 4, 2]);
+			$collection=$lv_collect_function([1, 1, 2, 2, 3, 4, 2]);
 			$unique=$collection->unique();
 			//echo ' ['.var_export_contains($unique->values()->all(), '', true).']';
 			if(var_export_contains(
@@ -3361,7 +3474,7 @@
 				echo ' [FAIL]';
 				$failed=true;
 			}
-			$collection=lv_arr_collect([
+			$collection=$lv_collect_function([
 				['name'=>'iPhone 6', 'brand'=>'Apple', 'type'=>'phone'],
 				['name'=>'iPhone 5', 'brand'=>'Apple', 'type'=>'phone'],
 				['name'=>'Apple Watch', 'brand'=>'Apple', 'type'=>'watch'],
@@ -3396,7 +3509,7 @@
 			}
 		echo '  -> unique_strict [SKIP]'.PHP_EOL;
 		echo '  -> unless';
-			$collection=lv_arr_collect([1, 2, 3]);
+			$collection=$lv_collect_function([1, 2, 3]);
 			$collection->unless(true, function(lv_arr_collection $collection){
 				return $collection->push(4);
 			});
@@ -3414,7 +3527,7 @@
 				echo ' [FAIL]';
 				$failed=true;
 			}
-			$collection=lv_arr_collect([1, 2, 3]);
+			$collection=$lv_collect_function([1, 2, 3]);
 			$collection->unless(true, function(lv_arr_collection $collection){
 				return $collection->push(4);
 			}, function(lv_arr_collection $collection){
@@ -3434,9 +3547,9 @@
 		echo '  -> unless_empty [SKIP]'.PHP_EOL;
 		echo '  -> unless_not_empty [SKIP]'.PHP_EOL;
 		echo '  -> unwrap';
-			//echo ' ['.var_export_contains(lv_arr_collection::unwrap(lv_arr_collect('John Doe')), '', true).']';
+			//echo ' ['.var_export_contains(lv_arr_collection::unwrap($lv_collect_function('John Doe')), '', true).']';
 			if(var_export_contains(
-				lv_arr_collection::unwrap(lv_arr_collect('John Doe')),
+				lv_arr_collection::unwrap($lv_collect_function('John Doe')),
 				"array(0=>'JohnDoe',)"
 			))
 				echo ' [ OK ]';
@@ -3465,7 +3578,7 @@
 				$failed=true;
 			}
 		echo '  -> value';
-			$collection=lv_arr_collect([
+			$collection=$lv_collect_function([
 				['product'=>'Desk', 'price'=>200],
 				['product'=>'Speaker', 'price'=>400]
 			]);
@@ -3478,7 +3591,7 @@
 				$failed=true;
 			}
 		echo '  -> values';
-			$collection=lv_arr_collect([
+			$collection=$lv_collect_function([
 				10=>['product'=>'Desk', 'price'=>200],
 				11=>['product'=>'Desk', 'price'=>200]
 			]);
@@ -3495,7 +3608,7 @@
 				$failed=true;
 			}
 		echo '  -> when';
-			$collection=lv_arr_collect([1, 2, 3]);
+			$collection=$lv_collect_function([1, 2, 3]);
 			$collection->when(true, function(lv_arr_collection $collection, int $value){
 				return $collection->push(4);
 			});
@@ -3513,7 +3626,7 @@
 				echo ' [FAIL]';
 				$failed=true;
 			}
-			$collection=lv_arr_collect([1, 2, 3]);
+			$collection=$lv_collect_function([1, 2, 3]);
 			$collection->when(false, function(lv_arr_collection $collection, int $value){
 				return $collection->push(4);
 			}, function(lv_arr_collection $collection){
@@ -3531,7 +3644,7 @@
 				$failed=true;
 			}
 		echo '  -> when_empty';
-			$collection=lv_arr_collect(['Michael', 'Tom']);
+			$collection=$lv_collect_function(['Michael', 'Tom']);
 			$collection->when_empty(function(lv_arr_collection $collection){
 				return $collection->push('Adam');
 			});
@@ -3546,7 +3659,7 @@
 				echo ' [FAIL]';
 				$failed=true;
 			}
-			$collection=lv_arr_collect();
+			$collection=$lv_collect_function();
 			$collection->when_empty(function(lv_arr_collection $collection){
 				return $collection->push('Adam');
 			});
@@ -3561,7 +3674,7 @@
 				echo ' [FAIL]';
 				$failed=true;
 			}
-			$collection=lv_arr_collect(['Michael', 'Tom']);
+			$collection=$lv_collect_function(['Michael', 'Tom']);
 			$collection->when_empty(function(lv_arr_collection $collection){
 				return $collection->push('Adam');
 			}, function(lv_arr_collection $collection){
@@ -3579,7 +3692,7 @@
 				$failed=true;
 			}
 		echo '  -> when_not_empty';
-			$collection=lv_arr_collect(['michael', 'tom']);
+			$collection=$lv_collect_function(['michael', 'tom']);
 			$collection->when_not_empty(function(lv_arr_collection $collection){
 				return $collection->push('adam');
 			});
@@ -3594,7 +3707,7 @@
 				echo ' [FAIL]';
 				$failed=true;
 			}
-			$collection=lv_arr_collect();
+			$collection=$lv_collect_function();
 			$collection->when_not_empty(function(lv_arr_collection $collection){
 				return $collection->push('adam');
 			});
@@ -3606,7 +3719,7 @@
 				echo ' [FAIL]';
 				$failed=true;
 			}
-			$collection=lv_arr_collect();
+			$collection=$lv_collect_function();
 			$collection->when_not_empty(function(lv_arr_collection $collection){
 				return $collection->push('adam');
 			}, function(lv_arr_collection $collection){
@@ -3624,7 +3737,7 @@
 				$failed=true;
 			}
 		echo '  -> where';
-			$collection=lv_arr_collect([
+			$collection=$lv_collect_function([
 				['product'=>'Desk', 'price'=>200],
 				['product'=>'Chair', 'price'=>100],
 				['product'=>'Bookcase', 'price'=>150],
@@ -3642,7 +3755,7 @@
 				echo ' [FAIL]';
 				$failed=true;
 			}
-			$collection=lv_arr_collect([
+			$collection=$lv_collect_function([
 				['name'=>'Jim', 'deleted_at'=>'2019-01-01 00:00:00'],
 				['name'=>'Sally', 'deleted_at'=>'2019-01-02 00:00:00'],
 				['name'=>'Sue', 'deleted_at'=>null]
@@ -3661,7 +3774,7 @@
 			}
 		echo '  -> where_strict [SKIP]'.PHP_EOL;
 		echo '  -> where_between';
-			$collection=lv_arr_collect([
+			$collection=$lv_collect_function([
 				['product'=>'Desk', 'price'=>200],
 				['product'=>'Chair', 'price'=>80],
 				['product'=>'Bookcase', 'price'=>150],
@@ -3681,7 +3794,7 @@
 				$failed=true;
 			}
 		echo '  -> where_in';
-			$collection=lv_arr_collect([
+			$collection=$lv_collect_function([
 				['product'=>'Desk', 'price'=>200],
 				['product'=>'Chair', 'price'=>100],
 				['product'=>'Bookcase', 'price'=>150],
@@ -3703,7 +3816,7 @@
 		echo '  -> where_instance_of';
 			class where_instance_of_u {}
 			class where_instance_of_p {}
-			$collection=lv_arr_collect([
+			$collection=$lv_collect_function([
 				new where_instance_of_u(),
 				new where_instance_of_u(),
 				new where_instance_of_p()
@@ -3721,7 +3834,7 @@
 				$failed=true;
 			}
 		echo '  -> where_not_between';
-			$collection=lv_arr_collect([
+			$collection=$lv_collect_function([
 				['product'=>'Desk', 'price'=>200],
 				['product'=>'Chair', 'price'=>80],
 				['product'=>'Bookcase', 'price'=>150],
@@ -3741,7 +3854,7 @@
 				$failed=true;
 			}
 		echo '  -> where_not_in';
-			$collection=lv_arr_collect([
+			$collection=$lv_collect_function([
 				['product'=>'Desk', 'price'=>200],
 				['product'=>'Chair', 'price'=>100],
 				['product'=>'Bookcase', 'price'=>150],
@@ -3761,7 +3874,7 @@
 			}
 		echo '  -> where_not_in_strict [SKIP]'.PHP_EOL;
 		echo '  -> where_not_null';
-			$collection=lv_arr_collect([
+			$collection=$lv_collect_function([
 				['name'=>'Desk'],
 				['name'=>null],
 				['name'=>'Bookcase']
@@ -3779,7 +3892,7 @@
 				$failed=true;
 			}
 		echo '  -> where_null';
-			$collection=lv_arr_collect([
+			$collection=$lv_collect_function([
 				['name'=>'Desk'],
 				['name'=>null],
 				['name'=>'Bookcase']
@@ -3821,7 +3934,7 @@
 				echo ' [FAIL]';
 				$failed=true;
 			}
-			$collection=lv_arr_collection::wrap(lv_arr_collect('John Doe'));
+			$collection=lv_arr_collection::wrap($lv_collect_function('John Doe'));
 			//echo ' ['.var_export_contains($collection->all(), '', true).']';
 			if(var_export_contains(
 				$collection->all(),
@@ -3834,7 +3947,7 @@
 				$failed=true;
 			}
 		echo '  -> zip';
-			$collection=lv_arr_collect(['Chair', 'Desk']);
+			$collection=$lv_collect_function(['Chair', 'Desk']);
 			$zipped=$collection->zip([100, 200]);
 			//echo ' ['.var_export_contains($zipped->__toString(), '', true).']';
 			if($zipped->__toString() === '[["Chair",100],["Desk",200]]')
@@ -3845,10 +3958,14 @@
 				$failed=true;
 			}
 
-	echo ' -> Testing lv_arr_lazy_collection'.PHP_EOL;
+	if(!isset($lv_lazy_collection_header))
+		$lv_lazy_collection_header='lv_arr_lazy_collection';
+	echo ' -> Testing '.$lv_lazy_collection_header.PHP_EOL;
+		if(!isset($lv_lazy_collect_function))
+			$lv_lazy_collect_function='lv_arr_lazy_collect';
 		echo '  -> all';
-			//echo ' ['.var_export_contains(lv_arr_lazy_collect([1, 2, 3])->all(), '', true).']';
-			if(var_export_contains(lv_arr_lazy_collect([1, 2, 3])->all(), "array(0=>1,1=>2,2=>3,)"))
+			//echo ' ['.var_export_contains($lv_lazy_collect_function([1, 2, 3])->all(), '', true).']';
+			if(var_export_contains($lv_lazy_collect_function([1, 2, 3])->all(), "array(0=>1,1=>2,2=>3,)"))
 				echo ' [ OK ]'.PHP_EOL;
 			else
 			{
@@ -3857,13 +3974,13 @@
 			}
 		echo '  -> average [SKIP]'.PHP_EOL;
 		echo '  -> avg';
-			//echo ' ['.var_export_contains(lv_arr_lazy_collect([
+			//echo ' ['.var_export_contains($lv_lazy_collect_function([
 			//	['foo'=>10],
 			//	['foo'=>10],
 			//	['foo'=>20],
 			//	['foo'=>40]
 			//])->avg('foo'), '', true).']';
-			if(lv_arr_lazy_collect([
+			if($lv_lazy_collect_function([
 				['foo'=>10],
 				['foo'=>10],
 				['foo'=>20],
@@ -3875,8 +3992,8 @@
 				echo ' [FAIL]';
 				$failed=true;
 			}
-			//echo ' ['.var_export_contains($average=lv_arr_collect([1, 1, 2, 4])->avg(), '', true).']';
-			if($average=lv_arr_lazy_collect([1, 1, 2, 4])->avg() === 2)
+			//echo ' ['.var_export_contains($average=$lv_collect_function([1, 1, 2, 4])->avg(), '', true).']';
+			if($average=$lv_lazy_collect_function([1, 1, 2, 4])->avg() === 2)
 				echo ' [ OK ]'.PHP_EOL;
 			else
 			{
@@ -3884,7 +4001,7 @@
 				$failed=true;
 			}
 		echo '  -> chunk';
-			$collection=lv_arr_lazy_collect([1, 2, 3, 4, 5, 6, 7]);
+			$collection=$lv_lazy_collect_function([1, 2, 3, 4, 5, 6, 7]);
 			$chunks=$collection->chunk(4);
 			//echo ' ['.var_export_contains($chunks->__toString(), '', true).']';
 			if($chunks->__toString() === '[[1,2,3,4],{"4":5,"5":6,"6":7}]')
@@ -3895,15 +4012,16 @@
 				$failed=true;
 			}
 		echo '  -> chunk_while';
-			$collection=lv_arr_lazy_collect(str_split('AABBCCCD'));
+			$collection=$lv_lazy_collect_function(str_split('AABBCCCD'));
 			$chunks=$collection->chunk_while(function(string $value, int $key, lv_arr_collection $chunk){
 				return ($value === $chunk->last());
 			});
-			//echo ' ['.var_export_contains($chunks->all(), '', true).']';
-			if(var_export_contains(
-				$chunks->all(),
-				"array(0=>lv_arr_lazy_collection::__set_state(array('source'=>array(0=>'A',1=>'A',),'escape_when_casting_to_string'=>false,)),1=>lv_arr_lazy_collection::__set_state(array('source'=>array(2=>'B',3=>'B',),'escape_when_casting_to_string'=>false,)),2=>lv_arr_lazy_collection::__set_state(array('source'=>array(4=>'C',5=>'C',6=>'C',),'escape_when_casting_to_string'=>false,)),3=>lv_arr_lazy_collection::__set_state(array('source'=>array(7=>'D',),'escape_when_casting_to_string'=>false,)),)"
-			))
+			//echo ' ['.var_export_contains($chunks->to_json(), '', true).']';
+			if(
+				$chunks->to_json()
+				===
+				'[["A","A"],{"2":"B","3":"B"},{"4":"C","5":"C","6":"C"},{"7":"D"}]'
+			)
 				echo ' [ OK ]'.PHP_EOL;
 			else
 			{
@@ -3911,7 +4029,7 @@
 				$failed=true;
 			}
 		echo '  -> collapse';
-			$collection=lv_arr_lazy_collect([
+			$collection=$lv_lazy_collect_function([
 				[1, 2, 3],
 				[4, 5, 6],
 				[7, 8, 9]
@@ -3930,7 +4048,7 @@
 			}
 		echo '  -> collect [SKIP]'.PHP_EOL;
 		echo '  -> combine';
-			$collection=lv_arr_lazy_collect(['name', 'age']);
+			$collection=$lv_lazy_collect_function(['name', 'age']);
 			$combined=$collection->combine(['George', 29]);
 			//echo ' ['.var_export_contains($combined->all(), '', true).']';
 			if(var_export_contains(
@@ -3944,7 +4062,7 @@
 				$failed=true;
 			}
 		echo '  -> contains';
-			$collection=lv_arr_lazy_collect([1, 2, 3, 4, 5]);
+			$collection=$lv_lazy_collect_function([1, 2, 3, 4, 5]);
 			//echo ' ['.var_export_contains($collection->contains(function(int $value, int $key){
 			//	return ($value > 5);
 			//}), '', true).']';
@@ -3957,7 +4075,7 @@
 				echo ' [FAIL]';
 				$failed=true;
 			}
-			$collection=lv_arr_lazy_collect(['name'=>'Desk', 'price'=>100]);
+			$collection=$lv_lazy_collect_function(['name'=>'Desk', 'price'=>100]);
 			//echo ' ['.var_export_contains($collection->contains('Desk'), '', true).']';
 			if($collection->contains('Desk') === true)
 				echo ' [ OK ]';
@@ -3974,7 +4092,7 @@
 				echo ' [FAIL]';
 				$failed=true;
 			}
-			$collection=lv_arr_lazy_collect([
+			$collection=$lv_lazy_collect_function([
 				['product'=>'Desk', 'price'=>200],
 				['product'=>'Chair', 'price'=>100]
 			]);
@@ -3987,24 +4105,24 @@
 				$failed=true;
 			}
 		echo '  -> contains_one_item';
-			//echo ' ['.var_export_contains(lv_arr_lazy_collect([])->contains_one_item(), '', true).']';
-			if(lv_arr_lazy_collect([])->contains_one_item() === false)
+			//echo ' ['.var_export_contains($lv_lazy_collect_function([])->contains_one_item(), '', true).']';
+			if($lv_lazy_collect_function([])->contains_one_item() === false)
 				echo ' [ OK ]';
 			else
 			{
 				echo ' [FAIL]';
 				$failed=true;
 			}
-			//echo ' ['.var_export_contains(lv_arr_lazy_collect(['1'])->contains_one_item(), '', true).']';
-			if(lv_arr_lazy_collect(['1'])->contains_one_item() === true)
+			//echo ' ['.var_export_contains($lv_lazy_collect_function(['1'])->contains_one_item(), '', true).']';
+			if($lv_lazy_collect_function(['1'])->contains_one_item() === true)
 				echo ' [ OK ]';
 			else
 			{
 				echo ' [FAIL]';
 				$failed=true;
 			}
-			//echo ' ['.var_export_contains(lv_arr_lazy_collect(['1', '2'])->contains_one_item(), '', true).']';
-			if(lv_arr_lazy_collect(['1', '2'])->contains_one_item() === false)
+			//echo ' ['.var_export_contains($lv_lazy_collect_function(['1', '2'])->contains_one_item(), '', true).']';
+			if($lv_lazy_collect_function(['1', '2'])->contains_one_item() === false)
 				echo ' [ OK ]'.PHP_EOL;
 			else
 			{
@@ -4013,7 +4131,7 @@
 			}
 		echo '  -> contains_strict [SKIP]'.PHP_EOL;
 		echo '  -> count';
-			$collection=lv_arr_lazy_collect([1, 2, 3, 4]);
+			$collection=$lv_lazy_collect_function([1, 2, 3, 4]);
 			//echo ' ['.var_export_contains($collection->count(), '', true).']';
 			if($collection->count() === 4)
 				echo ' [ OK ]'.PHP_EOL;
@@ -4023,7 +4141,7 @@
 				$failed=true;
 			}
 		echo '  -> count_by';
-			$collection=lv_arr_lazy_collect([1, 2, 2, 2, 3]);
+			$collection=$lv_lazy_collect_function([1, 2, 2, 2, 3]);
 			$counted=$collection->count_by();
 			//echo ' ['.var_export_contains($counted->all(), '', true).']';
 			if(var_export_contains(
@@ -4036,7 +4154,7 @@
 				echo ' [FAIL]';
 				$failed=true;
 			}
-			$collection=lv_arr_lazy_collect(['alice@gmail.com', 'bob@yahoo.com', 'carlos@gmail.com']);
+			$collection=$lv_lazy_collect_function(['alice@gmail.com', 'bob@yahoo.com', 'carlos@gmail.com']);
 			$counted=$collection->count_by(function(string $email){
 				return substr(strrchr($email, "@"), 1);
 			});
@@ -4052,7 +4170,7 @@
 				$failed=true;
 			}
 		echo '  -> cross_join';
-			$collection=lv_arr_lazy_collect([1, 2]);
+			$collection=$lv_lazy_collect_function([1, 2]);
 			$matrix=$collection->cross_join(['a', 'b']);
 			//echo ' ['.var_export_contains($matrix->all(), '', true).']';
 			if(var_export_contains(
@@ -4065,7 +4183,7 @@
 				echo ' [FAIL]';
 				$failed=true;
 			}
-			$collection=lv_arr_lazy_collect([1, 2]);
+			$collection=$lv_lazy_collect_function([1, 2]);
 			$matrix=$collection->cross_join(['a', 'b'], ['I', 'II']);
 			//echo ' ['.var_export_contains($matrix->all(), '', true).']';
 			if(var_export_contains(
@@ -4078,8 +4196,9 @@
 				echo ' [FAIL]'.PHP_EOL;
 				$failed=true;
 			}
+		echo '  -> dd [SKIP]'.PHP_EOL;
 		echo '  -> diff';
-			$collection=lv_arr_lazy_collect([1, 2, 3, 4, 5]);
+			$collection=$lv_lazy_collect_function([1, 2, 3, 4, 5]);
 			$diff=$collection->diff([2, 4, 6, 8]);
 			//echo ' ['.var_export_contains($diff->all(), '', true).']';
 			if(var_export_contains($diff->all(), "array(0=>1,2=>3,4=>5,)"))
@@ -4090,7 +4209,7 @@
 				$failed=true;
 			}
 		echo '  -> diff_assoc';
-			$collection=lv_arr_lazy_collect([
+			$collection=$lv_lazy_collect_function([
 				'color'=>'orange',
 				'type'=>'fruit',
 				'remain'=>6
@@ -4113,7 +4232,7 @@
 				$failed=true;
 			}
 		echo '  -> diff_assoc_using';
-			$collection=lv_arr_lazy_collect([
+			$collection=$lv_lazy_collect_function([
 				'color'=>'orange',
 				'type'=>'fruit',
 				'remain'=>6
@@ -4135,7 +4254,7 @@
 				$failed=true;
 			}
 		echo '  -> diff_keys';
-			$collection=lv_arr_lazy_collect([
+			$collection=$lv_lazy_collect_function([
 				'one'=>10,
 				'two'=>20,
 				'three'=>30,
@@ -4162,7 +4281,7 @@
 		echo '  -> diff_keys_using [SKIP]'.PHP_EOL;
 		echo '  -> diff_using [SKIP]'.PHP_EOL;
 		echo '  -> doesnt_contain';
-			$collection=lv_arr_lazy_collect([1, 2, 3, 4, 5]);
+			$collection=$lv_lazy_collect_function([1, 2, 3, 4, 5]);
 			//echo ' ['.var_export_contains($collection->doesnt_contain(function(int $value, int $key){
 			//	return ($value < 5);
 			//}), '', true).']';
@@ -4175,7 +4294,7 @@
 				echo ' [FAIL]';
 				$failed=true;
 			}
-			$collection=lv_arr_lazy_collect(['name'=>'Desk', 'price'=>100]);
+			$collection=$lv_lazy_collect_function(['name'=>'Desk', 'price'=>100]);
 			//echo ' ['.var_export_contains($collection->doesnt_contain('Table'), '', true).']';
 			if($collection->doesnt_contain('Table') === true)
 				echo ' [ OK ]';
@@ -4192,7 +4311,7 @@
 				echo ' [FAIL]';
 				$failed=true;
 			}
-			$collection=lv_arr_lazy_collect([
+			$collection=$lv_lazy_collect_function([
 				['product'=>'Desk', 'price'=>200],
 				['product'=>'Chair', 'price'=>100]
 			]);
@@ -4205,7 +4324,7 @@
 				$failed=true;
 			}
 		echo '  -> dot';
-			$collection=lv_arr_lazy_collect(['products'=>['desk'=>['price'=>100]]]);
+			$collection=$lv_lazy_collect_function(['products'=>['desk'=>['price'=>100]]]);
 			$flattened=$collection->dot();
 			//echo ' ['.var_export_contains($flattened->all(), '', true).']';
 			if(var_export_contains(
@@ -4218,8 +4337,9 @@
 				echo ' [FAIL]'.PHP_EOL;
 				$failed=true;
 			}
+		echo '  -> dump [SKIP]'.PHP_EOL;
 		echo '  -> duplicates';
-			$collection=lv_arr_lazy_collect(['a', 'b', 'a', 'c', 'b']);
+			$collection=$lv_lazy_collect_function(['a', 'b', 'a', 'c', 'b']);
 			//echo ' ['.var_export_contains($collection->duplicates()->to_json(), '', true).']';
 			if($collection->duplicates()->to_json() === '{"2":"a","4":"b"}')
 				echo ' [ OK ]';
@@ -4228,7 +4348,7 @@
 				echo ' [FAIL]';
 				$failed=true;
 			}
-			$employees=lv_arr_lazy_collect([
+			$employees=$lv_lazy_collect_function([
 				['email'=>'abigail@example.com', 'position'=>'Developer'],
 				['email'=>'james@example.com', 'position'=>'Designer'],
 				['email'=>'victoria@example.com', 'position'=>'Developer']
@@ -4245,10 +4365,9 @@
 		echo '  -> each [SKIP]'.PHP_EOL;
 		echo '  -> each_spread [SKIP]'.PHP_EOL;
 		echo '  -> eager [SKIP]'.PHP_EOL;
-		echo '  -> ensure [SKIP]'.PHP_EOL;
 		echo '  -> every [SKIP]'.PHP_EOL;
 		echo '  -> except';
-			$collection=lv_arr_lazy_collect(['product_id'=>1, 'price'=>100, 'discount'=>false]);
+			$collection=$lv_lazy_collect_function(['product_id'=>1, 'price'=>100, 'discount'=>false]);
 			$filtered=$collection->except(['price', 'discount']);
 			//echo ' ['.var_export_contains($filtered->all(), '', true).']';
 			if(var_export_contains($filtered->all(), "array('product_id'=>1,)"))
@@ -4259,7 +4378,7 @@
 				$failed=true;
 			}
 		echo '  -> filter';
-			$collection=lv_arr_lazy_collect([1, 2, 3, 4]);
+			$collection=$lv_lazy_collect_function([1, 2, 3, 4]);
 			$filtered=$collection->filter(function(int $value, int $key){
 				return ($value > 2);
 			});
@@ -4271,7 +4390,7 @@
 				echo ' [FAIL]';
 				$failed=true;
 			}
-			$collection=lv_arr_lazy_collect([1, 2, 3, null, false, '', 0, []]);
+			$collection=$lv_lazy_collect_function([1, 2, 3, null, false, '', 0, []]);
 			//echo ' ['.var_export_contains($collection->filter()->all(), '', true).']';
 			if(var_export_contains($collection->filter()->all(), "array(0=>1,1=>2,2=>3,)"))
 				echo ' [ OK ]'.PHP_EOL;
@@ -4281,10 +4400,10 @@
 				$failed=true;
 			}
 		echo '  -> first';
-			//echo ' ['.var_export_contains(lv_arr_lazy_collect([1, 2, 3, 4])->first(function(int $value, int $key){
+			//echo ' ['.var_export_contains($lv_lazy_collect_function([1, 2, 3, 4])->first(function(int $value, int $key){
 			//	return ($value > 2);
 			//}), '', true).']';
-			if(lv_arr_lazy_collect([1, 2, 3, 4])->first(function(int $value, int $key){
+			if($lv_lazy_collect_function([1, 2, 3, 4])->first(function(int $value, int $key){
 				return ($value > 2);
 			}) === 3)
 				echo ' [ OK ]';
@@ -4293,8 +4412,8 @@
 				echo ' [FAIL]';
 				$failed=true;
 			}
-			//echo ' ['.var_export_contains(lv_arr_lazy_collect([1, 2, 3, 4])->first(), '', true).']';
-			if(lv_arr_lazy_collect([1, 2, 3, 4])->first() === 1)
+			//echo ' ['.var_export_contains($lv_lazy_collect_function([1, 2, 3, 4])->first(), '', true).']';
+			if($lv_lazy_collect_function([1, 2, 3, 4])->first() === 1)
 				echo ' [ OK ]'.PHP_EOL;
 			else
 			{
@@ -4303,7 +4422,7 @@
 			}
 		echo '  -> first_or_fail';
 			try {
-				lv_arr_lazy_collect([1, 2, 3, 4])->first_or_fail(function(int $value, int $key){
+				$lv_lazy_collect_function([1, 2, 3, 4])->first_or_fail(function(int $value, int $key){
 					return ($value > 5);
 				});
 				echo ' [FAIL]';
@@ -4312,7 +4431,7 @@
 				echo ' [ OK ]';
 			}
 			try {
-				lv_arr_lazy_collect([])->first_or_fail();
+				$lv_lazy_collect_function([])->first_or_fail();
 				echo ' [FAIL]'.PHP_EOL;
 				$failed=true;
 			} catch(lv_arr_exception $error) {
@@ -4321,7 +4440,7 @@
 		echo '  -> first_where [SKIP]'.PHP_EOL;
 		echo '  -> flat_map [SKIP]'.PHP_EOL;
 		echo '  -> flip';
-			$collection=lv_arr_lazy_collect(['name'=>'taylor', 'framework'=>'laravel']);
+			$collection=$lv_lazy_collect_function(['name'=>'taylor', 'framework'=>'laravel']);
 			$flipped=$collection->flip();
 			//echo ' ['.var_export_contains($flipped->all(), '', true).']';
 			if(var_export_contains(
@@ -4336,7 +4455,7 @@
 			}
 		echo '  -> for_page [SKIP]'.PHP_EOL;
 		echo '  -> get';
-			$collection=lv_arr_lazy_collect(['name'=>'taylor', 'framework'=>'laravel']);
+			$collection=$lv_lazy_collect_function(['name'=>'taylor', 'framework'=>'laravel']);
 			//echo ' ['.var_export_contains($collection->get('name'), '', true).']';
 			if($collection->get('name') === 'taylor')
 				echo ' [ OK ]';
@@ -4367,7 +4486,7 @@
 			}
 		echo '  -> get_iterator [SKIP]'.PHP_EOL;
 		echo '  -> group_by';
-			$collection=lv_arr_lazy_collect([
+			$collection=$lv_lazy_collect_function([
 				['account_id'=>'account-x10', 'product'=>'Chair'],
 				['account_id'=>'account-x10', 'product'=>'Bookcase'],
 				['account_id'=>'account-x11', 'product'=>'Desk']
@@ -4420,7 +4539,7 @@
 				$failed=true;
 			}
 		echo '  -> has';
-			$collection=lv_arr_lazy_collect(['account_id'=>1, 'product'=>'Desk', 'amount'=>5]);
+			$collection=$lv_lazy_collect_function(['account_id'=>1, 'product'=>'Desk', 'amount'=>5]);
 			//echo ' ['.var_export_contains($collection->has('product'), '', true).']';
 			if($collection->has('product') === true)
 				echo ' [ OK ]';
@@ -4446,7 +4565,7 @@
 				$failed=true;
 			}
 		echo '  -> has_any';
-			$collection=lv_arr_lazy_collect(['account_id'=>1, 'product'=>'Desk', 'amount'=>5]);
+			$collection=$lv_lazy_collect_function(['account_id'=>1, 'product'=>'Desk', 'amount'=>5]);
 			//echo ' ['.var_export_contains($collection->has_any(['product', 'price']), '', true).']';
 			if($collection->has_any(['product', 'price']) === true)
 				echo ' [ OK ]';
@@ -4464,7 +4583,7 @@
 				$failed=true;
 			}
 		echo '  -> implode';
-			$collection=lv_arr_lazy_collect([
+			$collection=$lv_lazy_collect_function([
 				['account_id'=>1, 'product'=>'Desk'],
 				['account_id'=>2, 'product'=>'Chair']
 			]);
@@ -4476,8 +4595,8 @@
 				echo ' [FAIL]';
 				$failed=true;
 			}
-			//echo ' ['.var_export_contains(lv_arr_lazy_collect([1, 2, 3, 4, 5])->implode('-'), '', true).']';
-			if(lv_arr_lazy_collect([1, 2, 3, 4, 5])->implode('-') === '1-2-3-4-5')
+			//echo ' ['.var_export_contains($lv_lazy_collect_function([1, 2, 3, 4, 5])->implode('-'), '', true).']';
+			if($lv_lazy_collect_function([1, 2, 3, 4, 5])->implode('-') === '1-2-3-4-5')
 				echo ' [ OK ]';
 			else
 			{
@@ -4497,7 +4616,7 @@
 				$failed=true;
 			}
 		echo '  -> intersect';
-			$collection=lv_arr_lazy_collect(['Desk', 'Sofa', 'Chair']);
+			$collection=$lv_lazy_collect_function(['Desk', 'Sofa', 'Chair']);
 			$intersect=$collection->intersect(['Desk', 'Chair', 'Bookcase']);
 			//echo ' ['.var_export_contains($intersect->all(), '', true).']';
 			if(var_export_contains($intersect->all(), "array(0=>'Desk',2=>'Chair',)"))
@@ -4508,7 +4627,7 @@
 				$failed=true;
 			}
 		echo '  -> intersect_assoc';
-			$collection=lv_arr_lazy_collect([
+			$collection=$lv_lazy_collect_function([
 				'color'=>'red',
 				'size'=>'M',
 				'material'=>'cotton'
@@ -4528,7 +4647,7 @@
 			}
 		echo '  -> intersect_assoc_using [SKIP]'.PHP_EOL;
 		echo '  -> intersect_by_keys';
-			$collection=lv_arr_lazy_collect([
+			$collection=$lv_lazy_collect_function([
 				'serial'=>'UX301',
 				'type'=>'screen',
 				'year'=>2009
@@ -4551,7 +4670,7 @@
 			}
 		echo '  -> intersect_using [SKIP]'.PHP_EOL;
 		echo '  -> is_empty';
-			if(lv_arr_lazy_collect([])->is_empty())
+			if($lv_lazy_collect_function([])->is_empty())
 				echo ' [ OK ]'.PHP_EOL;
 			else
 			{
@@ -4560,40 +4679,40 @@
 			}
 		echo '  -> is_not_empty [SKIP]'.PHP_EOL;
 		echo '  -> join';
-			//echo ' ['.var_export_contains(lv_arr_lazy_collect(['a', 'b', 'c'])->join(', '), '', true).']';
-			if(lv_arr_lazy_collect(['a', 'b', 'c'])->join(', ') === 'a, b, c')
+			//echo ' ['.var_export_contains($lv_lazy_collect_function(['a', 'b', 'c'])->join(', '), '', true).']';
+			if($lv_lazy_collect_function(['a', 'b', 'c'])->join(', ') === 'a, b, c')
 				echo ' [ OK ]';
 			else
 			{
 				echo ' [FAIL]';
 				$failed=true;
 			}
-			//echo ' ['.var_export_contains(lv_arr_lazy_collect(['a', 'b', 'c'])->join(', ', ', and '), '', true).']';
-			if(lv_arr_lazy_collect(['a', 'b', 'c'])->join(', ', ', and ') === 'a, b, and c')
+			//echo ' ['.var_export_contains($lv_lazy_collect_function(['a', 'b', 'c'])->join(', ', ', and '), '', true).']';
+			if($lv_lazy_collect_function(['a', 'b', 'c'])->join(', ', ', and ') === 'a, b, and c')
 				echo ' [ OK ]';
 			else
 			{
 				echo ' [FAIL]';
 				$failed=true;
 			}
-			//echo ' ['.var_export_contains(lv_arr_lazy_collect(['a', 'b'])->join(', ', ' and '), '', true).']';
-			if(lv_arr_lazy_collect(['a', 'b'])->join(', ', ' and ') === 'a and b')
+			//echo ' ['.var_export_contains($lv_lazy_collect_function(['a', 'b'])->join(', ', ' and '), '', true).']';
+			if($lv_lazy_collect_function(['a', 'b'])->join(', ', ' and ') === 'a and b')
 				echo ' [ OK ]';
 			else
 			{
 				echo ' [FAIL]';
 				$failed=true;
 			}
-			//echo ' ['.var_export_contains(lv_arr_lazy_collect(['a'])->join(', ', ' and '), '', true).']';
-			if(lv_arr_lazy_collect(['a'])->join(', ', ' and ') === 'a')
+			//echo ' ['.var_export_contains($lv_lazy_collect_function(['a'])->join(', ', ' and '), '', true).']';
+			if($lv_lazy_collect_function(['a'])->join(', ', ' and ') === 'a')
 				echo ' [ OK ]';
 			else
 			{
 				echo ' [FAIL]';
 				$failed=true;
 			}
-			//echo ' ['.var_export_contains(lv_arr_lazy_collect([])->join(', ', ' and '), '', true).']';
-			if(lv_arr_lazy_collect([])->join(', ', ' and ') === '')
+			//echo ' ['.var_export_contains($lv_lazy_collect_function([])->join(', ', ' and '), '', true).']';
+			if($lv_lazy_collect_function([])->join(', ', ' and ') === '')
 				echo ' [ OK ]'.PHP_EOL;
 			else
 			{
@@ -4601,7 +4720,7 @@
 				$failed=true;
 			}
 		echo '  -> key_by';
-			$collection=lv_arr_lazy_collect([
+			$collection=$lv_lazy_collect_function([
 				['product_id'=>'prod-100', 'name'=>'Desk'],
 				['product_id'=>'prod-200', 'name'=>'Chair']
 			]);
@@ -4632,7 +4751,7 @@
 				$failed=true;
 			}
 		echo '  -> keys';
-			$collection=lv_arr_lazy_collect([
+			$collection=$lv_lazy_collect_function([
 				'prod-100'=>['product_id'=>'prod-100', 'name'=>'Desk'],
 				'prod-200'=>['product_id'=>'prod-200', 'name'=>'Chair']
 			]);
@@ -4649,10 +4768,10 @@
 				$failed=true;
 			}
 		echo '  -> last';
-			//echo ' ['.var_export_contains(lv_arr_lazy_collect([1, 2, 3, 4])->last(function(int $value, int $key){
+			//echo ' ['.var_export_contains($lv_lazy_collect_function([1, 2, 3, 4])->last(function(int $value, int $key){
 			//	return ($value < 3);
 			//}), '', true).']';
-			if(lv_arr_lazy_collect([1, 2, 3, 4])->last(function(int $value, int $key){
+			if($lv_lazy_collect_function([1, 2, 3, 4])->last(function(int $value, int $key){
 				return ($value < 3);
 			}) === 2)
 				echo ' [ OK ]';
@@ -4661,18 +4780,17 @@
 				echo ' [FAIL]';
 				$failed=true;
 			}
-			//echo ' ['.var_export_contains(lv_arr_lazy_collect([1, 2, 3, 4])->last(), '', true).']';
-			if(lv_arr_lazy_collect([1, 2, 3, 4])->last() === 4)
+			//echo ' ['.var_export_contains($lv_lazy_collect_function([1, 2, 3, 4])->last(), '', true).']';
+			if($lv_lazy_collect_function([1, 2, 3, 4])->last() === 4)
 				echo ' [ OK ]'.PHP_EOL;
 			else
 			{
 				echo ' [FAIL]'.PHP_EOL;
 				$failed=true;
 			}
-		echo '  -> macro [SKIP]'.PHP_EOL;
 		echo '  -> make [SKIP]'.PHP_EOL;
 		echo '  -> map';
-			$collection=lv_arr_lazy_collect([1, 2, 3, 4, 5]);
+			$collection=$lv_lazy_collect_function([1, 2, 3, 4, 5]);
 			$multiplied=$collection->map(function(int $item, int $key){
 				return ($item * 2);
 			});
@@ -4690,7 +4808,7 @@
 		echo '  -> map_into [SKIP]'.PHP_EOL;
 		echo '  -> map_spread [SKIP]'.PHP_EOL;
 		echo '  -> map_to_dictionary';
-			$collection=lv_arr_lazy_collect([
+			$collection=$lv_lazy_collect_function([
 				['score'=>0.84, 'name'=>'Bob'],
 				['score'=>0.95, 'name'=>'Alice'],
 				['score'=>0.78, 'name'=>'Charlie'],
@@ -4713,7 +4831,7 @@
 			}
 		echo '  -> map_to_groups [SKIP]'.PHP_EOL;
 		echo '  -> map_with_keys';
-			$collection=lv_arr_lazy_collect([
+			$collection=$lv_lazy_collect_function([
 				[
 					'name'=>'John',
 					'department'=>'Sales',
@@ -4741,13 +4859,13 @@
 			}
 		echo '  -> max [SKIP]'.PHP_EOL;
 		echo '  -> median';
-			//echo ' ['.var_export_contains(lv_arr_lazy_collect([
+			//echo ' ['.var_export_contains($lv_lazy_collect_function([
 			//	['foo'=>10],
 			//	['foo'=>10],
 			//	['foo'=>20],
 			//	['foo'=>40]
 			//])->median('foo'), '', true).']';
-			if(lv_arr_lazy_collect([
+			if($lv_lazy_collect_function([
 				['foo'=>10],
 				['foo'=>10],
 				['foo'=>20],
@@ -4759,8 +4877,8 @@
 				echo ' [FAIL]';
 				$failed=true;
 			}
-			//echo ' ['.var_export_contains(lv_arr_lazy_collect([1, 1, 2, 4])->median(), '', true).']';
-			if(var_export_contains(lv_arr_lazy_collect([1, 1, 2, 4])->median(), '1.5'))
+			//echo ' ['.var_export_contains($lv_lazy_collect_function([1, 1, 2, 4])->median(), '', true).']';
+			if(var_export_contains($lv_lazy_collect_function([1, 1, 2, 4])->median(), '1.5'))
 				echo ' [ OK ]'.PHP_EOL;
 			else
 			{
@@ -4768,7 +4886,7 @@
 				$failed=true;
 			}
 		echo '  -> merge';
-			$collection=lv_arr_lazy_collect(['product_id'=>1, 'price'=>100]);
+			$collection=$lv_lazy_collect_function(['product_id'=>1, 'price'=>100]);
 			$merged=$collection->merge(['price'=>200, 'discount'=>false]);
 			//echo ' ['.var_export_contains($merged->all(), '', true).']';
 			if(var_export_contains(
@@ -4781,7 +4899,7 @@
 				echo ' [FAIL]';
 				$failed=true;
 			}
-			$collection=lv_arr_lazy_collect(['Desk', 'Chair']);
+			$collection=$lv_lazy_collect_function(['Desk', 'Chair']);
 			$merged=$collection->merge(['Bookcase', 'Door']);
 			//echo ' ['.var_export_contains($merged->all(), '', true).']';
 			if(var_export_contains(
@@ -4795,7 +4913,7 @@
 				$failed=true;
 			}
 		echo '  -> merge_recursive';
-			$collection=lv_arr_lazy_collect(['product_id'=>1, 'price'=>100]);
+			$collection=$lv_lazy_collect_function(['product_id'=>1, 'price'=>100]);
 			$merged=$collection->merge_recursive([
 				'product_id'=>2,
 				'price'=>200,
@@ -4814,13 +4932,13 @@
 			}
 		echo '  -> min [SKIP]'.PHP_EOL;
 		echo '  -> mode';
-			//echo ' ['.var_export_contains(lv_arr_lazy_collect([
+			//echo ' ['.var_export_contains($lv_lazy_collect_function([
 			//	['foo'=>10],
 			//	['foo'=>10],
 			//	['foo'=>20],
 			//	['foo'=>40]
 			//])->mode('foo'), '', true).']';
-			if(var_export_contains(lv_arr_lazy_collect([
+			if(var_export_contains($lv_lazy_collect_function([
 				['foo'=>10],
 				['foo'=>10],
 				['foo'=>20],
@@ -4832,9 +4950,9 @@
 				echo ' [FAIL]';
 				$failed=true;
 			}
-			//echo ' ['.var_export_contains(lv_arr_lazy_collect([1, 1, 2, 4])->mode(), '', true).']';
+			//echo ' ['.var_export_contains($lv_lazy_collect_function([1, 1, 2, 4])->mode(), '', true).']';
 			if(var_export_contains(
-				lv_arr_lazy_collect([1, 1, 2, 4])->mode(),
+				$lv_lazy_collect_function([1, 1, 2, 4])->mode(),
 				"array(0=>1,)"
 			))
 				echo ' [ OK ]';
@@ -4845,7 +4963,7 @@
 			}
 			//echo ' ['.var_export_contains(lv_arr_lazu_collect([1, 1, 2, 2])->mode(), '', true).']';
 			if(var_export_contains(
-				lv_arr_lazy_collect([1, 1, 2, 2])->mode(),
+				$lv_lazy_collect_function([1, 1, 2, 2])->mode(),
 				"array(0=>1,1=>2,)"
 			))
 				echo ' [ OK ]'.PHP_EOL;
@@ -4855,7 +4973,7 @@
 				$failed=true;
 			}
 		echo '  -> only';
-			$collection=lv_arr_lazy_collect([
+			$collection=$lv_lazy_collect_function([
 				'product_id'=>1,
 				'name'=>'Desk',
 				'price'=>100,
@@ -4874,7 +4992,7 @@
 				$failed=true;
 			}
 		echo '  -> pad';
-			$collection=lv_arr_lazy_collect(['A', 'B', 'C']);
+			$collection=$lv_lazy_collect_function(['A', 'B', 'C']);
 			$filtered=$collection->pad(5, 0);
 			//echo ' ['.var_export_contains($filtered->all(), '', true).']';
 			if(var_export_contains(
@@ -4905,7 +5023,7 @@
 		echo '  -> pipe_into [SKIP]'.PHP_EOL;
 		echo '  -> pipe_through [SKIP]'.PHP_EOL;
 		echo '  -> pluck';
-			$collection=lv_arr_lazy_collect([
+			$collection=$lv_lazy_collect_function([
 				['product_id'=>'prod-100', 'name'=>'Desk'],
 				['product_id'=>'prod-200', 'name'=>'Chair']
 			]);
@@ -4933,7 +5051,7 @@
 				echo ' [FAIL]';
 				$failed=true;
 			}
-			$collection=lv_arr_lazy_collect([
+			$collection=$lv_lazy_collect_function([
 				[
 					'name'=>'Laracon',
 					'speakers'=>[
@@ -4959,7 +5077,7 @@
 				echo ' [FAIL]';
 				$failed=true;
 			}
-			$collection=lv_arr_lazy_collect([
+			$collection=$lv_lazy_collect_function([
 				['brand'=>'Tesla', 'color'=>'red'],
 				['brand'=>'Pagani', 'color'=>'white'],
 				['brand'=>'Tesla', 'color'=>'black'],
@@ -4978,7 +5096,7 @@
 				$failed=true;
 			}
 		echo '  -> random';
-			$collection=lv_arr_lazy_collect([1, 2, 3]);
+			$collection=$lv_lazy_collect_function([1, 2, 3]);
 			$random=$collection->random();
 			//echo ' ['.var_export_contains($random, '', true).']';
 			if(
@@ -5022,7 +5140,7 @@
 				$failed=true;
 			}
 		echo '  -> range';
-			$collection=lv_arr_lazy_collect()->range(3, 6);
+			$collection=$lv_lazy_collect_function()->range(3, 6);
 			//echo ' ['.var_export_contains($collection->all(), '', true).']';
 			if(var_export_contains(
 				$collection->all(),
@@ -5038,7 +5156,7 @@
 		echo '  -> reduce_spread [SKIP]'.PHP_EOL;
 		echo '  -> reject [SKIP]'.PHP_EOL;
 		echo '  -> replace';
-			$collection=lv_arr_lazy_collect(['Taylor', 'Abigail', 'James']);
+			$collection=$lv_lazy_collect_function(['Taylor', 'Abigail', 'James']);
 			$replaced=$collection->replace([1=>'Victoria', 3=>'Finn']);
 			//echo ' ['.var_export_contains($replaced->all(), '', true).']';
 			if(var_export_contains(
@@ -5052,7 +5170,7 @@
 				$failed=true;
 			}
 		echo '  -> remember';
-			$collection=lv_arr_lazy_collect(['a', 'b', 'c', 'd', 'e', 'f']);
+			$collection=$lv_lazy_collect_function(['a', 'b', 'c', 'd', 'e', 'f']);
 			$users=$collection->remember();
 			//echo ' ['.var_export_contains($users->take(2)->all(), '', true).']';
 			if(var_export_contains(
@@ -5077,7 +5195,7 @@
 				$failed=true;
 			}
 		echo '  -> replace_recursive';
-			$collection=lv_arr_lazy_collect([
+			$collection=$lv_lazy_collect_function([
 				'Taylor',
 				'Abigail',
 				[
@@ -5102,7 +5220,7 @@
 				$failed=true;
 			}
 		echo '  -> reverse';
-			$collection=lv_arr_lazy_collect(['a', 'b', 'c', 'd', 'e']);
+			$collection=$lv_lazy_collect_function(['a', 'b', 'c', 'd', 'e']);
 			$reversed=$collection->reverse();
 			//echo ' ['.var_export_contains($reversed->all(), '', true).']';
 			if(var_export_contains(
@@ -5116,7 +5234,7 @@
 				$failed=true;
 			}
 		echo '  -> search';
-			$collection=lv_arr_lazy_collect([2, 4, 6, 8]);
+			$collection=$lv_lazy_collect_function([2, 4, 6, 8]);
 			//echo ' ['.var_export_contains($collection->search(4), '', true).']';
 			if($collection->search(4) === 1)
 				echo ' [ OK ]';
@@ -5125,18 +5243,18 @@
 				echo ' [FAIL]';
 				$failed=true;
 			}
-			//echo ' ['.var_export_contains(lv_arr_lazy_collect([2, 4, 6, 8])->search('4', true), '', true).']';
-			if(lv_arr_lazy_collect([2, 4, 6, 8])->search('4', true) === false)
+			//echo ' ['.var_export_contains($lv_lazy_collect_function([2, 4, 6, 8])->search('4', true), '', true).']';
+			if($lv_lazy_collect_function([2, 4, 6, 8])->search('4', true) === false)
 				echo ' [ OK ]';
 			else
 			{
 				echo ' [FAIL]';
 				$failed=true;
 			}
-			//echo ' ['.var_export_contains(lv_arr_lazy_collect([2, 4, 6, 8])->search(function(int $item, int $key){
+			//echo ' ['.var_export_contains($lv_lazy_collect_function([2, 4, 6, 8])->search(function(int $item, int $key){
 			//	return ($item > 5);
 			//}), '', true).']';
-			if(lv_arr_lazy_collect([2, 4, 6, 8])->search(function(int $item, int $key){
+			if($lv_lazy_collect_function([2, 4, 6, 8])->search(function(int $item, int $key){
 				return ($item > 5);
 			}) === 2)
 				echo ' [ OK ]'.PHP_EOL;
@@ -5146,7 +5264,7 @@
 				$failed=true;
 			}
 		echo '  -> select';
-			$users=lv_arr_lazy_collect([
+			$users=$lv_lazy_collect_function([
 				['name'=>'Taylor Otwell', 'role'=>'Developer', 'status'=>'active'],
 				['name'=>'Victoria Faith', 'role'=>'Researcher', 'status'=>'active']
 			]);
@@ -5159,7 +5277,7 @@
 				$failed=true;
 			}
 		echo '  -> shuffle';
-			$collection=lv_arr_lazy_collect([1, 2, 3]);
+			$collection=$lv_lazy_collect_function([1, 2, 3]);
 			$shuffled=$collection->shuffle();
 			//echo ' ['.var_export_contains($shuffled->all(), '', true).']';
 			switch(var_export_contains($shuffled->all(), '', true))
@@ -5187,7 +5305,7 @@
 					$failed=true;
 			}
 		echo '  -> skip';
-			$collection=lv_arr_lazy_collect([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+			$collection=$lv_lazy_collect_function([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
 			$collection=$collection->skip(4);
 			//echo ' ['.var_export_contains($collection->all(), '', true).']';
 			if(var_export_contains(
@@ -5201,7 +5319,7 @@
 				$failed=true;
 			}
 		echo '  -> skip_until';
-			$collection=lv_arr_lazy_collect([1, 2, 3, 4]);
+			$collection=$lv_lazy_collect_function([1, 2, 3, 4]);
 			$subset=$collection->skip_until(function(int $item){
 				return ($item >= 3);
 			});
@@ -5229,7 +5347,7 @@
 				$failed=true;
 			}
 		echo '  -> skip_while';
-			$collection=lv_arr_lazy_collect([1, 2, 3, 4]);
+			$collection=$lv_lazy_collect_function([1, 2, 3, 4]);
 			$subset=$collection->skip_while(function(int $item){
 				return ($item <= 3);
 			});
@@ -5245,7 +5363,7 @@
 				$failed=true;
 			}
 		echo '  -> slice';
-			$collection=lv_arr_lazy_collect([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+			$collection=$lv_lazy_collect_function([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
 			$slice=$collection->slice(4);
 			//echo ' ['.var_export_contains($slice->all(), '', true).']';
 			if(var_export_contains(
@@ -5268,37 +5386,28 @@
 				$failed=true;
 			}
 		echo '  -> sliding';
-			$collection=lv_arr_lazy_collect([1, 2, 3, 4, 5]);
+			$collection=$lv_lazy_collect_function([1, 2, 3, 4, 5]);
 			$chunks=$collection->sliding(2);
-			//echo ' ['.var_export_contains($chunks->all(), '', true).']';
-			if(var_export_contains(
-				$chunks->all(),
-				"array(0=>lv_arr_lazy_collection::__set_state(array('source'=>array(0=>1,1=>2,),'escape_when_casting_to_string'=>false,)),1=>lv_arr_lazy_collection::__set_state(array('source'=>array(1=>2,2=>3,),'escape_when_casting_to_string'=>false,)),2=>lv_arr_lazy_collection::__set_state(array('source'=>array(2=>3,3=>4,),'escape_when_casting_to_string'=>false,)),3=>lv_arr_lazy_collection::__set_state(array('source'=>array(3=>4,4=>5,),'escape_when_casting_to_string'=>false,)),)"
-			))
+			//echo ' ['.var_export_contains($chunks->to_json(), '', true).']';
+			if(
+				$chunks->to_json()
+				===
+				'[[1,2],{"1":2,"2":3},{"2":3,"3":4},{"3":4,"4":5}]'
+			)
 				echo ' [ OK ]';
 			else
 			{
 				echo ' [FAIL]';
 				$failed=true;
 			}
-			//echo ' ['.var_export_contains(lv_arr_lazy_collect([1, 2, 3])->all(), '', true).']';
-			if(var_export_contains(
-				lv_arr_lazy_collect([1, 2, 3])->all(),
-				"array(0=>1,1=>2,2=>3,)"
-			))
-				echo ' [ OK ]';
-			else
-			{
-				echo ' [FAIL]';
-				$failed=true;
-			}
-			$collection=lv_arr_lazy_collect([1, 2, 3, 4, 5]);
+			$collection=$lv_lazy_collect_function([1, 2, 3, 4, 5]);
 			$chunks=$collection->sliding(3, 2);
-			//echo ' ['.var_export_contains($chunks->all(), '', true).']';
-			if(var_export_contains(
-				$chunks->all(),
-				"array(0=>lv_arr_lazy_collection::__set_state(array('source'=>array(0=>1,1=>2,2=>3,),'escape_when_casting_to_string'=>false,)),1=>lv_arr_lazy_collection::__set_state(array('source'=>array(2=>3,3=>4,4=>5,),'escape_when_casting_to_string'=>false,)),)"
-			))
+			//echo ' ['.var_export_contains($chunks->to_json(), '', true).']';
+			if(
+				$chunks->to_json()
+				===
+				'[[1,2,3],{"2":3,"3":4,"4":5}]'
+			)
 				echo ' [ OK ]'.PHP_EOL;
 			else
 			{
@@ -5306,10 +5415,10 @@
 				$failed=true;
 			}
 		echo '  -> sole';
-			//echo ' ['.var_export_contains(lv_arr_lazy_collect([1, 2, 3, 4])->sole(function(int $value, int $key){
+			//echo ' ['.var_export_contains($lv_lazy_collect_function([1, 2, 3, 4])->sole(function(int $value, int $key){
 			//	return ($value === 2);
 			//}), '', true).']';
-			if(lv_arr_lazy_collect([1, 2, 3, 4])->sole(function(int $value, int $key){
+			if($lv_lazy_collect_function([1, 2, 3, 4])->sole(function(int $value, int $key){
 				return ($value === 2);
 			}) === 2)
 				echo ' [ OK ]';
@@ -5318,7 +5427,7 @@
 				echo ' [FAIL]';
 				$failed=true;
 			}
-			$collection=lv_arr_lazy_collect([
+			$collection=$lv_lazy_collect_function([
 				['product'=>'Desk', 'price'=>200],
 				['product'=>'Chair', 'price'=>100]
 			]);
@@ -5333,7 +5442,7 @@
 				echo ' [FAIL]';
 				$failed=true;
 			}
-			$collection=lv_arr_lazy_collect([
+			$collection=$lv_lazy_collect_function([
 				['product'=>'Desk', 'price'=>200]
 			]);
 			//echo ' ['.var_export_contains($collection->sole(), '', true).']';
@@ -5349,7 +5458,7 @@
 			}
 		echo '  -> some [SKIP]'.PHP_EOL;
 		echo '  -> sort';
-			$collection=lv_arr_lazy_collect([5, 3, 1, 2, 4]);
+			$collection=$lv_lazy_collect_function([5, 3, 1, 2, 4]);
 			$sorted=$collection->sort();
 			//echo ' ['.var_export_contains($sorted->all(), '', true).']';
 			if(var_export_contains(
@@ -5363,7 +5472,7 @@
 				$failed=true;
 			}
 		echo '  -> sort_by';
-			$collection=lv_arr_lazy_collect([
+			$collection=$lv_lazy_collect_function([
 				['name'=> 'Desk', 'price'=>200],
 				['name'=> 'Chair', 'price'=>100],
 				['name'=> 'Bookcase', 'price'=>150]
@@ -5380,7 +5489,7 @@
 				echo ' [FAIL]';
 				$failed=true;
 			}
-			$collection=lv_arr_lazy_collect([
+			$collection=$lv_lazy_collect_function([
 				['title'=>'Item 1'],
 				['title'=> 'Item 12'],
 				['title'=>'Item 3']
@@ -5397,7 +5506,7 @@
 				echo ' [FAIL]';
 				$failed=true;
 			}
-			$collection=lv_arr_lazy_collect([
+			$collection=$lv_lazy_collect_function([
 				['name'=>'Desk', 'colors'=>['Black', 'Mahogany']],
 				['name'=>'Chair', 'colors'=>['Black']],
 				['name'=>'Bookcase', 'colors'=>['Red', 'Beige', 'Brown']]
@@ -5416,7 +5525,7 @@
 				echo ' [FAIL]';
 				$failed=true;
 			}
-			$collection=lv_arr_lazy_collect([
+			$collection=$lv_lazy_collect_function([
 				['name'=>'Taylor Otwell', 'age'=>34],
 				['name'=>'Abigail Otwell', 'age'=>30],
 				['name'=>'Taylor Otwell', 'age'=>36],
@@ -5437,7 +5546,7 @@
 				echo ' [FAIL]';
 				$failed=true;
 			}
-			$collection=lv_arr_lazy_collect([
+			$collection=$lv_lazy_collect_function([
 				['name'=>'Taylor Otwell', 'age'=>34],
 				['name'=>'Abigail Otwell', 'age'=>30],
 				['name'=>'Taylor Otwell', 'age'=>36],
@@ -5466,7 +5575,7 @@
 			}
 		echo '  -> sort_by_desc [SKIP]'.PHP_EOL;
 		echo '  -> sort_desc';
-			$collection=lv_arr_lazy_collect([5, 3, 1, 2, 4]);
+			$collection=$lv_lazy_collect_function([5, 3, 1, 2, 4]);
 			$sorted=$collection->sort_desc();
 			//echo ' ['.var_export_contains($sorted->all(), '', true).']';
 			if(var_export_contains(
@@ -5480,7 +5589,7 @@
 				$failed=true;
 			}
 		echo '  -> sort_keys';
-			$collection=lv_arr_lazy_collect([
+			$collection=$lv_lazy_collect_function([
 				'id'=>22345,
 				'first'=>'John',
 				'last'=>'Doe'
@@ -5499,7 +5608,7 @@
 			}
 		echo '  -> sort_keys_desc [SKIP]'.PHP_EOL;
 		echo '  -> sort_keys_using';
-			$collection=lv_arr_lazy_collect([
+			$collection=$lv_lazy_collect_function([
 				'ID'=>22345,
 				'first'=>'John',
 				'last'=>'Doe'
@@ -5517,7 +5626,7 @@
 				$failed=true;
 			}
 		echo '  -> split';
-			$collection=lv_arr_lazy_collect([1, 2, 3, 4, 5]);
+			$collection=$lv_lazy_collect_function([1, 2, 3, 4, 5]);
 			$groups=$collection->split(3);
 			//echo ' ['.var_export_contains($groups->__toString(), '', true).']';
 			if($groups->__toString() === '[[1,2],[3,4],[5]]')
@@ -5528,7 +5637,7 @@
 				$failed=true;
 			}
 		echo '  -> split_in';
-			$collection=lv_arr_lazy_collect([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+			$collection=$lv_lazy_collect_function([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
 			$groups=$collection->split_in(3);
 			//echo ' ['.var_export_contains($groups->__toString(), '', true).']';
 			if($groups->__toString() === '[[1,2,3,4],{"4":5,"5":6,"6":7,"7":8},{"8":9,"9":10}]')
@@ -5540,7 +5649,7 @@
 			}
 		echo '  -> sum [SKIP]'.PHP_EOL;
 		echo '  -> take';
-			$collection=lv_arr_lazy_collect([0, 1, 2, 3, 4, 5]);
+			$collection=$lv_lazy_collect_function([0, 1, 2, 3, 4, 5]);
 			$chunk=$collection->take(3);
 			//echo ' ['.var_export_contains($chunk->all(), '', true).']';
 			if(var_export_contains($chunk->all(), "array(0=>0,1=>1,2=>2,)"))
@@ -5550,7 +5659,7 @@
 				echo ' [FAIL]';
 				$failed=true;
 			}
-			$collection=lv_arr_lazy_collect([0, 1, 2, 3, 4, 5]);
+			$collection=$lv_lazy_collect_function([0, 1, 2, 3, 4, 5]);
 			$chunk=$collection->take(-2);
 			//echo ' ['.var_export_contains($chunk->all(), '', true).']';
 			if(var_export_contains($chunk->all(), "array(4=>4,5=>5,)"))
@@ -5561,7 +5670,7 @@
 				$failed=true;
 			}
 		echo '  -> take_until';
-			$collection=lv_arr_lazy_collect([1, 2, 3, 4]);
+			$collection=$lv_lazy_collect_function([1, 2, 3, 4]);
 			$subset=$collection->take_until(function(int $item){
 				return ($item >= 3);
 			});
@@ -5583,7 +5692,7 @@
 				$failed=true;
 			}
 		echo '  -> take_while';
-			$collection=lv_arr_lazy_collect([1, 2, 3, 4]);
+			$collection=$lv_lazy_collect_function([1, 2, 3, 4]);
 			$subset=$collection->take_while(function(int $item){
 				return ($item < 3);
 			});
@@ -5600,7 +5709,7 @@
 		echo '  -> to_array [SKIP]'.PHP_EOL;
 		echo '  -> to_json [SKIP]'.PHP_EOL;
 		echo '  -> undot';
-			$person=lv_arr_lazy_collect([
+			$person=$lv_lazy_collect_function([
 				'name.first_name'=>'Marie',
 				'name.last_name'=>'Valentine',
 				'address.line_1'=>'2992 Eagle Drive',
@@ -5622,7 +5731,7 @@
 				$failed=true;
 			}
 		echo '  -> union';
-			$collection=lv_arr_lazy_collect([1=>['a'], 2=>['b']]);
+			$collection=$lv_lazy_collect_function([1=>['a'], 2=>['b']]);
 			$union=$collection->union([3=>['c'], 1=>['d']]);
 			//echo ' ['.var_export_contains($union->all(), '', true).']';
 			if(var_export_contains(
@@ -5636,7 +5745,7 @@
 				$failed=true;
 			}
 		echo '  -> unique';
-			$collection=lv_arr_lazy_collect([1, 1, 2, 2, 3, 4, 2]);
+			$collection=$lv_lazy_collect_function([1, 1, 2, 2, 3, 4, 2]);
 			$unique=$collection->unique();
 			//echo ' ['.var_export_contains($unique->all(), '', true).']';
 			if(var_export_contains(
@@ -5649,7 +5758,7 @@
 				echo ' [FAIL]';
 				$failed=true;
 			}
-			$collection=lv_arr_lazy_collect([
+			$collection=$lv_lazy_collect_function([
 				['name'=>'iPhone 6', 'brand'=>'Apple', 'type'=>'phone'],
 				['name'=>'iPhone 5', 'brand'=>'Apple', 'type'=>'phone'],
 				['name'=>'Apple Watch', 'brand'=>'Apple', 'type'=>'watch'],
@@ -5689,7 +5798,7 @@
 		echo '  -> unwrap [SKIP]'.PHP_EOL;
 		echo '  -> value [SKIP]'.PHP_EOL;
 		echo '  -> values';
-			$collection=lv_arr_lazy_collect([
+			$collection=$lv_lazy_collect_function([
 				10=>['product'=>'Desk', 'price'=>200],
 				11=>['product'=>'Desk', 'price'=>200]
 			]);

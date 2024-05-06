@@ -9,6 +9,13 @@
 			if(login_com_reg_view::_()['inline_style'])
 			{
 				?><style nonce="mainstyle"><?php
+					if(is_file(__DIR__.'/../../../lib/simpleblog_materialized.css'))
+						readfile(__DIR__.'/../../../lib/simpleblog_materialized.css');
+					else if(is_file(__DIR__.'/../../../../../lib/simpleblog_materialized.css'))
+						readfile(__DIR__.'/../../../../../lib/simpleblog_materialized.css');
+					else
+						echo '/* simpleblog_materialized.css library not found */';
+
 					if(is_dir(__DIR__.'/../assets/'.login_com_reg_view::_()['login_style']))
 						foreach(
 							array_diff(
@@ -18,13 +25,6 @@
 							as $inline_style
 						)
 							readfile(__DIR__.'/../assets/'.login_com_reg_view::_()['login_style'].'/'.$inline_style);
-
-					if(is_file(__DIR__.'/../../../lib/simpleblog_materialized.css'))
-						readfile(__DIR__.'/../../../lib/simpleblog_materialized.css');
-					else if(is_file(__DIR__.'/../../../../../lib/simpleblog_materialized.css'))
-						readfile(__DIR__.'/../../../../../lib/simpleblog_materialized.css');
-					else
-						echo '/* simpleblog_materialized.css library not found */';
 				?></style><?php
 			}
 			else

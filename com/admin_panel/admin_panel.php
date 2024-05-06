@@ -1,4 +1,6 @@
 <?php
+	class admin_panel_exception extends Exception {}
+
 	if(!class_exists('registry'))
 	{
 		if(file_exists(__DIR__.'/lib/registry.php'))
@@ -6,10 +8,9 @@
 		else if(file_exists(__DIR__.'/../../lib/registry.php'))
 			require __DIR__.'/../../lib/registry.php';
 		else
-			throw new Exception('registry.php library not found');
+			throw new admin_panel_exception('registry.php library not found');
 	}
 
-	class admin_panel_exception extends Exception {}
 	class admin_panel extends registry
 	{
 		protected static $return_content='';
@@ -110,24 +111,27 @@
 		}
 		protected function _set_default_labels()
 		{
-			require __DIR__.'/views/csp_header.php';
-
 			$this
+				->add_csp_header('default-src', '\'none\'')
+				->add_csp_header('script-src', '\'self\'')
+				->add_csp_header('connect-src', '\'self\'')
+				->add_csp_header('img-src', '\'self\'')
+				->add_csp_header('style-src', '\'self\'')
+				->add_csp_header('base-uri', '\'self\'')
+				->add_csp_header('form-action', '\'self\'')
+
 				->set_title('Administration')
 				->set_menu_button_label('Menu')
 				->set_panel_label('Administration')
 				->set_logout_button_label('Logout')
-				->set_inline_assets(false)
-			;
+				->set_inline_assets(false);
 		}
 		protected function _view($_module)
 		{
 			if(isset($_module['config']))
 				require $_module['path'].'/'.$_module['config'];
 
-			require __DIR__.'/templates/'.$this->template.'/views/top.php';
-			require $_module['path'].'/'.$_module['script'];
-			require __DIR__.'/templates/'.$this->template.'/views/bottom.php';
+			require __DIR__.'/templates/'.$this->template.'/view.php';
 		}
 
 		public function add_module(array $params)

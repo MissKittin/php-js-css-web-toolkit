@@ -5,6 +5,7 @@
 	 * Note:
 	 *  looks for a library at ../lib
 	 *  looks for a library at ..
+	 *  looks for a tool at ../../bin
 	 *
 	 * Hint:
 	 *  you can setup Redis credentials by environment variables
@@ -17,6 +18,8 @@
 	 *   TEST_REDIS_DBINDEX (default: 0)
 	 *   TEST_REDIS_USER
 	 *   TEST_REDIS_PASSWORD
+	 *  you can also use the Predis package instead of PHPRedis extension:
+	 *   TEST_REDIS_PREDIS=yes (default: no)
 	 *
 	 * Hint:
 	 *  you can setup Memcached credentials by environment variables
@@ -28,8 +31,10 @@
 	 *   TEST_MEMCACHED_PORT (default: 11211)
 	 *
 	 * Warning:
+	 *  predis-connect.php library is required for predis
 	 *  memcached extension is recommended
 	 *  redis extension is recommended
+	 *  get-composer.php tool is recommended for predis
 	 */
 
 	echo ' -> Including '.basename(__FILE__);
@@ -65,12 +70,6 @@
 
 	if(getenv('TEST_REDIS') === 'yes')
 	{
-		if(!extension_loaded('redis'))
-		{
-			echo 'redis extension is not loaded'.PHP_EOL;
-			exit(1);
-		}
-
 		echo ' -> Configuring Redis'.PHP_EOL;
 
 		$_redis=[
@@ -112,40 +111,148 @@
 		if($_redis['credentials']['password'] !== null)
 			$_redis['_credentials_auth']['pass']=$_redis['credentials']['password'];
 
-		try {
-			$redis_handler=new Redis();
+		if(getenv('TEST_REDIS_PREDIS') === 'yes')
+		{
+			echo '  -> Including predis_connect.php';
+				if(is_file(__DIR__.'/../lib/predis_connect.php'))
+				{
+					if(@(include __DIR__.'/../lib/predis_connect.php') === false)
+					{
+						echo ' [FAIL]'.PHP_EOL;
+						exit(1);
+					}
+				}
+				else if(is_file(__DIR__.'/../predis_connect.php'))
+				{
+					if(@(include __DIR__.'/../predis_connect.php') === false)
+					{
+						echo ' [FAIL]'.PHP_EOL;
+						exit(1);
+					}
+				}
+				else
+				{
+					echo ' [FAIL]'.PHP_EOL;
+					exit(1);
+				}
+			echo ' [ OK ]'.PHP_EOL;
 
-			if($redis_handler->connect(
-				$_redis['credentials']['host'],
-				$_redis['credentials']['port'],
-				$_redis['connection_options']['timeout'],
-				null,
-				$_redis['connection_options']['retry_interval'],
-				$_redis['connection_options']['read_timeout']
-			) === false){
-				echo '  -> Redis connection error'.PHP_EOL;
-				unset($redis_handler);
+			if(!file_exists(__DIR__.'/tmp/.composer/vendor/predis'))
+			{
+				echo '  -> Installing Predis'.PHP_EOL;
+
+				@mkdir(__DIR__.'/tmp');
+				@mkdir(__DIR__.'/tmp/.composer');
+
+				if(file_exists(__DIR__.'/../../bin/composer.phar'))
+					system(PHP_BINARY.' '.__DIR__.'/../../bin/composer.phar --no-cache --working-dir='.__DIR__.'/tmp/.composer require predis/predis');
+				else if(file_exists(__DIR__.'/tmp/.composer/composer.phar'))
+					system(PHP_BINARY.' '.__DIR__.'/tmp/.composer/composer.phar --no-cache --working-dir='.__DIR__.'/tmp/.composer require predis/predis');
+				else if(file_exists(__DIR__.'/../../bin/get-composer.php'))
+				{
+					system(PHP_BINARY.' '.__DIR__.'/../../bin/get-composer.php '.__DIR__.'/tmp/.composer');
+					system(PHP_BINARY.' '.__DIR__.'/tmp/.composer/composer.phar --no-cache --working-dir='.__DIR__.'/tmp/.composer require predis/predis');
+				}
+				else
+				{
+					echo 'Error: get-composer.php tool not found'.PHP_EOL;
+					exit(1);
+				}
 			}
 
-			if(
-				(isset($redis_handler)) &&
-				(isset($_redis['_credentials_auth'])) &&
-				(!$redis_handler->auth($_redis['_credentials_auth']))
-			){
-				echo '  -> Redis auth error'.PHP_EOL;
-				unset($redis_handler);
+			echo '  -> Including composer autoloader';
+				if(@(include __DIR__.'/tmp/.composer/vendor/autoload.php') === false)
+				{
+					echo ' [FAIL]'.PHP_EOL;
+					exit(1);
+				}
+			echo ' [ OK ]'.PHP_EOL;
+
+			if(!class_exists('\Predis\Client'))
+			{
+				echo '  <- predis package is not installed [FAIL]'.PHP_EOL;
+				exit(1);
 			}
 
-			if(
-				(isset($redis_handler)) &&
-				(!$redis_handler->select($_redis['credentials']['dbindex']))
-			){
-				echo '  -> Redis database select error'.PHP_EOL;
-				unset($redis_handler);
+			echo '  -> Configuring Predis'.PHP_EOL;
+				$_redis['_predis']=[
+					[
+						'scheme'=>'tcp',
+						'host'=>$_redis['credentials']['host'],
+						'port'=>$_redis['credentials']['port'],
+						'database'=>$_redis['credentials']['dbindex']
+					],
+					[
+						'scheme'=>'unix',
+						'path'=>$_redis['credentials']['socket'],
+						'database'=>$_redis['credentials']['dbindex']
+					]
+				];
+
+				if($_redis['credentials']['password'] !== null)
+				{
+					$_redis['_predis'][0]['password']=$_redis['credentials']['password'];
+					$_redis['_predis'][1]['password']=$_redis['credentials']['password'];
+				}
+
+			echo '  -> Connecting to the redis server (predis)'.PHP_EOL;
+				try {
+					if($_redis['credentials']['socket'] === null)
+						$redis_handler=new predis_phpredis_proxy(new \Predis\Client($_redis['_predis'][0]));
+					else
+						$redis_handler=new predis_phpredis_proxy(new \Predis\Client($_redis['_predis'][1]));
+
+					$redis_handler->connect();
+				} catch(Throwable $error) {
+					echo ' Error: '.$error->getMessage().PHP_EOL;
+					exit(1);
+				}
+		}
+		else
+		{
+			if(!extension_loaded('redis'))
+			{
+				echo 'redis extension is not loaded'.PHP_EOL;
+				exit(1);
 			}
-		} catch(Throwable $error) {
-			echo ' Error: '.$error->getMessage().PHP_EOL;
-			exit(1);
+
+			echo '  -> Connecting to the redis server (phpredis)'.PHP_EOL;
+
+			try {
+				$redis_handler=new Redis();
+
+				if($redis_handler->connect(
+					$_redis['credentials']['host'],
+					$_redis['credentials']['port'],
+					$_redis['connection_options']['timeout'],
+					null,
+					$_redis['connection_options']['retry_interval'],
+					$_redis['connection_options']['read_timeout']
+				) === false){
+					echo '  -> Redis connection error'.PHP_EOL;
+					unset($redis_handler);
+				}
+
+				if(
+					(isset($redis_handler)) &&
+					(isset($_redis['_credentials_auth'])) &&
+					(!$redis_handler->auth($_redis['_credentials_auth']))
+				){
+					echo '  -> Redis auth error'.PHP_EOL;
+					unset($redis_handler);
+				}
+
+				if(
+					(isset($redis_handler)) &&
+					(!$redis_handler->select($_redis['credentials']['dbindex']))
+				){
+					echo '  -> Redis database select error'.PHP_EOL;
+					unset($redis_handler);
+				}
+			} catch(Throwable $error) {
+				echo ' Error: '.$error->getMessage().PHP_EOL;
+				exit(1);
+			}
 		}
 
 		if(isset($redis_handler))

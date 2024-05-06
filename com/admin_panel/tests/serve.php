@@ -16,11 +16,15 @@
 	if(!isset($argv[1]))
 	{
 		echo 'Use "serve.php serve [template]" to start built-in server'.PHP_EOL;
+		echo 'Note:'.PHP_EOL;
+		echo ' set TEST_INLINE_STYLE=yes to test inline styles option'.PHP_EOL;
 		exit();
 	}
 	if($argv[1] !== 'serve')
 	{
 		echo 'Use "serve.php serve [template]" to start built-in server'.PHP_EOL;
+		echo 'Note:'.PHP_EOL;
+		echo ' set TEST_INLINE_STYLE=yes to test inline styles option'.PHP_EOL;
 		exit();
 	}
 
@@ -131,6 +135,9 @@
 				'show_logout_button'=>true,
 				'csrf_token'=>['csrf_name', 'csrf_value']
 			]);
+
+			if(getenv('TEST_INLINE_STYLE') === 'yes')
+				\$admin_panel->set_inline_assets(true);
 
 			\$admin_panel['global_variable']='global_value';
 

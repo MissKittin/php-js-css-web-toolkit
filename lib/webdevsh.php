@@ -14,64 +14,77 @@
 	 */
 
 	class webdevsh_exception extends Exception {}
-	function webdevsh_css_minifier(string $input, bool $ignore_https=false)
+
+	if(extension_loaded('curl'))
 	{
-		if(!extension_loaded('curl'))
-			throw new webdevsh_exception('curl extension is not loaded');
-
-		$curl_handler=curl_init();
-
-		foreach([
-			CURLOPT_URL=>'https://www.toptal.com/developers/cssminifier/api/raw',
-			CURLOPT_RETURNTRANSFER=>true,
-			CURLOPT_POST=>true,
-			CURLOPT_HTTPHEADER=>['Content-Type: application/x-www-form-urlencoded'],
-			CURLOPT_POSTFIELDS=>http_build_query(['input'=>$input])
-		] as $option=>$value)
-			curl_setopt($curl_handler, $option, $value);
-
-		if($ignore_https)
+		function webdevsh_css_minifier(string $input, bool $ignore_https=false)
 		{
-			curl_setopt($curl_handler, CURLOPT_SSL_VERIFYHOST, 0);
-			curl_setopt($curl_handler, CURLOPT_SSL_VERIFYPEER, 0);
+			$curl_handler=curl_init();
+
+			foreach([
+				CURLOPT_URL=>'https://www.toptal.com/developers/cssminifier/api/raw',
+				CURLOPT_RETURNTRANSFER=>true,
+				CURLOPT_POST=>true,
+				CURLOPT_HTTPHEADER=>['Content-Type: application/x-www-form-urlencoded'],
+				CURLOPT_POSTFIELDS=>http_build_query(['input'=>$input])
+			] as $option=>$value)
+				curl_setopt($curl_handler, $option, $value);
+
+			if($ignore_https)
+			{
+				curl_setopt($curl_handler, CURLOPT_SSL_VERIFYHOST, 0);
+				curl_setopt($curl_handler, CURLOPT_SSL_VERIFYPEER, 0);
+			}
+
+			$output=curl_exec($curl_handler);
+			$error=curl_error($curl_handler);
+
+			curl_close($curl_handler);
+
+			if($output === false)
+				throw new webdevsh_exception('Server response is empty ('.$error.')');
+
+			return $output;
 		}
+		function webdevsh_js_minifier(string $input, bool $ignore_https=false)
+		{
+			$curl_handler=curl_init();
 
-		$output=curl_exec($curl_handler);
-		curl_close($curl_handler);
+			foreach([
+				CURLOPT_URL=>'https://www.toptal.com/developers/javascript-minifier/api/raw',
+				CURLOPT_RETURNTRANSFER=>true,
+				CURLOPT_POST=>true,
+				CURLOPT_HTTPHEADER=>['Content-Type: application/x-www-form-urlencoded'],
+				CURLOPT_POSTFIELDS=>http_build_query(['input'=>$input])
+			] as $option=>$value)
+				curl_setopt($curl_handler, $option, $value);
 
-		if($output === false)
-			throw new webdevsh_exception('Server response is empty');
+			if($ignore_https)
+			{
+				curl_setopt($curl_handler, CURLOPT_SSL_VERIFYHOST, 0);
+				curl_setopt($curl_handler, CURLOPT_SSL_VERIFYPEER, 0);
+			}
 
-		return $output;
+			$output=curl_exec($curl_handler);
+			$error=curl_error($curl_handler);
+
+			curl_close($curl_handler);
+
+			if($output === false)
+				throw new webdevsh_exception('Server response is empty ('.$error.')');
+
+			return $output;
+		}
 	}
-	function webdevsh_js_minifier(string $input, bool $ignore_https=false)
+	else
 	{
-		if(!extension_loaded('curl'))
-			throw new webdevsh_exception('curl extension is not loaded');
-
-		$curl_handler=curl_init();
-
-		foreach([
-			CURLOPT_URL=>'https://www.toptal.com/developers/javascript-minifier/api/raw',
-			CURLOPT_RETURNTRANSFER=>true,
-			CURLOPT_POST=>true,
-			CURLOPT_HTTPHEADER=>['Content-Type: application/x-www-form-urlencoded'],
-			CURLOPT_POSTFIELDS=>http_build_query(['input'=>$input])
-		] as $option=>$value)
-			curl_setopt($curl_handler, $option, $value);
-
-		if($ignore_https)
+		function webdevsh_css_minifier()
 		{
-			curl_setopt($curl_handler, CURLOPT_SSL_VERIFYHOST, 0);
-			curl_setopt($curl_handler, CURLOPT_SSL_VERIFYPEER, 0);
+			throw new webdevsh_exception('curl extension is not loaded');
 		}
-
-		$output=curl_exec($curl_handler);
-		curl_close($curl_handler);
-
-		if($output === false)
-			throw new webdevsh_exception('Server response is empty');
-
-		return $output;
+		function webdevsh_js_minifier()
+		{
+			throw new webdevsh_exception('curl extension is not loaded');
+		}
 	}
 ?>
