@@ -79,7 +79,7 @@
 		{
 			echo ' -> Force APCu apc.enable_cli=1'.PHP_EOL;
 			system(
-				PHP_BINARY.' -d apc.enable_cli=1 '.$argv[0].' apcu-force',
+				'"'.PHP_BINARY.'" -d apc.enable_cli=1 '.$argv[0].' apcu-force',
 				$test_result
 			);
 			exit($test_result);
@@ -314,13 +314,13 @@
 				@mkdir(__DIR__.'/tmp/.composer');
 
 				if(file_exists(__DIR__.'/../../bin/composer.phar'))
-					system(PHP_BINARY.' '.__DIR__.'/../../bin/composer.phar --no-cache --working-dir='.__DIR__.'/tmp/.composer require predis/predis');
+					system('"'.PHP_BINARY.'" '.__DIR__.'/../../bin/composer.phar --no-cache --working-dir='.__DIR__.'/tmp/.composer require predis/predis');
 				else if(file_exists(__DIR__.'/tmp/.composer/composer.phar'))
-					system(PHP_BINARY.' '.__DIR__.'/tmp/.composer/composer.phar --no-cache --working-dir='.__DIR__.'/tmp/.composer require predis/predis');
+					system('"'.PHP_BINARY.'" '.__DIR__.'/tmp/.composer/composer.phar --no-cache --working-dir='.__DIR__.'/tmp/.composer require predis/predis');
 				else if(file_exists(__DIR__.'/../../bin/get-composer.php'))
 				{
-					system(PHP_BINARY.' '.__DIR__.'/../../bin/get-composer.php '.__DIR__.'/tmp/.composer');
-					system(PHP_BINARY.' '.__DIR__.'/tmp/.composer/composer.phar --no-cache --working-dir='.__DIR__.'/tmp/.composer require predis/predis');
+					system('"'.PHP_BINARY.'" '.__DIR__.'/../../bin/get-composer.php '.__DIR__.'/tmp/.composer');
+					system('"'.PHP_BINARY.'" '.__DIR__.'/tmp/.composer/composer.phar --no-cache --working-dir='.__DIR__.'/tmp/.composer require predis/predis');
 				}
 				else
 				{

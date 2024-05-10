@@ -132,7 +132,7 @@
 			echo 'PHP arguments: '.$serve_args.PHP_EOL;
 		echo PHP_EOL;
 
-		system(PHP_BINARY.' '.$serve_args.' '.$php_preload.' -S '.$php_http_addr.':'.$php_http_port .' '. __FILE__);
+		system('"'.PHP_BINARY.'" '.$serve_args.' '.$php_preload.' -S '.$php_http_addr.':'.$php_http_port .' '. __FILE__);
 	}
 	else
 	{

@@ -44,7 +44,7 @@
 		{
 			echo '-> Running '.$test.PHP_EOL;
 
-			system(PHP_BINARY.' '.$tests_dir.'/'.$test, $test_result);
+			system('"'.PHP_BINARY.'" '.$tests_dir.'/'.$test, $test_result);
 
 			if($test_result !== 0)
 				$failed_tests[]=$test;

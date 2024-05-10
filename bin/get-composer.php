@@ -158,7 +158,7 @@
 		}
 
 	echo 'Starting installer'.PHP_EOL;
-		system(PHP_BINARY.' '.$composer_meta['installer_file']);
+		system('"'.PHP_BINARY.'" '.$composer_meta['installer_file']);
 
 	echo 'Removing installer'.PHP_EOL;
 	{

@@ -45,7 +45,7 @@
 	echo ' [ OK ]'.PHP_EOL;
 
 	echo ' -> Starting tool'.PHP_EOL.PHP_EOL;
-		system(PHP_BINARY.' '.__DIR__.'/tmp/get-composer/'.basename(__FILE__));
+		system('"'.PHP_BINARY.'" '.__DIR__.'/tmp/get-composer/'.basename(__FILE__));
 	echo PHP_EOL;
 
 	echo ' -> Testing composer.phar';

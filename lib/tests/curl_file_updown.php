@@ -128,7 +128,7 @@
 
 		echo ' -> Starting PHP server...'.PHP_EOL.PHP_EOL;
 		chdir(__DIR__.'/tmp/curl_file_updown/server');
-		system(PHP_BINARY.' -S 127.0.0.1:'.$http_server_port);
+		system('"'.PHP_BINARY.'" -S 127.0.0.1:'.$http_server_port);
 
 		exit();
 	}
@@ -143,7 +143,7 @@
 	else
 		try {
 			echo ' -> Starting test server';
-			$_serve_test_handler=_serve_test(PHP_BINARY.' '.$argv[0].' serve');
+			$_serve_test_handler=_serve_test('"'.PHP_BINARY.'" '.$argv[0].' serve');
 			echo ' [ OK ]'.PHP_EOL;
 		} catch(Exception $error) {
 			echo ' [FAIL]'.PHP_EOL;

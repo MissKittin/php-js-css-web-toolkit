@@ -126,7 +126,7 @@
 	if(isset($argv[1]) && ($argv[1] === 'serve'))
 	{
 		system(
-			PHP_BINARY.' '.__DIR__.'/../serve.php'.' '
+			'"'.PHP_BINARY.'" '.__DIR__.'/../serve.php'.' '
 			.'--docroot '.__DIR__.'/tmp/websockets '
 		);
 		exit();
@@ -214,7 +214,7 @@
 	{
 		echo ' -> Starting serve tool (127.0.0.1:8080)';
 			try {
-				$_serve_test_handler=_serve_test(PHP_BINARY.' '.$argv[0].' serve');
+				$_serve_test_handler=_serve_test('"'.PHP_BINARY.'" '.$argv[0].' serve');
 				echo ' [ OK ]'.PHP_EOL;
 			} catch(Exception $error) {
 				echo ' [FAIL]'.PHP_EOL;
@@ -224,7 +224,7 @@
 
 		echo ' -> Starting tool (127.0.0.1:8081)'.PHP_EOL.PHP_EOL;
 			system(
-				PHP_BINARY.' '.__DIR__.'/../'.basename(__FILE__).' '
+				'"'.PHP_BINARY.'" '.__DIR__.'/../'.basename(__FILE__).' '
 				.'--functions '.__DIR__.'/tmp/websockets/functions.php'
 			);
 		echo PHP_EOL;
@@ -234,7 +234,7 @@
 		echo ' -> Starting tool (127.0.0.1:8081)';
 			try {
 				$_serve_test_handler=_serve_test(
-					PHP_BINARY.' '.__DIR__.'/../'.basename(__FILE__).' '
+					'"'.PHP_BINARY.'" '.__DIR__.'/../'.basename(__FILE__).' '
 					.'--functions '.__DIR__.'/tmp/websockets/functions.php'
 				);
 				echo ' [ OK ]'.PHP_EOL;

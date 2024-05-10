@@ -19,7 +19,7 @@
 
 		$process_pipes=null;
 		$process_handler=proc_open(
-			PHP_BINARY.' '.$argv[0].' force',
+			'"'.PHP_BINARY.'" '.$argv[0].' force',
 			[
 				0=>['pty'],
 				1=>['pty'],

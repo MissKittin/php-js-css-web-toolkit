@@ -66,7 +66,7 @@
 
 	$failed=false;
 	$caught=[];
-	$process_command=PHP_BINARY.' '.$argv[0].' backend-process';
+	$process_command='"'.PHP_BINARY.'" '.$argv[0].' backend-process';
 	$read_delay=1; // seconds
 
 	echo ' -> Testing read_char'.PHP_EOL;

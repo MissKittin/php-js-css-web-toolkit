@@ -49,7 +49,7 @@
 			$extended=' --extended';
 
 		system(
-			PHP_BINARY.' '.__DIR__.'/../'.basename(__FILE__).' '
+			'"'.PHP_BINARY.'" '.__DIR__.'/../'.basename(__FILE__).' '
 			.'"'.PHP_BINARY.' '.__DIR__.'/tmp/file-watch/process.php" '
 			.__DIR__.'/tmp/file-watch/src'
 			.$extended
@@ -104,7 +104,7 @@
 
 	echo ' -> Starting tool (standard)';
 		try {
-			$_serve_test_handler=_serve_test(PHP_BINARY.' '.$argv[0].' serve');
+			$_serve_test_handler=_serve_test('"'.PHP_BINARY.'" '.$argv[0].' serve');
 			echo ' [ OK ]'.PHP_EOL;
 		} catch(Exception $error) {
 			echo ' [FAIL]'.PHP_EOL;
@@ -171,7 +171,7 @@
 
 	echo ' -> Starting tool (extended)';
 		try {
-			$_serve_test_handler=_serve_test(PHP_BINARY.' '.$argv[0].' serve extended');
+			$_serve_test_handler=_serve_test('"'.PHP_BINARY.'" '.$argv[0].' serve extended');
 			echo ' [ OK ]'.PHP_EOL;
 		} catch(Exception $error) {
 			echo ' [FAIL]'.PHP_EOL;

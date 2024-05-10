@@ -67,7 +67,7 @@
 
 	echo ' -> Testing tool';
 		chdir(__DIR__.'/tmp/include2blob/src');
-		$output=shell_exec(PHP_BINARY.' ../'.basename(__FILE__).' ./main.php');
+		$output=shell_exec('"'.PHP_BINARY.'" ../'.basename(__FILE__).' ./main.php');
 		if(
 			$output
 			===

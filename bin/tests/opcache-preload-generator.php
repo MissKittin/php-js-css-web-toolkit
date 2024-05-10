@@ -63,7 +63,7 @@
 	echo ' -> Starting tool'.PHP_EOL.PHP_EOL;
 		chdir(__DIR__.'/tmp/opcache-preload-generator/src');
 		system(
-			PHP_BINARY.' '.__DIR__.'/../'.basename(__FILE__).' '
+			'"'.PHP_BINARY.'" '.__DIR__.'/../'.basename(__FILE__).' '
 			.'. '
 			.'. '
 			.'../preload.php'

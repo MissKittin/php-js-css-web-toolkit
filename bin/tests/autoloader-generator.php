@@ -72,7 +72,7 @@
 
 	echo ' -> Starting tool'.PHP_EOL.PHP_EOL;
 		system(
-			PHP_BINARY.' '.__DIR__.'/../'.basename(__FILE__).' '
+			'"'.PHP_BINARY.'" '.__DIR__.'/../'.basename(__FILE__).' '
 			.'--in '.__DIR__.'/tmp/autoloader-generator/lib '
 			.'--out '.__DIR__.'/tmp/autoloader-generator/autoloader.php'
 		);
