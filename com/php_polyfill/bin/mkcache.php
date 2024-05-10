@@ -106,18 +106,18 @@
 				echo 'Usage: '.basename(__FILE__).' [--remove]'.PHP_EOL;
 			break;
 			case '--remove':
-				if(!is_file(__DIR__.'/../php_polyfill_original.php'))
+				if(!is_file(__DIR__.'/../main_original.php'))
 				{
-					echo __DIR__.'/../php_polyfill_original.php is not a file'.PHP_EOL;
+					echo __DIR__.'/../main_original.php is not a file'.PHP_EOL;
 					echo 'Maybe '.basename(__FILE__).' was not used yet'.PHP_EOL;
 					echo ' or this file was removed'.PHP_EOL;
 					exit(1);
 				}
 
-				@unlink(__DIR__.'/../php_polyfill.php');
+				@unlink(__DIR__.'/../main.php');
 				rename(
-					__DIR__.'/../php_polyfill_original.php',
-					__DIR__.'/../php_polyfill.php'
+					__DIR__.'/../main_original.php',
+					__DIR__.'/../main.php'
 				);
 			break;
 			default:
@@ -140,14 +140,14 @@
 
 	render_content();
 
-	if(file_exists(__DIR__.'/../php_polyfill.php'))
+	if(file_exists(__DIR__.'/../main.php'))
 		rename(
-			__DIR__.'/../php_polyfill.php',
-			__DIR__.'/../php_polyfill_original.php'
+			__DIR__.'/../main.php',
+			__DIR__.'/../main_original.php'
 		);
 
 	rename(
 		__DIR__.'/../_php_polyfill_cache',
-		__DIR__.'/../php_polyfill.php'
+		__DIR__.'/../main.php'
 	);
 ?>

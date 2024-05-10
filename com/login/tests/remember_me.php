@@ -57,9 +57,9 @@
 		}
 	echo ' [ OK ]'.PHP_EOL;
 
-	echo ' -> Including login.php';
+	echo ' -> Including main.php';
 		try {
-			if(@(include __DIR__.'/../login.php') === false)
+			if(@(include __DIR__.'/../main.php') === false)
 			{
 				echo ' [FAIL]'.PHP_EOL;
 				exit(1);

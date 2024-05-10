@@ -150,6 +150,8 @@ You can use cron for database maintenance and report generation.
 ## Usage
 Adding a record to the database:
 ```
+require './com/herring/main.php';
+
 try {
 	(new herring([
 		'pdo_handler'=>new PDO('sqlite:./var/databases/herring.sqlite3'),
@@ -163,6 +165,8 @@ try {
 
 Exporting data and generating a report:
 ```
+require './com/herring/main.php';
+
 try {
 	$herring=new herring([
 		'pdo_handler'=>new PDO('sqlite:./var/databases/herring.sqlite3'),
@@ -200,6 +204,8 @@ function is_crawler()
 
 	return false;
 }
+
+require './com/herring/main.php';
 
 try {
 	if(!is_crawler())

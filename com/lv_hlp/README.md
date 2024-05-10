@@ -34,6 +34,12 @@ This component is licensed under the MIT License
 ## Note
 Throws an `lv_hlp_exception` on error
 
+## Usage
+Just include the component:
+```
+require './com/lv_hlp/main.php';
+```
+
 ## String helpers
 * `lv_str_ascii`  
 	Will attempt to transliterate the string into an ASCII value:

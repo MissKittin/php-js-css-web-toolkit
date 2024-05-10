@@ -55,7 +55,7 @@
 
 		session_start();
 
-		include __DIR__.'/../middleware_form.php';
+		include __DIR__.'/../main.php';
 
 		if(isset($_GET['theme']) && ($_GET['theme'] === 'materialized'))
 			$middleware_form=new middleware_form('materialized');

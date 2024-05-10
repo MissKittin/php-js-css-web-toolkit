@@ -53,7 +53,7 @@
 			exit();
 		}
 
-		include __DIR__.'/../login.php';
+		include __DIR__.'/../main.php';
 
 		if(getenv('TEST_INLINE_STYLE') === 'yes')
 			login_com_reg_view::_()['inline_style']=true;

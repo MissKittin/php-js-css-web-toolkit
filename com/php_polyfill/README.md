@@ -29,15 +29,21 @@ Throws an `Exception` if the library is not found
 * `pf_stream_isatty.php`
 * `pf_spl_object_id.php`
 
+## Usage
+Just include the component:
+```
+require './com/php_polyfill/main.php';
+```
+
 ## Cache
 To reduce the number of included files/update the cache,  
 use the `mkcache.php` tool:
 ```
-php ./bin/mkcache.php
+php ./com/php_polyfill/bin/mkcache.php
 ```
 you can also delete the cache:
 ```
-php ./bin/mkcache.php --remove
+php ./com/php_polyfill/bin/mkcache.php --remove
 ```
 
 ## Portability

@@ -96,7 +96,7 @@ Note: you need to add the `/admin` path to the router
 Admin router:
 ```
 <?php
-	include './com/admin_panel/admin_panel.php';
+	require './com/admin_panel/main.php';
 
 	$admin_panel=new admin_panel([
 		'base_url'=>'/admin',

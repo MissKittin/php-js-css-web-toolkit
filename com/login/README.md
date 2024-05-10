@@ -122,7 +122,7 @@ login_com_reg_config::_()['on_logout']=function()
 ## Example usage
 ```
 // include component
-include './com/login/login.php';
+require './com/login/main.php';
 
 // set credentials for single method
 login_com_reg::_()['credentials']=['login', 'bcrypted-password'];

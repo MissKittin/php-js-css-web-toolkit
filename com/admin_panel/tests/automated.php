@@ -26,9 +26,9 @@
 		echo ' [ OK ]'.PHP_EOL;
 	}
 
-	echo ' -> Including admin_panel.php';
+	echo ' -> Including main.php';
 		try {
-			if(@(include __DIR__.'/../admin_panel.php') === false)
+			if(@(include __DIR__.'/../main.php') === false)
 			{
 				echo ' [FAIL]'.PHP_EOL;
 				exit(1);

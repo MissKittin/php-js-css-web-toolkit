@@ -126,7 +126,7 @@
 		mkdir(__DIR__.'/tmp/serve/public');
 
 		file_put_contents(__DIR__.'/tmp/serve/public/index.php', "<?php
-			include __DIR__.'/../../../../admin_panel.php';
+			include __DIR__.'/../../../../main.php';
 
 			\$admin_panel=new admin_panel([
 				'base_url'=>'/admin',

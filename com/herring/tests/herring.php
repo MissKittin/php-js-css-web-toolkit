@@ -127,10 +127,10 @@
 			echo ' [ OK ]'.PHP_EOL;
 		}
 
-		echo ' -> Including herring.php';
+		echo ' -> Including main.php';
 			if(_include_tested_library(
 				__NAMESPACE__,
-				__DIR__.'/../herring.php'
+				__DIR__.'/../main.php'
 			))
 				echo ' [ OK ]'.PHP_EOL;
 			else

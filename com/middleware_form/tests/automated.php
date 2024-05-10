@@ -10,8 +10,8 @@
 		}
 	echo ' [ OK ]'.PHP_EOL;
 
-	echo ' -> Including middleware_form.php';
-		if(@(include __DIR__.'/../middleware_form.php') === false)
+	echo ' -> Including main.php';
+		if(@(include __DIR__.'/../main.php') === false)
 		{
 			echo ' [FAIL]'.PHP_EOL;
 			exit(1);

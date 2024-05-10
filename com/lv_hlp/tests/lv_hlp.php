@@ -30,9 +30,9 @@
 		echo ' [ OK ]'.PHP_EOL;
 	}
 
-	echo ' -> Including lv_hlp.php';
+	echo ' -> Including main.php';
 		try {
-			if(@(include __DIR__.'/../lv_hlp.php') === false)
+			if(@(include __DIR__.'/../main.php') === false)
 			{
 				echo ' [FAIL]'.PHP_EOL;
 				exit(1);

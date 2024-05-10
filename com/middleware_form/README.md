@@ -85,15 +85,15 @@ $middleware_form=new middleware_form('materialized'); // self explanatory
 ## Example usage - captcha
 feat. login component & `sec_captcha.php` library
 ```
-include './com/login/login.php';
+require './com/login/main.php';
 
 if(!isset($_SESSION['captcha_verified']))
 {
-	include './lib/sec_captcha.php';
+	require './lib/sec_captcha.php';
 
 	if((!isset($_POST['captcha'])) || (!captcha_check($_POST['captcha'])))
 	{
-		include './com/middleware_form/middleware_form.php';
+		require './com/middleware_form/main.php';
 		$captcha_form=new middleware_form();
 
 		// here you can setup the login component (view section)
@@ -141,7 +141,7 @@ if(!isset($_SESSION['captcha_verified']))
 ```
 if(change_password_requested())
 {
-	include './com/middleware_form/middleware_form.php';
+	require './com/middleware_form/main.php';
 	$change_password_form=new middleware_form();
 
 	if(($change_password_form->is_form_sent()) && is_old_password_valid($_POST['old_password']))
