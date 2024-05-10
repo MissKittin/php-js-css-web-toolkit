@@ -33,6 +33,7 @@
 	 */
 
 	class ulid_exception extends Exception {}
+
 	function generate_ulid()
 	{
 		if(function_exists('random_int'))
@@ -42,7 +43,7 @@
 			};
 		else
 		{
-			if(!extension_loaded('openssl'))
+			if(!function_exists('openssl_random_pseudo_bytes'))
 				throw new ulid_exception('openssl extension is not loaded');
 
 			$random_int=function($min, $max)
@@ -54,41 +55,41 @@
 		$timestamp=(int)floor((microtime(true)*1000));
 
 		// fromTimestamp()
-		static $last_rand_chars=[];
-		static $last_timestamp=null;
-		$duplicated_time=false;
-		$time_chars='';
-		$rand_chars='';
-		$encoding_chars='0123456789ABCDEFGHJKMNPQRSTVWXYZ';
+			static $last_rand_chars=[];
+			static $last_timestamp=null;
+			$duplicated_time=false;
+			$time_chars='';
+			$rand_chars='';
+			$encoding_chars='0123456789ABCDEFGHJKMNPQRSTVWXYZ';
 
-		if(($last_timestamp !== null) && ($timestamp === $last_timestamp))
-			$duplicated_time=true;
+			if(($last_timestamp !== null) && ($timestamp === $last_timestamp))
+				$duplicated_time=true;
 
-		$last_timestamp=$timestamp;
+			$last_timestamp=$timestamp;
 
-		for($i=9; $i>=0; --$i)
-		{
-			$mod=$timestamp%32;
-			$time_chars=$encoding_chars[$mod].$time_chars;
-			$timestamp=($timestamp-$mod)/32;
-		}
+			for($i=9; $i>=0; --$i)
+			{
+				$mod=$timestamp%32;
+				$time_chars=$encoding_chars[$mod].$time_chars;
+				$timestamp=($timestamp-$mod)/32;
+			}
 
-		if($duplicated_time)
-		{
-			for($i=15; $i>=0 && ($last_rand_chars[$i] === 31); --$i)
-				$last_rand_chars[$i]=0;
+			if($duplicated_time)
+			{
+				for($i=15; $i>=0 && ($last_rand_chars[$i] === 31); --$i)
+					$last_rand_chars[$i]=0;
 
-			++$last_rand_chars[$i];
-		}
-		else
+				++$last_rand_chars[$i];
+			}
+			else
+				for($i=0; $i<16; ++$i)
+					$last_rand_chars[$i]=$random_int(0, 31);
+
 			for($i=0; $i<16; ++$i)
-				$last_rand_chars[$i]=$random_int(0, 31);
-
-		for($i=0; $i<16; ++$i)
-			$rand_chars.=$encoding_chars[$last_rand_chars[$i]];
+				$rand_chars.=$encoding_chars[$last_rand_chars[$i]];
 
 		// __toString()
-		return $time_chars.$rand_chars;
+			return $time_chars.$rand_chars;
 	}
 	function is_ulid(string $ulid)
 	{
@@ -107,31 +108,31 @@
 	function decode_ulid(string $ulid)
 	{
 		// fromString()
-		if(!is_ulid($ulid))
-			return false;
+			if(!is_ulid($ulid))
+				return false;
 
-		$ulid=strtoupper($ulid);
-		$time=substr($ulid, 0, 10);
-		$randomness=substr($ulid, 10, 16);
+			$ulid=strtoupper($ulid);
+			$time=substr($ulid, 0, 10);
+			$randomness=substr($ulid, 10, 16);
 
 		// decodeTime()
-		$time_chars=str_split(strrev($time));
-		$carry=0;
+			$time_chars=str_split(strrev($time));
+			$carry=0;
 
-		foreach($time_chars as $index=>$char)
-		{
-			$encoding_index=strripos('0123456789ABCDEFGHJKMNPQRSTVWXYZ', $char);
+			foreach($time_chars as $index=>$char)
+			{
+				$encoding_index=strripos('0123456789ABCDEFGHJKMNPQRSTVWXYZ', $char);
 
-			if($encoding_index === false)
-				throw new ulid_exception('Invalid ULID character: '.$char);
+				if($encoding_index === false)
+					throw new ulid_exception('Invalid ULID character: '.$char);
 
-			$carry+=($encoding_index*pow(32, $index));
-		}
+				$carry+=($encoding_index*pow(32, $index));
+			}
 
-		if($carry>281474976710655)
-			throw new ulid_exception('Invalid ULID string: timestamp too large');
+			if($carry > 281474976710655)
+				throw new ulid_exception('Invalid ULID string: timestamp too large');
 
-		return (int)$carry;
+			return (int)$carry;
 	}
 	function ulid2uuid(string $ulid)
 	{

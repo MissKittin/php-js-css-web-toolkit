@@ -5,7 +5,7 @@
 	 *
 	 * Warning:
 	 *  the larger the zip file for the simpleblog_db_zip, the longer it takes to load
-	 *  simpleblog_db_zip requires the Zip extension
+	 *  simpleblog_db_zip requires the zip extension
 	 *  this is alpha version - use at your own risk
 	 *
 	 * Classes:
@@ -377,7 +377,7 @@
 
 		public function __construct(array $params)
 		{
-			if(!extension_loaded('Zip'))
+			if(!class_exists('ZipArchive'))
 				throw new simpleblog_db_exception('Zip extension is not loaded');
 
 			if(!isset($params['db_path']))

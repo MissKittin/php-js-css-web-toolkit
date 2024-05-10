@@ -35,7 +35,7 @@
 			{
 				return PHP_SESSION_ACTIVE;
 			}
-			if(extension_loaded('imagick'))
+			if(class_exists('Imagick'))
 			{
 				class Imagick extends \Imagick {}
 				class ImagickDraw extends \ImagickDraw {}
@@ -108,7 +108,7 @@
 		];
 
 		echo ' -> Testing gd2 module';
-		if(extension_loaded('gd'))
+		if(function_exists('imagecreate'))
 		{
 			echo PHP_EOL;
 
@@ -159,7 +159,7 @@
 		}
 
 		echo ' -> Testing imagick module';
-		if(extension_loaded('imagick'))
+		if(class_exists('Imagick'))
 			try {
 				echo PHP_EOL;
 
@@ -204,7 +204,7 @@
 		}
 
 		echo ' -> Testing imagick2 module';
-		if(extension_loaded('imagick'))
+		if(class_exists('Imagick'))
 			try {
 				echo PHP_EOL;
 

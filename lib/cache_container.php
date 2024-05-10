@@ -809,7 +809,7 @@
 
 		public function __construct(array $params)
 		{
-			if(!extension_loaded('apcu'))
+			if(!function_exists('apcu_enabled'))
 				throw new pdo_connect_exception('apcu extension is not loaded');
 
 			if(!apcu_enabled())

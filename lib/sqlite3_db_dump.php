@@ -5,15 +5,13 @@
 	 * Functions:
 	 *  sqlite3_db_dump
 	 *   original version
-	 *   SQLite3 class is required
 	 *  sqlite3_pdo_dump
 	 *   PDO version
-	 *   PDO extension is required
-	 *   pdo_sqlite extension is required
 	 */
 
 	class sqlite3_db_dump_exception extends Exception {}
-	function sqlite3_db_dump(string $file)
+
+	function sqlite3_db_dump($sqlite_handler)
 	{
 		/*
 		 * Ephestione's SQLite3 database dumper
@@ -24,27 +22,23 @@
 		 * Fixed bug with escaping " on INSERT INTO VALUES ()
 		 *  see https://www.php.net/manual/en/sqlite3.escapestring.php
 		 *
-		 * Warning:
-		 *  SQLite3 class is required
-		 *
 		 * Note:
 		 *  throws an sqlite3_db_dump_exception on error
+		 *
+		 * Usage:
+		 *  file_put_contents('database.sql', sqlite3_db_dump(new SQLite3('database.sqlite3')))
 		 *
 		 * Source:
 		 *  https://github.com/ephestione/php-sqlite-dump/blob/master/sqlite_dump.php
 		 */
 
-		if(!class_exists('SQLite3'))
-			throw new sqlite3_db_dump_exception('SQLite3 class not found');
+		if(!is_object($sqlite_handler))
+			throw new sqlite3_db_dump_exception('sqlite_handler must be an object');
 
-		if(!file_exists($file))
-			return false;
-
-		$db=new SQLite3($file);
-		$db->busyTimeout(5000);
+		$sqlite_handler->busyTimeout(5000);
 
 		$sql='';
-		$tables=$db->query('SELECT name FROM sqlite_master WHERE type ="table" AND name NOT LIKE "sqlite_%"');
+		$tables=$sqlite_handler->query('SELECT name FROM sqlite_master WHERE type ="table" AND name NOT LIKE "sqlite_%"');
 
 		if($tables === false)
 			return false;
@@ -52,17 +46,17 @@
 		while($table=$tables->fetchArray(SQLITE3_NUM))
 		{
 			// CREATE TABLE
-			$sql.=$db->querySingle('SELECT sql FROM sqlite_master WHERE name="'.$table[0].'"').';'."\n";
+			$sql.=$sqlite_handler->querySingle('SELECT sql FROM sqlite_master WHERE name="'.$table[0].'"').';'."\n";
 
 			// INSERT INTO
 			$sql.='INSERT INTO '.$table[0].'(';
-				$columns=$db->query('PRAGMA table_info('.$table[0].')');
+				$columns=$sqlite_handler->query('PRAGMA table_info('.$table[0].')');
 				$fieldnames=[];
 				while($column=$columns->fetchArray(SQLITE3_ASSOC))
 					$fieldnames[]=$column['name'];
 				$sql.=implode(',', $fieldnames).') VALUES';
 
-				$rows=$db->query('SELECT * FROM '.$table[0]);
+				$rows=$sqlite_handler->query('SELECT * FROM '.$table[0]);
 				while($row=$rows->fetchArray(SQLITE3_ASSOC))
 				{
 					foreach($row as $k=>$v)
@@ -72,11 +66,10 @@
 				}
 			$sql=rtrim($sql, ',').';'."\n\n";
 		}
-		$sql=substr($sql, 0, -1);
 
-		return $sql;
+		return substr($sql, 0, -1);
 	}
-	function sqlite3_pdo_dump(string $file)
+	function sqlite3_pdo_dump($pdo_handler)
 	{
 		/*
 		 * SQLite3 database dumper
@@ -84,25 +77,18 @@
 		 * PDO version based on Ephestione's original
 		 * For debugging purposes
 		 *
-		 * Warning:
-		 *  PDO extension is required
-		 *  pdo_sqlite extension is required
-		 *
 		 * Note:
 		 *  throws an sqlite3_db_dump_exception on error
+		 *
+		 * Usage:
+		 *  file_put_contents('database.sql', sqlite3_pdo_dump(new PDO('sqlite:database.sqlite3')))
 		 */
 
-		foreach(['PDO', 'pdo_sqlite'] as $extension)
-			if(!extension_loaded($extension))
-				throw new sqlite3_db_dump_exception($extension.' extension is not loaded');
-
-		if(!file_exists($file))
-			return false;
-
-		$db=new PDO('sqlite:'.$file);
+		if(!is_object($pdo_handler))
+			throw new sqlite3_db_dump_exception('pdo_handler must be an object');
 
 		$sql='';
-		$tables=$db->query('SELECT name FROM sqlite_master WHERE type ="table" AND name NOT LIKE "sqlite_%"');
+		$tables=$pdo_handler->query('SELECT name FROM sqlite_master WHERE type ="table" AND name NOT LIKE "sqlite_%"');
 
 		if($tables === false)
 			return false;
@@ -110,17 +96,17 @@
 		while($table=$tables->fetch(PDO::FETCH_NUM))
 		{
 			// CREATE TABLE
-			$sql.=$db->query('SELECT sql FROM sqlite_master WHERE name="'.$table[0].'"')->fetch(PDO::FETCH_NUM)[0].';'."\n";
+			$sql.=$pdo_handler->query('SELECT sql FROM sqlite_master WHERE name="'.$table[0].'"')->fetch(PDO::FETCH_NUM)[0].';'."\n";
 
 			// INSERT INTO
 			$sql.='INSERT INTO '.$table[0].'(';
-				$columns=$db->query('PRAGMA table_info('.$table[0].')');
+				$columns=$pdo_handler->query('PRAGMA table_info('.$table[0].')');
 				$fieldnames=[];
 				while($column=$columns->fetch(PDO::FETCH_ASSOC))
 					$fieldnames[]=$column['name'];
 				$sql.=implode(',', $fieldnames).') VALUES';
 
-				$rows=$db->query('SELECT * FROM '.$table[0]);
+				$rows=$pdo_handler->query('SELECT * FROM '.$table[0]);
 				while($row=$rows->fetch(PDO::FETCH_ASSOC))
 				{
 					foreach($row as $k=>$v)
@@ -130,8 +116,7 @@
 				}
 			$sql=rtrim($sql, ',').';'."\n\n";
 		}
-		$sql=substr($sql, 0, -1);
 
-		return $sql;
+		return substr($sql, 0, -1);
 	}
 ?>

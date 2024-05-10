@@ -86,7 +86,7 @@
 			}
 	}
 
-	if(!extension_loaded('PDO'))
+	if(!class_exists('PDO'))
 	{
 		echo 'PDO extension is not loaded'.PHP_EOL;
 		exit(1);
@@ -101,7 +101,7 @@
 		exit(1);
 	}
 
-	if(!extension_loaded('pdo_'.$_db_driver))
+	if(!in_array($_db_driver, PDO::getAvailableDrivers()))
 	{
 		echo 'pdo_'.$_db_driver.' extension is not loaded'.PHP_EOL;
 		exit(1);

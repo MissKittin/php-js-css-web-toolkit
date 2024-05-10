@@ -9,6 +9,7 @@
 	 * Warning:
 	 *  rmdir_recursive.php library is required
 	 *  var_export_contains.php library is required
+	 *  zip extension is recommended
 	 */
 
 	foreach([
@@ -77,8 +78,14 @@
 	echo ' [ OK ]'.PHP_EOL;
 
 	$errors=[];
+	$test_classes=['simpleblog_db', 'simpleblog_db_cache'];
 
-	foreach(['simpleblog_db', 'simpleblog_db_cache', 'simpleblog_db_zip'] as $version)
+	if(class_exists('ZipArchive'))
+		$test_classes[]='simpleblog_db_zip';
+	else
+		echo ' -> Testing simpleblog_db_zip [SKIP]'.PHP_EOL;
+
+	foreach($test_classes as $version)
 	{
 		echo ' -> Testing '.$version.PHP_EOL;
 

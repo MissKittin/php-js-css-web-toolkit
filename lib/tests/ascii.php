@@ -38,7 +38,7 @@
 	$failed=false;
 
 	echo ' -> Testing to_ascii';
-		if(extension_loaded('intl'))
+		if(function_exists('transliterator_transliterate'))
 		{
 			if(to_ascii('zażółć gęślą jaźń') === 'zazolc gesla jazn')
 				echo ' [ OK ]';
@@ -59,7 +59,7 @@
 			echo ' [SKIP]'.PHP_EOL;
 
 	echo ' -> Testing to_ascii_slug';
-		if(extension_loaded('intl') && extension_loaded('mbstring'))
+		if(function_exists('transliterator_transliterate') && function_exists('mb_strtolower'))
 		{
 			if(to_ascii_slug('zażółć gęślą-@-jaźń') === 'zazolc-gesla-at-jazn')
 				echo ' [ OK ]';

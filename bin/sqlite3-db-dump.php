@@ -4,6 +4,11 @@
 	 *
 	 * Warning:
 	 *  sqlite3_db_dump.php library is required
+	 * Warning:
+	 *   sqlite3 extension is required
+	 *  or
+	 *   PDO extension is required
+	 *   pdo_sqlite extension is required
 	 *
 	 * lib directory path:
 	 *  __DIR__/lib
@@ -44,11 +49,14 @@
 
 	try {
 		if(class_exists('SQLite3'))
-			$output=sqlite3_db_dump($argv[1]);
+			$output=sqlite3_db_dump(new SQLite3($argv[1]));
+		else if(class_exists('PDO') && in_array('sqlite', PDO::getAvailableDrivers()))
+			$output=sqlite3_pdo_dump(new PDO('sqlite:'.$argv[1]));
 		else
-			$output=sqlite3_pdo_dump($argv[1]);
+			throw new Exception('pdo_sqlite extension is not loaded');
 	} catch(Throwable $error) {
 		$function_used='sqlite3_pdo_dump';
+
 		if(class_exists('SQLite3'))
 			$function_used='sqlite3_db_dump';
 

@@ -97,7 +97,7 @@
 
 	echo ' -> Testing string helpers'.PHP_EOL;
 		echo '  -> lv_str_ascii';
-			if(extension_loaded('intl'))
+			if(function_exists('transliterator_transliterate'))
 			{
 				if(lv_str_ascii('ü') === 'u')
 					echo ' [ OK ]'.PHP_EOL;
@@ -110,7 +110,7 @@
 			else
 				echo ' [SKIP]'.PHP_EOL;
 		echo '  -> lv_str_contains';
-			if(extension_loaded('mbstring'))
+			if(function_exists('mb_substr'))
 			{
 				if(lv_str_contains('This is my name', 'my'))
 					echo ' [ OK ]';
@@ -137,7 +137,7 @@
 			else
 				echo ' [SKIP]'.PHP_EOL;
 		echo '  -> lv_str_contains_all';
-			if(extension_loaded('mbstring'))
+			if(function_exists('mb_substr'))
 			{
 				if(lv_str_contains_all('This is my name', ['my', 'name']))
 					echo ' [ OK ]';
@@ -371,7 +371,7 @@
 				$failed=true;
 			}
 		echo '  -> lv_str_reverse';
-			if(extension_loaded('mbstring'))
+			if(function_exists('mb_substr'))
 			{
 				if(lv_str_reverse('Hello World') === 'dlroW olleH')
 					echo ' [ OK ]'.PHP_EOL;
@@ -384,7 +384,7 @@
 			else
 				echo ' [SKIP]'.PHP_EOL;
 		echo '  -> lv_str_slug';
-			if(extension_loaded('mbstring'))
+			if(function_exists('mb_substr'))
 			{
 				if(lv_str_slug('Laravel 5 Framework', '-') === 'laravel-5-framework')
 					echo ' [ OK ]'.PHP_EOL;

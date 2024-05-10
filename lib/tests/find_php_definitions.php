@@ -10,7 +10,7 @@
 	 *  tokenizer extension is required
 	 */
 
-	if(!extension_loaded('tokenizer'))
+	if(!function_exists('token_get_all'))
 	{
 		echo 'tokenizer extension is not loaded'.PHP_EOL;
 		exit(1);

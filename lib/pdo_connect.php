@@ -257,7 +257,7 @@
 					throw new pdo_connect_exception('The '.$db_config_param.' parameter was not specified');
 		};
 
-		if(!extension_loaded('PDO'))
+		if(!class_exists('PDO'))
 			throw new pdo_connect_exception('PDO extension is not loaded');
 
 		if($type_hint)
@@ -283,7 +283,7 @@
 			switch($db_config['db_type'])
 			{
 				case 'pgsql':
-					if(!extension_loaded('pdo_pgsql'))
+					if(!in_array('pgsql', PDO::getAvailableDrivers()))
 						throw new pdo_connect_exception('pdo_pgsql extension is not loaded');
 
 					if(isset($db_config['charset']) && (!empty($db_config['charset'])))
@@ -295,11 +295,11 @@
 					{
 						$_check_params($db_config, ['socket', 'db_name', 'user', 'password']);
 
-						$pdo_handler=new PDO($db_config['db_type']
-						.	':host='.$db_config['socket']
-						.	';dbname='.$db_config['db_name']
-						.	';user='.$db_config['user']
-						.	';password='.$db_config['password']
+						$pdo_handler=new PDO($db_config['db_type'].':'
+						.	'host='.$db_config['socket'].';'
+						.	'dbname='.$db_config['db_name'].';'
+						.	'user='.$db_config['user'].';'
+						.	'password='.$db_config['password']
 						.	$db_config['charset']
 						);
 					}
@@ -307,18 +307,18 @@
 					{
 						$_check_params($db_config, ['host', 'port', 'db_name', 'user', 'password']);
 
-						$pdo_handler=new PDO($db_config['db_type']
-						.	':host='.$db_config['host']
-						.	';port='.$db_config['port']
-						.	';dbname='.$db_config['db_name']
-						.	';user='.$db_config['user']
-						.	';password='.$db_config['password']
+						$pdo_handler=new PDO($db_config['db_type'].':'
+						.	'host='.$db_config['host'].';'
+						.	'port='.$db_config['port'].';'
+						.	'dbname='.$db_config['db_name'].';'
+						.	'user='.$db_config['user'].';'
+						.	'password='.$db_config['password']
 						.	$db_config['charset']
 						);
 					}
 				break;
 				case 'mysql':
-					if(!extension_loaded('pdo_mysql'))
+					if(!in_array('mysql', PDO::getAvailableDrivers()))
 						throw new pdo_connect_exception('pdo_mysql extension is not loaded');
 
 					if(isset($db_config['charset']) && (!empty($db_config['charset'])))
@@ -330,34 +330,36 @@
 					{
 						$_check_params($db_config, ['socket', 'db_name', 'user', 'password']);
 
-						$pdo_handler=new PDO($db_config['db_type']
-						.	':unix_socket='.$db_config['socket']
-						.	';dbname='.$db_config['db_name']
-						.	$db_config['charset'],
-							$db_config['user'],
-							$db_config['password']
+						$pdo_handler=new PDO($db_config['db_type'].':'
+						.	'unix_socket='.$db_config['socket'].';'
+						.	'dbname='.$db_config['db_name']
+						.	$db_config['charset']
+						,	$db_config['user']
+						,	$db_config['password']
 						);
 					}
 					else
 					{
 						$_check_params($db_config, ['host', 'port', 'db_name', 'user', 'password']);
 
-						$pdo_handler=new PDO($db_config['db_type']
-						.	':host='.$db_config['host']
-						.	';port='.$db_config['port']
-						.	';dbname='.$db_config['db_name']
-						.	$db_config['charset'],
-							$db_config['user'],
-							$db_config['password']
+						$pdo_handler=new PDO($db_config['db_type'].':'
+						.	'host='.$db_config['host'].';'
+						.	'port='.$db_config['port'].';'
+						.	'dbname='.$db_config['db_name']
+						.	$db_config['charset']
+						,	$db_config['user']
+						,	$db_config['password']
 						);
 					}
 				break;
 				case 'sqlite':
-					if(!extension_loaded('pdo_sqlite'))
+					if(!in_array('sqlite', PDO::getAvailableDrivers()))
 						throw new pdo_connect_exception('pdo_sqlite extension is not loaded');
 
 					$_check_params($db_config, ['host']);
-					$pdo_handler=new PDO('sqlite:'.$db_config['host']);
+					$pdo_handler=new PDO($db_config['db_type'].':'
+					.	$db_config['host']
+					);
 				break;
 				default:
 					throw new pdo_connect_exception($db_config['db_type'].' database type is not supported');

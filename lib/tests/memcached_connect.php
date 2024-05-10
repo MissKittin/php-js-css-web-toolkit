@@ -20,7 +20,7 @@
 	 *  memcached extension is required
 	 */
 
-	if(!extension_loaded('memcached'))
+	if(!class_exists('Memcached'))
 	{
 		echo 'memcached extension is not loaded'.PHP_EOL;
 		exit(1);

@@ -34,7 +34,7 @@
 	 *  var_export_contains.php library is required
 	 */
 
-	if(!extension_loaded('PDO'))
+	if(!class_exists('PDO'))
 	{
 		echo 'PDO extension is not loaded'.PHP_EOL;
 		exit(1);
@@ -139,7 +139,7 @@
 				case 'pgsql':
 					echo '  -> Using '.$_pdo['type'].' driver'.PHP_EOL;
 
-					if(!extension_loaded('pdo_pgsql'))
+					if(!in_array('pgsql', PDO::getAvailableDrivers()))
 						throw new Exception('pdo_pgsql extension is not loaded');
 
 					if(isset($_pdo['credentials'][$_pdo['type']]['socket']))
@@ -161,7 +161,7 @@
 				case 'mysql':
 					echo '  -> Using '.$_pdo['type'].' driver'.PHP_EOL;
 
-					if(!extension_loaded('pdo_mysql'))
+					if(!in_array('mysql', PDO::getAvailableDrivers()))
 						throw new Exception('pdo_mysql extension is not loaded');
 
 					if(isset($_pdo['credentials'][$_pdo['type']]['socket']))
@@ -200,7 +200,7 @@
 	}
 	if(!isset($pdo_handler))
 	{
-		if(!extension_loaded('pdo_sqlite'))
+		if(!in_array('sqlite', PDO::getAvailableDrivers()))
 		{
 			echo 'pdo_sqlite extension is not loaded'.PHP_EOL;
 			exit(1);

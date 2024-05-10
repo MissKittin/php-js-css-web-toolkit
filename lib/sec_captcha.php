@@ -47,6 +47,40 @@
 
 	class sec_captcha_exception extends Exception {}
 
+	function captcha_get(callable $module, array $module_params=[])
+	{
+		if(session_status() !== PHP_SESSION_ACTIVE)
+			throw new sec_captcha_exception('Session not started');
+
+		$captcha=call_user_func_array($module, $module_params);
+		$_SESSION['_captcha']['token']=$captcha[0];
+
+		return $captcha[1];
+	}
+	function captcha_get_once(callable $module, array $module_params=[])
+	{
+		if(!isset($_SESSION['_captcha']['image']))
+			$_SESSION['_captcha']['image']=captcha_get($module, $module_params);
+
+		return $_SESSION['_captcha']['image'];
+	}
+	function captcha_check(string $input_token)
+	{
+		if(session_status() !== PHP_SESSION_ACTIVE)
+			throw new sec_captcha_exception('Session not started');
+
+		if(!isset($_SESSION['_captcha']['token']))
+			throw new sec_captcha_exception('Run captcha_get() or captcha_get_once() first');
+
+		if($_SESSION['_captcha']['token'] === $input_token)
+		{
+			unset($_SESSION['_captcha']);
+			return true;
+		}
+
+		return false;
+	}
+
 	function captcha_gd2(string $encoding='jpeg')
 	{
 		/*
@@ -64,11 +98,11 @@
 		 * Source: https://stackoverflow.com/questions/5274563/php-imagecreate-error
 		 */
 
-		if(!extension_loaded('gd'))
+		if(!function_exists('imagecreate'))
 			throw new sec_captcha_exception('gd extension is not loaded');
 
 		if(($encoding === 'bmp') && (!function_exists('imagebmp')))
-			throw new sec_captcha_exception('imagebmp function is not available');
+			throw new sec_captcha_exception('gd imagebmp function is not available');
 
 		$token_string=substr(md5(rand(0, 999)), 15, 5);
 
@@ -130,6 +164,7 @@
 		);
 
 		ob_start();
+
 		switch($encoding)
 		{
 			case 'bmp':
@@ -144,6 +179,7 @@
 			default:
 				imagejpeg($image_object);
 		}
+
 		$token_image=ob_get_clean();
 
 		imagedestroy($image_object);
@@ -170,7 +206,7 @@
 		 *  and string_image_format can be bmp gif png or jpeg (default)
 		 */
 
-		if(!extension_loaded('imagick'))
+		if(!class_exists('Imagick'))
 			throw new sec_captcha_exception('imagick extension is not loaded');
 
 		if(empty(Imagick::queryFonts()))
@@ -243,7 +279,7 @@
 		 * License: The PHP License, version 3.01
 		 */
 
-		if(!extension_loaded('imagick'))
+		if(!class_exists('Imagick'))
 			throw new sec_captcha_exception('imagick extension is not loaded');
 
 		if(empty(Imagick::queryFonts()))
@@ -291,39 +327,5 @@
 		}
 
 		return [$token_string, $token_image];
-	}
-
-	function captcha_get(callable $module, array $module_params=[])
-	{
-		if(session_status() !== PHP_SESSION_ACTIVE)
-			throw new sec_captcha_exception('Session not started');
-
-		$captcha=call_user_func_array($module, $module_params);
-		$_SESSION['_captcha']['token']=$captcha[0];
-
-		return $captcha[1];
-	}
-	function captcha_get_once(callable $module, array $module_params=[])
-	{
-		if(!isset($_SESSION['_captcha']['image']))
-			$_SESSION['_captcha']['image']=captcha_get($module, $module_params);
-
-		return $_SESSION['_captcha']['image'];
-	}
-	function captcha_check(string $input_token)
-	{
-		if(session_status() !== PHP_SESSION_ACTIVE)
-			throw new sec_captcha_exception('Session not started');
-
-		if(!isset($_SESSION['_captcha']['token']))
-			throw new sec_captcha_exception('Run captcha_get() or captcha_get_once() first');
-
-		if($_SESSION['_captcha']['token'] === $input_token)
-		{
-			unset($_SESSION['_captcha']);
-			return true;
-		}
-
-		return false;
 	}
 ?>

@@ -30,9 +30,10 @@
 	 */
 
 	class ascii_exception extends Exception {}
+
 	function to_ascii(string $input)
 	{
-		if(!extension_loaded('intl'))
+		if(!function_exists('transliterator_transliterate'))
 			throw new ascii_exception('intl extension is not loaded');
 
 		return transliterator_transliterate(
@@ -42,7 +43,7 @@
 	}
 	function to_ascii_slug(string $title, string $separator='-', array $dictionary=['@'=>'at'])
 	{
-		if(!extension_loaded('mbstring'))
+		if(!function_exists('mb_strtolower'))
 			throw new ascii_exception('mbstring extension is not loaded');
 
 		if((!isset($separator[0])) || isset($separator[1])) // (strlen($separator) !== 1)

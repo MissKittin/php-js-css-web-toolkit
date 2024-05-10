@@ -34,7 +34,7 @@
 	$failed=false;
 
 	echo ' -> Testing ocw_slugify';
-		if(extension_loaded('iconv'))
+		if(function_exists('iconv'))
 		{
 			if(
 				(ocw_slugify('Cómo hablar en sílabas') === 'como-hablar-en-silabas') ||
@@ -51,7 +51,7 @@
 			echo ' [SKIP]'.PHP_EOL;
 
 	echo ' -> Testing sgmurphy_url_slug';
-		if(function_exists('mb_strlen'))
+		if(function_exists('mb_substr'))
 		{
 			if(
 				sgmurphy_url_slug('Qu\'en est-il français? Ça marche alors?', ['transliterate'=>true])

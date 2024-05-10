@@ -48,7 +48,7 @@
 		return $process_handler;
 	}
 
-	if(!extension_loaded('curl'))
+	if(!function_exists('curl_init'))
 	{
 		echo 'curl extension is not loaded'.PHP_EOL;
 		exit(1);

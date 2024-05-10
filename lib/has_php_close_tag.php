@@ -18,7 +18,7 @@
 		 *  https://stackoverflow.com/a/38406054
 		 */
 
-		if(!extension_loaded('tokenizer'))
+		if(!function_exists('token_get_all'))
 			throw new has_php_close_tag_exception('tokenizer extension is not loaded');
 
 		$is_php=false;

@@ -33,7 +33,7 @@
 		 *  $slug=ocw_slugify($string);
 		 */
 
-		if(!extension_loaded('iconv'))
+		if(!function_exists('iconv'))
 			throw new ocw_slugify_exception('iconv extension is not loaded');
 
 		return strtolower(
@@ -82,13 +82,7 @@
 		 * License: http://creativecommons.org/publicdomain/zero/1.0/
 		 */
 
-		if(
-			(!function_exists('mb_convert_encoding')) ||
-			(!function_exists('mb_list_encodings')) ||
-			(!function_exists('mb_substr')) ||
-			(!function_exists('mb_strlen')) ||
-			(!function_exists('mb_strtolower'))
-		)
+		if(!function_exists('mb_substr'))
 			throw new ocw_slugify_exception('mbstring extension is not loaded');
 
 		foreach([

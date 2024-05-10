@@ -279,7 +279,7 @@
 			return generate_uuid_v4();
 		}
 
-		if(extension_loaded('mbstring'))
+		if(function_exists('mb_strtolower'))
 		{
 			function lv_str_contains(string $haystack, $needles, bool $ignore_case=false)
 			{

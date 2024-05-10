@@ -210,7 +210,7 @@
 		}
 		else
 		{
-			if(!extension_loaded('redis'))
+			if(!class_exists('Redis'))
 			{
 				echo 'redis extension is not loaded'.PHP_EOL;
 				exit(1);
@@ -264,7 +264,7 @@
 
 	if(getenv('TEST_MEMCACHED') === 'yes')
 	{
-		if(!extension_loaded('memcached'))
+		if(!class_exists('Memcached'))
 		{
 			echo 'memcached extension is not loaded'.PHP_EOL;
 			exit(1);

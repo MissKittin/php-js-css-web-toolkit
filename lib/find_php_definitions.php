@@ -21,7 +21,7 @@
 		 *  https://stackoverflow.com/questions/2197851/function-list-of-php-file/8728411
 		 */
 
-		if(!extension_loaded('tokenizer'))
+		if(!function_exists('token_get_all'))
 			throw new find_php_definitions_exception('tokenizer extension is not loaded');
 
 		$return_array=[

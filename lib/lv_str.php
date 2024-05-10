@@ -297,6 +297,7 @@
 	 */
 
 	class lv_str_exception extends Exception {}
+
 	if(!function_exists('preg_replace_array'))
 	{
 		function preg_replace_array(
@@ -610,7 +611,7 @@
 		return $before.$value.$after;
 	}
 
-	if(extension_loaded('mbstring'))
+	if(function_exists('mb_substr'))
 	{
 		function lv_str_before_last(string $subject, string $search)
 		{
@@ -746,7 +747,7 @@
 			return rtrim($matches[0]).$end;
 		}
 
-		if(extension_loaded('ctype'))
+		if(function_exists('ctype_lower'))
 		{
 			function lv_str_snake(string $value, string $delimiter='_')
 			{

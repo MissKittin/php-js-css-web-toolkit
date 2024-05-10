@@ -116,7 +116,7 @@
 
 	if(getenv('TEST_DB_TYPE') !== false)
 	{
-		if(!extension_loaded('PDO'))
+		if(!class_exists('PDO'))
 		{
 			echo 'PDO extension is not loaded'.PHP_EOL;
 			exit(1);
@@ -163,7 +163,7 @@
 				case 'pgsql':
 					echo '  -> Using '.$_pdo['type'].' driver'.PHP_EOL;
 
-					if(!extension_loaded('pdo_pgsql'))
+					if(!in_array('pgsql', PDO::getAvailableDrivers()))
 						throw new Exception('pdo_pgsql extension is not loaded');
 
 					if(isset($_pdo['credentials'][$_pdo['type']]['socket']))
@@ -185,7 +185,7 @@
 				case 'mysql':
 					echo '  -> Using '.$_pdo['type'].' driver'.PHP_EOL;
 
-					if(!extension_loaded('pdo_mysql'))
+					if(!in_array('mysql', PDO::getAvailableDrivers()))
 						throw new Exception('pdo_mysql extension is not loaded');
 
 					if(isset($_pdo['credentials'][$_pdo['type']]['socket']))
@@ -205,7 +205,7 @@
 						);
 				break;
 				case 'sqlite':
-					if(!extension_loaded('pdo_sqlite'))
+					if(!in_array('sqlite', PDO::getAvailableDrivers()))
 						throw new Exception('pdo_sqlite extension is not loaded');
 
 					echo '  -> Using '.$_pdo['type'].' driver'.PHP_EOL;
@@ -230,8 +230,8 @@
 	}
 	if(
 		(!isset($pdo_handler)) &&
-		extension_loaded('PDO') &&
-		extension_loaded('pdo_sqlite')
+		class_exists('PDO') &&
+		in_array('sqlite', PDO::getAvailableDrivers())
 	)
 		$pdo_handler=new PDO('sqlite:'.__DIR__.'/tmp/sec_bruteforce/sec_bruteforce.sqlite3');
 
@@ -377,7 +377,7 @@
 		}
 		else
 		{
-			if(!extension_loaded('redis'))
+			if(!class_exists('Redis'))
 			{
 				echo 'redis extension is not loaded'.PHP_EOL;
 				exit(1);
@@ -432,7 +432,7 @@
 
 	if(getenv('TEST_MEMCACHED') === 'yes')
 	{
-		if(!extension_loaded('memcached'))
+		if(!class_exists('Memcached'))
 		{
 			echo 'memcached extension is not loaded'.PHP_EOL;
 			exit(1);
@@ -551,7 +551,7 @@
 			(getenv('TEST_DB_TYPE') !== false) &&
 			(($GLOBALS['_pdo']['type'] === 'pgsql') || ($GLOBALS['_pdo']['type'] === 'mysql'))
 		){
-			if(!extension_loaded('PDO'))
+			if(!class_exists('PDO'))
 			{
 				echo 'PDO extension is not loaded'.PHP_EOL;
 				exit(1);
@@ -566,7 +566,7 @@
 					case 'pgsql':
 						echo '  -> Using '.$_pdo['type'].' driver'.PHP_EOL;
 
-						if(!extension_loaded('pdo_pgsql'))
+						if(!in_array('pgsql', PDO::getAvailableDrivers()))
 							throw new Exception('pdo_pgsql extension is not loaded');
 
 						if(isset($_pdo['credentials'][$_pdo['type']]['socket']))
@@ -588,7 +588,7 @@
 					case 'mysql':
 						echo '  -> Using '.$_pdo['type'].' driver'.PHP_EOL;
 
-						if(!extension_loaded('pdo_mysql'))
+						if(!in_array('mysql', PDO::getAvailableDrivers()))
 							throw new Exception('pdo_mysql extension is not loaded');
 
 						if(isset($_pdo['credentials'][$_pdo['type']]['socket']))
@@ -608,7 +608,7 @@
 							);
 					break;
 					case 'sqlite':
-						if(!extension_loaded('pdo_sqlite'))
+						if(!in_array('sqlite', PDO::getAvailableDrivers()))
 							throw new Exception('pdo_sqlite extension is not loaded');
 
 						echo '  -> Using '.$_pdo['type'].' driver'.PHP_EOL;

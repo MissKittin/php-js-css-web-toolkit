@@ -22,10 +22,10 @@
 
 		public static function generate_report_from_csv(string $input_file, string $output_file=null)
 		{
-			if(!extension_loaded('PDO'))
+			if(!class_exists('PDO'))
 				throw new herring_exception('PDO extension is not loaded');
 
-			if(!extension_loaded('pdo_sqlite'))
+			if(!in_array('sqlite', PDO::getAvailableDrivers()))
 				throw new herring_exception('pdo_sqlite extension is not loaded');
 
 			if(!is_file($input_file))

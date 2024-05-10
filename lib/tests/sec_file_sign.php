@@ -10,7 +10,7 @@
 	 *  openssl extension is required
 	 */
 
-	if(!extension_loaded('openssl'))
+	if(!function_exists('openssl_random_pseudo_bytes'))
 	{
 		echo 'openssl extension is not loaded'.PHP_EOL;
 		exit(1);

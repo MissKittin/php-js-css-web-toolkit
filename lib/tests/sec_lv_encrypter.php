@@ -63,8 +63,11 @@
 	 *  get-composer.php tool is recommended for predis
 	 */
 
-	foreach(['openssl', 'mbstring'] as $extension)
-		if(!extension_loaded($extension))
+	foreach([
+		'openssl'=>'openssl_random_pseudo_bytes',
+		'mbstring'=>'mb_strlen'
+	] as $extension=>$function)
+		if(!function_exists($function))
 		{
 			echo $extension.' extension is not loaded'.PHP_EOL;
 			exit(1);
@@ -112,7 +115,7 @@
 
 	if(getenv('TEST_DB_TYPE') !== false)
 	{
-		if(!extension_loaded('PDO'))
+		if(!class_exists('PDO'))
 		{
 			echo 'PDO extension is not loaded'.PHP_EOL;
 			exit(1);
@@ -159,7 +162,7 @@
 				case 'pgsql':
 					echo '  -> Using '.$_pdo['type'].' driver'.PHP_EOL;
 
-					if(!extension_loaded('pdo_pgsql'))
+					if(!in_array('pgsql', PDO::getAvailableDrivers()))
 						throw new Exception('pdo_pgsql extension is not loaded');
 
 					if(isset($_pdo['credentials'][$_pdo['type']]['socket']))
@@ -181,7 +184,7 @@
 				case 'mysql':
 					echo '  -> Using '.$_pdo['type'].' driver'.PHP_EOL;
 
-					if(!extension_loaded('pdo_mysql'))
+					if(!in_array('mysql', PDO::getAvailableDrivers()))
 						throw new Exception('pdo_mysql extension is not loaded');
 
 					if(isset($_pdo['credentials'][$_pdo['type']]['socket']))
@@ -201,7 +204,7 @@
 						);
 				break;
 				case 'sqlite':
-					if(!extension_loaded('pdo_sqlite'))
+					if(!in_array('sqlite', PDO::getAvailableDrivers()))
 						throw new Exception('pdo_sqlite extension is not loaded');
 
 					echo '  -> Using '.$_pdo['type'].' driver'.PHP_EOL;
@@ -221,8 +224,8 @@
 	}
 	else if(
 		(!isset($pdo_handler)) &&
-		extension_loaded('PDO') &&
-		extension_loaded('pdo_sqlite')
+		class_exists('PDO') &&
+		in_array('sqlite', PDO::getAvailableDrivers())
 	)
 		$pdo_handler=new PDO('sqlite:'.__DIR__.'/tmp/sec_lv_encrypter/sec_lv_encrypter.sqlite3');
 
@@ -368,7 +371,7 @@
 		}
 		else
 		{
-			if(!extension_loaded('redis'))
+			if(!class_exists('Redis'))
 			{
 				echo 'redis extension is not loaded'.PHP_EOL;
 				exit(1);
@@ -416,7 +419,7 @@
 
 	if(getenv('TEST_MEMCACHED') === 'yes')
 	{
-		if(!extension_loaded('memcached'))
+		if(!class_exists('Memcached'))
 		{
 			echo 'memcached extension is not loaded'.PHP_EOL;
 			exit(1);

@@ -31,6 +31,7 @@
 	 */
 
 	class memcached_connect_exception extends Exception {}
+
 	function memcached_connect(string $db)
 	{
 		/*
@@ -135,7 +136,7 @@
 			]);
 		 */
 
-		if(!extension_loaded('memcached'))
+		if(!class_exists('Memcached'))
 			throw new memcached_connect_exception('memcached extension is not loaded');
 
 		if($type_hint)

@@ -75,7 +75,7 @@
 			return true;
 		}
 
-		if(!extension_loaded('PDO'))
+		if(!class_exists('PDO'))
 		{
 			echo 'PDO extension is not loaded'.PHP_EOL;
 			exit(1);
@@ -235,7 +235,7 @@
 					case 'pgsql':
 						echo '  -> Using '.$_pdo['type'].' driver'.PHP_EOL;
 
-						if(!extension_loaded('pdo_pgsql'))
+						if(!in_array('pgsql', PDO::getAvailableDrivers()))
 							throw new Exception('pdo_pgsql extension is not loaded');
 
 						if(isset($_pdo['credentials'][$_pdo['type']]['socket']))
@@ -257,7 +257,7 @@
 					case 'mysql':
 						echo '  -> Using '.$_pdo['type'].' driver'.PHP_EOL;
 
-						if(!extension_loaded('pdo_mysql'))
+						if(!in_array('mysql', PDO::getAvailableDrivers()))
 							throw new Exception('pdo_mysql extension is not loaded');
 
 						if(isset($_pdo['credentials'][$_pdo['type']]['socket']))
@@ -295,7 +295,7 @@
 		}
 		if(!isset($pdo_handler))
 		{
-			if(!extension_loaded('pdo_sqlite'))
+			if(!in_array('sqlite', PDO::getAvailableDrivers()))
 			{
 				echo 'pdo_sqlite extension is not loaded'.PHP_EOL;
 				exit(1);
@@ -454,23 +454,28 @@
 			$benchmarks['flush_archive']=$benchmark->get_exec_time();
 
 		echo ' -> Testing generate_report_from_csv';
-			$benchmark=new \measure_exec_time_from_here();
-			try {
-				herring_mock::generate_report_from_csv(__DIR__.'/tmp/herring.csv', __DIR__.'/tmp/herring-csv.html');
-				if(md5(file_get_contents(__DIR__.'/tmp/herring-csv.html')) === $test_options[$test_option]['html_sum'])
-					echo ' [ OK ]'.PHP_EOL;
-				else
-				{
+			if(in_array('sqlite', PDO::getAvailableDrivers()))
+			{
+				$benchmark=new \measure_exec_time_from_here();
+				try {
+					herring_mock::generate_report_from_csv(__DIR__.'/tmp/herring.csv', __DIR__.'/tmp/herring-csv.html');
+					if(md5(file_get_contents(__DIR__.'/tmp/herring-csv.html')) === $test_options[$test_option]['html_sum'])
+						echo ' [ OK ]'.PHP_EOL;
+					else
+					{
+						echo ' [FAIL]'.PHP_EOL;
+						$failed=true;
+					}
+				} catch(Throwable $error) {
 					echo ' [FAIL]'.PHP_EOL;
 					$failed=true;
+					$exceptions[]=['generate_report_from_csv', $error->getMessage()];
+					$pdo_errors['generate_report_from_csv']=$pdo_handler->errorInfo()[2];
 				}
-			} catch(Throwable $error) {
-				echo ' [FAIL]'.PHP_EOL;
-				$failed=true;
-				$exceptions[]=['generate_report_from_csv', $error->getMessage()];
-				$pdo_errors['generate_report_from_csv']=$pdo_handler->errorInfo()[2];
+				$benchmarks['generate_report_from_csv']=$benchmark->get_exec_time();
 			}
-			$benchmarks['generate_report_from_csv']=$benchmark->get_exec_time();
+			else
+				echo ' [SKIP]'.PHP_EOL;
 
 		echo PHP_EOL;
 		foreach($benchmarks as $benchmark_method=>$benchmark_time)

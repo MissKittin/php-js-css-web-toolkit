@@ -70,7 +70,7 @@
 			$failed=true;
 		}
 	echo ' -> Testing lv_str_before_last';
-		if(extension_loaded('mbstring'))
+		if(function_exists('mb_substr'))
 		{
 			if(lv_str_before_last('This is my name', 'is') === 'This ')
 				echo ' [ OK ]'.PHP_EOL;
@@ -99,7 +99,7 @@
 			$failed=true;
 		}
 	echo ' -> Testing lv_str_camel';
-		if(extension_loaded('mbstring')) // from lv_str_studly
+		if(function_exists('mb_substr')) // from lv_str_studly
 		{
 			if(lv_str_camel('foo_bar') === 'fooBar')
 				echo ' [ OK ]'.PHP_EOL;
@@ -127,7 +127,7 @@
 			$failed=true;
 		}
 	echo ' -> Testing lv_str_headline';
-		if(extension_loaded('mbstring')) // from lv_str_title
+		if(function_exists('mb_substr')) // from lv_str_title
 		{
 			if(lv_str_headline('steve_jobs') === 'Steve Jobs')
 				echo ' [ OK ]';
@@ -177,7 +177,7 @@
 		else
 			echo ' [ OK ]'.PHP_EOL;
 	echo ' -> Testing lv_str_kebab';
-		if(extension_loaded('ctype') && extension_loaded('mbstring')) // from lv_str_snake
+		if(function_exists('ctype_lower') && function_exists('mb_substr')) // from lv_str_snake
 		{
 			if(lv_str_kebab('fooBar') === 'foo-bar')
 				echo ' [ OK ]'.PHP_EOL;
@@ -190,7 +190,7 @@
 		else
 			echo ' [SKIP]'.PHP_EOL;
 	echo ' -> Testing lv_str_lcfirst';
-		if(extension_loaded('mbstring'))
+		if(function_exists('mb_substr'))
 		{
 			if(lv_str_lcfirst('Foo Bar') === 'foo Bar')
 				echo ' [ OK ]'.PHP_EOL;
@@ -203,7 +203,7 @@
 		else
 			echo ' [SKIP]'.PHP_EOL;
 	echo ' -> Testing lv_str_length';
-		if(extension_loaded('mbstring'))
+		if(function_exists('mb_substr'))
 		{
 			if(lv_str_length('Laravel') === 7)
 				echo ' [ OK ]'.PHP_EOL;
@@ -216,7 +216,7 @@
 		else
 			echo ' [SKIP]'.PHP_EOL;
 	echo ' -> Testing lv_str_limit';
-		if(extension_loaded('mbstring'))
+		if(function_exists('mb_substr'))
 		{
 			if(lv_str_limit('The quick brown fox jumps over the lazy dog', 20) === 'The quick brown fox...')
 				echo ' [ OK ]';
@@ -236,7 +236,7 @@
 		else
 			echo ' [SKIP]'.PHP_EOL;
 	echo ' -> Testing lv_str_lower';
-		if(extension_loaded('mbstring'))
+		if(function_exists('mb_substr'))
 		{
 			if(lv_str_lower('LARAVEL') === 'laravel')
 				echo ' [ OK ]'.PHP_EOL;
@@ -249,7 +249,7 @@
 		else
 			echo ' [SKIP]'.PHP_EOL;
 	echo ' -> Testing lv_str_mask';
-		if(extension_loaded('mbstring'))
+		if(function_exists('mb_substr'))
 		{
 			if(lv_str_mask('taylor@example.com', '*', 3) === 'tay***************')
 				echo ' [ OK ]'.PHP_EOL;
@@ -262,7 +262,7 @@
 		else
 			echo ' [SKIP]'.PHP_EOL;
 	echo ' -> Testing lv_str_pad_both';
-		if(extension_loaded('mbstring'))
+		if(function_exists('mb_substr'))
 		{
 			if(lv_str_pad_both('James', 10, '_') === '__James___')
 				echo ' [ OK ]';
@@ -282,7 +282,7 @@
 		else
 			echo ' [SKIP]'.PHP_EOL;
 	echo ' -> Testing lv_str_pad_left';
-		if(extension_loaded('mbstring'))
+		if(function_exists('mb_substr'))
 		{
 			if(lv_str_pad_left('James', 10, '-=') === '-=-=-James')
 				echo ' [ OK ]';
@@ -302,7 +302,7 @@
 		else
 			echo ' [SKIP]'.PHP_EOL;
 	echo ' -> Testing lv_str_pad_right';
-		if(extension_loaded('mbstring'))
+		if(function_exists('mb_substr'))
 		{
 			if(lv_str_pad_right('James', 10, '-') === 'James-----')
 				echo ' [ OK ]';
@@ -348,7 +348,7 @@
 			$failed=true;
 		}
 	echo ' -> Testing lv_str_snake';
-		if(extension_loaded('ctype') && extension_loaded('mbstring'))
+		if(extension_loaded('ctype') && function_exists('mb_substr'))
 		{
 			if(lv_str_snake('fooBar') === 'foo_bar')
 				echo ' [ OK ]';
@@ -391,7 +391,7 @@
 			$failed=true;
 		}
 	echo ' -> Testing lv_str_studly';
-		if(extension_loaded('mbstring')) // from lv_str_ucfirst
+		if(function_exists('mb_substr')) // from lv_str_ucfirst
 		{
 			if(lv_str_studly('foo_bar') === 'FooBar')
 				echo ' [ OK ]'.PHP_EOL;
@@ -404,7 +404,7 @@
 		else
 			echo ' [SKIP]'.PHP_EOL;
 	echo ' -> Testing lv_str_substr';
-		if(extension_loaded('mbstring'))
+		if(function_exists('mb_substr'))
 		{
 			if(lv_str_substr('The Laravel Framework', 4, 7) === 'Laravel')
 				echo ' [ OK ]'.PHP_EOL;
@@ -448,7 +448,7 @@
 			$failed=true;
 		}
 	echo ' -> Testing lv_str_title';
-		if(extension_loaded('mbstring'))
+		if(function_exists('mb_substr'))
 		{
 			if(lv_str_title('a nice title uses the correct case') === 'A Nice Title Uses The Correct Case')
 				echo ' [ OK ]'.PHP_EOL;
@@ -461,7 +461,7 @@
 		else
 			echo ' [SKIP]'.PHP_EOL;
 	echo ' -> Testing lv_str_ucfirst';
-		if(extension_loaded('mbstring'))
+		if(function_exists('mb_substr'))
 		{
 			if(lv_str_ucfirst('foo bar') === 'Foo bar')
 				echo ' [ OK ]'.PHP_EOL;
@@ -482,7 +482,7 @@
 			$failed=true;
 		}
 	echo ' -> Testing lv_str_upper';
-		if(extension_loaded('mbstring'))
+		if(function_exists('mb_substr'))
 		{
 			if(lv_str_upper('laravel') === 'LARAVEL')
 				echo ' [ OK ]'.PHP_EOL;
@@ -511,7 +511,7 @@
 			$failed=true;
 		}
 	echo ' -> Testing lv_str_words';
-		if(extension_loaded('mbstring'))
+		if(function_exists('mb_substr'))
 		{
 			if(lv_str_words('Perfectly balanced, as all things should be.', 3, ' >>>') === 'Perfectly balanced, as >>>')
 				echo ' [ OK ]'.PHP_EOL;

@@ -85,7 +85,7 @@
 			};
 		else
 		{
-			if(!extension_loaded('openssl'))
+			if(!function_exists('openssl_random_pseudo_bytes'))
 				throw new uuid_exception('openssl extension is not loaded');
 
 			$random_bytes=function($bytes)
@@ -132,8 +132,7 @@
 		.	'-'.bin2hex($time[2].$time[3])
 		.	'-'.bin2hex($time[0].$time[1])
 		.	'-'.bin2hex($sequence)
-		.	'-'.$node
-		;
+		.	'-'.$node;
 	}
 	function generate_uuid_v3(string $name_space, string $string)
 	{
@@ -163,7 +162,7 @@
 			};
 		else
 		{
-			if(!extension_loaded('openssl'))
+			if(!extension_loaded('openssl_random_pseudo_bytes'))
 				throw new uuid_exception('openssl extension is not loaded');
 
 			$random_bytes=function($bytes)
@@ -214,7 +213,7 @@
 			};
 		else
 		{
-			if(!extension_loaded('openssl'))
+			if(!extension_loaded('openssl_random_pseudo_bytes'))
 				throw new uuid_exception('openssl extension is not loaded');
 
 			$random_bytes=function($bytes)
@@ -224,7 +223,6 @@
 		}
 
 		$time_parts=explode(' ', microtime(false)); // microTimeBin()
-
 		$uuid_hex=bin2hex( // getHex()
 				hex2bin(str_pad( // microTimeBin() return
 					base_convert( // $time
@@ -242,8 +240,7 @@
 		.	'-'.substr($uuid_hex, 14, 4)
 		.	'-'.substr($uuid_hex, 18, 4)
 		.	'-'.substr($uuid_hex, 22, 4)
-		.	'-'.substr($uuid_hex, 26)
-		;
+		.	'-'.substr($uuid_hex, 26);
 	}
 
 	function is_uuid(string $uuid)
@@ -257,8 +254,7 @@
 			.	'-[0-9a-f]{12}'
 			.'$/',
 			$uuid
-			) === 1
-		);
+		) === 1);
 	}
 	function is_uuid_ordered(string $uuid)
 	{
@@ -271,8 +267,7 @@
 			.	'-[0-9a-f]{6}'
 			.'$/',
 			$uuid
-			) === 1
-		);
+		) === 1);
 	}
 	function is_uuid_v1(string $uuid)
 	{
@@ -316,25 +311,27 @@
 			return false;
 
 		// fromString()
-		$uuid=hex2bin(str_replace('-', '', $uuid));
+			$uuid=hex2bin(str_replace('-', '', $uuid));
 
 		// getMicroTime()
-		$microtime=base_convert(bin2hex(
-			substr($uuid, 0, 7) // $timeBin
-		), 16, 10);
+			$microtime=base_convert(bin2hex(
+				substr($uuid, 0, 7) // $timeBin
+			), 16, 10);
 
 		// getIdentifier()
-		$identifier=substr($uuid, 7, 6);
-		$identifier_null_pos=strpos($identifier, "\0");
-		if($identifier_null_pos !== false)
-			$identifier=substr($identifier, 0, $identifier_null_pos);
+			$identifier=substr($uuid, 7, 6);
+			$identifier_null_pos=strpos($identifier, "\0");
+
+			if($identifier_null_pos !== false)
+				$identifier=substr($identifier, 0, $identifier_null_pos);
 
 		// decode() $this->decoded['rand']
-		$identifier_len=strlen($identifier);
-		if($identifier_len === 0)
-			$identifier_len=8;
-		else
-			$identifier_len=7+$identifier_len;
+			$identifier_len=strlen($identifier);
+
+			if($identifier_len === 0)
+				$identifier_len=8;
+			else
+				$identifier_len=7+$identifier_len;
 
 		return [
 			'microtime'=>$microtime,

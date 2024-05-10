@@ -45,16 +45,18 @@
 		@mkdir(__DIR__.'/tmp');
 		@mkdir(__DIR__.'/tmp/sqlite3_db_dump');
 
-		if(extension_loaded('PDO') && extension_loaded('pdo_sqlite'))
+		$test_db=[];
+
+		if(class_exists('PDO') && in_array('sqlite', PDO::getAvailableDrivers()))
 		{
 			echo ' (PDO)';
-			$test_db=new PDO('sqlite:'.__DIR__.'/tmp/sqlite3_db_dump/sqlite3_db_dump.sqlite3');
+			$test_db[0]=new PDO('sqlite:'.__DIR__.'/tmp/sqlite3_db_dump/sqlite3_db_dump.sqlite3');
 		}
 		else if(class_exists('SQLite3'))
 		{
 			echo ' (SQLite3)';
-			$test_db=new SQLite3(__DIR__.'/tmp/sqlite3_db_dump/sqlite3_db_dump.sqlite3');
-			$test_db->busyTimeout(5000);
+			$test_db[1]=new SQLite3(__DIR__.'/tmp/sqlite3_db_dump/sqlite3_db_dump.sqlite3');
+			$test_db[1]->busyTimeout(5000);
 		}
 		else
 		{
@@ -62,12 +64,14 @@
 			exit(1);
 		}
 
-		foreach(['a', 'b', 'c'] as $table)
-		{
-			$test_db->exec('CREATE TABLE table'.$table.'(id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, columna TEXT, columnb TEXT)');
-			foreach(['a', 'b', 'c', 'd', 'e', 'f'] as $row)
-				$test_db->exec('INSERT INTO table'.$table.'(columna, columnb) VALUES("cella'.$row.'", "cellb'.$row.'")');
-		}
+		foreach($test_db as $database)
+			foreach(['a', 'b', 'c'] as $table)
+			{
+				$database->exec('CREATE TABLE table'.$table.'(id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, columna TEXT, columnb TEXT)');
+				foreach(['a', 'b', 'c', 'd', 'e', 'f'] as $row)
+					$database->exec('INSERT INTO table'.$table.'(columna, columnb) VALUES("cella'.$row.'", "cellb'.$row.'")');
+			}
+
 		unset($test_db);
 	echo ' [ OK ]'.PHP_EOL;
 
@@ -76,9 +80,9 @@
 	echo ' -> Testing sqlite3_db_dump';
 		if(class_exists('SQLite3'))
 		{
-			//echo ' ('.md5(sqlite3_db_dump(__DIR__.'/tmp/sqlite3_db_dump/sqlite3_db_dump.sqlite3')).')';
+			//echo ' ('.md5(sqlite3_db_dump(new SQLite3(__DIR__.'/tmp/sqlite3_db_dump/sqlite3_db_dump.sqlite3'))).')';
 			if(
-				md5(sqlite3_db_dump(__DIR__.'/tmp/sqlite3_db_dump/sqlite3_db_dump.sqlite3'))
+				md5(sqlite3_db_dump(new SQLite3(__DIR__.'/tmp/sqlite3_db_dump/sqlite3_db_dump.sqlite3')))
 				===
 				'60071847ffd1fa2efce1fc9a606b15fe'
 			)
@@ -93,11 +97,11 @@
 			echo ' [SKIP]'.PHP_EOL;
 
 	echo ' -> Testing sqlite3_pdo_dump';
-		if(extension_loaded('PDO') && extension_loaded('pdo_sqlite'))
+		if(class_exists('PDO') && in_array('sqlite', PDO::getAvailableDrivers()))
 		{
-			//echo ' ('.md5(sqlite3_pdo_dump(__DIR__.'/tmp/sqlite3_db_dump/sqlite3_db_dump.sqlite3')).')';
+			//echo ' ('.md5(sqlite3_pdo_dump(new PDO('sqlite:'.__DIR__.'/tmp/sqlite3_db_dump/sqlite3_db_dump.sqlite3'))).')';
 			if(
-				md5(sqlite3_pdo_dump(__DIR__.'/tmp/sqlite3_db_dump/sqlite3_db_dump.sqlite3'))
+				md5(sqlite3_pdo_dump(new PDO('sqlite:'.__DIR__.'/tmp/sqlite3_db_dump/sqlite3_db_dump.sqlite3')))
 				===
 				'60071847ffd1fa2efce1fc9a606b15fe'
 			)

@@ -328,7 +328,7 @@
 
 		public function __construct(array $params)
 		{
-			if(!extension_loaded('curl'))
+			if(!function_exists('curl_init'))
 				throw new logger_exception('curl extension is not loaded');
 
 			parent::{__FUNCTION__}($params);

@@ -15,7 +15,7 @@
 			if($needle === '')
 				return true;
 
-			if(extension_loaded('mbstring'))
+			if(function_exists('mb_strpos'))
 				return (mb_strpos($haystack, $needle) !== false);
 
 			return (strpos($haystack, $needle) !== false);

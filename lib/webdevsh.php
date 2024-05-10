@@ -15,7 +15,7 @@
 
 	class webdevsh_exception extends Exception {}
 
-	if(extension_loaded('curl'))
+	if(function_exists('curl_init'))
 	{
 		function webdevsh_css_minifier(string $input, bool $ignore_https=false)
 		{

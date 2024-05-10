@@ -48,6 +48,7 @@
 	 */
 
 	class redis_connect_exception extends Exception {}
+
 	function redis_connect(string $db, callable $on_error=null)
 	{
 		/*
@@ -163,7 +164,7 @@
 			);
 		 */
 
-		if(!extension_loaded('redis'))
+		if(!class_exists('Redis'))
 			throw new redis_connect_exception('redis extension is not loaded');
 
 		if($type_hint)

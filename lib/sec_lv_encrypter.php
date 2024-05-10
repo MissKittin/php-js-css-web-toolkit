@@ -1,14 +1,14 @@
 <?php
 	/*
-	 * Lv encrypter
 	 * Laravel Encrypter class
-	 *  with adapters and session handlers
+	 * with adapters and session handlers
 	 *
 	 * Warning:
-	 *  the key may leak through stack trace!!! - please display_errors=off
+	 *  the key may leak through stack trace!!!
+	 *   please display_errors=off
 	 *   or your app will be compromised!!!
 	 *  openssl (>=1.1.0g) extension is required
-	 *  mbstring extension (or polyfill) is required
+	 *  mbstring extension is required
 	 *
 	 * Note:
 	 *  throws an lv_encrypter_exception on error
@@ -45,7 +45,8 @@
 		 * main class
 		 *
 		 * Warning:
-		 *  OpenSSL (>=1.1.0g) and mbstring extensions are required
+		 *  openssl (>=1.1.0g) extension is required
+		 *  mbstring extension is required
 		 *
 		 * Note:
 		 *  throws an lv_encrypter_exception on error
@@ -105,7 +106,7 @@
 
 		public function __construct(string $key, string $cipher='aes-128-cbc')
 		{
-			if(!extension_loaded('openssl'))
+			if(!function_exists('openssl_random_pseudo_bytes'))
 				throw new lv_encrypter_exception('openssl extension is not loaded');
 
 			if(!function_exists('mb_strlen'))

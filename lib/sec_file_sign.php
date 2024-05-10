@@ -62,7 +62,7 @@
 
 		public static function generate_keys(array $params)
 		{
-			if(!extension_loaded('openssl'))
+			if(!function_exists('openssl_random_pseudo_bytes'))
 				throw new file_sign_exception('openssl extension is not loaded');
 
 			if(!isset($params['key_bits']))
@@ -108,7 +108,7 @@
 
 		public function __construct(array $params)
 		{
-			if(!extension_loaded('openssl'))
+			if(!function_exists('openssl_random_pseudo_bytes'))
 				throw new file_sign_exception('openssl extension is not loaded');
 
 			foreach(['private_key', 'public_key', 'signature_algorithm'] as $param)

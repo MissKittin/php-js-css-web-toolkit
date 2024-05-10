@@ -18,12 +18,12 @@
 		 *  https://stackoverflow.com/questions/503871/best-way-to-automatically-remove-comments-from-php-code
 		 */
 
-		if(!extension_loaded('tokenizer'))
+		if(!function_exists('token_get_all'))
 			throw new strip_php_comments_exception('tokenizer extension is not loaded');
 
 		$output_string='';
-
 		$comment_tokens=[T_COMMENT];
+
 		if(defined('T_DOC_COMMENT'))
 			$comment_tokens[]=T_DOC_COMMENT;
 		if(defined('T_ML_COMMENT'))
