@@ -11,6 +11,7 @@
 	 */
 
 	foreach([
+		//'pf_php_float.php',
 		//'is_float_equal.php',
 		'var_export_contains.php'
 	] as $library){

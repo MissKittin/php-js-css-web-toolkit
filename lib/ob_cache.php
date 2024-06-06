@@ -48,6 +48,7 @@
 	 */
 
 	class ob_cache_exception extends Exception {}
+
 	function ob_file_cache(string $output_file, int $expire=3600, bool $gzip=false)
 	{
 		$_ob_cache['gzip']=$gzip;
@@ -315,6 +316,7 @@
 
 		return 0;
 	}
+
 	function ob_url2file(bool $ignore_get=true)
 	{
 		if(!isset($_SERVER['REQUEST_URI']))

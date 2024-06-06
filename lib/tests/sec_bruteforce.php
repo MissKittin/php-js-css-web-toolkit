@@ -304,27 +304,45 @@
 				}
 			echo ' [ OK ]'.PHP_EOL;
 
-			if(!file_exists(__DIR__.'/tmp/.composer/vendor/predis'))
+			if(!file_exists(__DIR__.'/tmp/.composer/vendor/predis/predis'))
 			{
-				echo '  -> Installing Predis'.PHP_EOL;
-
 				@mkdir(__DIR__.'/tmp');
 				@mkdir(__DIR__.'/tmp/.composer');
 
 				if(file_exists(__DIR__.'/../../bin/composer.phar'))
-					system('"'.PHP_BINARY.'" '.__DIR__.'/../../bin/composer.phar --no-cache --working-dir='.__DIR__.'/tmp/.composer require predis/predis');
+					$_composer_binary=__DIR__.'/../../bin/composer.phar';
 				else if(file_exists(__DIR__.'/tmp/.composer/composer.phar'))
-					system('"'.PHP_BINARY.'" '.__DIR__.'/tmp/.composer/composer.phar --no-cache --working-dir='.__DIR__.'/tmp/.composer require predis/predis');
+					$_composer_binary=__DIR__.'/tmp/.composer/composer.phar';
 				else if(file_exists(__DIR__.'/../../bin/get-composer.php'))
 				{
-					system('"'.PHP_BINARY.'" '.__DIR__.'/../../bin/get-composer.php '.__DIR__.'/tmp/.composer');
-					system('"'.PHP_BINARY.'" '.__DIR__.'/tmp/.composer/composer.phar --no-cache --working-dir='.__DIR__.'/tmp/.composer require predis/predis');
+					echo '  -> Downloading composer'.PHP_EOL;
+
+					system(''
+					.	'"'.PHP_BINARY.'" '
+					.	__DIR__.'/../../bin/get-composer.php '
+					.	__DIR__.'/tmp/.composer'
+					);
+
+					if(!file_exists(__DIR__.'/tmp/.composer/composer.phar'))
+					{
+						echo '  <- composer download failed [FAIL]'.PHP_EOL;
+						exit(1);
+					}
+
+					$_composer_binary=__DIR__.'/tmp/.composer/composer.phar';
 				}
 				else
 				{
 					echo 'Error: get-composer.php tool not found'.PHP_EOL;
 					exit(1);
 				}
+
+				echo '  -> Installing predis/predis'.PHP_EOL;
+					system('"'.PHP_BINARY.'" '.$_composer_binary.' '
+					.	'--no-cache '
+					.	'--working-dir='.__DIR__.'/tmp/.composer '
+					.	'require predis/predis'
+					);
 			}
 
 			echo '  -> Including composer autoloader';
@@ -337,7 +355,7 @@
 
 			if(!class_exists('\Predis\Client'))
 			{
-				echo '  <- predis package is not installed [FAIL]'.PHP_EOL;
+				echo '  <- predis/predis package is not installed [FAIL]'.PHP_EOL;
 				exit(1);
 			}
 

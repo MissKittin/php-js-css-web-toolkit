@@ -20,58 +20,122 @@
 			'lv_macroable.php'=>'lv_macroable_exception',
 			'lv_str.php'=>'lv_str_exception',
 			'ocw_slugify.php'=>'ocw_slugify_exception',
-			'pf_ValueError.php'=>'ValueError',
+			'pf_ValueError.php'=>'ValueError', // dep pf_json_validate.php
 			'ulid.php'=>'ulid_exception',
 			'uuid.php'=>'uuid_exception'
 		],
 		'function_exists'=>[
-			'pf_array.php'=>'array_is_list',
 			'pf_get_debug_type.php'=>'get_debug_type',
 			'pf_mbstring.php'=>'mb_str_split',
-			'pf_json_validate.php'=>'json_validate',
-			'pf_str.php'=>'str_starts_with'
+			'pf_json_validate.php'=>'json_validate'
 		]
 	]);
 
 	// string helpers
+		function lv_hlp_ascii($value)
+		{
+			return lv_str_ascii($value);
+		}
+		function lv_hlp_inline_markdown($string, $options=[])
+		{
+			return lv_str_inline_markdown($string, $options);
+		}
+		function lv_hlp_is_ascii($value)
+		{
+			return lv_str_is_ascii($value);
+		}
+		function lv_hlp_is_json($value)
+		{
+			return lv_str_is_json($value);
+		}
+		function lv_hlp_is_ulid($value)
+		{
+			return lv_str_is_ulid($value);
+		}
+		function lv_hlp_is_uuid($value)
+		{
+			return lv_str_is_uuid($value);
+		}
+		function lv_hlp_match_all(string $pattern, string $subject)
+		{
+			preg_match_all($pattern, $subject, $matches);
+
+			if(empty($matches[0]))
+				return lv_hlp_collect();
+
+			if(isset($matches[1]))
+				return lv_hlp_collect($matches[1]);
+
+			return lv_hlp_collect($matches[0]);
+		}
+		function lv_hlp_markdown($string, $options=[])
+		{
+			return lv_str_markdown($string, $options);
+		}
+		function lv_hlp_of($string)
+		{
+			return new lv_hlp_ingable($string);
+		}
+		function lv_hlp_ordered_uuid()
+		{
+			return generate_uuid_ordered();
+		}
+		function lv_hlp_password($length=32, $letters=true, $numbers=true, $symbols=true, $spaces=false)
+		{
+			return lv_str_password($length, $letters, $numbers, $symbols, $spaces);
+		}
+		function lv_hlp_slug($title, $separator='-', $dictionary=['@' => 'at'])
+		{
+			return lv_str_slug($title, $separator, $dictionary);
+		}
+		function lv_hlp_str($string=null)
+		{
+			if(func_num_args() === 0)
+				return new class
+				{
+					public function __call($method, $parameters)
+					{
+						$method='lv_str_'.$method;
+
+						if($method === 'lv_str_of')
+							$method='lv_hlp_of';
+
+						return $method(...$parameters);
+					}
+					public function __toString()
+					{
+						return '';
+					}
+				};
+
+			return lv_hlp_of($string);
+		}
+		function lv_hlp_ulid()
+		{
+			return generate_ulid();
+		}
+		function lv_hlp_uuid()
+		{
+			return generate_uuid_v4();
+		}
 		function lv_str_ascii($value)
 		{
 			return to_ascii($value);
 		}
-		function lv_str_contains_all($haystack, $needles, $ignore_case=false)
-		{
-			foreach($needles as $needle)
-				if(!lv_str_contains($haystack, $needle, $ignore_case))
-					return false;
-
-			return true;
-		}
-		function lv_str_ends_with(string $haystack, $needles)
-		{
-			if(!is_iterable($needles))
-				$needles=(array)$needles;
-
-			foreach($needles as $needle)
-				if(((string)$needle !== '') && str_ends_with($haystack, $needle))
-					return true;
-
-			return false;
-		}
 		function lv_str_inline_markdown(string $string, array $options=[])
 		{
-			if(!class_exists('League\CommonMark\MarkdownConverter'))
+			if(!class_exists('\League\CommonMark\MarkdownConverter'))
 				throw new lv_hlp_exception('league/commonmark package is not installed');
 
-			$environment=new League\CommonMark\Environment($options);
-			$environment->addExtension(
-				new League\CommonMark\Extension\GithubFlavoredMarkdownExtension()
-			);
-			$environment->addExtension(
-				new League\CommonMark\Extension\InlinesOnly\InlinesOnlyExtension()
-			);
-			$converter=new League\CommonMark\MarkdownConverter($environment);
-
-			return (string)$converter->convertToHtml($string);
+			return (string)(new League\CommonMark\MarkdownConverter(
+				(new League\CommonMark\Environment($options))
+				->	addExtension(
+						new League\CommonMark\Extension\GithubFlavoredMarkdownExtension()
+					)
+				->	addExtension(
+						new League\CommonMark\Extension\InlinesOnly\InlinesOnlyExtension()
+					)
+			))->convertToHtml($string);
 		}
 		function lv_str_is_ascii($value)
 		{
@@ -100,12 +164,11 @@
 		}
 		function lv_str_markdown(string $string, array $options=[])
 		{
-			if(!class_exists('League\CommonMark\GithubFlavoredMarkdownConverter'))
+			if(!class_exists('\League\CommonMark\GithubFlavoredMarkdownConverter'))
 				throw new lv_hlp_exception('league/commonmark package is not installed');
 
-			$converter=new League\CommonMark\GithubFlavoredMarkdownConverter($options);
-
-			return (string)$converter->convertToHtml($string);
+			return (string)(new League\CommonMark\GithubFlavoredMarkdownConverter($options))
+			->	convertToHtml($string);
 		}
 		function lv_str_ordered_uuid()
 		{
@@ -146,106 +209,35 @@
 				$charmap['spaces']=[' '];
 
 			$options=(new lv_hlp_collection($charmap))
-			->filter()
-			->each(function($c) use($password){
-				return $password->push($c[random_int(
-					0,
-					count($c)-1
-				)]);
-			})
-			->flatten();
+			->	filter()
+			->	each(function($callback) use($password){
+					return $password->push($callback[random_int(
+						0,
+						count($callback)-1
+					)]);
+				})
+			->	flatten();
 
 			$length=$length-($password->count());
 
-			return $password->merge($options->pipe(function($c) use($length){
-				return lv_hlp_collection::times($length, function() use($c){
-					return $c[random_int(
-						0,
-						($c->count())-1
-					)];
-				});
-			}))->shuffle()->implode('');
-		}
-		function lv_str_remove($search, $subject, bool $case_sensitive=true)
-		{
-			if($search instanceof Traversable)
-				$search=lv_hlp_collect($search)->all();
-
-			if($case_sensitive)
-				return str_replace($search, '', $subject);
-
-			return str_ireplace($search, '', $subject);
-		}
-		function lv_str_replace(
-			$search,
-			$replace,
-			$subject,
-			bool $case_sensitive=true
-		){
-			if($search instanceof Traversable)
-				$search=lv_hlp_collect($search)->all();
-			if($replace instanceof Traversable)
-				$replace=lv_hlp_collect($replace)->all();
-			if($subject instanceof Traversable)
-				$subject=lv_hlp_collect($subject)->all();
-
-			if($case_sensitive)
-				return str_replace($search, $replace, $subject);
-
-			return str_ireplace($search, $replace, $subject);
-		}
-		function lv_str_replace_array(string $search, $replace, string $subject)
-		{
-			$to_string_or=function($value, $fallback)
-			{
-				try {
-					return (string)$value;
-				} catch(Throwable $error) {
-					return $fallback;
-				}
-			};
-
-			if($replace instanceof Traversable)
-				$replace=lv_hlp_collect($replace)->all();
-
-			$segments=explode($search, $subject);
-			$result=array_shift($segments);
-
-			foreach($segments as $segment)
-				$result.=$to_string_or(array_shift($replace) ?? $search, $search).$segment;
-
-			return $result;
-		}
-		function lv_str_replace_end(string $search, string $replace, string $subject)
-		{
-			$search=(string)$search;
-
-			if($search === '')
-				return $subject;
-
-			if(lv_str_ends_with($subject, $search))
-				return lv_str_replace_last($search, $replace, $subject);
-
-			return $subject;
-		}
-		function lv_str_replace_start(string $search, string $replace, string $subject)
-		{
-			$search=(string)$search;
-
-			if($search === '')
-				return $subject;
-
-			if(lv_str_starts_with($subject, $search))
-				return lv_str_replace_first($search, $replace, $subject);
-
-			return $subject;
+			return $password
+			->	merge($options->pipe(function($callback) use($length){
+					return lv_hlp_collection::times($length, function() use($callback){
+						return $callback[random_int(
+							0,
+							($callback->count())-1
+						)];
+					});
+				}))
+			->	shuffle()
+			->	implode('');
 		}
 		function lv_str_slug($title, $separator='-', array $dictionary=['@' => 'at'])
 		{
 			$replacements=[];
 
 			foreach($dictionary as $key=>$value)
-				$replacements['/\b('.$key.')\b/i']=$value;;
+				$replacements['/\b('.$key.')\b/i']=$value;
 
 			return sgmurphy_url_slug(
 				$title,
@@ -255,20 +247,6 @@
 					'transliterate'=>true
 				]
 			);
-		}
-		function lv_str_starts_with(string $haystack, $needles)
-		{
-			if(!is_iterable($needles))
-				$needles=[$needles];
-
-			foreach($needles as $needle)
-				if(
-					((string)$needle !== '') &&
-					str_starts_with($haystack, $needle)
-				)
-					return true;
-
-			return false;
 		}
 		function lv_str_ulid()
 		{
@@ -281,24 +259,66 @@
 
 		if(function_exists('mb_strtolower'))
 		{
-			function lv_str_contains(string $haystack, $needles, bool $ignore_case=false)
+			function lv_hlp_excerpt(string $text, string $phrase='', array $options=[])
 			{
-				if($ignore_case)
-					$haystack=mb_strtolower($haystack);
+				$radius=100;
+				$omission='...';
 
-				if(!is_iterable($needles))
-					$needles=(array)$needles;
+				if(isset($options['radius']))
+					$radius=$options['radius'];
 
-				foreach($needles as $needle)
-				{
-					if($ignore_case)
-						$needle=mb_strtolower($needle);
+				if(isset($options['omission']))
+					$omission=$options['omission'];
 
-					if(($needle !== '') && str_contains($haystack, $needle))
-						return true;
-				}
+				preg_match(
+					'/^(.*?)('.preg_quote((string)$phrase, '/').')(.*)$/iu',
+					(string)$text,
+					$matches
+				);
 
-				return false;
+				if(empty($matches))
+					return null;
+
+				$start=ltrim($matches[1]);
+				$start=lv_hlp_str(mb_substr(
+					$start,
+					max(
+						mb_strlen($start, 'UTF-8')-$radius,
+						0
+					),
+					$radius,
+					'UTF-8'
+				))
+				->	ltrim()
+				->	unless(
+						function($start_with_radius) use($start)
+						{
+							return $start_with_radius->exactly($start);
+						},
+						function($start_with_radius) use($omission)
+						{
+							return $start_with_radius->prepend($omission);
+						}
+					);
+				$end=rtrim($matches[3]);
+				$end=lv_hlp_str(mb_substr(
+					$end, 0, $radius, 'UTF-8'
+				))
+				->	rtrim()
+				->	unless(
+						function($end_with_radius) use($end)
+						{
+							return $end_with_radius->exactly($end);
+						},
+						function($end_with_radius) use($omission)
+						{
+							return $end_with_radius->append($omission);
+						}
+					);
+
+				return $start
+				->	append($matches[2], $end)
+				->	to_string();
 			}
 			function lv_str_reverse(string $value)
 			{
@@ -307,7 +327,7 @@
 		}
 		else /* some boilerplate */
 		{
-			function lv_str_contains()
+			function lv_hlp_excerpt()
 			{
 				throw new lv_hlp_exception('mbstring extension is not loaded');
 			}
@@ -318,63 +338,28 @@
 		}
 
 	// array helpers
-		function lv_arr_is_assoc(array $array)
-		{
-			return (!array_is_list($array));
-		}
-		function lv_arr_is_list(array $array)
-		{
-			return array_is_list($array);
-		}
-		function lv_arr_sort_recursive(array $array, int $options=SORT_REGULAR, bool $descending=false)
-		{
-			foreach($array as &$value)
-				if(is_array($value))
-					$value=(__METHOD__)($value, $options, $descending);
-
-			if(!array_is_list($array))
-			{
-				if($descending)
-					krsort($array, $options);
-				else
-					ksort($array, $options);
-			}
-			else
-				if($descending)
-					rsort($array, $options);
-				else
-					sort($array, $options);
-
-			return $array;
-		}
-		function lv_arr_sort_recursive_desc($array, $options=SORT_REGULAR)
-		{
-			return lv_arr_sort_recursive($array, $options, true);
-		}
 		function lv_arr_to_css_styles(array $array)
 		{
 			$style_list=lv_arr_wrap($array);
 			$styles=[];
 
 			foreach($style_list as $class=>$constraint)
+			{
 				if(is_numeric($class))
+				{
 					$styles[]=lv_str_finish($constraint, ';');
-				else if($constraint)
+					continue;
+				}
+
+				if($constraint)
 					$styles[]=lv_str_finish($class, ';');
+			}
 
 			return implode(' ', $styles);
 		}
 		function lv_hlp_collect($value=[])
 		{
 			return new lv_hlp_collection($value);
-		}
-		function lv_hlp_is_assoc($array)
-		{
-			return lv_arr_is_assoc($array);
-		}
-		function lv_hlp_is_list($array)
-		{
-			return lv_arr_is_list($array);
 		}
 		function lv_hlp_sort(array $array, $callback=null)
 		{
@@ -384,14 +369,6 @@
 		{
 			return lv_hlp_collection::make($array)->sort_by_desc($callback)->all();
 		}
-		function lv_hlp_sort_recursive($array, $options=SORT_REGULAR, $descending=false)
-		{
-			return lv_arr_sort_recursive($array, $options, $descending);
-		}
-		function lv_hlp_sort_recursive_desc($array, $options=SORT_REGULAR)
-		{
-			return lv_arr_sort_recursive_desc($array, $options);
-		}
 		function lv_hlp_lazy_collect($value=[])
 		{
 			return new lv_hlp_lazy_collection($value);
@@ -399,6 +376,111 @@
 		function lv_hlp_to_css_styles($array)
 		{
 			return lv_arr_to_css_styles($array);
+		}
+
+	// stringable
+		class lv_hlp_ingable extends lv_str_ingable
+		{
+			use t_lv_macroable;
+
+			public function ascii(string $language='en')
+			{
+				return new static(lv_str_ascii($this->value, $language));
+			}
+			public function dd()
+			{
+				$this->dump();
+				exit(1);
+			}
+			public function dump()
+			{
+				if(!class_exists('\Symfony\Component\VarDumper\VarDumper'))
+					throw new lv_hlp_exception('symfony/var-dumper package is not installed');
+
+				Symfony\Component\VarDumper\VarDumper::dump($this->value);
+
+				return $this;
+			}
+			public function excerpt(string $phrase='', array $options=[])
+			{
+				return lv_hlp_excerpt($this->value, $phrase, $options);
+			}
+			public function explode(string $delimiter, int $limit=PHP_INT_MAX)
+			{
+				return lv_hlp_collect(explode($delimiter, $this->value, $limit));
+			}
+			public function inline_markdown(array $options=[])
+			{
+				return new static(lv_str_inline_markdown($this->value, $options));
+			}
+			public function is_ascii()
+			{
+				return lv_str_is_ascii($this->value);
+			}
+			public function is_json()
+			{
+				return lv_str_is_json($this->value);
+			}
+			public function is_ulid()
+			{
+				return lv_str_is_ulid($this->value);
+			}
+			public function is_uuid()
+			{
+				return lv_str_is_uuid($this->value);
+			}
+			public function markdown(array $options=[])
+			{
+				return new static(lv_str_markdown($this->value, $options));
+			}
+			public function match_all(string $pattern)
+			{
+				return lv_hlp_match_all($pattern, $this->value);
+			}
+			public function reverse()
+			{
+				return new static(lv_str_reverse($this->value));
+			}
+			public function scan(string $format)
+			{
+				return lv_hlp_collect(sscanf($this->value, $format));
+			}
+			public function slug(string $separator='-', array $dictionary=['@'=>'at'])
+			{
+				return new static(lv_str_slug($this->value, $separator, $dictionary));
+			}
+			public function split($pattern, int $limit=-1, int $flags=0)
+			{
+				if(filter_var($pattern, FILTER_VALIDATE_INT) !== false)
+					return lv_hlp_collect(mb_str_split($this->value, $pattern));
+
+				$segments=preg_split($pattern, $this->value, $limit, $flags);
+
+				if(empty($segments))
+					return lv_hlp_collect();
+
+				return lv_hlp_collect($segments);
+			}
+			public function transliterate()
+			{
+				return $this->ascii();
+			}
+			public function ucsplit()
+			{
+				return lv_hlp_collect(lv_str_ucsplit($this->value));
+			}
+			public function when_is_ascii(callable $callback, callable $default=null)
+			{
+				return $this->when($this->is_ascii(), $callback, $default);
+			}
+			public function when_is_ulid(callable $callback, callable $default=null)
+			{
+				return $this->when($this->is_ulid(), $callback, $default);
+			}
+			public function when_is_uuid(callable $callback, callable $default=null)
+			{
+				return $this->when($this->is_uuid(), $callback, $default);
+			}
 		}
 
 	// collections
@@ -431,16 +513,19 @@
 			}
 			public function ensure($type)
 			{
-				if(is_array($type))
-					$allowed_types=$type;
-				else
+				$allowed_types=$type;
+
+				if(!is_array($type))
 					$allowed_types=[$type];
 
 				return $this->each(function($item) use($allowed_types){
 					$item_type=get_debug_type($item);
 
 					foreach($allowed_types as $allowed_type)
-						if(($item_type === $allowed_type) || ($item instanceof $allowed_type))
+						if(
+							($item_type === $allowed_type) ||
+							($item instanceof $allowed_type)
+						)
 							return true;
 
 					throw new lv_hlp_exception(sprintf(

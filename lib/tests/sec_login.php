@@ -172,17 +172,8 @@
 				$failed=true;
 			}
 
-		echo ' -> Testing logout'.PHP_EOL;
-		echo '  -> returns false';
-			if(!logout(null))
-				echo ' [ OK ]'.PHP_EOL;
-			else
-			{
-				echo ' [FAIL]'.PHP_EOL;
-				$failed=true;
-			}
-		echo '  -> returns true';
-			if(logout('something'))
+		echo ' -> Testing logout (returns null)';
+			if(logout() === null)
 				echo ' [ OK ]'.PHP_EOL;
 			else
 			{

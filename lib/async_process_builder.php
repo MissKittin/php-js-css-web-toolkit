@@ -8,7 +8,6 @@
 		 *
 		 * Warning:
 		 *  proc_* and stream_* functions are required
-		 *  may not work with builds that are non-thread safe
 		 *  reading methods wait for stream
 		 *   and may hang if nothing is returned
 		 *   you have been warned
@@ -20,13 +19,19 @@
 		 *    if false, the process will start without environment variables
 		 *    default: true
 		 *  Setting up:
+		 *   arg(string_argument) [returns this]
+		 *    also escapes the argument
 		 *   chdir(string_directory) [returns this]
 		 *    set working directory
 		 *    note: to use, the process cannot be started
 		 *    note: if not used, the start method will use getcwd
-		 *   setenv(string_name, string_value) [returns this]
+		 *   set_env(string_name, string_value)
+		 *   setenv(string_name, string_value)
+		 *    [returns this]
 		 *    set environment variable for process
-		 *   setenv(string_name) [returns bool]
+		 *   set_env(string_name)
+		 *   setenv(string_name)
+		 *    [returns bool]
 		 *    unset environment variable for process
 		 *    returns true if the variable existed
 		 *   set_pty() [returns this]
@@ -76,7 +81,11 @@
 		 *     only after the program ends
 		 *    throws an async_process_builder_exception if stdin is not closed
 		 *  Status checking:
-		 *   getenv(string_name) [returns string]
+		 *   get_args() [returns array]
+		 *    dump escaped arguments
+		 *   get_env(string_name)
+		 *   getenv(string_name)
+		 *    [returns string]
 		 *    get defined environment variable for process
 		 *   get_pid() [returns int]
 		 *    get process pid
@@ -91,11 +100,12 @@
 		 *    uses proc_close
 		 *    throws an async_process_builder_exception if stdin/stdout/stderr cannot be closed
 		 *  Misc:
-		 *   [static] get_exit_code(int_code)  [returns string]
+		 *   [static] get_exit_code(int_code) [returns string]
 		 *    translate exit code to description
 		 *
 		 * Example usage - talking:
 			$process=new async_process_builder('./my-program');
+			$process->arg('--arg=value');
 			$process->setenv('VARIABLE', 'VALUE');
 			$process->start();
 			if($process->process_started())
@@ -111,6 +121,7 @@
 			}
 		 * Example usage - input-output:
 			$process=new async_process_builder('./my-program');
+			$process->arg('--arg=value');
 			$process->setenv('VARIABLE', 'VALUE');
 			$process->start();
 			if($process->process_started())
@@ -167,6 +178,7 @@
 		];
 
 		protected $command;
+		protected $args=[];
 		protected $env=[];
 		protected $cwd=null;
 		protected $process_descriptors_pipe=[
@@ -198,6 +210,10 @@
 				throw new async_process_builder_exception('proc_open function is not available');
 
 			$this->command=escapeshellcmd($command);
+
+			// escapeshellcmd skips spaces
+			if(strtoupper(substr(PHP_OS, 0, 3)) === 'WIN')
+				$this->command=str_replace(' ', '^ ', $this->command);
 
 			if($inherit_env)
 				$this->env=getenv();
@@ -336,6 +352,15 @@
 			return fwrite($this->process_pipes[0], $input.PHP_EOL);
 		}
 
+		public function arg(string $arg)
+		{
+			$this->args[]=escapeshellarg($arg);
+			return $this;
+		}
+		public function get_args()
+		{
+			return $this->args;
+		}
 		public function chdir(string $directory)
 		{
 			if($this->process_started())
@@ -354,6 +379,10 @@
 				return $this->env[$name];
 
 			return null;
+		}
+		public function get_env(...$args)
+		{
+			return $this->getenv(...$args);
 		}
 		public function setenv(string $name, string $value=null)
 		{
@@ -374,6 +403,10 @@
 			$this->env[$name]=$value;
 
 			return $this;
+		}
+		public function set_env(...$args)
+		{
+			return $this->setenv(...$args);
 		}
 		public function set_pty()
 		{
@@ -427,15 +460,20 @@
 			if($this->process_started())
 				throw new async_process_builder_exception('The process is already running');
 
+			$process_descriptors=$this->process_descriptors_pipe;
+			$command=$this->command;
+
 			if($this->cwd === null)
 				$this->cwd=getcwd();
 
-			$process_descriptors=$this->process_descriptors_pipe;
 			if($this->process_has_pty)
 				$process_descriptors=$this->process_descriptors_pty;
 
+			if(!empty($this->args))
+				$command.=' ';
+
 			$this->process_handler=proc_open(
-				$this->command,
+				$command.implode(' ', $this->args),
 				$process_descriptors,
 				$this->process_pipes,
 				$this->cwd,

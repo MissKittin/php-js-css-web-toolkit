@@ -74,27 +74,31 @@
 		 * Configuration:
 		 *  1) create a directory for database config files
 		 *  2) create a config.php file:
-				return [
-					'db_type'=>'string-your-db-type', // sqlite pgsql mysql
-					'host'=>'string-server-ip-or-sqlite-db-path', // or use socket, can be :memory: for sqlite
-					'port'=>'string-server-port',
-					//'socket'=>'string/path/to/socket', // uncomment to use a unix socket
-					'db_name'=>'string-database-name',
-					'charset'=>'string-your-db-charset', // for pgsql and mysql only, optional
-					'user'=>'string-username',
-					'password'=>'string-password',
-					//'seeded_path'=>$db // string, uncomment this to move the database_seeded file to a different location
-				];
+				<?php
+					return [
+						'db_type'=>'string-your-db-type', // sqlite pgsql mysql
+						'host'=>'string-server-ip-or-sqlite-db-path', // or use socket, can be :memory: for sqlite
+						'port'=>'string-server-port',
+						//'socket'=>'string/path/to/socket', // uncomment to use a unix socket
+						'db_name'=>'string-database-name',
+						'charset'=>'string-your-db-charset', // for pgsql and mysql only, optional
+						'user'=>'string-username',
+						'password'=>'string-password',
+						//'seeded_path'=>$db // string, uncomment this to move the database_seeded file to a different location
+					];
+				?>
 		 *  3) optionally you can create a seed.php file which will initialize the database, eg:
-				$pdo_handler->exec(''
-				.	'CREATE TABLE tablename('
-				//.		'id SERIAL PRIMARY KEY,' // pgsql
-				//.		'id INTEGER NOT NULL AUTO_INCREMENT, PRIMARY KEY(id),' // mysql
-				.		'id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,' // sqlite
-				.		'sampletext VARCHAR(255),'
-				.		'sampleint INTEGER'
-				.	')'
-				)
+				<?php
+					$pdo_handler->exec(''
+					.	'CREATE TABLE tablename('
+					//.		'id SERIAL PRIMARY KEY,' // pgsql
+					//.		'id INTEGER NOT NULL AUTO_INCREMENT, PRIMARY KEY(id),' // mysql
+					.		'id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,' // sqlite
+					.		'sampletext VARCHAR(255),'
+					.		'sampleint INTEGER'
+					.	')'
+					);
+				?>
 		 *
 		 * Initialization:
 			$db=pdo_connect(

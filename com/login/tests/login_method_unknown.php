@@ -59,8 +59,11 @@
 		{
 			return '';
 		}
-		function check_post()
+		function check_post($value)
 		{
+			if($value === 'logout')
+				return null;
+
 			return 'value';
 		}
 		function check_session()
@@ -90,7 +93,7 @@
 		login_com_reg_config::_()['method']='unknown_login_method';
 		login_com_reg_config::_()['on_login_success']=function()
 		{
-			echo ' -> Exception not caught [FAIL]'.PHP_EOL;
+			echo ' -> Exception not caught (login success) [FAIL]'.PHP_EOL;
 			exit(1);
 		};
 	echo ' [ OK ]'.PHP_EOL;

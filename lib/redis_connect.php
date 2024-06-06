@@ -67,24 +67,26 @@
 		 * Configuration:
 		 *  1) create a directory for redis config files
 		 *  2) create a config.php file:
-				return [
-					'host'=>'string-server-ip', // required or use socket
-					'port'=>int-server-port, // optional, default: 6379
-					'socket'=>'string-unix-socket-path', // has priority over the host, eg. /var/run/redis/redis.sock
-					'dbindex'=>int-db-index, // optional, default: 0
-					'auth'=>[ // optional
-						'user'=>'string-phpredis',
-						'pass'=>'string-phpredis'
-					],
-					'timeout'=>float-timeout, // optional, default: 0
-					'retry_interval'=>int-retry-interval, // optional, default: 0
-					'read_timeout'=>float-read-timeout, // optional, default: 0
-					'options'=>[  // optional
-						Redis::OPT_BACKOFF_ALGORITHM=>Redis::BACKOFF_ALGORITHM_DECORRELATED_JITTER,
-						Redis::OPT_BACKOFF_BASE=>500,
-						Redis::OPT_BACKOFF_CAP, 750
-					]
-				];
+				<?php
+					return [
+						'host'=>'string-server-ip', // required or use socket
+						'port'=>int-server-port, // optional, default: 6379
+						'socket'=>'string-unix-socket-path', // has priority over the host, eg. /var/run/redis/redis.sock
+						'dbindex'=>int-db-index, // optional, default: 0
+						'auth'=>[ // optional
+							'user'=>'string-phpredis',
+							'pass'=>'string-phpredis'
+						],
+						'timeout'=>float-timeout, // optional, default: 0
+						'retry_interval'=>int-retry-interval, // optional, default: 0
+						'read_timeout'=>float-read-timeout, // optional, default: 0
+						'options'=>[  // optional
+							Redis::OPT_BACKOFF_ALGORITHM=>Redis::BACKOFF_ALGORITHM_DECORRELATED_JITTER,
+							Redis::OPT_BACKOFF_BASE=>500,
+							Redis::OPT_BACKOFF_CAP, 750
+						]
+					];
+				?>
 		 *
 		 * Initialization:
 			$db=redis_connect(

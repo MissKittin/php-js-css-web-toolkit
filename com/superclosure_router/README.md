@@ -9,36 +9,54 @@ Allows you to convert defined rules to PHP code
 ## Note
 Throws an `superclosure_router_exception` on error
 
+## New methods
+* **[static]** `set_source_variable(string_variable)` [returns self]  
+	set URI source for cache
+* **[static]** `set_request_method_variable(string_variable)` [returns self]  
+	for cache
+* **[static]** `set_run_callback(closure_callback)` [returns self]  
+	define routing function arguments
+* **[static]** `add_to_cache(string_variable, string_value)` [returns self]  
+	cache operation result
+* **[static]** `read_from_cache(string_variable)` [returns string]  
+	read the result of the operation from the cache
+* **[static]** `dump_cache(string_output_file_path)`  
+	dump defined rules and cached operations
+For more info, see `uri_router.php` library
+
 ## Usage
 Before defining the rules, check if the cache file exists
 ```
 if(file_exists('./var/cache/superclosure_router.php'))
 	require './var/cache/superclosure_router.php';
-else {
+else
+{
 	require './com/superclosure_router/main.php';
 ```
 Use the same as `uri_router` (see `uri_router.php`)  
 Before calling `route()`, generate the cache:
 ```
-superclosure_router::set_source_variable("strtok(\$_SERVER['REQUEST_URI'], '?')"); // required
-superclosure_router::set_request_method_variable("\$_SERVER['REQUEST_METHOD']"); // optional
-superclosure_router::dump_cache('./var/cache/superclosure_router.php');
+superclosure_router
+::	set_source_variable("strtok(\$_SERVER['REQUEST_URI'], '?')") // required
+::	set_request_method_variable("\$_SERVER['REQUEST_METHOD']") // optional
+::	dump_cache('./var/cache/superclosure_router.php');
 ```
-or (the strtok function will only be called once - second parameter of the add_to_cache() will be eval'd)
+or (the `strtok` function will only be called once - second parameter of the `add_to_cache()` will be eval'd)
 ```
-superclosure_router::add_to_cache('strtok', "strtok(\$_SERVER['REQUEST_URI'], '?')"); // optimization
-superclosure_router::set_source_variable(superclosure_router::read_from_cache('strtok')); // required
-superclosure_router::set_request_method_variable("\$_SERVER['REQUEST_METHOD']"); // optional
-superclosure_router::dump_cache('./var/cache/superclosure_router.php');
+superclosure_router
+::	add_to_cache('strtok', "strtok(\$_SERVER['REQUEST_URI'], '?')") // optimization
+::	set_source_variable(superclosure_router::read_from_cache('strtok')) // required
+::	set_request_method_variable("\$_SERVER['REQUEST_METHOD']") // optional
+::	dump_cache('./var/cache/superclosure_router.php');
 ```
 and then
 ```
 superclosure_router::route(); // exec and flush routing table
 ```
 
-## set_run_callback method
+## Set run callback
 If you want to define routing function arguments,  
-you can use the set_run_callback method, eg:
+you can use the `set_run_callback()` method, eg:
 ```
 superclosure_router::set_run_callback(function($callback){
 	$callback('example-arg-1', 'example-arg-2');

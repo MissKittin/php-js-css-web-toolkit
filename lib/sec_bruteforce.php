@@ -95,22 +95,20 @@
 
 			return true;
 		}
-		else
+
+		if($timeout_hook->check())
 		{
-			if($timeout_hook->check())
+			$timeout_hook->add();
+
+			if($timeout_hook->get_attempts()%$max_attempts === 0)
 			{
-				$timeout_hook->add();
+				$permban_hook->add();
 
-				if($timeout_hook->get_attempts()%$max_attempts === 0)
-				{
-					$permban_hook->add();
-
-					if($permban_hook->check())
-						$timeout_hook->del();
-				}
-
-				return true;
+				if($permban_hook->check())
+					$timeout_hook->del();
 			}
+
+			return true;
 		}
 
 		return false;
@@ -247,6 +245,8 @@
 		 *  adding to the table or iterates attempts counter
 		 * Unbanning: $bruteforce->del()
 		 *  removes from the table
+		 * Database cleaning: $bruteforce->clean_database()
+		 *  deletes records without TTL (expire === 0)
 		 * Closing connection: unset($bruteforce)
 		 */
 
@@ -314,7 +314,23 @@
 				$this->current_attempts=0;
 			}
 		}
-		public function clean_database() {}
+		public function clean_database()
+		{
+			$iterator=null;
+
+			do
+			{
+				$keys=$this->redis_handler->scan($iterator, $this->prefix.'*');
+
+				if($keys === false)
+					break;
+
+				foreach($keys as $key)
+					if($this->redis_handler->ttl($key) === -1)
+						$this->redis_handler->del($key);
+			}
+			while($iterator > 0);
+		}
 	}
 	class bruteforce_timeout_redis extends bruteforce_generic
 	{
@@ -363,6 +379,8 @@
 		 *  adding to the database or iterates attempts counter
 		 * Unbanning: $bruteforce->del()
 		 *  removes from database
+		 * Database cleaning: $bruteforce->clean_database()
+		 *  deletes records without TTL (expire === 0)
 		 * Closing connection: unset($bruteforce)
 		 *
 		 * Changes with respect to bruteforce_redis: get_timestamp(), add()
@@ -449,7 +467,23 @@
 				$this->current_timestamp=null;
 			}
 		}
-		public function clean_database() {}
+		public function clean_database()
+		{
+			$iterator=null;
+
+			do
+			{
+				$keys=$this->redis_handler->scan($iterator, $this->prefix.'*');
+
+				if($keys === false)
+					break;
+
+				foreach($keys as $key)
+					if($this->redis_handler->ttl($key) === -1)
+						$this->redis_handler->del($key);
+			}
+			while($iterator > 0);
+		}
 	}
 	class bruteforce_memcached extends bruteforce_generic
 	{

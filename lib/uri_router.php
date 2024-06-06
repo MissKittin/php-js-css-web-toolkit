@@ -18,15 +18,22 @@
 		 * Note:
 		 *  default route callback will not be cleared by uri_router::route()
 		 *  throws an uri_router_exception on error
+		 *  you can chain all methods except route()
 		 *
 		 * Methods:
-		 *  uri_router::set_base_path(string)
-		 *  uri_router::set_source(string)
-		 *  uri_router::set_request_method(string)
-		 *  uri_router::set_default_route(callback_function)
-		 *  uri_router::set_reverse_mode(bool) [default: false]
-		 *  uri_router::add(string_source, callback_function, bool_use_regex, string_request_method) [default: use_regex=false, request_method=null]
-		 *  uri_router::route()
+		 *  [static] set_base_path(string) [returns self]
+		 *   define a repeating string at the beginning of the URI
+		 *  [static] set_source(string) [returns self]
+		 *   set URI source
+		 *  [static] set_request_method(string) [returns self]
+		 *  [static] set_default_route(callback_function) [returns self]
+		 *   the function will be called when no rules match
+		 *  [static] set_reverse_mode(bool=false) [returns self]
+		 *   if true, will execute routes from last to first
+		 *  [static] add(string_source, callback_function, bool_use_regex=false, string_request_method=null) [returns self]
+		 *   add routing rule
+		 *  [static] route() [returns bool]
+		 *   jump down the big rabbit hole
 		 *
 		 * Usage:
 			// example $_SERVER values:
@@ -34,9 +41,10 @@
 			// REQUEST_URI: /basepth/arg1/arg2/arg3?getarg1=getval1&getarg2=getval2
 
 			// general settings
-			uri_router::set_base_path('/basepth'); // optional
-			uri_router::set_source(strtok($_SERVER['REQUEST_URI'], '?')); // required
-			uri_router::set_request_method($_SERVER['REQUEST_METHOD']); // optional
+			uri_router
+				::set_base_path('/basepth') // optional
+				::set_source(strtok($_SERVER['REQUEST_URI'], '?')) // required
+				::set_request_method($_SERVER['REQUEST_METHOD']); // optional
 			//uri_router::set_reverse_mode(true); // will execute routes from last to first, optional, disabled by default
 
 			// if route not found, optional
@@ -94,22 +102,27 @@
 		public static function set_base_path(string $path)
 		{
 			static::$base_path=$path;
+			return static::class;
 		}
 		public static function set_source(string $source)
 		{
 			static::$source=$source;
+			return static::class;
 		}
 		public static function set_request_method(string $method)
 		{
 			static::$request_method=$method;
+			return static::class;
 		}
 		public static function set_default_route(callable $callback)
 		{
-			static::$default_route['callback']=$callback;
+			static::$default_route[0]=$callback;
+			return static::class;
 		}
 		public static function set_reverse_mode(bool $enable=false)
 		{
 			static::$reverse_mode=$enable;
+			return static::class;
 		}
 
 		public static function add(
@@ -132,6 +145,8 @@
 					$use_regex,
 					$request_method
 				];
+
+			return static::class;
 		}
 		public static function route()
 		{
@@ -139,8 +154,12 @@
 				throw new uri_router_exception('Source undefined');
 
 			$path_matches=false;
+
 			foreach(static::$routing_table as $routing_element)
-				if(($routing_element[3] === null) || ($routing_element[3] === static::$request_method))
+				if(
+					($routing_element[3] === null) ||
+					($routing_element[3] === static::$request_method)
+				)
 					foreach($routing_element[0] as $routing_path)
 					{
 						if($routing_element[2])
@@ -164,10 +183,10 @@
 						}
 					}
 
-			if(isset(static::$default_route['callback']))
+			if(isset(static::$default_route[0]))
 			{
 				static::$routing_table=[];
-				static::run_callback(static::$default_route['callback']);
+				static::run_callback(static::$default_route[0]);
 			}
 
 			return false;

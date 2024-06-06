@@ -1,5 +1,5 @@
 # Login component
-Simple middleware
+Simple login screen middleware
 
 ## Required libraries
 * `check_var.php`
@@ -9,7 +9,7 @@ Simple middleware
 * `simpleblog_materialized.css` (for materialized template)
 
 ## Reserved variables
-* `$_SESSION['_login_remember_me']`
+* `$_SESSION['_com_login_remember_me']`
 
 ## Note
 Throws an `login_com_exception` on error
@@ -19,22 +19,20 @@ Component are configured using registers.
 To set the desired value use `login_com_reg_name::_()['key']='value'` (except `login_com_reg_csp`)
 * `login_com_reg`
 	* `credentials` [array]  
-		data for the login_single and login_multi methods  
+		data for the `login_single` and `login_multi` methods  
 		see [Example usage](#example-usage)
 	* `callback` [closure]  
-		a function that returns a hash for the login_callback method  
+		a function that returns a hash for the `login_callback` method  
 		see [Example usage](#example-usage)
 * `login_com_reg_config`
 	* `method` [string]  
-		available: login_single login_multi login_callback  
+		available: `login_single` `login_multi` `login_callback`  
 		see `sec_login.php` library for more info
 	* `remember_cookie_lifetime` [int]  
 		if "remember me" option is checked  
 		in seconds
 	* `session_reload` [closure]  
 		custom session reloader
-	* `exit_after_login_prompt` [bool]  
-		default: false
 	* `on_login_prompt` [closure]  
 		do before sending the login prompt
 	* `on_login_success` [closure]  
@@ -45,7 +43,7 @@ To set the desired value use `login_com_reg_name::_()['key']='value'` (except `l
 		do before logout
 * `login_com_reg_view`
 	* `template` [string]  
-		default or materialized
+		`default` or `materialized`
 	* `lang` [string]  
 		`<html lang="lang">`
 	* `title` [string]  
@@ -59,7 +57,7 @@ To set the desired value use `login_com_reg_name::_()['key']='value'` (except `l
 		default: `login_default_bright.css`
 	* `inline_style` [bool]  
 		compiles the style and adds it to the inline tag  
-		instead of link rel="stylesheet" (not recommended)  
+		instead of `link rel="stylesheet"` (not recommended)  
 		default: `false`
 	* `html_headers` [string]  
 		custom html headers, will be added to the `<head>` section
@@ -69,7 +67,7 @@ To set the desired value use `login_com_reg_name::_()['key']='value'` (except `l
 		password input box placeholder
 	* `login_default_value` [string]  
 		set default text for login box  
-		note: this string will be escaped
+		**note:** this string will be escaped
 	* `login_box_disabled` [bool]  
 		set login input status to disabled state  
 		default: `false`
@@ -127,13 +125,13 @@ require './com/login/main.php';
 // set credentials for single method
 login_com_reg::_()['credentials']=['login', 'bcrypted-password'];
 
-// set credentials for multi method
+// or set credentials for multi method
 login_com_reg::_()['credentials']=[
 	['login1', 'bcrypted-password1'],
 	['login2', 'bcrypted-password2']
 ];
 
-// set callback for callback method
+// or set callback for callback method
 login_com_reg::_()['callback']=function($login)
 {
 	if($login === 'login')
@@ -145,8 +143,9 @@ login_com_reg::_()['callback']=function($login)
 // set method
 login_com_reg_config::_()['method']='login_single';
 
-// display login prompt
-login_com();
+// display login prompt (returns bool, if true, it's time to evacuate)
+if(login_com())
+	exit();
 
 // check if user is authenticated
 if(is_logged())
@@ -164,15 +163,12 @@ if(is_logged())
 ## Display reload page only
 ```
 login_com_reload();
-```
-or if you don't want to exit()
-```
-login_com_reload(false);
+exit();
 ```
 
 ## Custom session reloader for "Remember Me"
-If you want to use session_start() with parameters other than the default,  
-you can define the function `$GLOBALS['_login']['config']['session_reload']`.  
+If you want to use `session_start()` with parameters other than the default,  
+you can define the function `$GLOBALS['_login']['config']['session_reload']`  
 eg. for the `sec_lv_encrypter.php` library the function will look like this:
 ```
 login_com_reg_config::_()['session_reload']=function($cookie_lifetime)

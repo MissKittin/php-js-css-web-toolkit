@@ -6,7 +6,7 @@ You can specify any form
 * `sec_csrf.php`
 * `simpleblog_materialized.css` (for materialized template)
 
-## Note  
+## Note
 Throws an `middleware_form_exception` on error
 
 ## Methods
@@ -26,8 +26,8 @@ Throws an `middleware_form_exception` on error
 	display the form
 
 ## Field definition
-`tag` is the first required element in an array. Can be `null` - see Special fields section.  
-The rest of the elements are tag parameters (param="value"). Value can be `null`.  
+`tag` is the first required element in an array. Can be `null` - see [Special fields](#special-fields).  
+The rest of the elements are tag parameters (`param="value"`). Value can be `null`.  
 Example:
 ```
 $middleware_form->add_field([
@@ -69,7 +69,7 @@ Set config options with the `add_config` method
 	default: `middleware_form_dark.css`
 * `inline_style` [bool]  
 	compiles the style and adds it to the inline tag  
-	instead of link rel="stylesheet" (not recommended)  
+	instead of `link rel="stylesheet"` (not recommended)  
 	default: `false`
 * `submit_button_label` [string]  
 	default: `Next`
@@ -99,22 +99,18 @@ if(!isset($_SESSION['captcha_verified']))
 		// here you can setup the login component (view section)
 
 		$captcha_form
-			->add_csp_header('img-src', 'data:') // base64 captcha image
-			->add_csp_header('style-src', '\'unsafe-hashes\'') // for the hash below
-			->add_csp_header('style-src', '\'sha256-N6tSydZ64AHCaOWfwKbUhxXx2fRFDxHOaL3e3CO7GPI=\''); // captcha image style
-
-		$captcha_form
-			->add_config('middleware_form_style', 'middleware_form_bright.css')
-			->add_config('title', 'Verification')
-			->add_config('submit_button_label', 'Verify');
-
-		$captcha_form
-			->add_field([
+		->	add_csp_header('img-src', 'data:') // base64 captcha image
+		->	add_csp_header('style-src', '\'unsafe-hashes\'') // for the hash below
+		->	add_csp_header('style-src', '\'sha256-N6tSydZ64AHCaOWfwKbUhxXx2fRFDxHOaL3e3CO7GPI=\'') // captcha image style
+		->	add_config('middleware_form_style', 'middleware_form_bright.css')
+		->	add_config('title', 'Verification')
+		->	add_config('submit_button_label', 'Verify')
+		->	add_field([
 				'tag'=>'img',
 				'src'=>'data:image/jpeg;base64,'.base64_encode(captcha_get('captcha_gd2')),
 				'style'=>'width: 100%;'
 			])
-			->add_field([
+		->	add_field([
 				'tag'=>'input',
 				'type'=>'text',
 				'name'=>'captcha',
@@ -122,7 +118,7 @@ if(!isset($_SESSION['captcha_verified']))
 			]);
 
 		if($captcha_form->is_form_sent())
-			login_com_reload(false); // display reload page, do not exit()
+			login_com_reload(); // display reload page, do not exit()
 		else
 			$captcha_form->view();
 
@@ -131,7 +127,9 @@ if(!isset($_SESSION['captcha_verified']))
 
 	$_SESSION['captcha_verified']=true;
 
-	login_com_reload(); // display reload page and exit()
+	// display reload page and exit()
+		login_com_reload();
+		exit();
 }
 
 // rest of the code
@@ -149,25 +147,23 @@ if(change_password_requested())
 	else
 	{
 		$change_password_form
-			->add_config('title', 'Changing the password')
-			->add_config('submit_button_label', 'Change password');
-
-		$change_password_form
-			->add_field([
+		->	add_config('title', 'Changing the password')
+		->	add_config('submit_button_label', 'Change password')
+		->	add_field([
 				'tag'=>'input',
 				'type'=>'password',
 				'name'=>'old_password',
 				'placeholder'=>'Old password'
 			])
-			->add_field([
+		->	add_field([
 				'tag'=>'input',
 				'type'=>'password',
 				'name'=>'new_password',
 				'placeholder'=>'New password'
-			]);
+			])
+		->	view();
 
-			$change_password_form->view();
-			exit();
+		exit();
 	}
 }
 

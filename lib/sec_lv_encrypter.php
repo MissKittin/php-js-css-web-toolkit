@@ -287,6 +287,7 @@
 		 */
 
 		private static $initialized=false;
+
 		private $lv_encrypter;
 
 		public function __construct(string $key, string $cipher='aes-128-cbc')
@@ -343,6 +344,11 @@
 		 * Note:
 		 *  throws an lv_encrypter_exception on error
 		 *
+		 * Hint:
+		 *  if you want to support most browsers
+		 *  then do not exceed 50 cookies per domain
+		 *  and 4093 bytes per domain
+		 *
 		 * Usage:
 		 *  lv_cookie_session_handler::register_handler(array_setup_params)
 		 *  lv_cookie_session_handler::session_start(array_optional_session_start_params)
@@ -355,10 +361,12 @@
 		 */
 
 		private static $initialized=false;
+
 		private $lv_encrypter;
 		private $on_error;
 		private $cookie_id='id';
 		private $cookie_expire=null;
+		private $session_data_chunks=0; // real: $session_data_chunks-1
 
 		public function __construct(array $params)
 		{
@@ -423,7 +431,57 @@
 			$params['cache_limiter']='';
 
 			session_id('0');
+
 			return session_start($params);
+		}
+
+		private function chunk_read()
+		{
+			$session_data=$_COOKIE[$this->cookie_id];
+
+			for($i=1;; ++$i)
+			{
+				if(!isset($_COOKIE[$this->cookie_id.$i]))
+				{
+					$this->session_data_chunks=$i;
+					break;
+				}
+
+				$session_data.=$_COOKIE[$this->cookie_id.$i];
+			}
+
+			return $session_data;
+		}
+		private function chunk_write($session_data, $cookie_expire)
+		{
+			foreach(str_split(
+				$session_data,
+				4000-strlen($this->cookie_id)
+			) as $i=>$data_chunk){
+				if($i === 0)
+					$i='';
+
+				setcookie(
+					$this->cookie_id.$i,
+					$data_chunk,
+					$cookie_expire,
+					'',
+					'',
+					false,
+					true
+				);
+			}
+
+			for(++$i; $i<$this->session_data_chunks; ++$i)
+				setcookie(
+					$this->cookie_id.$i,
+					'',
+					-1,
+					'',
+					'',
+					false,
+					true
+				);
 		}
 
 		public function read($a)
@@ -432,7 +490,7 @@
 
 			if(isset($_COOKIE[$this->cookie_id]))
 				try {
-					$session_data=$this->lv_encrypter->decrypt($_COOKIE[$this->cookie_id], false);
+					$session_data=$this->lv_encrypter->decrypt($this->chunk_read(), false);
 				} catch(lv_encrypter_exception $error) {
 					$this->on_error['callback'](__CLASS__.' error: '.$error->getMessage().', new session created');
 					$session_data='';
@@ -450,25 +508,14 @@
 			if($cookie_expire === null)
 				$cookie_expire=session_get_cookie_params()['lifetime'];
 
-			if($cookie_expire === 0)
-				setcookie(
-					$this->cookie_id,
-					$session_data,
-					0,
-					'',
-					'',
-					false,
-					true
-				);
+			if($session_data === '')
+				$this->chunk_write($session_data, -1);
+			else if($cookie_expire === 0)
+				$this->chunk_write($session_data, 0);
 			else
-				setcookie(
-					$this->cookie_id,
+				$this->chunk_write(
 					$session_data,
-					time()+$cookie_expire,
-					'',
-					'',
-					false,
-					true
+					time()+$cookie_expire
 				);
 
 			return true;
@@ -565,6 +612,7 @@
 		 */
 
 		private static $initialized=false;
+
 		private $lv_encrypter;
 		private $on_error;
 		private $pdo_handler;
@@ -835,6 +883,7 @@
 		 */
 
 		private static $initialized=false;
+
 		private $lv_encrypter;
 		private $on_error;
 		private $redis_handler;
@@ -989,6 +1038,7 @@
 		 */
 
 		private static $initialized=false;
+
 		private $lv_encrypter;
 		private $on_error;
 		private $memcached_handler;

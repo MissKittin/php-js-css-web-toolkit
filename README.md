@@ -10,8 +10,8 @@ Supported cache databases: Redis, Memcached, APCu
 * respect the DRY rule
 * PHP and CSS have a snake_case, Js - camelCase
 * if you are writing a new library, keep it independent of the other libraries, components and tools
-* if you are writing a new component, keep it independent of the other components and tools
 * if you are writing a new tool, keep it independent of the other tools
+* if you are writing a new component, keep it independent of the other components
 
 ## PHP CLI tools
 * `assets-compiler.php` - interface for `assets_compiler.php` library
@@ -21,7 +21,6 @@ Supported cache databases: Redis, Memcached, APCu
 * `file-sign.php` - interface for `sec_file_sign.php` library
 * `file-watch.php` - run the command after modifying the file(s)
 * `get-composer.php` - easily add composer to your project
-* `include2blob.php` - a toy that converts inclusion to a single file blob
 * `link2file.php` - recursively convert all symbolic links to files
 * `logrotate.php` - interface for `logrotate.php` library
 * `lv-encrypter.php` - interface for `sec_lv_encrypter.php` library
@@ -42,7 +41,6 @@ Supported cache databases: Redis, Memcached, APCu
 * `websockets.php` - a simple point-to-point websocket server
 
 ## PHP libraries
-* `array_tree.php` - convert flat array into tree, tree to list
 * `ascii.php` - ASCII conversion (MIT)
 * `assets_compiler.php`
 * `async_process_builder.php` - `proc_*` wrapper and standard input-output-error interface
@@ -56,7 +54,6 @@ Supported cache databases: Redis, Memcached, APCu
 * `cron.php` - task scheduler
 * `csv2table.php` - convert CSV file to HTML table
 * `curl_file_updown.php` - quickly download/upload file
-* `directoryIterator_sort.php` - run directoryIterator and sort output by name
 * `dotenv.php` - DotEnv proxy implementation
 * `file_http_request.php` - `file_get_contents()` wrapper for http streams
 * `find_php_definitions.php` - look up the definition of functions, classes, interfaces and traits in the source code
@@ -65,7 +62,7 @@ Supported cache databases: Redis, Memcached, APCu
 * `http_request_response.php` - OOP overlay for standard request-response handling
 * `include_into_namespace.php` - function that facilitates including libraries to a namespace (mainly for testing purposes)
 * `ioc_container.php` - dependency injection containers
-* `is_float_equal.php` - for older PHP versions it defines an `PHP_FLOAT_EPSILON` constant
+* `is_float_equal.php`
 * `logger.php` - easily write logs
 * `logrotate.php` - journalists rotation machine
 * `lv_arr.php` - Laravel array helpers & collections (MIT)
@@ -110,7 +107,6 @@ Supported cache databases: Redis, Memcached, APCu
 * `sec_http_basic_auth.php` - request and validate basic HTTP authentication
 * `sec_login.php` - login/logout helpers
 * `sec_lv_encrypter.php` - Laravel encrypter class for cookies and sessions (MIT)
-* `sec_prevent_direct.php` - for historical purposes
 * `sess_array.php` - store the session in an array (mainly for testing purposes)
 * `simple_html_dom.php` - S.C. Chen's HTML DOM parser v1.9.1 (MIT)
 * `simpleblog_db.php` - key-value database that can be edited in notepad
@@ -147,7 +143,6 @@ Supported cache databases: Redis, Memcached, APCu
 * `getJson.js` - get/send JSON data
 * `imgRotator.js` - rotate images on selected id
 * `linkify.js` - rooseve's plaintext link to anchor converter
-* `list2tree.js` - convert ul or ol to expandable tree
 * `multipage.js` - put several pages in one HTML file / element switcher
 * `pfReplaceAll.js` - `replaceAll()` polyfill
 * `rand.js`

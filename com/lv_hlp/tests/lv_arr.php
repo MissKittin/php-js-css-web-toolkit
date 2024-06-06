@@ -24,8 +24,10 @@
 		$lv_helpers_skip=true;
 		$lv_collection_header='lv_hlp_collection';
 		$lv_collect_function='lv_hlp_collect';
+		$lv_collection_class='lv_hlp_collection';
 		$lv_lazy_collection_header='lv_hlp_lazy_collection';
 		$lv_lazy_collect_function='lv_hlp_lazy_collect';
+		$lv_lazy_collection_class='lv_hlp_lazy_collection';
 	echo ' [ OK ]'.PHP_EOL;
 
 	echo ' -> Starting lv_arr.php library test';

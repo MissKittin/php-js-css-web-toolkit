@@ -95,15 +95,19 @@
 		};
 	echo ' [ OK ]'.PHP_EOL;
 
-	echo ' -> Executing login_com()'.PHP_EOL;
+	echo ' -> Executing login_com()';
 		ob_start();
 		try {
-			login_com();
+			if(login_com() === true)
+			{
+				echo ' [ OK ]'.PHP_EOL;
+				exit();
+			}
 		} catch(Throwable $error) {
-			echo ' <- Executing login_com() [FAIL]'
-				.PHP_EOL.PHP_EOL
-				.'Caught: '.$error->getMessage()
-				.PHP_EOL;
+			echo '[FAIL]'
+			.	PHP_EOL.PHP_EOL
+			.	'Caught: '.$error->getMessage()
+			.	PHP_EOL;
 
 			exit(1);
 		}

@@ -59,8 +59,11 @@
 		{
 			return '';
 		}
-		function check_post()
+		function check_post($value)
 		{
+			if($value === 'logout')
+				return null;
+
 			return 'value';
 		}
 		function check_session()
@@ -87,6 +90,7 @@
 	echo ' [ OK ]'.PHP_EOL;
 
 	echo ' -> Setting up component';
+		login_com_reg::_()['credentials']=['invalid', 'invalid'];
 		login_com_reg_config::_()['method']='login_single';
 		login_com_reg_config::_()['on_login_success']=function()
 		{
@@ -100,10 +104,10 @@
 		try {
 			login_com();
 		} catch(Throwable $error) {
-			echo ' <- Executing login_com() [FAIL]'
-				.PHP_EOL.PHP_EOL
-				.'Caught: '.$error->getMessage()
-				.PHP_EOL;
+			echo '[FAIL]'
+			.	PHP_EOL.PHP_EOL
+			.	'Caught: '.$error->getMessage()
+			.	PHP_EOL;
 
 			exit(1);
 		}

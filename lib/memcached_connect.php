@@ -49,21 +49,23 @@
 		 * Configuration:
 		 *  1) create a directory for memcached config files
 		 *  2) create a config.php file:
-				return [
-					'options'=>[ // optional
-						'persistent_id'=>null, // string or null, all instances created with the same persistent_id will share the same connection
-						'ignore_failed_servers'=>true // do not throw an exception on addServer fail
-					],
-					[ // server #1
-						'host'=>'127.0.0.1', // or socket required
-						'port'=>11211, // optional, default: 11211, ignored for socket
-						'weight'=>30 // optional, default: 0
-					],
-					[ // server #2
-						'socket'=>'/var/run/memcached/memcached.sock', // has priority over the host
-						'weight'=>60 // optional, default: 0
-					]
-				];
+				<?php
+					return [
+						'options'=>[ // optional
+							'persistent_id'=>null, // string or null, all instances created with the same persistent_id will share the same connection
+							'ignore_failed_servers'=>true // do not throw an exception on addServer fail
+						],
+						[ // server #1
+							'host'=>'127.0.0.1', // or socket required
+							'port'=>11211, // optional, default: 11211, ignored for socket
+							'weight'=>30 // optional, default: 0
+						],
+						[ // server #2
+							'socket'=>'/var/run/memcached/memcached.sock', // has priority over the host
+							'weight'=>60 // optional, default: 0
+						]
+					];
+				?>
 		 *
 		 * Initialization:
 		 *  $db=memcached_connect('./path_to/your_database_config_directory');

@@ -23,10 +23,22 @@
 		]
 	]);
 
-	abstract class login_com_reg extends static_registry { protected static $registry=null; }
-	abstract class login_com_reg_config extends static_registry { protected static $registry=null; }
-	abstract class login_com_reg_view extends static_registry { protected static $registry=null; }
-	abstract class login_com_reg_csp
+	final class login_com_reg extends static_registry
+	{
+		protected static $registry=null;
+		private function __construct() {}
+	}
+	final class login_com_reg_config extends static_registry
+	{
+		protected static $registry=null;
+		private function __construct() {}
+	}
+	final class login_com_reg_view extends static_registry
+	{
+		protected static $registry=null;
+		private function __construct() {}
+	}
+	final class login_com_reg_csp
 	{
 		protected static $registry=[];
 
@@ -39,50 +51,59 @@
 		{
 			return static::$registry;
 		}
+
+		private function __construct() {}
 	}
 
-	login_com_reg_config::_()['method']=null; // login_single login_multi login_callback
-	login_com_reg_config::_()['remember_cookie_lifetime']=31556926; // 1 year
-	login_com_reg_config::_()['session_reload']=function($cookie_lifetime) // default session reloader
-	{
-		session_start([
-			'cookie_lifetime'=>$cookie_lifetime
-		]);
-	};
-	login_com_reg_config::_()['exit_after_login_prompt']=false; // exit after sending the login prompt
-	login_com_reg_config::_()['on_login_prompt']=function(){};
-	login_com_reg_config::_()['on_login_success']=function(){};
-	login_com_reg_config::_()['on_login_failed']=function(){};
-	login_com_reg_config::_()['on_logout']=function(){};
+	(function(){
+		foreach([
+			'method'=>null, // login_single login_multi login_callback
+			'remember_cookie_lifetime'=>31556926, // 1 year
+			'session_reload'=>function($cookie_lifetime) // default session reloader
+			{
+				session_start([
+					'cookie_lifetime'=>$cookie_lifetime
+				]);
+			},
+			'on_login_prompt'=>function(){},
+			'on_login_success'=>function(){},
+			'on_login_failed'=>function(){},
+			'on_logout'=>function(){}
+		] as $key=>$value)
+			login_com_reg_config::_()[$key]=$value;
 
-	login_com_reg_view::_()['template']='default';
-	login_com_reg_view::_()['lang']='en';
-	login_com_reg_view::_()['title']='Login'; // <title>
-	login_com_reg_view::_()['assets_path']='/assets'; // login_com_reg_view::_()['assets_path']/login_com_reg_view::_()['login_style']
-	login_com_reg_view::_()['login_style']='login_default_bright.css'; // login_com_reg_view::_()['assets_path']/login_com_reg_view::_()['login_style']
-	login_com_reg_view::_()['inline_style']=false;
-	login_com_reg_view::_()['html_headers']='';
-	login_com_reg_view::_()['login_label']='Login';
-	login_com_reg_view::_()['password_label']='Password';
-	login_com_reg_view::_()['login_box_disabled']=false;
-	login_com_reg_view::_()['password_box_disabled']=false;
-	login_com_reg_view::_()['display_remember_me_checkbox']=true;
-	login_com_reg_view::_()['remember_me_label']='Remember me';
-	login_com_reg_view::_()['remember_me_box_disabled']=false;
-	login_com_reg_view::_()['wrong_credentials_label']='Invalid username or password';
-	login_com_reg_view::_()['submit_button_label']='Login';
-	login_com_reg_view::_()['submit_button_disabled']=false;
-	login_com_reg_view::_()['loading_title']='Loading'; // <title> for reload.php
-	login_com_reg_view::_()['loading_label']='Loading...';
+		foreach([
+			'template'=>'default',
+			'lang'=>'en',
+			'title'=>'Login', // <title>
+			'assets_path'=>'/assets', // 'assets_path']/'login_style']
+			'login_style'=>'login_default_bright.css', // 'assets_path']/'login_style']
+			'inline_style'=>false,
+			'html_headers'=>'',
+			'login_label'=>'Login',
+			'password_label'=>'Password',
+			'login_box_disabled'=>false,
+			'password_box_disabled'=>false,
+			'display_remember_me_checkbox'=>true,
+			'remember_me_label'=>'Remember me',
+			'remember_me_box_disabled'=>false,
+			'wrong_credentials_label'=>'Invalid username or password',
+			'submit_button_label'=>'Login',
+			'submit_button_disabled'=>false,
+			'loading_title'=>'Loading', // <title> for reload.php
+			'loading_label'=>'Loading...'
+		] as $key=>$value)
+			login_com_reg_view::_()[$key]=$value;
 
-	login_com_reg_csp
-	::	add('default-src', '\'none\'')
-	::	add('script-src', '\'self\'')
-	::	add('connect-src', '\'self\'')
-	::	add('img-src', '\'self\'')
-	::	add('style-src', '\'self\'')
-	::	add('base-uri', '\'self\'')
-	::	add('form-action', '\'self\'');
+		login_com_reg_csp
+		::	add('default-src', '\'none\'')
+		::	add('script-src', '\'self\'')
+		::	add('connect-src', '\'self\'')
+		::	add('img-src', '\'self\'')
+		::	add('style-src', '\'self\'')
+		::	add('base-uri', '\'self\'')
+		::	add('form-action', '\'self\'');
+	})();
 
 	function login_com()
 	{
@@ -108,29 +129,28 @@
 		if(login_com_reg_view::_()['inline_style'])
 			login_com_reg_csp::add('style-src', '\'nonce-mainstyle\'');
 
-		if(!is_callable(login_com_reg_config::_()['on_login_prompt']))
-			login_com_reg_config::_()['on_login_prompt']=function(){};
-		if(!is_callable(login_com_reg_config::_()['on_login_success']))
-			login_com_reg_config::_()['on_login_success']=function(){};
-		if(!is_callable(login_com_reg_config::_()['on_login_failed']))
-			login_com_reg_config::_()['on_login_failed']=function(){};
-		if(!is_callable(login_com_reg_config::_()['on_logout']))
-			login_com_reg_config::_()['on_logout']=function(){};
+		foreach(['on_login_prompt', 'on_login_success', 'on_login_failed', 'on_logout'] as $callback)
+			if(!is_callable(login_com_reg_config::_()[$callback]))
+				login_com_reg_config::_()[$callback]=function(){};
 
 		if(csrf_check_token('post'))
 		{
-			if(logout(check_post('logout')))
+			if(check_post('logout') !== null)
 			{
+				logout();
 				login_com_reg_config::_()['on_logout']();
-				login_refresh('file', __DIR__.'/templates/'.login_com_reg_view::_()['template'].'/views/reload.php');
+				login_refresh('require-file', __DIR__.'/templates/'.login_com_reg_view::_()['template'].'/views/reload.php');
 
-				exit();
+				return true;
 			}
+
+			$login=check_post('login');
+			$password=check_post('password');
 
 			if(
 				(check_post('login_prompt') !== null) &&
-				(check_post('login') !== null) &&
-				(check_post('password') !== null)
+				($login !== null) &&
+				($password !== null)
 			){
 				if(!isset(login_com_reg_config::_()['method']))
 					throw new login_com_exception('Login method not specified');
@@ -145,23 +165,23 @@
 						}
 
 						login_com_reg::_()['result']=login_single(
-							check_post('login'),
-							check_post('password'),
+							$login,
+							$password,
 							login_com_reg::_()['credentials'][0],
 							login_com_reg::_()['credentials'][1]
 						);
 					break;
 					case 'login_multi':
 						login_com_reg::_()['result']=login_multi(
-							check_post('login'),
-							check_post('password'),
+							$login,
+							$password,
 							login_com_reg::_()['credentials']
 						);
 					break;
 					case 'login_callback':
 						login_com_reg::_()['result']=login_callback(
-							check_post('login'),
-							check_post('password'),
+							$login,
+							$password,
 							login_com_reg::_()['callback'](check_post('login'))
 						);
 					break;
@@ -172,12 +192,12 @@
 				if(login_com_reg::_()['result'])
 				{
 					if(check_post('remember_me') !== null)
-						$_SESSION['_login_remember_me']=true;
+						$_SESSION['_com_login_remember_me']=true;
 
 					login_com_reg_config::_()['on_login_success']();
-					login_refresh('file', __DIR__.'/templates/'.login_com_reg_view::_()['template'].'/views/reload.php');
+					login_refresh('require-file', __DIR__.'/templates/'.login_com_reg_view::_()['template'].'/views/reload.php');
 
-					exit();
+					return true;
 				}
 				else
 				{
@@ -194,22 +214,20 @@
 			login_com_reg_config::_()['on_login_prompt']();
 			require __DIR__.'/templates/'.login_com_reg_view::_()['template'].'/views/form.php';
 
-			if(login_com_reg_config::_()['exit_after_login_prompt'])
-				exit();
+			return true;
 		}
-		else if(check_session('_login_remember_me') === true)
+		else if(check_session('_com_login_remember_me') === true)
 		{
 			session_write_close();
 			login_com_reg_config::_()['session_reload'](
 				login_com_reg_config::_()['remember_cookie_lifetime']
 			);
 		}
-	}
-	function login_com_reload(bool $exit=true)
-	{
-		login_refresh('file', __DIR__.'/templates/'.login_com_reg_view::_()['template'].'/views/reload.php');
 
-		if($exit)
-			exit();
+		return false;
+	}
+	function login_com_reload()
+	{
+		login_refresh('require-file', __DIR__.'/templates/'.login_com_reg_view::_()['template'].'/views/reload.php');
 	}
 ?>

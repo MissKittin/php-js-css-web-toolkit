@@ -83,34 +83,33 @@
 		$GLOBALS['mock_check_post']=null;
 		$form=new middleware_form_test();
 		$form
-			->add_field([
+		->	add_field([
 				'tag'=>null,
 				'content'=>'Plain text'
 			])
-			->add_field([
+		->	add_field([
 				'tag'=>'input',
 				'type'=>'text',
 				'name'=>'text_box',
 				'placeholder'=>'Text'
 			])
-			->add_field([
+		->	add_field([
 				'tag'=>'input',
 				'type'=>'password',
 				'name'=>'new_password',
 				'placeholder'=>'New password'
 			])
-			->add_field([
+		->	add_field([
 				'tag'=>'input',
 				'type'=>'checkbox',
 				'name'=>'checkbox_name',
 				'value'=>'checkbox_value'
 			])
-			->add_field([
+		->	add_field([
 				'tag'=>'input',
 				'type'=>'slider',
 				'slider_label'=>'Slider label'
-			])
-		;
+			]);
 		if($form->parse_fields() === 'Plain text<div class="input_text"><input type="text" name="text_box" placeholder="Text"></div><div class="input_text"><input type="password" name="new_password" placeholder="New password"></div><div class="input_text"><input type="checkbox" name="checkbox_name" value="checkbox_value"></div><div class="input_checkbox"><label class="switch"><input type="checkbox"><span class="slider"></span></label><div class="input_checkbox_text">Slider label</div></div>')
 			echo ' [ OK ]'.PHP_EOL;
 		else

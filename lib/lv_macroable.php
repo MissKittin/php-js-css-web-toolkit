@@ -52,6 +52,8 @@
 	 * License: MIT
 	 */
 
+	class lv_macroable_exception extends Exception {}
+
 	trait t_lv_macroable
 	{
 		protected static $macros=[];
@@ -118,7 +120,6 @@
 		}
 	}
 
-	class lv_macroable_exception extends Exception {}
 	class lv_macroable
 	{
 		use t_lv_macroable;

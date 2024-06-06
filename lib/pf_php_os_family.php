@@ -8,26 +8,28 @@
 	 */
 
 	if(!defined('PHP_OS_FAMILY'))
-		define('PHP_OS_FAMILY', new class {
-			public function __toString()
-			{
-				if(DIRECTORY_SEPARATOR === '\\')
-					return 'Windows';
-
-				$map=[
-					'Darwin'=>'Darwin',
-					'DragonFly'=>'BSD',
-					'FreeBSD'=>'BSD',
-					'NetBSD'=>'BSD',
-					'OpenBSD'=>'BSD',
-					'Linux'=>'Linux',
-					'SunOS'=>'Solaris'
-				];
-
-				if(isset($map[PHP_OS]))
-					return $map[PHP_OS];
-
-				return 'Unknown';
-			}
-		});
+		switch(PHP_OS)
+		{
+			case 'Darwin':
+			case 'Linux':
+				define('PHP_OS_FAMILY', PHP_OS);
+			break;
+			case 'DragonFly':
+			case 'FreeBSD':
+			case 'NetBSD':
+			case 'OpenBSD':
+				define('PHP_OS_FAMILY', 'BSD');
+			break;
+			case 'SunOS':
+				define('PHP_OS_FAMILY', 'Solaris');
+			break;
+			default:
+				if(
+					(DIRECTORY_SEPARATOR === '\\') ||
+					(strtoupper(substr(PHP_OS, 0, 3)) === 'WIN')
+				)
+					define('PHP_OS_FAMILY', 'Windows');
+				else
+					define('PHP_OS_FAMILY', 'Unknown');
+		}
 ?>

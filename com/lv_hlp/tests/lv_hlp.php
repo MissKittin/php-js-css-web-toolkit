@@ -52,32 +52,51 @@
 		($argv[1] === 'composer') &&
 		(!file_exists(__DIR__.'/tmp/.composer/vendor/league/commonmark'))
 	){
-		echo ' -> Installing league/commonmark'.PHP_EOL;
-
 		@mkdir(__DIR__.'/tmp');
 		@mkdir(__DIR__.'/tmp/.composer');
 
 		if(file_exists(__DIR__.'/../bin/composer.phar'))
-			system('"'.PHP_BINARY.'" '.__DIR__.'/../bin/composer.phar --no-cache --working-dir='.__DIR__.'/tmp/.composer require league/commonmark');
+			$_composer_binary=__DIR__.'/../bin/composer.phar';
 		else if(file_exists(__DIR__.'/../../../bin/composer.phar'))
-			system('"'.PHP_BINARY.'" '.__DIR__.'/../../../bin/composer.phar --no-cache --working-dir='.__DIR__.'/tmp/.composer require league/commonmark');
+			$_composer_binary=__DIR__.'/../../../bin/composer.phar';
 		else if(file_exists(__DIR__.'/tmp/.composer/composer.phar'))
-			system('"'.PHP_BINARY.'" '.__DIR__.'/tmp/.composer/composer.phar --no-cache --working-dir='.__DIR__.'/tmp/.composer require league/commonmark');
-		else if(file_exists(__DIR__.'/../bin/get-composer.php'))
-		{
-			system('"'.PHP_BINARY.'" '.__DIR__.'/../bin/get-composer.php '.__DIR__.'/tmp/.composer');
-			system('"'.PHP_BINARY.'" '.__DIR__.'/tmp/.composer/composer.phar --no-cache --working-dir='.__DIR__.'/tmp/.composer require league/commonmark');
-		}
-		else if(file_exists(__DIR__.'/../../../bin/get-composer.php'))
-		{
-			system('"'.PHP_BINARY.'" '.__DIR__.'/../../../bin/get-composer.php '.__DIR__.'/tmp/.composer');
-			system('"'.PHP_BINARY.'" '.__DIR__.'/tmp/.composer/composer.phar --no-cache --working-dir='.__DIR__.'/tmp/.composer require league/commonmark');
+			$_composer_binary=__DIR__.'/tmp/.composer/composer.phar';
+		else if(
+			file_exists(__DIR__.'/../bin/get-composer.php') ||
+			file_exists(__DIR__.'/../../../bin/get-composer.php')
+		){
+			echo ' -> Downloading composer'.PHP_EOL;
+
+			$_composer_binary=__DIR__.'/../bin/get-composer.php';
+			if(file_exists(__DIR__.'/../../../bin/get-composer.php'))
+				$_composer_binary=__DIR__.'/../../../bin/get-composer.php';
+
+			system(''
+			.	'"'.PHP_BINARY.'" '
+			.	$_composer_binary.' '
+			.	__DIR__.'/tmp/.composer'
+			);
+
+			if(!file_exists(__DIR__.'/tmp/.composer/composer.phar'))
+			{
+				echo ' <- composer download failed [FAIL]'.PHP_EOL;
+				exit(1);
+			}
+
+			$_composer_binary=__DIR__.'/tmp/.composer/composer.phar';
 		}
 		else
 		{
 			echo 'Error: get-composer.php tool not found'.PHP_EOL;
 			exit(1);
 		}
+
+		echo ' -> Installing league/commonmark'.PHP_EOL;
+			system('"'.PHP_BINARY.'" '.$_composer_binary.' '
+			.	'--no-cache '
+			.	'--working-dir='.__DIR__.'/tmp/.composer '
+			.	'require league/commonmark'
+			);
 	}
 
 	if(is_file(__DIR__.'/tmp/.composer/vendor/autoload.php'))
@@ -96,6 +115,31 @@
 	$failed=false;
 
 	echo ' -> Testing string helpers'.PHP_EOL;
+		echo '  -> lv_hlp_of [LATR]'.PHP_EOL;
+		echo '  -> lv_hlp_match_all';
+			//echo ' ['.var_export_contains(lv_hlp_match_all('/bar/', 'bar foo bar')->all(), '', true).']';
+			if(var_export_contains(
+				lv_hlp_match_all('/bar/', 'bar foo bar')->all(),
+				"array(0=>'bar',1=>'bar',)"
+			))
+				echo ' [ OK ]';
+			else
+			{
+				echo ' [FAIL]';
+				$failed=true;
+			}
+			//echo ' ['.var_export_contains(lv_hlp_match_all('/f(\w*)/', 'bar fun bar fly')->all(), '', true).']';
+			if(var_export_contains(
+				lv_hlp_match_all('/f(\w*)/', 'bar fun bar fly')->all(),
+				"array(0=>'un',1=>'ly',)"
+			))
+				echo ' [ OK ]'.PHP_EOL;
+			else
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				$failed=true;
+			}
+		echo '  -> lv_hlp_str [SKIP]'.PHP_EOL;
 		echo '  -> lv_str_ascii';
 			if(function_exists('transliterator_transliterate'))
 			{
@@ -109,77 +153,8 @@
 			}
 			else
 				echo ' [SKIP]'.PHP_EOL;
-		echo '  -> lv_str_contains';
-			if(function_exists('mb_substr'))
-			{
-				if(lv_str_contains('This is my name', 'my'))
-					echo ' [ OK ]';
-				else
-				{
-					echo ' [FAIL]';
-					$failed=true;
-				}
-				if(lv_str_contains('This is my name', 'xdd'))
-				{
-					echo ' [FAIL]';
-					$failed=true;
-				}
-				else
-					echo ' [ OK ]';
-				if(lv_str_contains('This is my name', ['my', 'foo']))
-					echo ' [ OK ]'.PHP_EOL;
-				else
-				{
-					echo ' [FAIL]'.PHP_EOL;
-					$failed=true;
-				}
-			}
-			else
-				echo ' [SKIP]'.PHP_EOL;
-		echo '  -> lv_str_contains_all';
-			if(function_exists('mb_substr'))
-			{
-				if(lv_str_contains_all('This is my name', ['my', 'name']))
-					echo ' [ OK ]';
-				else
-				{
-					echo ' [FAIL]';
-					$failed=true;
-				}
-				if(lv_str_contains_all('This is my name', ['my', 'nameE']))
-				{
-					echo ' [FAIL]'.PHP_EOL;
-					$failed=true;
-				}
-				else
-					echo ' [ OK ]'.PHP_EOL;
-			}
-			else
-				echo ' [SKIP]'.PHP_EOL;
-		echo '  -> lv_str_ends_with';
-			if(lv_str_ends_with('This is my name', 'name'))
-				echo ' [ OK ]';
-			else
-			{
-				echo ' [FAIL]';
-				$failed=true;
-			}
-			if(lv_str_ends_with('This is my name', ['name', 'foo']))
-				echo ' [ OK ]';
-			else
-			{
-				echo ' [FAIL]';
-				$failed=true;
-			}
-			if(lv_str_ends_with('This is my name', ['this', 'foo']))
-			{
-				echo ' [FAIL]'.PHP_EOL;
-				$failed=true;
-			}
-			else
-				echo ' [ OK ]'.PHP_EOL;
 		echo '  -> lv_str_inline_markdown';
-			if(class_exists('League\CommonMark\MarkdownConverter'))
+			if(class_exists('\League\CommonMark\MarkdownConverter') && function_exists('mb_substr'))
 			{
 				if(trim(lv_str_inline_markdown('**Laravel**')) === '<strong>Laravel</strong>')
 					echo ' [ OK ]';
@@ -273,7 +248,7 @@
 			else
 				echo ' [ OK ]'.PHP_EOL;
 		echo '  -> lv_str_markdown';
-			if(class_exists('League\CommonMark\GithubFlavoredMarkdownConverter'))
+			if(class_exists('\League\CommonMark\GithubFlavoredMarkdownConverter') && function_exists('mb_substr'))
 			{
 				if(trim(lv_str_markdown('# Laravel')) === '<h1>Laravel</h1>')
 					echo ' [ OK ]';
@@ -316,60 +291,6 @@
 			echo lv_str_ordered_uuid().PHP_EOL;
 		echo '  -> lv_str_password: ';
 			echo lv_str_password(8).PHP_EOL;
-		echo '  -> lv_str_remove';
-			if(lv_str_remove('e', 'Peter Piper picked a peck of pickled peppers.') === 'Ptr Pipr pickd a pck of pickld ppprs.')
-				echo ' [ OK ]'.PHP_EOL;
-			else
-			{
-				echo ' [FAIL]'.PHP_EOL;
-				$failed=true;
-			}
-		echo '  -> lv_str_replace';
-			if(lv_str_replace('10.x', '11.x', 'Laravel 10.x') === 'Laravel 11.x')
-				echo ' [ OK ]'.PHP_EOL;
-			else
-			{
-				echo ' [FAIL]'.PHP_EOL;
-				$failed=true;
-			}
-		echo '  -> lv_str_replace_array';
-			if(lv_str_replace_array('?', ['8:30', '9:00'], 'The event will take place between ? and ?') === 'The event will take place between 8:30 and 9:00')
-				echo ' [ OK ]'.PHP_EOL;
-			else
-			{
-				echo ' [FAIL]'.PHP_EOL;
-				$failed=true;
-			}
-		echo '  -> lv_str_replace_end';
-			if(lv_str_replace_end('World', 'Laravel', 'Hello World') === 'Hello Laravel')
-				echo ' [ OK ]';
-			else
-			{
-				echo ' [FAIL]';
-				$failed=true;
-			}
-			if(lv_str_replace_end('Hello', 'Laravel', 'Hello World') === 'Hello World')
-				echo ' [ OK ]'.PHP_EOL;
-			else
-			{
-				echo ' [FAIL]'.PHP_EOL;
-				$failed=true;
-			}
-		echo '  -> lv_str_replace_start';
-			if(lv_str_replace_start('Hello', 'Laravel', 'Hello World') === 'Laravel World')
-				echo ' [ OK ]';
-			else
-			{
-				echo ' [FAIL]';
-				$failed=true;
-			}
-			if(lv_str_replace_start('World', 'Laravel', 'Hello World') === 'Hello World')
-				echo ' [ OK ]'.PHP_EOL;
-			else
-			{
-				echo ' [FAIL]'.PHP_EOL;
-				$failed=true;
-			}
 		echo '  -> lv_str_reverse';
 			if(function_exists('mb_substr'))
 			{
@@ -396,28 +317,6 @@
 			}
 			else
 				echo ' [SKIP]'.PHP_EOL;
-		echo '  -> lv_str_starts_with';
-			if(lv_str_starts_with('This is my name', 'This'))
-				echo ' [ OK ]';
-			else
-			{
-				echo ' [FAIL]';
-				$failed=true;
-			}
-			if(lv_str_starts_with('This is my name', 'That'))
-			{
-				echo ' [FAIL]';
-				$failed=true;
-			}
-			else
-				echo ' [ OK ]';
-			if(lv_str_starts_with('This is my name', ['This', 'That', 'There']))
-				echo ' [ OK ]'.PHP_EOL;
-			else
-			{
-				echo ' [FAIL]'.PHP_EOL;
-				$failed=true;
-			}
 		echo '  -> lv_str_ulid: ';
 			echo lv_str_ulid().PHP_EOL;
 		echo '  -> lv_str_uuid: ';
@@ -425,36 +324,6 @@
 
 	echo ' -> Testing array helpers'.PHP_EOL;
 		echo '  -> lv_hlp_collect [LATR]'.PHP_EOL;
-		echo '  -> lv_hlp_is_assoc';
-			if(lv_hlp_is_assoc(['product'=>['name'=>'Desk', 'price'=>100]]))
-				echo ' [ OK ]';
-			else
-			{
-				echo ' [FAIL]';
-				$failed=true;
-			}
-			if(lv_hlp_is_assoc([1, 2, 3]))
-			{
-				echo ' [FAIL]'.PHP_EOL;
-				$failed=true;
-			}
-			else
-				echo ' [ OK ]'.PHP_EOL;
-		echo '  -> lv_hlp_is_list';
-			if(lv_hlp_is_list(['foo', 'bar', 'baz']))
-				echo ' [ OK ]';
-			else
-			{
-				echo ' [FAIL]';
-				$failed=true;
-			}
-			if(lv_hlp_is_list(['product'=>['name'=>'Desk', 'price'=>100]]))
-			{
-				echo ' [FAIL]'.PHP_EOL;
-				$failed=true;
-			}
-			else
-				echo ' [ OK ]'.PHP_EOL;
 		echo '  -> lv_hlp_sort';
 			if(var_export_contains(
 				lv_hlp_sort(['Desk', 'Table', 'Chair']),
@@ -509,36 +378,6 @@
 				echo ' [FAIL]'.PHP_EOL;
 				$failed=true;
 			}
-		echo '  -> lv_hlp_sort_recursive';
-			if(var_export_contains(
-				lv_arr_sort_recursive([
-					['Roman', 'Taylor', 'Li'],
-					['PHP', 'Ruby', 'JavaScript'],
-					['one'=>1, 'two'=>2, 'three'=>3]
-				]),
-				"array(0=>array(0=>'JavaScript',1=>'PHP',2=>'Ruby',),1=>array('one'=>1,'three'=>3,'two'=>2,),2=>array(0=>'Li',1=>'Roman',2=>'Taylor',),)"
-			))
-				echo ' [ OK ]'.PHP_EOL;
-			else
-			{
-				echo ' [FAIL]'.PHP_EOL;
-				$failed=true;
-			}
-		echo '  -> lv_hlp_sort_recursive_desc';
-			if(var_export_contains(
-				lv_arr_sort_recursive_desc([
-					['Roman', 'Taylor', 'Li'],
-					['PHP', 'Ruby', 'JavaScript'],
-					['one'=>1, 'two'=>2, 'three'=>3]
-				]),
-				"array(0=>array(0=>'Taylor',1=>'Roman',2=>'Li',),1=>array(0=>'Ruby',1=>'PHP',2=>'JavaScript',),2=>array('two'=>2,'three'=>3,'one'=>1,),)"
-			))
-				echo ' [ OK ]'.PHP_EOL;
-			else
-			{
-				echo ' [FAIL]'.PHP_EOL;
-				$failed=true;
-			}
 		echo '  -> lv_hlp_lazy_collect [LATR]'.PHP_EOL;
 		echo '  -> lv_hlp_to_css_styles';
 			if(lv_hlp_to_css_styles(['background-color: blue', 'color: blue'=>true]) === 'background-color: blue; color: blue;')
@@ -555,6 +394,274 @@
 				echo ' [FAIL]'.PHP_EOL;
 				$failed=true;
 			}
+
+	echo ' -> Testing lv_hlp_ingable'.PHP_EOL;
+		echo '  -> ascii';
+			if(function_exists('transliterator_transliterate'))
+			{
+				if(lv_hlp_of('ü')->ascii()->to_string() === 'u')
+					echo ' [ OK ]'.PHP_EOL;
+				else
+				{
+					echo ' [FAIL]'.PHP_EOL;
+					$failed=true;
+				}
+			}
+			else
+				echo ' [SKIP]'.PHP_EOL;
+		echo '  -> dd [SKIP]'.PHP_EOL;
+		echo '  -> dump [SKIP]'.PHP_EOL;
+		echo '  -> explode';
+			//echo ' ['.var_export_contains(lv_hlp_of('foo bar baz')->explode(' ')->all(), '', true).']';
+			if(var_export_contains(
+				lv_hlp_of('foo bar baz')->explode(' ')->all(),
+				"array(0=>'foo',1=>'bar',2=>'baz',)"
+			))
+				echo ' [ OK ]'.PHP_EOL;
+			else
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				$failed=true;
+			}
+		echo '  -> inline_markdown';
+			if(class_exists('\League\CommonMark\GithubFlavoredMarkdownConverter') && function_exists('mb_substr'))
+			{
+				if(trim(lv_hlp_of('**Laravel**')->inline_markdown()->to_string()) === '<strong>Laravel</strong>')
+					echo ' [ OK ]'.PHP_EOL;
+				else
+				{
+					echo ' [FAIL]'.PHP_EOL;
+					$failed=true;
+				}
+			}
+			else
+				echo ' [SKIP]'.PHP_EOL;
+		echo '  -> is_ascii';
+			if(lv_hlp_of('Taylor')->is_ascii())
+				echo ' [ OK ]';
+			else
+			{
+				echo ' [FAIL]';
+				$failed=true;
+			}
+			if(lv_hlp_of('ü')->is_ascii())
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				$failed=true;
+			}
+			else
+				echo ' [ OK ]'.PHP_EOL;
+		echo '  -> is_json';
+			if(lv_hlp_of('[1,2,3]')->is_json())
+				echo ' [ OK ]';
+			else
+			{
+				echo ' [FAIL]';
+				$failed=true;
+			}
+			if(lv_hlp_of('{"first": "John", "last": "Doe"}')->is_json())
+				echo ' [ OK ]';
+			else
+			{
+				echo ' [FAIL]';
+				$failed=true;
+			}
+			if(lv_hlp_of('{first: "John", last: "Doe"}')->is_json())
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				$failed=true;
+			}
+			else
+				echo ' [ OK ]'.PHP_EOL;
+		echo '  -> is_ulid';
+			if(lv_hlp_of('01gd6r360bp37zj17nxb55yv40')->is_ulid())
+				echo ' [ OK ]';
+			else
+			{
+				echo ' [FAIL]';
+				$failed=true;
+			}
+			if(lv_hlp_of('Taylor')->is_ulid())
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				$failed=true;
+			}
+			else
+				echo ' [ OK ]'.PHP_EOL;
+		echo '  -> is_uuid';
+			if(lv_hlp_of('5ace9ab9-e9cf-4ec6-a19d-5881212a452c')->is_uuid())
+				echo ' [ OK ]';
+			else
+			{
+				echo ' [FAIL]';
+				$failed=true;
+			}
+			if(lv_hlp_of('Taylor')->is_uuid())
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				$failed=true;
+			}
+			else
+				echo ' [ OK ]'.PHP_EOL;
+		echo '  -> macro [SKIP]'.PHP_EOL;
+		echo '  -> markdown';
+			if(class_exists('\League\CommonMark\GithubFlavoredMarkdownConverter') && function_exists('mb_substr'))
+			{
+				if(trim(lv_hlp_of('# Laravel')->markdown()->to_string()) === '<h1>Laravel</h1>')
+					echo ' [ OK ]';
+				else
+				{
+					echo ' [FAIL]';
+					$failed=true;
+				}
+				if(trim(lv_hlp_of('# Taylor <b>Otwell</b>')->markdown([
+					'html_input'=>'strip'
+				])->to_string()) === '<h1>Taylor Otwell</h1>')
+					echo ' [ OK ]'.PHP_EOL;
+				else
+				{
+					echo ' [FAIL]'.PHP_EOL;
+					$failed=true;
+				}
+			}
+			else
+				echo ' [SKIP]'.PHP_EOL;
+		echo '  -> match_all';
+			//echo ' ['.var_export_contains(lv_hlp_of('bar foo bar')->match_all('/bar/')->all(), '', true).']';
+			if(var_export_contains(
+				lv_hlp_of('bar foo bar')->match_all('/bar/')->all(),
+				"array(0=>'bar',1=>'bar',)"
+			))
+				echo ' [ OK ]';
+			else
+			{
+				echo ' [FAIL]';
+				$failed=true;
+			}
+			//echo ' ['.var_export_contains(lv_hlp_of('bar fun bar fly')->match_all('/f(\w*)/')->all(), '', true).']';
+			if(var_export_contains(
+				lv_hlp_of('bar fun bar fly')->match_all('/f(\w*)/')->all(),
+				"array(0=>'un',1=>'ly',)"
+			))
+				echo ' [ OK ]'.PHP_EOL;
+			else
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				$failed=true;
+			}
+		echo '  -> reverse';
+			if(function_exists('mb_substr'))
+			{
+				if(lv_hlp_of('Hello World')->reverse()->to_string() === 'dlroW olleH')
+					echo ' [ OK ]'.PHP_EOL;
+				else
+				{
+					echo ' [FAIL]'.PHP_EOL;
+					$failed=true;
+				}
+			}
+			else
+				echo ' [SKIP]'.PHP_EOL;
+		echo '  -> scan';
+			//echo ' ['.var_export_contains(lv_hlp_of('filename.jpg')->scan('%[^.].%s')->all(), '', true).']';
+			if(var_export_contains(
+				lv_hlp_of('filename.jpg')->scan('%[^.].%s')->all(),
+				"array(0=>'filename',1=>'jpg',)"
+			))
+				echo ' [ OK ]'.PHP_EOL;
+			else
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				$failed=true;
+			}
+		echo '  -> slug';
+			if(function_exists('mb_substr'))
+			{
+				if(lv_hlp_of('Laravel Framework')->slug('-')->to_string() === 'laravel-framework')
+					echo ' [ OK ]'.PHP_EOL;
+				else
+				{
+					echo ' [FAIL]'.PHP_EOL;
+					$failed=true;
+				}
+			}
+			else
+				echo ' [SKIP]'.PHP_EOL;
+		echo '  -> split';
+			if(function_exists('mb_substr'))
+			{
+				//echo ' ['.var_export_contains(lv_hlp_of('one, two, three')->split('/[\s,]+/')->all(), '', true).']';
+				if(var_export_contains(
+					lv_hlp_of('one, two, three')->split('/[\s,]+/')->all(),
+					"array(0=>'one',1=>'two',2=>'three',)"
+				))
+					echo ' [ OK ]'.PHP_EOL;
+				else
+				{
+					echo ' [FAIL]'.PHP_EOL;
+					$failed=true;
+				}
+			}
+			else
+				echo ' [SKIP]'.PHP_EOL;
+		echo '  -> transliterate [SKIP]'.PHP_EOL;
+		echo '  -> ucsplit';
+			//echo ' ['.var_export_contains(lv_hlp_of('Foo Bar')->ucsplit()->all(), '', true).']';
+			if(var_export_contains(
+				lv_hlp_of('Foo Bar')->ucsplit()->all(),
+				"array(0=>'Foo',1=>'Bar',)"
+			))
+				echo ' [ OK ]'.PHP_EOL;
+			else
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				$failed=true;
+			}
+		echo '  -> when_is_ascii/title';
+			if(function_exists('mb_substr'))
+			{
+				if(lv_hlp_of('laravel')->when_is_ascii(function(lv_hlp_ingable $string){
+					return $string->title();
+				})->to_string() === 'Laravel')
+					echo ' [ OK ]'.PHP_EOL;
+				else
+				{
+					echo ' [FAIL]'.PHP_EOL;
+					$failed=true;
+				}
+			}
+			else
+				echo ' [SKIP]'.PHP_EOL;
+		echo '  -> when_is_ulid/substr';
+			if(function_exists('mb_substr'))
+			{
+				if(lv_hlp_of('01gd6r360bp37zj17nxb55yv40')->when_is_ulid(function(lv_hlp_ingable $string){
+					return $string->substr(0, 8);
+				})->to_string() === '01gd6r36')
+					echo ' [ OK ]'.PHP_EOL;
+				else
+				{
+					echo ' [FAIL]'.PHP_EOL;
+					$failed=true;
+				}
+			}
+			else
+				echo ' [SKIP]'.PHP_EOL;
+		echo '  -> when_is_uuid/substr';
+			if(function_exists('mb_substr'))
+			{
+				if(lv_hlp_of('a0a2a2d2-0b87-4a18-83f2-2529882be2de')->when_is_uuid(function(lv_hlp_ingable $string){
+					return $string->substr(0, 8);
+				})->to_string() === 'a0a2a2d2')
+					echo ' [ OK ]'.PHP_EOL;
+				else
+				{
+					echo ' [FAIL]'.PHP_EOL;
+					$failed=true;
+				}
+			}
+			else
+				echo ' [SKIP]'.PHP_EOL;
 
 	echo ' -> Testing lv_hlp_collection'.PHP_EOL;
 		echo '  -> dd [SKIP]'.PHP_EOL;

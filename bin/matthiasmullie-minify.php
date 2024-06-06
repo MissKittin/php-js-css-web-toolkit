@@ -17,8 +17,6 @@
 	 *  __DIR__/../lib
 	 */
 
-	use MatthiasMullie\Minify;
-
 	function load_library($libraries, $required=true)
 	{
 		foreach($libraries as $library)
@@ -43,17 +41,13 @@
 
 		throw new Exception('Composer autoloader not found');
 	}
-	function check_composer_package($packages)
-	{
-		foreach($packages as $package)
-			if(!\Composer\InstalledVersions::isInstalled($package))
-				throw new Exception($package.' package not installed');
-	}
 
 	try {
 		load_library(['check_var.php']);
 		require find_composer_autoloader();
-		check_composer_package(['matthiasmullie/minify']);
+
+		if(!class_exists('\MatthiasMullie\Minify\CSS'))
+			throw new Exception('matthiasmullie/minify package not installed');
 	} catch(Exception $error) {
 		echo 'Error: '.$error->getMessage().PHP_EOL;
 		exit(1);
@@ -93,7 +87,7 @@
 					echo 'Processing '.$asset.PHP_EOL;
 
 					try {
-						(new Minify\CSS($asset))->minify($asset);
+						(new MatthiasMullie\Minify\CSS($asset))->minify($asset);
 					} catch(Throwable $error) {
 						echo ' failed: '.$error->getMessage().PHP_EOL;
 					}
@@ -105,7 +99,7 @@
 					echo 'Processing '.$asset.PHP_EOL;
 
 					try {
-						(new Minify\JS($asset))->minify($asset);
+						(new MatthiasMullie\Minify\JS($asset))->minify($asset);
 					} catch(Throwable $error) {
 						echo ' failed: '.$error->getMessage().PHP_EOL;
 					}

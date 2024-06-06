@@ -124,6 +124,10 @@
 				__DIR__.'/tmp/curl_file_updown/server/upload.php',
 				'<?php move_uploaded_file($_FILES["fileToUpload"]["tmp_name"], __DIR__."/".$_FILES["fileToUpload"]["name"]); ?>'
 			);
+			file_put_contents(
+				__DIR__.'/tmp/curl_file_updown/server/json-upload.php',
+				'<?php header("Content-Type: application/json"); echo json_encode(["output"=>json_decode(file_get_contents("php://input"), true)["input"]]); ?>'
+			);
 		echo ' [ OK ]'.PHP_EOL;
 
 		echo ' -> Starting PHP server...'.PHP_EOL.PHP_EOL;
@@ -192,6 +196,19 @@
 			echo ' [ OK ]'.PHP_EOL;
 			unlink(__DIR__.'/tmp/curl_file_updown/client/file-to-be-downloaded.txt');
 		}
+		else
+		{
+			echo ' [FAIL]'.PHP_EOL;
+			$failed=true;
+		}
+
+	echo ' -> Testing curl_json_upload';
+		if(curl_json_upload(
+			'http://127.0.0.1:'.$http_server_port.'/json-upload.php',
+			json_encode(['input'=>'doing good']),
+			'POST'
+		)[1] === '{"output":"doing good"}')
+			echo ' [ OK ]'.PHP_EOL;
 		else
 		{
 			echo ' [FAIL]'.PHP_EOL;

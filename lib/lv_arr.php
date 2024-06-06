@@ -13,7 +13,7 @@
 			$is_accessible=lv_arr_accessible('abc'); // false
 			$is_accessible=lv_arr_accessible(new stdClass()); // false
 	 *  lv_arr_add()
-	 *   adds a given key / value pair to an array if the given key
+	 *   adds a given key/value pair to an array if the given key
 	 *   doesn't already exist in the array or is set to null
 			$array=lv_arr_add(['name'=>'Desk'], 'price', 100);
 			// ['name'=>'Desk', 'price'=>100]
@@ -77,7 +77,7 @@
 			$flattened=lv_arr_flatten(['name'=>'Joe', 'languages'=>['PHP', 'Ruby']]);
 			// ['Joe', 'PHP', 'Ruby']
 	 *  lv_arr_forget()
-	 *   removes a given key / value pair
+	 *   removes a given key/value pair
 	 *   from a deeply nested array using "dot" notation
 			$array=['products'=>['desk'=>['price'=>100]]];
 			lv_arr_forget($array, 'products.desk');
@@ -115,6 +115,19 @@
 			$contains=lv_arr_has_any($array, ['category', 'product.discount']); // false
 	 *   warning:
 	 *    lv_arr_has function is required
+	 *  lv_arr_is_assoc()
+	 *   returns true if the given array is an associative array
+	 *   an array is considered "associative"
+	 *   if it doesn't have sequential numerical keys beginning with zero
+			$is_assoc=lv_arr_is_assoc(['product'=>['name'=>'Desk', 'price'=>100]]); // true
+			$is_assoc=lv_arr_is_assoc([1, 2, 3]); // false
+	 *  lv_arr_is_list()
+	 *   returns true if the given array's keys
+	 *   are sequential integers beginning from zero
+			$is_list=lv_arr_is_list(['foo', 'bar', 'baz']); // true
+			$is_list=lv_arr_is_list(['product'=>['name'=>'Desk', 'price'=>100]]); // false
+	 *   warning:
+	 *    lv_arr_is_assoc function is required
 	 *  lv_arr_join()
 	 *   joins array elements with a string
 	 *   using this method's second argument, you may also specify
@@ -314,6 +327,29 @@
 			//  ['name'=>'Desk'],
 			//  ['name'=>'Chair']
 			// ]
+	 *  lv_arr_sort_recursive()
+	 *   recursively sorts an array using the sort function
+	 *   for numerically indexed sub-arrays
+	 *   and the ksort function for associative sub-arrays
+			$array=[
+				['Roman', 'Taylor', 'Li'],
+				['PHP', 'Ruby', 'JavaScript'],
+				['one'=>1, 'two'=>2, 'three'=>3]
+			];
+			$sorted=lv_arr_sort_recursive($array);
+			// [
+			//  ['JavaScript', 'PHP', 'Ruby'],
+			//  ['one'=>1, 'three'=>3, 'two'=>2],
+			//  ['Li', 'Roman', 'Taylor']
+			// ]
+	 *   if you would like the results sorted in descending order
+	 *   you may use the lv_arr_sort_recursive_desc function
+			$sorted=lv_arr_sort_recursive_desc($array);
+	 *   warning:
+	 *    lv_arr_is_assoc function is required
+	 *  lv_arr_sort_recursive_desc()
+	 *   warning:
+	 *    lv_arr_sort_recursive function is required
 	 *  lv_arr_to_css_classes()
 	 *   conditionally compiles a CSS class string
 	 *   the method accepts an array of classes where the array key contains
@@ -591,6 +627,8 @@
 	 *     warning:
 	 *      lv_arr_data_get function is required
 	 *      contains method is required
+	 *      first method is required
+	 *      use_as_callable method is required
 	 *    count()
 	 *     returns the total number of items in the collection
 			$collection=lv_arr_collect([1, 2, 3, 4]);
@@ -714,12 +752,48 @@
 	 *     warning:
 	 *      get_arrayable_items method is required
 	 *    diff_keys_using()
-	 *     <lack of documentation>
+	 *     get the items in the collection whose keys
+	 *     are not present in the given items, using the callback
+	 *     this method uses the array_diff_ukey PHP function
+	 *     this method does not appear in the official documentation
+			$collection=lv_arr_collect([
+				'one'=>10,
+				'two'=>20,
+				'three'=>30,
+				'four'=>40,
+				'five'=>50
+			]);
+			$diff=$collection->diff_keys_using(
+				[
+					'two'=>2,
+					'four'=>4,
+					'six'=>6,
+					'eight'=>8
+				],
+				function($a, $b)
+				{
+					if($a === $b)
+						return 0;
+
+					return -1;
+				}
+			);
+			$diff->all(); // ['one'=>10, 'three'=>30, 'five'=>50]
 	 *     warning:
 	 *      this method was not tested
 	 *      get_arrayable_items method is required
 	 *    diff_using()
-	 *     <lack of documentation>
+	 *     get the items in the collection that are not present
+	 *     in the given items, using the callback
+	 *     this method does not appear in the official documentation
+			$collection=lv_arr_collect([1, 2, 3, 4, 5]);
+			$diff=$collection->diff_using([2, 4, 6, 8], function($a, $b){
+				if($a === $b)
+					return 0;
+
+				return -1;
+			});
+			$diff->all(); // [1, 3, 5]
 	 *     warning:
 	 *      this method was not tested
 	 *      get_arrayable_items method is required
@@ -1135,7 +1209,20 @@
 	 *     warning:
 	 *      get_arrayable_items method is required
 	 *    intersect_assoc_using()
-	 *     <lack of documentation>
+	 *     intersect the collection with the given items
+	 *     with additional index check, using the callback
+	 *     this method does not appear in the official documentation
+			$collection=lv_arr_collect([
+				'color'=>'red',
+				'size'=>'M',
+				'material'=>'cotton'
+			]);
+			$intersect=$collection->intersect_assoc_using([
+				'color'=>'blue',
+				'size'=>'M',
+				'material'=>'polyester'
+			], 'strcasecmp');
+			$intersect->all(); // ['size'=>'M']
 	 *     warning:
 	 *      this method was not tested
 	 *     warning:
@@ -1158,7 +1245,11 @@
 	 *     warning:
 	 *      get_arrayable_items method is required
 	 *    intersect_using()
-	 *     <lack of documentation>
+	 *     intersect the collection with the given items, using the callback
+	 *     this method does not appear in the official documentation
+			$collection=lv_arr_collect(['Desk', 'Sofa', 'Chair']);
+			$intersect=$collection->intersect_using(['Desk', 'Chair', 'Bookcase'], 'strcasecmp');
+			$intersect->all(); // [0=>'Desk', 2=>'Chair']
 	 *     warning:
 	 *      this method was not tested
 	 *      get_arrayable_items method is required
@@ -1264,7 +1355,7 @@
 	 *     thus forming a new collection of modified items
 			$collection=lv_arr_collect([1, 2, 3, 4, 5]);
 			$multiplied=$collection->map(function(int $item, int $key){
-				return ($item * 2);
+				return ($item*2);
 			});
 			$multiplied->all(); // [2, 4, 6, 8, 10]
 	 *     warning:
@@ -1296,7 +1387,7 @@
 			$collection=lv_arr_collect([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
 			$chunks=$collection->chunk(2);
 			$sequence=$chunks->map_spread(function(int $even, int $odd){
-				return ($even + $odd);
+				return ($even+$odd);
 			});
 			$sequence->all(); // [1, 5, 9, 13, 17]
 	 *     warning:
@@ -1701,13 +1792,13 @@
 	 *     passing the result of each iteration into the subsequent iteration
 			$collection=lv_arr_collect([1, 2, 3]);
 			$total=$collection->reduce(function(?int $carry, int $item){
-				return ($carry + $item);
+				return ($carry+$item);
 			}); // 6
 	 *     the value for $carry on the first iteration is null
 	 *     however, you may specify its initial value
 	 *     by passing a second argument to reduce
 			$collection->reduce(function(?int $carry, int $item){
-				return ($carry + $item);
+				return ($carry+$item);
 			}, 4); // 10
 	 *     the reduce method also passes array keys
 	 *     in associative collections to the given callback
@@ -1722,7 +1813,7 @@
 				'eur'=>1.22
 			];
 			$collection->reduce(function(?int $carry, int $value, $key) use($ratio){
-				return ($carry + ($value * $ratio[$key]));
+				return ($carry+($value*$ratio[$key]));
 			}); // 4264
 	 *    reduce_spread()
 	 *     reduces the collection to an array of values
@@ -1917,7 +2008,7 @@
 			$chunks->to_array();
 			// [[1, 2], [2, 3], [3, 4], [4, 5]]
 	 *     this is especially useful in conjunction with the each_spread method
-			$transactions->sliding(2)->each_spread(function(lv_arr_ollection $previous, lv_arr_ollection $current){
+			$transactions->sliding(2)->each_spread(function(lv_arr_collection $previous, lv_arr_collection $current){
 				$current->total=$previous->total+$current->amount;
 			});
 	 *     you may optionally pass a second "step" value
@@ -2261,7 +2352,7 @@
 	 *     creates a new collection by invoking the given closure
 	 *     a specified number of times
 			$collection=lv_arr_collection::times(10, function(int $number){
-				return ($number * 9);
+				return ($number*9);
 			});
 			$collection->all();
 			// [9, 18, 27, 36, 45, 54, 63, 72, 81, 90]
@@ -2291,7 +2382,7 @@
 	 *     returned by the callback
 			$collection=lv_arr_collect([1, 2, 3, 4, 5]);
 			$collection->transform(function(int $item, int $key){
-				return ($item * 2);
+				return ($item*2);
 			});
 			$collection->all(); // [2, 4, 6, 8, 10]
 	 *     warning:
@@ -2783,9 +2874,6 @@
 	 *    cross_join()
 	 *     warning:
 	 *      passthru method is required
-	 *    dd()
-	 *     warning:
-	 *      symfony/var-dumper package is required
 	 *    diff()
 	 *     warning:
 	 *      get_arrayable_items method is required
@@ -2812,29 +2900,17 @@
 	 *    dot()
 	 *     warning:
 	 *      passthru method is required
-	 *    dump()
-	 *     warning:
-	 *      symfony/var-dumper package is required
 	 *    duplicates()
 	 *     warning:
 	 *      passthru method is required
 	 *    duplicates_strict()
 	 *     warning:
 	 *      passthru method is required
-	 *    each()
-	 *    each_spread()
-	 *     warning:
-	 *      each method is required
 	 *    eager()
 	 *     eager load all items into a new lazy collection
 	 *     backed by an array
 	 *     warning:
 	 *      all method is required
-	 *    [static] empty()
-	 *    every()
-	 *     warning:
-	 *      operator_for_where method is required
-	 *      value_retriever method is required
 	 *    except()
 	 *     warning:
 	 *      passthru method is required
@@ -2854,10 +2930,6 @@
 	 *     warning:
 	 *      first method is required
 	 *      operator_for_where method is required
-	 *    flat_map()
-	 *     warning:
-	 *      collapse method is required
-	 *      map method is required
 	 *    flip()
 	 *    for_page()
 	 *     warning:
@@ -2916,25 +2988,13 @@
 	 *      lv_arr_value function is required
 	 *    [static] make()
 	 *    map()
-	 *    map_to_dictionary()
-	 *     warning:
-	 *      passthru method is required
 	 *    map_into()
 	 *     warning:
 	 *      map method is required
-	 *    map_spread()
+	 *    map_to_dictionary()
 	 *     warning:
-	 *      map method is required
-	 *    map_to_groups()
-	 *     warning:
-	 *      map method is required
-	 *      map_to_dictionary method is required
+	 *      passthru method is required
 	 *    map_with_keys()
-	 *    max()
-	 *     warning:
-	 *      filter method is required
-	 *      reduce method is required
-	 *      value_retriever method is required
 	 *    median()
 	 *     warning:
 	 *      collect method is required
@@ -2944,12 +3004,6 @@
 	 *    merge_recursive()
 	 *     warning:
 	 *      passthru method is required
-	 *    min()
-	 *     warning:
-	 *      filter method is required
-	 *      map method is required
-	 *      reduce method is required
-	 *      value_retriever method is required
 	 *    mode()
 	 *     warning:
 	 *      collect method is required
@@ -2957,10 +3011,6 @@
 	 *    pad()
 	 *     warning:
 	 *      passthru method is required
-	 *    partition()
-	 *     warning:
-	 *      operator_for_where method is required
-	 *      value_retriever method is required
 	 *    percentage()
 	 *     warning:
 	 *      count method is required
@@ -2968,10 +3018,6 @@
 	 *      is_empty method is required
 	 *    pipe()
 	 *    pipe_into()
-	 *    pipe_through()
-	 *     warning:
-	 *      make method is required
-	 *      reduce method is required
 	 *    pluck()
 	 *     warning:
 	 *      lv_arr_data_get function is required
@@ -2980,10 +3026,6 @@
 	 *     warning:
 	 *      collect method is required
 	 *    [static] range()
-	 *    reduce()
-	 *    reduce_spread()
-	 *     warning:
-	 *      this method was not tested
 	 *    reject()
 	 *     warning:
 	 *      filter method is required
@@ -2992,14 +3034,13 @@
 	 *     returns a new lazy collection that will remember any values
 	 *     that have already been enumerated and will not retrieve them
 	 *     again on subsequent collection enumerations
-			// no query has been executed yet
-			$users=User::cursor()->remember();
-			// the query is executed
-			// the first 5 users are hydrated from the database
-			$users->take(5)->all();
-			// first 5 users come from the collection's cache
+			$collection=new lv_arr_lazy_collection(['user1', 'user2', 'user3', 'user4', 'user5']);
+			$users=$collection->remember();
+			// the first 3 users are hydrated from the database
+			$users->take(3)->all();
+			// first 3 users come from the collection's cache
 			// the rest are hydrated from the database
-			$users->take(20)->all();
+			$users->take(5)->all();
 	 *     warning:
 	 *      get_iterator method is required
 	 *    replace()
@@ -3081,11 +3122,6 @@
 	 *     warning:
 	 *      chunk method is required
 	 *      count method is required
-	 *    sum()
-	 *     warning:
-	 *      identity method is required
-	 *      reduce method is required
-	 *      value_retriever method is required
 	 *    take()
 	 *     warning:
 	 *      get_iterator method is required
@@ -3099,11 +3135,6 @@
 	 *      take_until method is required
 	 *      use_as_callable method is required
 	 *    tap()
-	 *    [static] times()
-	 *     warning:
-	 *      map method is required
-	 *      range method is required
-	 *      unless method is required
 	 *    to_array()
 	 *     warning:
 	 *      all method is required
@@ -3157,9 +3188,6 @@
 	 *      filter method is required
 	 *      operator_for_where method is required
 	 *    where_strict()
-	 *     warning:
-	 *      where method is required
-	 *    where_between()
 	 *     warning:
 	 *      where method is required
 	 *    where_in()
@@ -3291,13 +3319,19 @@
 		$results=[];
 
 		foreach($array as $key=>$value)
+		{
 			if(is_array($value) && (!empty($value)))
+			{
 				$results=array_merge(
 					$results,
 					(__METHOD__)($value, $prepend.$key.'.')
 				);
-			else
-				$results[$prepend.$key]=$value;
+
+				continue;
+			}
+
+			$results[$prepend.$key]=$value;
+		}
 
 		return $results;
 	}
@@ -3350,21 +3384,22 @@
 
 		foreach($array as $item)
 		{
-			if($item instanceof lv_arr_ollection)
+			if($item instanceof lv_arr_collection)
 				$value=$item->all();
 
 			if(!is_array($item))
-				$result[]=$item;
-			else
 			{
-				if($depth === 1)
-					$values=array_values($item);
-				else
-					$values=(__METHOD__)($item, $depth-1);
-
-				foreach($values as $value)
-					$result[]=$value;
+				$result[]=$item;
+				continue;
 			}
+
+			if($depth === 1)
+				$values=array_values($item);
+			else
+				$values=(__METHOD__)($item, $depth-1);
+
+			foreach($values as $value)
+				$result[]=$value;
 		}
 
 		return $result;
@@ -3400,10 +3435,12 @@
 				if(
 					isset($array[$part]) &&
 					lv_arr_accessible($array[$part])
-				)
+				){
 					$array=&$array[$part];
-				else
-					continue 2;
+					continue;
+				}
+
+				continue 2;
 			}
 
 			unset($array[array_shift($parts)]);
@@ -3435,10 +3472,12 @@
 			if(
 				lv_arr_accessible($array) &&
 				lv_arr_exists($array, $segment)
-			)
+			){
 				$array=$array[$segment];
-			else
-				return lv_arr_value($default);
+				continue;
+			}
+
+			return lv_arr_value($default);
 		}
 
 		return $array;
@@ -3469,10 +3508,12 @@
 				if(
 					lv_arr_accessible($sub_key_array) &&
 					lv_arr_exists($sub_key_array, $segment)
-				)
+				){
 					$sub_key_array=$sub_key_array[$segment];
-				else
-					return false;
+					continue;
+				}
+
+				return false;
 			}
 		}
 
@@ -3501,6 +3542,15 @@
 	function lv_arr_head(array $array)
 	{
 		return reset($array);
+	}
+	function lv_arr_is_assoc(array $array)
+	{
+		$keys=array_keys($array);
+		return (array_keys($keys) !== $keys);
+	}
+	function lv_arr_is_list(array $array)
+	{
+		return (!lv_arr_is_assoc($array));
 	}
 	function lv_arr_join(array $array, string $glue, string $final_glue='')
 	{
@@ -3549,9 +3599,9 @@
 			$_key_by=function($items, $key_by)
 			{
 				// valueRetriever ->
-					if((!is_string($key_by)) && is_callable($key_by)) // useAsCallable
-						$key_by_callback=$key_by;
-					else
+					$key_by_callback=$key_by;
+
+					if(is_string($key_by) || (!is_callable($key_by))) // useAsCallable
 						$key_by_callback=function($item) use($key_by)
 						{
 							return lv_arr_data_get($item, $key_by);
@@ -3633,7 +3683,10 @@
 			if(is_string($value))
 				$value=explode('.', $value);
 
-			if(!(is_null($key) || is_array($key)))
+			if(!(
+				is_null($key) ||
+				is_array($key)
+			))
 				$key=explode('.', $key);
 		// <- explodePluckParameters
 
@@ -3647,29 +3700,30 @@
 			 * received from the developer. then we'll return the final array form
 			 */
 			if(is_null($key))
-				$results[]=$item_value;
-			else
 			{
-				$item_key=lv_arr_data_get($item, $key);
-
-				if(
-					is_object($item_key) &&
-					method_exists($item_key, '__toString')
-				)
-					$item_key=(string)$item_key;
-
-				$results[$item_key]=$item_value;
+				$results[]=$item_value;
+				continue;
 			}
+
+			$item_key=lv_arr_data_get($item, $key);
+
+			if(
+				is_object($item_key) &&
+				method_exists($item_key, '__toString')
+			)
+				$item_key=(string)$item_key;
+
+			$results[$item_key]=$item_value;
 		}
 
 		return $results;
 	}
 	function lv_arr_prepend(array $array, $value, $key=null)
 	{
-		if(func_num_args() === 2)
-			array_unshift($array, $value);
-		else
-			$array=[$key=>$value]+$array;
+		if(func_num_args() === 3)
+			return [$key=>$value]+$array;
+
+		array_unshift($array, $value);
 
 		return $array;
 	}
@@ -3692,14 +3746,11 @@
 	}
 	function lv_arr_random(array $array, int $number=null, bool $preserve_keys=false)
 	{
-		// from 10.x branch
-
-		if(is_null($number))
-			$requested=1;
-		else
-			$requested=$number;
-
+		$requested=1;
 		$count=count($array);
+
+		if(!is_null($number))
+			$requested=$number;
 
 		if($requested > $count)
 			throw new lv_arr_exception('You requested '.$requested.' items, but there are only '.$count.' items available');
@@ -3714,11 +3765,15 @@
 		$results=[];
 
 		if($preserve_keys)
+		{
 			foreach((array)$keys as $key)
 				$results[$key]=$array[$key];
-		else
-			foreach((array)$keys as $key)
-				$results[]=$array[$key];
+
+			return $results;
+		}
+
+		foreach((array)$keys as $key)
+			$results[]=$array[$key];
 
 		return $results;
 	}
@@ -3728,13 +3783,18 @@
 			$result=[];
 
 			foreach($keys as $key)
+			{
 				if(
 					lv_arr_accessible($item) &&
 					lv_arr_exists($item, $key)
-				)
+				){
 					$result[$key]=$item[$key];
-				else if(is_object($item) && isset($item->$key))
+					continue;
+				}
+
+				if(is_object($item) && isset($item->$key))
 					$result[$key]=$item->$key;
+			}
 
 			return $result;
 		});
@@ -3776,16 +3836,15 @@
 	}
 	function lv_arr_shuffle(array $array, int $seed=null)
 	{
-		// from 10.x branch
-
 		if(is_null($seed))
-			shuffle($array);
-		else
 		{
-			mt_srand($seed);
 			shuffle($array);
-			mt_srand();
+			return $array;
 		}
+
+		mt_srand($seed);
+		shuffle($array);
+		mt_srand();
 
 		return $array;
 	}
@@ -3797,16 +3856,55 @@
 	{
 		return lv_arr_collection::make($array)->sort_by_desc($callback)->all();
 	}
+	function lv_arr_sort_recursive(array $array, int $options=SORT_REGULAR, bool $descending=false)
+	{
+		foreach($array as &$value)
+			if(is_array($value))
+				$value=(__METHOD__)($value, $options, $descending);
+
+		if(lv_arr_is_assoc($array))
+		{
+			if($descending)
+			{
+				krsort($array, $options);
+				return $array;
+			}
+
+			ksort($array, $options);
+
+			return $array;
+		}
+
+		if($descending)
+		{
+			rsort($array, $options);
+			return $array;
+		}
+
+		sort($array, $options);
+
+		return $array;
+	}
+	function lv_arr_sort_recursive_desc($array, $options=SORT_REGULAR)
+	{
+		return lv_arr_sort_recursive($array, $options, true);
+	}
 	function lv_arr_to_css_classes(array $array)
 	{
 		$class_list=lv_arr_wrap($array);
 		$classes=[];
 
 		foreach($class_list as $class=>$constraint)
+		{
 			if(is_numeric($class))
+			{
 				$classes[]=$constraint;
-			else if($constraint)
+				continue;
+			}
+
+			if($constraint)
 				$classes[]=$class;
+		}
 
 		return implode(' ', $classes);
 	}
@@ -3841,7 +3939,10 @@
 	}
 	function lv_arr_data_fill(&$target, $key, $value)
 	{
-		if((!is_array($key)) && (!is_string($key)))
+		if(
+			(!is_array($key)) &&
+			(!is_string($key))
+		)
 			throw new lv_arr_exception(__METHOD__.'(): $key is not an array nor string');
 
 		return lv_arr_data_set($target, $key, $value, false);
@@ -3882,27 +3983,37 @@
 			if(
 				lv_arr_accessible($target) &&
 				lv_arr_exists($target, $segment)
-			)
+			){
 				$target=$target[$segment];
-			else if(
+				continue;
+			}
+
+			if(
 				is_object($target) &&
 				isset($target->$segment)
-			)
+			){
 				$target=$target->$segment;
-			else
-				return lv_arr_value($default);
+				continue;
+			}
+
+			return lv_arr_value($default);
 		}
 
 		return $target;
 	}
 	function lv_arr_data_set(&$target, $key, $value, $overwrite=true)
 	{
-		if(is_array($key))
-			$segments=$key;
-		else if(is_string($key))
-			$segments=explode('.', $key);
-		else
-			throw new lv_arr_exception(__METHOD__.'(): $key is not an array nor string');
+		switch(true)
+		{
+			case (is_array($key)):
+				$segments=$key;
+			break;
+			case (is_string($key)):
+				$segments=explode('.', $key);
+			break;
+			default:
+				throw new lv_arr_exception(__METHOD__.'(): $key is not an array nor string');
+		}
 
 		$segment=array_shift($segments);
 
@@ -3915,14 +4026,18 @@
 			{
 				foreach($target as &$inner)
 					(__METHOD__)($inner, $segments, $value, $overwrite);
+
+				return $target;
 			}
-			else if($overwrite)
-			{
+
+			if($overwrite)
 				foreach($target as &$inner)
 					$inner=$value;
-			}
+
+			return $target;
 		}
-		else if(lv_arr_accessible($target))
+
+		if(lv_arr_accessible($target))
 		{
 			if($segments)
 			{
@@ -3930,11 +4045,17 @@
 					$target[$segment]=[];
 
 				(__METHOD__)($target[$segment], $segments, $value, $overwrite);
+
+				return $target;
 			}
-			else if($overwrite || (!lv_arr_exists($target, $segment)))
+
+			if($overwrite || (!lv_arr_exists($target, $segment)))
 				$target[$segment]=$value;
+
+			return $target;
 		}
-		else if(is_object($target))
+
+		if(is_object($target))
 		{
 			if($segments)
 			{
@@ -3942,27 +4063,34 @@
 					$target->$segment=[];
 
 				(__METHOD__)($target->{$segment}, $segments, $value, $overwrite);
-			}
-			else if($overwrite || (!isset($target->$segment)))
-				$target->$segment=$value;
-		}
-		else
-		{
-			$target=[];
 
-			if($segments)
-				(__METHOD__)($target[$segment], $segments, $value, $overwrite);
-			else if($overwrite)
-				$target[$segment]=$value;
+				return $target;
+			}
+
+			if($overwrite || (!isset($target->$segment)))
+				$target->$segment=$value;
+
+			return $target;
 		}
+
+		$target=[];
+
+		if($segments)
+		{
+			(__METHOD__)($target[$segment], $segments, $value, $overwrite);
+			return $target;
+		}
+
+		if($overwrite)
+			$target[$segment]=$value;
 
 		return $target;
 	}
 	function lv_arr_data_forget(&$target, $key)
 	{
-		if(is_array($key))
-			$segments=$key;
-		else
+		$segments=$key;
+
+		if(!is_array($key))
 			$segments=explode('.', $key);
 
 		$segment=array_shift($segments);
@@ -3974,19 +4102,32 @@
 			if($segments)
 				foreach($target as &$inner)
 					(__METHOD__)($inner, $segments);
+
+			return $target;
 		}
-		else if(lv_arr_accessible($target))
+
+		if(lv_arr_accessible($target))
 		{
 			if($segments && lv_arr_exists($target, $segment))
+			{
 				(__METHOD__)($target[$segment], $segments);
-			else
-				lv_arr_forget($target, $segment);
+				return $target;
+			}
+
+			lv_arr_forget($target, $segment);
+
+			return $target;
 		}
-		else if(is_object($target))
+
+		if(is_object($target))
 		{
 			if($segments && isset($target->$segment))
+			{
 				(__METHOD__)($target->$segment, $segments);
-			else if(isset($target->$segment))
+				return $target;
+			}
+
+			if(isset($target->$segment))
 				unset($target->$segment);
 		}
 
@@ -4000,7 +4141,7 @@
 		return $value;
 	}
 
-	interface lv_arr_enumerable extends Countable, JsonSerializable
+	interface lv_arr_enumerable extends Countable, IteratorAggregate, JsonSerializable
 	{
 		// trait conditionable -> lv_arr_enumerates_values
 			public function unless($value, callable $callback, callable $default=null);
@@ -4154,6 +4295,8 @@
 
 		/* trait conditionable */
 		/* { */
+			// dev note: this trait appears in the lv_str.php library
+
 			protected function higher_order_when_proxy($target)
 			{
 				return new class($target)
@@ -4231,7 +4374,8 @@
 
 				if(!$value)
 					return ($callback($this, $value) ?? $this);
-				else if($default)
+
+				if($default)
 					return ($default($this, $value) ?? $this);
 
 				return $this;
@@ -4248,7 +4392,8 @@
 
 				if($value)
 					return ($callback($this, $value) ?? $this);
-				else if($default)
+
+				if($default)
 					return ($default($this, $value) ?? $this);
 
 				return $this;
@@ -4276,8 +4421,8 @@
 				return new static();
 
 			return static::range(1, $number)
-				->unless($callback == null)
-				->map($callback);
+			->	unless($callback == null)
+			->	map($callback);
 		}
 		public static function unwrap($value)
 		{
@@ -4500,14 +4645,17 @@
 		}
 		public function jsonSerialize()
 		{
-			return array_map(function($value){
-				if($value instanceof JsonSerializable)
-					return $value->jsonSerialize();
-				// removed else if($value instanceof Jsonable)
-				// removes else if($value instanceof Arrayable)
+			return array_map(
+				function($value){
+					if($value instanceof JsonSerializable)
+						return $value->jsonSerialize();
+					// removed else if($value instanceof Jsonable)
+					// removes else if($value instanceof Arrayable)
 
-				return $value;
-			}, $this->all());
+					return $value;
+				},
+				$this->all()
+			);
 		}
 		public function map_into(string $class)
 		{
@@ -4531,31 +4679,36 @@
 		{
 			$callback=$this->value_retriever($callback);
 
-			return $this->filter(function($value){
-				return (!is_null($value));
-			})->reduce(function($result, $item) use($callback){
-				$value=$callback($item);
+			return $this
+			->	filter(function($value){
+					return (!is_null($value));
+				})
+			->	reduce(function($result, $item) use($callback){
+					$value=$callback($item);
 
-				if(is_null($result) || ($value > $result))
-					return $value;
+					if(is_null($result) || ($value > $result))
+						return $value;
 
-				return $result;
-			});
+					return $result;
+				});
 		}
 		public function min($callback=null)
 		{
 			$callback=$this->value_retriever($callback);
 
-			return $this->map(function($value) use($callback){
-				return $callback($value);
-			})->filter(function($value){
-				return (!is_null($value));
-			})->reduce(function($result, $value){
-				if(is_null($result) || ($value < $result))
-					return $value;
+			return $this
+			->	map(function($value) use($callback){
+					return $callback($value);
+				})
+			->	filter(function($value){
+					return (!is_null($value));
+				})
+			->	reduce(function($result, $value){
+					if(is_null($result) || ($value < $result))
+						return $value;
 
-				return $result;
-			});
+					return $result;
+				});
 		}
 		public function partition($key, string $operator=null, $value=null)
 		{
@@ -4568,10 +4721,15 @@
 				$callback=$this->operator_for_where(...func_get_args());
 
 			foreach($this->items as $key=>$item)
+			{
 				if($callback($item, $key))
+				{
 					$passed[$key]=$item;
-				else
-					$failed[$key]=$item;
+					continue;
+				}
+
+				$failed[$key]=$item;
+			}
 
 			return new static([new static($passed), new static($failed)]);
 		}
@@ -4659,11 +4817,13 @@
 		}
 		public function to_array()
 		{
-			return $this->map(function($value){
-				// removed if($value instanceof Arrayable)
+			return $this
+			->	map(function($value){
+					// removed if($value instanceof Arrayable)
 
-				return $value;
-			})->all();
+					return $value;
+				})
+			->	all();
 		}
 		public function to_json(int $options=0)
 		{
@@ -4779,6 +4939,16 @@
 			return new static(range($from, $to));
 		}
 
+		public function __construct($items=[])
+		{
+			$this->items=$this->get_arrayable_items($items);
+		}
+
+		// IteratorAggregate
+		public function getIterator()
+		{
+			return new ArrayIterator($this->items);
+		}
 		// ArrayAccess
 		public function offsetExists($key): bool
 		{
@@ -4791,18 +4961,16 @@
 		public function offsetSet($key, $value): void
 		{
 			if(is_null($key))
+			{
 				$this->items[]=$value;
-			else
-				$this->items[$key]=$value;
+				return;
+			}
+
+			$this->items[$key]=$value;
 		}
 		public function offsetUnset($key): void
 		{
 			unset($this->items[$key]);
-		}
-
-		public function __construct($items=[])
-		{
-			$this->items=$this->get_arrayable_items($items);
 		}
 
 		protected function duplicate_comparator($strict)
@@ -4869,9 +5037,10 @@
 			$callback=$this->value_retriever($callback);
 
 			$items=$this
-				->map(function($value) use($callback){
+			->	map(function($value) use($callback){
 					return $callback($value);
-				})->filter(function($value){
+				})
+			->	filter(function($value){
 					return (!is_null($value));
 				});
 
@@ -4897,9 +5066,10 @@
 			$chunks=[];
 
 			foreach(
-				$this->lazy()
-					->chunk_while($callback)
-					->all()
+				$this
+				->	lazy()
+				->	chunk_while($callback)
+				->	all()
 				as $chunk
 			)
 				$chunks[]=$chunk->all();
@@ -4933,7 +5103,6 @@
 				if($this->use_as_callable($key))
 				{
 					$placeholder=new class(){};
-
 					return ($this->first($key, $placeholder) !== $placeholder);
 				}
 
@@ -4952,6 +5121,15 @@
 				return $this->contains(function($item) use($key, $value){
 					return (lv_arr_data_get($item, $key) === $value);
 				});
+
+			if($this->use_as_callable($key))
+				return (!is_null($this->first($key)));
+
+			foreach($this->items as $item)
+				if($item === $key)
+					return true;
+
+			return false;
 		}
 		public function count(): int
 		{
@@ -4959,11 +5137,10 @@
 		}
 		public function count_by($count_by=null)
 		{
-			return new static(
-				$this->lazy()
-					->count_by($count_by)
-					->all()
-			);
+			return new static($this
+			->	lazy()
+			->	count_by($count_by)
+			->	all());
 		}
 		public function cross_join(...$lists)
 		{
@@ -5033,13 +5210,17 @@
 			$duplicates=new static();
 
 			foreach($items->items as $key=>$value)
+			{
 				if(
 					$unique_items->is_not_empty() &&
 					$compare($value, $unique_items->first())
-				)
+				){
 					$unique_items->shift();
-				else
-					$duplicates[$key]=$value;
+					continue;
+				}
+
+				$duplicates[$key]=$value;
+			}
 
 			return $duplicates;
 		}
@@ -5053,8 +5234,9 @@
 				return new static($this->items);
 
 			if($keys instanceof lv_arr_enumerable)
-				$keys=$keys->all();
-			else if(!is_array($keys))
+				return new static(lv_arr_except($this->items, $keys->all()));
+
+			if(!is_array($keys))
 				$keys=func_get_args();
 
 			return new static(lv_arr_except($this->items, $keys));
@@ -5072,12 +5254,12 @@
 		}
 		public function first_or_fail($key=null, string $operator=null, $value=null)
 		{
+			$placeholder=new class(){};
+			$filter=$key;
+
 			if(func_num_args() > 1)
 				$filter=$this->operator_for_where(...func_get_args());
-			else
-				$filter=$key;
 
-			$placeholder=new class(){};
 			$item=$this->first($filter, $placeholder);
 
 			if($item === $placeholder)
@@ -5145,9 +5327,12 @@
 						$results[$group_key]=new static();
 
 					if($preserve_keys)
+					{
 						$results[$group_key]->offsetSet($key, $value);
-					else
-						$results[$group_key]->offsetSet(null, $value);
+						continue;
+					}
+
+					$results[$group_key]->offsetSet(null, $value);
 				}
 			}
 
@@ -5160,9 +5345,9 @@
 		}
 		public function has($key)
 		{
-			if(is_array($key))
-				$keys=$key;
-			else
+			$keys=$key;
+
+			if(!is_array($key))
 				$keys=func_get_args();
 
 			foreach($keys as $value)
@@ -5176,9 +5361,9 @@
 			if($this->is_empty())
 				return false;
 
-			if(is_array($key))
-				$keys=$key;
-			else
+			$keys=$key;
+
+			if(!is_array($key))
 				$keys=func_get_args();
 
 			foreach($keys as $value)
@@ -5326,11 +5511,17 @@
 		}
 		public function median($key=null)
 		{
-			$values=(isset($key) ? $this->pluck($key) : $this)
-				->filter(function($item){
+			$values=$this;
+
+			if(isset($key))
+				$values=$this->pluck($key);
+
+			$values
+			->	filter(function($item){
 					return (!is_null($item));
 				})
-				->sort()->values();
+			->	sort()
+			->	values();
 
 			$count=$values->count();
 
@@ -5366,26 +5557,33 @@
 			if($this->count() === 0)
 				return null;
 
+			$collection=$this;
+
 			if(isset($key))
 				$collection=$this->pluck($key);
-			else
-				$collection=$this;
 
 			$counts=new static();
 
 			$collection->each(function($value) use($counts){
 				if(isset($counts[$value]))
+				{
 					$counts[$value]=$counts[$value]+1;
-				else
-					$counts[$value]=1;
+					return;
+				}
+
+				$counts[$value]=1;
 			});
 
 			$sorted=$counts->sort();
 			$highest_value=$sorted->last();
 
-			return $sorted->filter(function($value) use($highest_value){
-				return ($value == $highest_value);
-			})->sort()->keys()->all();
+			return $sorted
+			->	filter(function($value) use($highest_value){
+					return ($value == $highest_value);
+				})
+			->	sort()
+			->	keys()
+			->	all();
 		}
 		public function nth(int $step, int $offset=0)
 		{
@@ -5434,7 +5632,10 @@
 			$results=[];
 			$collection_count=$this->count();
 
-			foreach(range(1, min($count, $collection_count)) as $item)
+			foreach(range(
+				1,
+				min($count, $collection_count)
+			) as $item)
 				array_push($results, array_pop($this->items));
 
 			return new static($results);
@@ -5527,7 +5728,10 @@
 			$results=[];
 			$collection_count=$this->count();
 
-			foreach(range(1, min($count, $collection_count)) as $item)
+			foreach(range(
+				1,
+				min($count, $collection_count)
+			) as $item)
 				array_push($results, array_shift($this->items));
 
 			return new static($results);
@@ -5542,19 +5746,17 @@
 		}
 		public function skip_until($value)
 		{
-			return new static(
-				$this->lazy()
-					->skip_until($value)
-					->all()
-			);
+			return new static($this
+			->	lazy()
+			->	skip_until($value)
+			->	all());
 		}
 		public function skip_while($value)
 		{
-			return new static(
-				$this->lazy()
-					->skip_while($value)
-					->all()
-			);
+			return new static($this
+			->	lazy()
+			->	skip_while($value)
+			->	all());
 		}
 		public function slice(int $offset, int $length=null)
 		{
@@ -5570,16 +5772,17 @@
 		}
 		public function sole($key=null, string $operator=null, $value=null)
 		{
+			$filter=$key;
+
 			if(func_num_args() > 1)
 				$filter=$this->operator_for_where(...func_get_args());
-			else
-				$filter=$key;
 
 			$items=$this->unless($filter == null)->filter($filter);
 			$count=$items->count();
 
 			if($count === 0)
 				throw new lv_arr_exception('Item not found');
+
 			if($count > 1)
 				throw new lv_arr_exception($count.' items were found');
 
@@ -5590,9 +5793,18 @@
 			$items=$this->items;
 
 			if($callback && is_callable($callback))
+			{
 				uasort($items, $callback);
-			else
-				asort($items, $callback ?? SORT_REGULAR);
+				return new static($items);
+			}
+
+			if(isset($callback))
+			{
+				asort($items, $callback);
+				return new static($items);
+			}
+
+			asort($items, SORT_REGULAR);
 
 			return new static($items);
 		}
@@ -5644,9 +5856,12 @@
 			$items=$this->items;
 
 			if($descending)
+			{
 				krsort($items, $options);
-			else
-				ksort($items, $options);
+				return new static($items);
+			}
+
+			ksort($items, $options);
 
 			return new static($items);
 		}
@@ -5712,19 +5927,17 @@
 		}
 		public function take_until($value)
 		{
-			return new static(
-				$this->lazy()
-					->take_until($value)
-					->all()
-			);
+			return new static($this
+			->	lazy()
+			->	take_until($value)
+			->	all());
 		}
 		public function take_while($value)
 		{
-			return new static(
-				$this->lazy()
-					->take_while($value)
-					->all()
-			);
+			return new static($this
+			->	lazy()
+			->	take_while($value)
+			->	all());
 		}
 		public function transform(callable $callback)
 		{
@@ -5784,6 +5997,24 @@
 	{
 		use lv_arr_enumerates_values;
 
+		/* trait enumerates_values */
+		/* { */
+			protected function equality($value)
+			{
+				return function($item) use($value)
+				{
+					return ($item === $value);
+				};
+			}
+			protected function negate(Closure $callback)
+			{
+				return function(...$params) use($callback)
+				{
+					return (!$callback(...$params));
+				};
+			}
+		/* } */
+
 		public $source;
 
 		public static function range(int $from, int $to)
@@ -5800,19 +6031,31 @@
 
 		public function __construct($source=null)
 		{
-			if(
-				($source instanceof Closure) ||
-				($source instanceof self)
-			)
-				$this->source=$source;
-			else if(is_null($source))
-				$this->source=static::empty();
-			else if($source instanceof Generator)
-				throw new lv_arr_exception(
-					'Generators should not be passed directly to '.static::class.'. Instead, pass a generator function.'
-				);
-			else
-				$this->source=$this->get_arrayable_items($source);
+			switch(true)
+			{
+				case (
+					($source instanceof Closure) ||
+					($source instanceof self)
+				):
+					$this->source=$source;
+				break;
+				case (is_null($source)):
+					$this->source=static::empty();
+				break;
+				case ($source instanceof Generator):
+					throw new lv_arr_exception(
+						'Generators should not be passed directly to '.static::class.'. Instead, pass a generator function.'
+					);
+				break;
+				default:
+					$this->source=$this->get_arrayable_items($source);
+			}
+		}
+
+		// IteratorAggregate
+		public function getIterator()
+		{
+			return $this->make_iterator($this->source);
 		}
 
 		protected function chunk_while_collection()
@@ -5889,9 +6132,11 @@
 
 							if(!$iterator->valid())
 								break;
+
+							continue;
 						}
-						else
-							break;
+
+						break;
 					}
 
 					yield new static($chunk);
@@ -5921,7 +6166,6 @@
 						$chunk)
 					){
 						yield new static($chunk);
-
 						$chunk=$this->chunk_while_collection();
 					}
 
@@ -6125,17 +6369,17 @@
 		}
 		public function first_or_fail($key=null, string $operator=null, $value=null)
 		{
+			$filter=$key;
+
 			if(func_num_args() > 1)
 				$filter=$this->operator_for_where(...func_get_args());
-			else
-				$filter=$key;
 
 			return $this
-				->unless($filter == null)
-				->filter($filter)
-				->take(1)
-				->collect()
-				->first_or_fail();
+			->	unless($filter == null)
+			->	filter($filter)
+			->	take(1)
+			->	collect()
+			->	first_or_fail();
 		}
 		public function flip()
 		{
@@ -6175,7 +6419,7 @@
 			foreach($this->source as $key=>$value)
 				if(
 					array_key_exists($key, $keys) &&
-					(--$count == 0)
+					(--$count === 0)
 				)
 					return true;
 
@@ -6301,9 +6545,11 @@
 		{
 			if($keys instanceof lv_arr_enumerable)
 				$keys=$keys->all();
-			else if(!is_null($keys))
-				if(!is_array($keys))
-					$keys=func_get_args();
+			else if(
+				(!is_null($keys)) &&
+				(!is_array($keys))
+			)
+				$keys=func_get_args();
 
 			return new static(function() use($keys){
 				if(is_null($keys))
@@ -6336,7 +6582,6 @@
 				foreach($this->source as $index=>$item)
 				{
 					yield $index=>$item;
-
 					++$yielded;
 				}
 
@@ -6388,7 +6633,6 @@
 					if(array_key_exists($key, $items))
 					{
 						yield $key=>$items[$key];
-
 						unset($items[$key]);
 					}
 					else
@@ -6414,7 +6658,6 @@
 					if(array_key_exists($index, $cache))
 					{
 						yield $cache[$index][0]=>$cache[$index][1];
-
 						continue;
 					}
 
@@ -6439,9 +6682,9 @@
 		}
 		public function search($value, bool $strict=false)
 		{
-			if($this->use_as_callable($value))
-				$predicate=$value;
-			else
+			$predicate=$value;
+
+			if(!$this->use_as_callable($value))
 				$predicate=function($item) use($value, $strict)
 				{
 					if($strict)
@@ -6460,11 +6703,11 @@
 		{
 			if($keys instanceof lv_arr_enumerable)
 				$keys=$keys->all();
-			else if(!is_null($keys))
-			{
-				if(!is_array($keys))
-					$keys=func_get_args();
-			}
+			else if(
+				(!is_null($keys)) &&
+				(!is_array($keys))
+			)
+				$keys=func_get_args();
 
 			return new static(function() use($keys){
 				if(is_null($keys))
@@ -6475,12 +6718,23 @@
 						$result=[];
 
 						foreach($keys as $key)
-							if(lv_arr_accessible($item) && lv_arr_exists($item, $key))
+						{
+							if(
+								lv_arr_accessible($item) &&
+								lv_arr_exists($item, $key)
+							){
 								$result[$key]=$item[$key];
-							else if(is_object($item) && isset($item->$key))
-								$result[$key]=$item->$key;
+								continue;
+							}
 
-							yield $result;
+							if(
+								is_object($item) &&
+								isset($item->$key)
+							)
+								$result[$key]=$item->$key;
+						}
+
+						yield $result;
 					}
 			});
 		}
@@ -6499,7 +6753,6 @@
 				while($iterator->valid())
 				{
 					yield $iterator->key()=>$iterator->current();
-
 					$iterator->next();
 				}
 			});
@@ -6507,17 +6760,20 @@
 		public function skip_until($value)
 		{
 			if($this->use_as_callable($value))
+			{
 				$callback=$value;
-			else
-				$callback=$this->equality($value);
+				return $this->skip_while($this->negate($callback));
+			}
+
+			$callback=$this->equality($value);
 
 			return $this->skip_while($this->negate($callback));
 		}
 		public function skip_while($value)
 		{
-			if($this->use_as_callable($value))
-				$callback=$value;
-			else
+			$callback=$value;
+
+			if(!$this->use_as_callable($value))
 				$callback=$this->equality($value);
 
 			return new static(function() use($callback){
@@ -6535,7 +6791,6 @@
 				while($iterator->valid())
 				{
 					yield $iterator->key()=>$iterator->current();
-
 					$iterator->next();
 				}
 			});
@@ -6588,17 +6843,17 @@
 		}
 		public function sole($key=null, string $operator=null, $value=null)
 		{
+			$filter=$key;
+
 			if(func_num_args() > 1)
 				$filter=$this->operator_for_where(...func_get_args());
-			else
-				$filter=$key;
 
 			return $this
-				->unless($filter == null)
-				->filter($filter)
-				->take(2)
-				->collect()
-				->sole();
+			->	unless($filter == null)
+			->	filter($filter)
+			->	take(2)
+			->	collect()
+			->	sole();
 		}
 		public function sort($callback=null)
 		{
@@ -6650,10 +6905,12 @@
 						$position=($position+1)%$limit;
 					}
 
-					for($i=0, $end=min($limit, count($ring_buffer)); $i<$end; ++$i)
-					{
+					for(
+						$i=0, $end=min($limit, count($ring_buffer));
+						$i<$end;
+						++$i
+					){
 						$pointer=($position+$i)%$limit;
-
 						yield $ring_buffer[$pointer][0]=>$ring_buffer[$pointer][1];
 					}
 				});
@@ -6675,9 +6932,9 @@
 		}
 		public function take_until($value)
 		{
-			if($this->use_as_callable($value))
-				$callback=$value;
-			else
+			$callback=$value;
+
+			if(!$this->use_as_callable($value))
 				$callback=$this->equality($value);
 
 			return new static(function() use($callback){
@@ -6692,9 +6949,9 @@
 		}
 		public function take_while($value)
 		{
-			if($this->use_as_callable($value))
-				$callback=$value;
-			else
+			$callback=$value;
+
+			if(!$this->use_as_callable($value))
 				$callback=$this->equality($value);
 
 			return $this->take_until(function($item, $key) use($callback){
@@ -6723,7 +6980,6 @@
 					if(!in_array($id, $exists, $strict))
 					{
 						yield $key=>$item;
-
 						$exists[]=$id;
 					}
 				}
@@ -6735,22 +6991,6 @@
 				foreach($this->source as $item)
 					yield $item;
 			});
-		}
-
-		// from EnumeratesValues trait
-		protected function equality($value)
-		{
-			return function($item) use($value)
-			{
-				return ($item === $value);
-			};
-		}
-		protected function negate(Closure $callback)
-		{
-			return function(...$params) use($callback)
-			{
-				return (!$callback(...$params));
-			};
 		}
 	}
 ?>

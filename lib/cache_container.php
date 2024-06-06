@@ -90,6 +90,16 @@
 	 */
 
 	class cache_container_exception extends Exception {}
+
+	interface cache_driver
+	{
+		public function put($key, $value, $timeout): void;
+		public function get($key): array;
+			// returns array('value'=>string_value, 'timeout'=>int_timeout, 'timestamp'=>int_timestamp)|array()
+		public function unset($key): void;
+		public function flush(): void;
+	}
+
 	class cache_container
 	{
 		protected $cache_driver;
@@ -111,6 +121,7 @@
 			else
 			{
 				$value=$this->cache_driver->get($key);
+
 				if(empty($value))
 				{
 					$value=null;
@@ -129,6 +140,7 @@
 			if(($timeout !== 0) && ((time()-$timestamp) > $timeout))
 			{
 				$this->unset($key);
+
 				$value=null;
 				$timeout=0;
 			}
@@ -145,6 +157,7 @@
 		{
 			$value=null;
 			$timeout=0;
+
 			$this->validate_cache($key, $value, $timeout);
 
 			if($value === null)
@@ -174,12 +187,14 @@
 		{
 			$value=null;
 			$timeout=0;
+
 			$this->validate_cache($key, $value, $timeout);
 
 			if($value === null)
 				throw new cache_container_exception($key.' is not set');
 
 			$value=$value+$amount;
+
 			$this->put($key, $value, $timeout);
 
 			return $value;
@@ -188,12 +203,14 @@
 		{
 			$value=null;
 			$timeout=0;
+
 			$this->validate_cache($key, $value, $timeout);
 
 			if($value === null)
 				throw new cache_container_exception($key.' is not set');
 
 			$value=$value-$amount;
+
 			$this->put($key, $value, $timeout);
 
 			return $value;
@@ -202,6 +219,7 @@
 		{
 			$value=null;
 			$timeout=0;
+
 			$this->validate_cache($key, $value, $timeout);
 
 			if($value === null)
@@ -306,6 +324,7 @@
 				throw new cache_container_exception($key.' is not set');
 
 			$value['value']=$value['value']+$amount;
+
 			$this->put($key, $value['value'], $value['timeout']);
 
 			return $value['value'];
@@ -318,6 +337,7 @@
 				throw new cache_container_exception($key.' is not set');
 
 			$value['value']=$value['value']-$amount;
+
 			$this->put($key, $value['value'], $value['timeout']);
 
 			return $value['value'];
@@ -325,6 +345,7 @@
 		public function pull(string $key)
 		{
 			$value=$this->get($key, null);
+
 			$this->unset($key);
 
 			if($value === null)
@@ -340,15 +361,6 @@
 		{
 			$this->cache_driver->flush();
 		}
-	}
-
-	interface cache_driver
-	{
-		public function put($key, $value, $timeout): void;
-		public function get($key): array;
-			// returns array('value'=>string_value, 'timeout'=>int_timeout, 'timestamp'=>int_timestamp)|array()
-		public function unset($key): void;
-		public function flush(): void;
 	}
 
 	class cache_driver_none implements cache_driver
@@ -779,6 +791,7 @@
 		public function get($key): array
 		{
 			$this->memcached_handler->get($this->prefix.$key); // trigger expiration
+
 			$value=$this->memcached_handler->get($this->prefix.$key);
 
 			if($value === false)

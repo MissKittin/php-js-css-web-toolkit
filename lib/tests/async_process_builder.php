@@ -21,6 +21,8 @@
 
 			if($input === 'do_getenv')
 				echo 'GETENV: '.getenv('GETENV_VARIABLE').PHP_EOL;
+			else if($input === 'get_arg')
+				echo 'GETARG: '.$argv[2].PHP_EOL;
 			else
 			{
 				echo 'OUT: '.$input.PHP_EOL;
@@ -564,6 +566,84 @@
 			echo ' [FAIL]'.PHP_EOL;
 			$failed=true;
 			$caught[]='setenv/read_line stop: '.$error->getMessage();
+		}
+		echo '  -> process_started';
+			if(!$process->process_started())
+				echo ' [ OK ]'.PHP_EOL;
+			else
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				$failed=true;
+			}
+
+	echo ' -> Testing arg/read_line'.PHP_EOL;
+		$process=new async_process_builder($process_command, false);
+		$process->arg('--testarg=value');
+		echo '  -> get_args';
+			if(
+				($process->get_args()[0] === '\'--testarg=value\'') || // *nix
+				($process->get_args()[0] === '"--testarg=value"') // windows
+			)
+				echo ' [ OK ]'.PHP_EOL;
+			else
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				$failed=true;
+			}
+		$process->start();
+		echo '  -> process_started';
+			if($process->process_started())
+			{
+				echo ' [ OK ]'.PHP_EOL;
+				echo '  -> get_pid: '.$process->get_pid().PHP_EOL;
+			}
+			else
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				$failed=true;
+			}
+		try {
+			$process->write('get_arg');
+		} catch(Throwable $error) {
+			echo ' [FAIL]'.PHP_EOL;
+			$failed=true;
+			$caught[]='arg/read_line write: '.$error->getMessage();
+		}
+		sleep($read_delay);
+		echo '  -> out';
+			try {
+				if($process->read_line_out() === 'GETARG: --testarg=value')
+					echo ' [ OK ]'.PHP_EOL;
+				else
+				{
+					echo ' [FAIL]'.PHP_EOL;
+					$failed=true;
+				}
+			} catch(Throwable $error) {
+				echo ' [FAIL]'.PHP_EOL;
+				$failed=true;
+				$caught[]='arg/read_line out: '.$error->getMessage();
+			}
+		echo '  -> stdin_closed';
+			try {
+				if(!$process->stdin_closed())
+					echo ' [ OK ]'.PHP_EOL;
+				else
+				{
+					echo ' [FAIL]'.PHP_EOL;
+					$failed=true;
+				}
+			} catch(Throwable $error) {
+				echo ' [FAIL]'.PHP_EOL;
+				$failed=true;
+				$caught[]='arg/read_line stdin_closed: '.$error->getMessage();
+			}
+		try {
+			$process->stop();
+		} catch(Throwable $error) {
+			echo ' [FAIL]'.PHP_EOL;
+			$failed=true;
+			$caught[]='arg/read_line stop: '.$error->getMessage();
 		}
 		echo '  -> process_started';
 			if(!$process->process_started())

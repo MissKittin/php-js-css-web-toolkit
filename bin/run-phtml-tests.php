@@ -42,6 +42,16 @@
 	}
 	else if(php_sapi_name() === 'cli')
 	{
+		putenv('TK_BIN='.__DIR__);
+		putenv('TK_COM='
+		.	__DIR__.'/com'."\n"
+		.	__DIR__.'/../com'
+		);
+		putenv('TK_LIB='
+		.	__DIR__.'/lib'."\n"
+		.	__DIR__.'/../lib'
+		);
+
 		if(isset($argv[1]))
 		{
 			if(!is_dir($argv[1]))

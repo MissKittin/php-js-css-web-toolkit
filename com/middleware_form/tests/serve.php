@@ -71,18 +71,18 @@
 			$middleware_form->add_config('inline_style', true);
 
 		$middleware_form
-			->add_config('title', 'Weryfikacja')
-			->add_config('submit_button_label', 'Dalej');
+		->	add_config('title', 'Weryfikacja')
+		->	add_config('submit_button_label', 'Dalej');
 
 		$middleware_form
-			->add_field([
+		->	add_field([
 				'tag'=>'input',
 				'type'=>'text',
 				'name'=>'captcha_input',
 				'placeholder'=>'Przepisz tekst z obrazka'
 			])
 
-			->add_field([
+		->	add_field([
 				'tag'=>'input',
 				'type'=>'checkbox',
 				'name'=>'captcha',
@@ -90,41 +90,41 @@
 				'checked'=>null
 			])
 
-			->add_field([
+		->	add_field([
 				'tag'=>null,
 				'content'=>'<a href="?theme=bright">Bright theme here</a><br>'
 			])
-			->add_field([
+		->	add_field([
 				'tag'=>null,
 				'content'=>'<a href="?theme=dark">Dark theme here</a><br>'
 			])
-			->add_field([
+		->	add_field([
 				'tag'=>null,
 				'content'=>'<a href="?theme=materialized">Materialized template here</a><hr>'
 			])
 
-			->add_field([
+		->	add_field([
 				'tag'=>'input',
 				'type'=>'radio',
 				'name'=>'captcha',
 				'label'=>'Check me...',
 				'checked'=>null
 			])
-			->add_field([
+		->	add_field([
 				'tag'=>'input',
 				'type'=>'radio',
 				'name'=>'captcha',
 				'label'=>'...or me'
 			])
 
-			->add_field([
+		->	add_field([
 				'tag'=>'input',
 				'type'=>'slider',
 				'slider_label'=>'Pokarz batona',
 				'name'=>'i_am_bam',
 				'checked'=>null
 			])
-			->add_field([
+		->	add_field([
 				'tag'=>'input',
 				'type'=>'slider',
 				'slider_label'=>'Pokarz batona',

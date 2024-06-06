@@ -5,6 +5,16 @@
 	 * Looks for files in ../com/${component}/tests directory
 	 */
 
+	putenv('TK_BIN='.__DIR__);
+	putenv('TK_COM='
+	.	__DIR__.'/com'."\n"
+	.	__DIR__.'/../com'
+	);
+	putenv('TK_LIB='
+	.	__DIR__.'/lib'."\n"
+	.	__DIR__.'/../lib'
+	);
+
 	if(isset($argv[1]))
 	{
 		if(($argv[1] === '-h') || ($argv[1] === '--help'))

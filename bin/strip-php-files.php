@@ -4,6 +4,7 @@
 	 * comments and whitespace from php files
 	 *
 	 * Warning:
+	 *  check_var.php library is required
 	 *  rmdir_recursive.php library is required
 	 *
 	 * lib directory path:
@@ -24,20 +25,17 @@
 	}
 
 	try {
-		load_library(['rmdir_recursive.php']);
+		load_library(['check_var.php', 'rmdir_recursive.php']);
 	} catch(Exception $error) {
 		echo 'Error: '.$error->getMessage().PHP_EOL;
 		exit(1);
 	}
 
 	if(
-		isset($argv[1]) &&
-		(
-			($argv[1] === '-h') ||
-			($argv[1] === '--help')
-		)
+		check_argv('-h') ||
+		check_argv('--help')
 	){
-		echo 'Usage: '.$argv[0].' path/to/directory [--remove-tests]'.PHP_EOL;
+		echo 'Usage: '.$argv[0].' path/to/directory [--remove-tests] [--remove-md]'.PHP_EOL;
 		exit();
 	}
 
@@ -53,8 +51,24 @@
 		exit(1);
 	}
 
-	if(isset($argv[2]) && ($argv[2] === '--remove-tests'))
-	{
+	if(check_argv('--remove-md'))
+		foreach(iterator_to_array(
+			new RecursiveIteratorIterator(
+				new RecursiveDirectoryIterator($argv[1], RecursiveDirectoryIterator::SKIP_DOTS)
+			))
+			as $file
+		)
+			if(substr($file->getPathname(), -3) === '.md')
+			{
+				echo '[RM] '.realpath($file->getPathname());
+
+				if(unlink($file->getPathname()))
+					echo ' [ OK ]'.PHP_EOL;
+				else
+					echo ' [FAIL]'.PHP_EOL;
+			}
+
+	if(check_argv('--remove-tests'))
 		foreach(iterator_to_array(
 			new RecursiveIteratorIterator(
 				new RecursiveDirectoryIterator($argv[1])
@@ -63,14 +77,13 @@
 		)
 			if($directory->isDir() && (substr(strtr($directory, '\\', '/'), -8) === '/tests/.'))
 			{
-				echo realpath($directory->getPathname());
+				echo '[RM] '.realpath($directory->getPathname());
 
 				if(rmdir_recursive($directory->getPathname()))
 					echo ' [ OK ]'.PHP_EOL;
 				else
 					echo ' [FAIL]'.PHP_EOL;
 			}
-	}
 
 	foreach(iterator_to_array(
 		new RecursiveIteratorIterator(

@@ -19,6 +19,8 @@
 	 *   same as predis_connect_proxy
 	 */
 
+	class predis_connect_exception extends Exception {}
+
 	function predis_connect(string $db)
 	{
 		/*
@@ -33,22 +35,34 @@
 		 * Configuration:
 		 *  1) create a directory for database config files
 		 *  2) create a config.php file:
-				return [
-					'scheme'=>'tcp',
-					'host'=>'127.0.0.1',
-					'port'=>6379,
-					'database'=>0
-				];
+				<?php
+					return [
+						'scheme'=>'tcp',
+						'host'=>'127.0.0.1',
+						'port'=>6379,
+						'database'=>0
+					];
+				?>
+		 *  3) you can also create an options.php file:
+				<?php
+					return ['prefix'=>'sample:'];
+				?>
 		 *
 		 * Initialization:
 		 *  $redis=predis_connect('./path_to/your_database_config_directory');
 		 */
 
-		if(!class_exists('Predis\Client'))
+		if(!class_exists('\Predis\Client'))
 			throw new predis_connect_exception('predis/predis package is not installed');
 
 		if(!file_exists($db.'/config.php'))
 			throw new predis_connect_exception($db.'/config.php not exists');
+
+		if(file_exists($db.'/options.php'))
+			return new Predis\Client(
+				require $db.'/config.php',
+				require $db.'/options.php'
+			);
 
 		return new Predis\Client(
 			require $db.'/config.php'
@@ -61,7 +75,6 @@
 		);
 	}
 
-	class predis_connect_exception extends Exception {}
 	class predis_phpredis_proxy
 	{
 		/*
@@ -113,21 +126,28 @@
 
 			$output=$this->predis_handler->$method(...$args);
 
-			// set(): Predis\Response\Status --> set(): bool
-			if($method === 'set')
+			switch($method)
 			{
-				if(
-					($output->__toString() === 'OK') ||
-					($output->__toString() === 'QUEUED')
-				)
-					return true;
+				case 'set':
+					// set(): Predis\Response\Status --> set(): bool
+					if(
+						($output->__toString() === 'OK') ||
+						($output->__toString() === 'QUEUED')
+					)
+						return true;
 
-				return false;
+					return false;
+				case 'scan':
+					// scan(): [[iterator], [matches]] --> scan(): [matches]|false
+					if(empty($output[1]))
+						return false;
+
+					return $output[1];
+				default:
+					// get(): null --> get(): false
+					if($output === null)
+						return false;
 			}
-
-			// get(): null --> get(): false
-			if($output === null)
-				return false;
 
 			return $output;
 		}
