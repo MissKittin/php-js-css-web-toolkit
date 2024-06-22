@@ -134,21 +134,27 @@
 		echo ' -> Stopping tool'.PHP_EOL;
 
 		$_serve_test_handler_status=@proc_get_status($_serve_test_handler);
+
 		if(isset($_serve_test_handler_status['pid']))
 		{
-			@exec('taskkill.exe /F /T /PID '.$_serve_test_handler_status['pid'].' 2>&1');
-
-			$ch_pid=$_serve_test_handler_status['pid'];
-			$ch_pid_ex=$ch_pid;
-			while(($ch_pid_ex !== null) && ($ch_pid_ex !== ''))
-			{
-				$ch_pid=$ch_pid_ex;
-				$ch_pid_ex=@shell_exec('pgrep -P '.$ch_pid);
-			}
-			if($ch_pid === $_serve_test_handler_status['pid'])
-				proc_terminate($_serve_test_handler);
+			if(strtoupper(substr(PHP_OS, 0, 3)) === 'WIN')
+				@exec('taskkill.exe /F /T /PID '.$_serve_test_handler_status['pid'].' 2>&1');
 			else
-				@exec('kill '.rtrim($ch_pid).' 2>&1');
+			{
+				$_ch_pid=$_serve_test_handler_status['pid'];
+				$_ch_pid_ex=$_ch_pid;
+
+				while(($_ch_pid_ex !== null) && ($_ch_pid_ex !== ''))
+				{
+					$_ch_pid=$_ch_pid_ex;
+					$_ch_pid_ex=@shell_exec('pgrep -P '.$_ch_pid);
+				}
+
+				if($_ch_pid === $_serve_test_handler_status['pid'])
+					proc_terminate($_serve_test_handler);
+				else
+					@exec('kill '.rtrim($_ch_pid).' 2>&1');
+			}
 		}
 
 		proc_close($_serve_test_handler);

@@ -56,9 +56,8 @@
 		");
 		file_put_contents(__DIR__.'/tmp/automatic/dashboard/config.php', "<?php
 			\$this
-				->set_lang('en')
-				->set_title('Dashboard')
-			;
+			->	set_lang('en')
+			->	set_title('Dashboard');
 		?>");
 
 		mkdir(__DIR__.'/tmp/automatic/posts');
@@ -102,9 +101,8 @@
 		");
 		file_put_contents(__DIR__.'/tmp/automatic/posts/config.php', "<?php
 			\$this
-				->set_lang('en')
-				->set_title('Posts')
-			;
+			->	set_lang('en')
+			->	set_title('Posts');
 		?>");
 
 		mkdir(__DIR__.'/tmp/automatic/public');
@@ -120,7 +118,10 @@
 			\$admin_panel['global_variable']='global_value';
 
 			\$admin_panel
-				->add_module([
+			->	add_favicon(__DIR__.'/favicon.html')
+			->	set_logout_button_name('testname')
+			->	set_logout_button_label('testlabel')
+			->	add_module([
 					'id'=>'dashboard',
 					'path'=>'../dashboard',
 					'config'=>'config.php',
@@ -129,7 +130,7 @@
 					'name'=>'Dashboard',
 					'template_header'=>'Dashboard'
 				])
-				->add_module([
+			->	add_module([
 					'id'=>'posts',
 					'path'=>'../posts',
 					'config'=>'config.php',
@@ -139,18 +140,18 @@
 					'template_header'=>'Posts',
 					'custom_variable'=>'Custom variable here'
 				])
-				->add_menu_entry([
+			->	add_menu_entry([
 					'id'=>'github',
 					'url'=>'https://github.com/MissKittin/php-js-css-web-toolkit',
 					'name'=>'GitHub'
-				])
-			;
+				]);
 
 			\$result=\$admin_panel
-				->set_default_module('dashboard')
-				->run(true)
-			;
+			->	set_default_module('dashboard')
+			->	run(true);
 		?>");
+
+		file_put_contents(__DIR__.'/tmp/automatic/public/favicon.html', '<!-- favicon content -->');
 
 		mkdir(__DIR__.'/tmp/automatic/public/assets');
 		foreach(array_diff(scandir(__DIR__.'/../templates'), ['.', '..']) as $template)
@@ -170,7 +171,11 @@
 			file_put_contents(__DIR__.'/tmp/automatic/result_notfound.html', $result);
 			echo ' ('.md5($result).')';
 		}
-		if(md5($result) === '68c98ebb368deea075b0391ee8edd153')
+		$hash=md5($result);
+		if(
+			($hash === '3a5fe993734a80b6391c5e7a2291ef48') || // windows
+			($hash === '311f5b7bc29870e73952ab17fceeac4f') // linux
+		)
 			echo ' [ OK ]'.PHP_EOL;
 		else
 		{
@@ -187,7 +192,11 @@
 			file_put_contents(__DIR__.'/tmp/automatic/result_default.html', $result);
 			echo ' ('.md5($result).')';
 		}
-		if(md5($result) === 'a00a878cb8eff70718cdc28539314961')
+		$hash=md5($result);
+		if(
+			($hash === 'ffac6f0000b0f49fe962018bc34ade64') || // windows
+			($hash === 'bc0c278b3f5a37c409cc714fa4a100ac') // linux
+		)
 			echo ' [ OK ]'.PHP_EOL;
 		else
 		{
@@ -204,7 +213,11 @@
 			file_put_contents(__DIR__.'/tmp/automatic/result_dashboard.html', $result);
 			echo ' ('.md5($result).')';
 		}
-		if(md5($result) === 'e1b5cf31b5c56d03ccb2d223d98ee314')
+		$hash=md5($result);
+		if(
+			($hash === '26d60e2c19177489b78d3ce18b3be565') || // windows
+			($hash === '6a3f4d819d995e77b216aa88cabffc8c') // linux
+		)
 			echo ' [ OK ]'.PHP_EOL;
 		else
 		{
@@ -222,7 +235,7 @@
 			file_put_contents(__DIR__.'/tmp/automatic/result_posts-new.html', $result);
 			echo ' ('.md5($result).')';
 		}
-		if(md5($result) === '48a3dd2b44868cca2b33ad6bc41b9db2')
+		if(md5($result) === '7ad1745ce3928100b40b10c0bc267895')
 			echo ' [ OK ]'.PHP_EOL;
 		else
 		{
@@ -238,7 +251,7 @@
 			file_put_contents(__DIR__.'/tmp/automatic/result_posts-edit.html', $result);
 			echo ' ('.md5($result).')';
 		}
-		if(md5($result) === 'c1a4c37eef9ad6ec84eeee7cd0b8f517')
+		if(md5($result) === '1fe3e5516fc78179ab1c8210a87f41b6')
 			echo ' [ OK ]'.PHP_EOL;
 		else
 		{
@@ -254,7 +267,7 @@
 			file_put_contents(__DIR__.'/tmp/automatic/result_posts-delete.html', $result);
 			echo ' ('.md5($result).')';
 		}
-		if(md5($result) === 'eb8a2ef8bc6880c338c5dda91b7dcd49')
+		if(md5($result) === '5fcfdc4f82f45ae86ad8a53a8adc7017')
 			echo ' [ OK ]'.PHP_EOL;
 		else
 		{

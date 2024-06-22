@@ -5,7 +5,34 @@
 	 * Note:
 	 *  looks for a library at ../lib
 	 *  looks for a library at ..
+	 *
+	 * Warning:
+	 *  pf_php_float.php library is required
 	 */
+
+	echo ' -> Including pf_php_float.php';
+		if(is_file(__DIR__.'/../lib/pf_php_float.php'))
+		{
+			if(@(include __DIR__.'/../lib/pf_php_float.php') === false)
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				exit(1);
+			}
+		}
+		else if(is_file(__DIR__.'/../pf_php_float.php'))
+		{
+			if(@(include __DIR__.'/../pf_php_float.php') === false)
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				exit(1);
+			}
+		}
+		else
+		{
+			echo ' [FAIL]'.PHP_EOL;
+			exit(1);
+		}
+	echo ' [ OK ]'.PHP_EOL;
 
 	echo ' -> Including '.basename(__FILE__);
 		if(is_file(__DIR__.'/../lib/'.basename(__FILE__)))

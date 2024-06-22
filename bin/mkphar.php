@@ -6,6 +6,20 @@
 	 *  check_var.php library is required
 	 */
 
+	function get_regex($item, $pathname)
+	{
+		if($item[1])
+			return preg_match(
+				'/'.$item[0].'/',
+				strtr($pathname, '\\', '/')
+			);
+
+		return (strpos(
+			strtr($pathname, '\\', '/'),
+			strtr($item[0], '\\', '/')
+		) !== false);
+	}
+
 	if(file_exists(__DIR__.'/lib/check_var.php'))
 		require __DIR__.'/lib/check_var.php';
 	else if(file_exists(__DIR__.'/../lib/check_var.php'))
@@ -27,6 +41,8 @@
 		echo ' --source -> path for addFile()'.PHP_EOL;
 		echo ' --ignore -> do not add file/directory with name'.PHP_EOL;
 		echo ' --include -> force add file that ends with name (has priority over --ignore)'.PHP_EOL;
+		echo ' --ignore-regex -> do not add file/directory with name'.PHP_EOL;
+		echo ' --include-regex -> force add file that ends with name (has priority over --ignore)'.PHP_EOL;
 		echo '  note:'.PHP_EOL;
 		echo '   it doesn\'t matter if there is a slash or a backslash in the path'.PHP_EOL;
 		echo '   parent and absolute paths are forbidden'.PHP_EOL;
@@ -38,8 +54,10 @@
 	$shebang='';
 	$stub=check_argv_param('--stub', '=');
 	$sources=check_argv_param_many('--source', '=');
-	$ignores=check_argv_param_many('--ignore', '=');
-	$includes=check_argv_param_many('--include', '=');
+	$ignores=check_argv_param_many('--ignore-regex', '=');
+	$includes=check_argv_param_many('--include-regex', '=');
+	$ignores_std=check_argv_param_many('--ignore', '=');
+	$includes_std=check_argv_param_many('--include', '=');
 	$output=check_argv_param('--output', '=');
 
 	if(!Phar::canWrite())
@@ -95,13 +113,41 @@
 
 	if($ignores === null)
 		$ignores=[];
+	else
+	{
+		$new_ignores=[];
+
+		foreach($ignores as $file)
+			$new_ignores[]=[$file, true];
+
+		$ignores=$new_ignores;
+		unset($new_ignores);
+	}
 
 	if($includes === null)
 		$includes=[];
+	else
+	{
+		$new_includes=[];
+
+		foreach($includes as $file)
+			$new_includes[]=[$file, true];
+
+		$includes=$new_includes;
+		unset($new_includes);
+	}
+
+	if($ignores_std !== null)
+		foreach($ignores_std as $file)
+			$ignores[]=[$file, false];
+
+	if($includes_std !== null)
+		foreach($includes_std as $file)
+			$includes[]=[$file, false];
 
 	if(file_exists($output))
 	{
-		echo __DIR__.'/lib.phar already exists.PHP_EOL';
+		echo $output.' already exists'.PHP_EOL;
 		exit(1);
 	}
 
@@ -141,6 +187,7 @@
 		$phar->startBuffering();
 
 		echo ' -> Adding files'.PHP_EOL;
+
 		foreach($sources as &$source)
 			foreach(
 				new RecursiveIteratorIterator(
@@ -150,27 +197,20 @@
 			){
 				foreach($ignores as $ignore)
 				{
-					if(
-						strpos(
-							strtr($file->getPathname(), '\\', '/'),
-							strtr($ignore, '\\', '/')
-						) !== false
-					){
+					if(get_regex($ignore, $file->getPathname()))
+					{
 						foreach($includes as $include)
-							if( // str_ends_with()
-								substr(
-									strtr($file->getPathname(), '\\', '/'),
-									-strlen($include)
-								) === $include
-							)
+							if(get_regex($include, $file->getPathname()))
 								break 2;
 
 						echo '[IGN] '.$file->getPathname().PHP_EOL;
+
 						continue 2;
 					}
 				}
 
 				echo '[ADD] '.$file->getPathname().PHP_EOL;
+
 				$phar->addFile(
 					$file->getPathname(),
 					strtr($file->getPathname(), '\\', '/')
@@ -182,13 +222,14 @@
 		else
 		{
 			echo ' -> Adding stub';
+
 			if($shebang !== '')
 				echo ' with shebang'.PHP_EOL;
+
 			echo PHP_EOL;
-
 			echo '  -> '.$stub.' => __'.basename($stub).PHP_EOL;
-			$phar->addFile($stub, '__'.basename($stub));
 
+			$phar->addFile($stub, '__'.basename($stub));
 			$phar->setStub($shebang.$phar->createDefaultStub(basename($stub)));
 		}
 

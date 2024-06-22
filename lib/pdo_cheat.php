@@ -167,12 +167,6 @@
 		protected $pdo_handler;
 		protected $table_name;
 
-		public function pdo_cheat_exec__construct($pdo_handler, $table_name)
-		{
-			$this->pdo_handler=$pdo_handler;
-			$this->table_name=$table_name;
-		}
-
 		protected function exec($statement)
 		{
 			return $this->pdo_handler->exec($statement);
@@ -206,6 +200,11 @@
 
 			return $result;
 		}
+		protected function pdo_cheat_exec__construct($pdo_handler, $table_name)
+		{
+			$this->pdo_handler=$pdo_handler;
+			$this->table_name=$table_name;
+		}
 	}
 
 	final class pdo_cheat extends pdo_cheat__exec
@@ -220,16 +219,19 @@
 			foreach([
 				'pdo_handler'=>'object',
 				'table_name'=>'string'
-			] as $param=>$param_type)
+			] as $param=>$param_type){
 				if(isset($params[$param]))
 				{
 					if(gettype($params[$param]) !== $param_type)
 						throw new pdo_cheat_exception('The input array parameter '.$param.' is not a '.$param_type);
 
 					$this->$param=$params[$param];
+
+					continue;
 				}
-				else
-					throw new pdo_cheat_exception('The '.$param.' parameter was not specified for the constructor');
+
+				throw new pdo_cheat_exception('The '.$param.' parameter was not specified for the constructor');
+			}
 
 			if(!in_array(
 				$this->pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME),
@@ -249,64 +251,67 @@
 
 					$this->table_schema[$column_name]=$column_name;
 				}
+
+				return;
 			}
-			else
+
+			$table_schema=$this->query(''
+			.	'SELECT * '
+			.	'FROM '.$this->table_name.' '
+			.	'LIMIT 1'
+			);
+
+			if(($table_schema === false) || (!isset($table_schema[0])))
 			{
-				$table_schema=$this->query(''
-				.	'SELECT * '
-				.	'FROM '.$this->table_name.' '
-				.	'LIMIT 1'
-				);
-
-				if(($table_schema === false) || (!isset($table_schema[0])))
+				if(isset($params['new_table_schema']))
 				{
-					if(isset($params['new_table_schema']))
+					if(!is_array($params['new_table_schema']))
+						throw new pdo_cheat_exception('The input array parameter new_table_schema is not an array');
+
+					$table_schema='';
+
+					foreach($params['new_table_schema'] as $column_name=>$column_type)
 					{
-						if(!is_array($params['new_table_schema']))
-							throw new pdo_cheat_exception('The input array parameter new_table_schema is not an array');
+						if(!is_string($column_name))
+							throw new pdo_cheat_exception('One of the column name in the new_table_schema array is not a string');
 
-						$table_schema='';
+						if(!is_string($column_type))
+							throw new pdo_cheat_exception($column_name.' column type is not a string in the new_table_schema array');
 
-						foreach($params['new_table_schema'] as $column_name=>$column_type)
-						{
-							if(!is_string($column_name))
-								throw new pdo_cheat_exception('One of the column name in the new_table_schema array is not a string');
-							if(!is_string($column_type))
-								throw new pdo_cheat_exception($column_name.' column type is not a string in the new_table_schema array');
+						if($column_type === pdo_cheat::default_id_type)
+							switch($this->pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME))
+							{
+								case 'pgsql':
+									$column_type='SERIAL PRIMARY KEY';
+								break;
+								case 'mysql':
+									$column_type='INTEGER NOT NULL AUTO_INCREMENT, PRIMARY KEY('.$column_name.')';
+								break;
+								case 'sqlite':
+									$column_type='INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL';
+							}
 
-							if($column_type === pdo_cheat::default_id_type)
-								switch($this->pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME))
-								{
-									case 'pgsql':
-										$column_type='SERIAL PRIMARY KEY';
-									break;
-									case 'mysql':
-										$column_type='INTEGER NOT NULL AUTO_INCREMENT, PRIMARY KEY('.$column_name.')';
-									break;
-									case 'sqlite':
-										$column_type='INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL';
-								}
-
-							$table_schema.=$column_name.' '.$column_type.', ';
-						}
-
-						$table_schema=substr($table_schema, 0, -2);
-
-						if($this->exec(''
-						.	'CREATE TABLE IF NOT EXISTS '.$this->table_name
-						.	'('
-						.		$table_schema
-						.	')'
-						) === false)
-							throw new pdo_cheat_exception('Unable to create table');
-
-						$this->_pdo_cheat__save_table_schema($params['table_schema']);
+						$table_schema.=$column_name.' '.$column_type.', ';
 					}
+
+					$table_schema=substr($table_schema, 0, -2);
+
+					if($this->exec(''
+					.	'CREATE TABLE IF NOT EXISTS '.$this->table_name
+					.	'('
+					.		$table_schema
+					.	')'
+					) === false)
+						throw new pdo_cheat_exception('Unable to create table');
+
+					$this->_pdo_cheat__save_table_schema($params['table_schema']);
 				}
-				else
-					if(isset($table_schema[0]))
-						$this->_pdo_cheat__save_table_schema($table_schema[0]);
+
+				return;
 			}
+
+			if(isset($table_schema[0]))
+				$this->_pdo_cheat__save_table_schema($table_schema[0]);
 		}
 
 		public function dump_table(int $limit=null, int $limit_offset=null)
@@ -440,7 +445,6 @@
 			$table_name
 		){
 			$this->pdo_cheat_exec__construct($pdo_handler, $table_name);
-
 			$this->pdo_cheat=$pdo_cheat;
 		}
 		public function __call($column_name, $column_type)
@@ -504,7 +508,6 @@
 			$table_name
 		){
 			$this->pdo_cheat_exec__construct($pdo_handler, $table_name);
-
 			$this->pdo_cheat=$pdo_cheat;
 		}
 		public function __call($column_name, $value)
@@ -521,7 +524,8 @@
 
 				return $this->_add_column($column_name, $value[0]);
 			}
-			else if(substr($column_name, 0, 5) === 'drop_')
+
+			if(substr($column_name, 0, 5) === 'drop_')
 			{
 				$column_name=substr($column_name, 5);
 
@@ -530,7 +534,8 @@
 
 				return $this->_drop_column($column_name);
 			}
-			else if(substr($column_name, 0, 12) === 'rename_from_')
+
+			if(substr($column_name, 0, 12) === 'rename_from_')
 			{
 				$column_name=substr($column_name, 12);
 
@@ -544,7 +549,8 @@
 
 				return $this;
 			}
-			else if(substr($column_name, 0, 10) === 'rename_to_')
+
+			if(substr($column_name, 0, 10) === 'rename_to_')
 			{
 				$column_name=substr($column_name, 10);
 
@@ -559,7 +565,8 @@
 
 				return $return_value;
 			}
-			else if(substr($column_name, 0, 7) === 'modify_')
+
+			if(substr($column_name, 0, 7) === 'modify_')
 			{
 				if(!isset($value[0]))
 					throw new pdo_cheat_exception('Column datatype not specified');
@@ -607,8 +614,7 @@
 
 				$create_table_args.=''
 				.	$table_column['name'].' '
-				.	$table_column['type']
-				;
+				.	$table_column['type'];
 
 				if($table_column['notnull'] === '1')
 					$create_table_args.=' NOT NULL';
@@ -640,7 +646,6 @@
 			.	'DROP TABLE '.$rename_table_arg.';'
 			);
 		}
-
 		private function _add_column($column_name, $data_type)
 		{
 			if($this->exec($this->pdo_query.$this->table_name.' ADD '.$column_name.' '.$data_type) === false)
@@ -750,7 +755,6 @@
 			$table_name
 		){
 			$this->pdo_cheat_exec__construct($pdo_handler, $table_name);
-
 			$this->pdo_cheat=$pdo_cheat;
 		}
 
@@ -807,7 +811,8 @@
 
 				return $this;
 			}
-			else if(substr($column_name, 0, 7) === 'select_')
+
+			if(substr($column_name, 0, 7) === 'select_')
 			{
 				$column_name=substr($column_name, 7);
 
@@ -838,10 +843,9 @@
 			}
 
 			$statement=substr($statement, 0, -5);
+			$selected_columns='*';
 
-			if(empty($this->selected_columns))
-				$selected_columns='*';
-			else
+			if(!empty($this->selected_columns))
 			{
 				$selected_columns='';
 
@@ -927,7 +931,6 @@
 			}
 
 			$statement=substr($statement, 0, -5);
-
 			$this->query_conditions=[];
 
 			return $this->exec_prepared(''
@@ -966,11 +969,9 @@
 				$this->table_row[$column_name]=$value[0];
 				return $this;
 			}
-			else
-			{
-				if(isset($this->table_row[$column_name]))
-					return $this->table_row[$column_name];
-			}
+
+			if(isset($this->table_row[$column_name]))
+				return $this->table_row[$column_name];
 		}
 
 		public function dump_row()

@@ -16,6 +16,9 @@ The rest of the documentation is located in the `lv_arr.php` and `lv_str.php` li
 * `pf_get_debug_type.php` (for PHP older than 8.0)
 * `pf_ValueError.php` (for PHP older than 8.0)
 * `pf_mbstring.php` (for PHP older than 7.4)
+* `pf_is_countable.php` (for PHP older than 7.3)
+* `has_php_close_tag.php` (for tests)
+* `include_into_namespace.php` (for tests)
 * `var_export_contains.php` (for tests)
 * `bin/get-composer.php` (for tests)
 * `tests/lv_arr.php` (for tests)
@@ -26,7 +29,9 @@ The rest of the documentation is located in the `lv_arr.php` and `lv_str.php` li
 * `mbstring`
 
 ## Suggested packages
+* `doctrine/inflector`
 * `league/commonmark`
+* `nesbot/carbon`
 * `symfony/var-dumper` (for development)
 ```
 php composer.phar --optimize-autoloader require league/commonmark
@@ -178,6 +183,51 @@ require './com/lv_hlp/main.php';
 
 	**Warning:**  
 	`lv_hlp_collection` class is required
+* `lv_str_plural` `lv_hlp_plural`  
+	Converts a singular word string to its plural form.  
+	This function supports any of the languages support by Doctrine Inflector:
+
+		$plural=lv_str_plural('car'); // cars
+		$plural=lv_str_plural('child'); // children
+
+	You may provide an integer as a second argument to the function to retrieve the singular or plural form of the string:
+
+		$plural=lv_str_plural('child', 2); // children
+		$singular=lv_str_plural('child', 1); // child
+
+	**Note:**  
+	tested on Inflector 1.4.4 and 2.0.10  
+	**Warning:**  
+	`mbstring` extension is required  
+	`doctrine/inflector` package is required
+* `lv_str_plural_studly` `lv_hlp_plural_studly`  
+	Converts a singular word string formatted in studly caps case to its plural form.  
+	This function supports any of the languages support by Doctrine Inflector:
+
+		$plural=lv_str_plural_studly('VerifiedHuman'); // VerifiedHumans
+		$plural=lv_str_plural_studly('UserFeedback'); // UserFeedback
+
+	You may provide an integer as a second argument to the function to retrieve the singular or plural form of the string:
+
+		$plural=lv_str_plural_studly('VerifiedHuman', 2); // VerifiedHumans
+		$singular=lv_str_plural_studly('VerifiedHuman', 1); // VerifiedHuman
+
+	**Note:**  
+	tested on Inflector 1.4.4 and 2.0.10  
+	**Warning:**  
+	`lv_str_plural` function is required
+* `lv_str_singular` `lv_hlp_singular`  
+	Converts a string to its singular form.  
+	This function supports any of the languages support by Doctrine Inflector:
+
+		$singular=lv_str_singular('cars'); // car
+		$singular=lv_str_singular('children'); // child
+
+	**Note:**  
+	tested on Inflector 1.4.4 and 2.0.10  
+	**Warning:**  
+	`mbstring` extension is required  
+	`doctrine/inflector` package is required
 * `lv_str_slug` `lv_hlp_slug`  
 	Generates a URL friendly "slug" from the given string:
 
@@ -389,6 +439,49 @@ The component extends the `lv_str_ingable` class to `lv_hlp_ingable`
 		tested on CommonMark 1.6.7  
 		**Warning:**  
 		`lv_str_markdown` function is required
+	* `plural`  
+		Converts a singular word string to its plural form.  
+		This function supports any of the languages support by Doctrine Inflector:
+
+			$plural=lv_hlp_of('car')->plural(); // cars
+			$plural=lv_hlp_of('child')->plural(); // children
+
+		You may provide an integer as a second argument to the function to retrieve the singular or plural form of the string:
+
+			$plural=lv_hlp_of('child')->plural(2); // children
+			$plural=lv_hlp_of('child')->plural(1); // child
+
+		**Note:**  
+		tested on Inflector 1.4.4 and 2.0.10  
+		**Warning:**  
+		`lv_str_plural` function is required
+	* `plural_studly`  
+		Converts a singular word string formatted in studly caps case to its plural form.  
+		This function supports any of the languages support by Doctrine Inflector:
+
+			$plural=lv_hlp_of('VerifiedHuman')->plural_studly(); // VerifiedHumans
+			$plural=lv_hlp_of('UserFeedback')->plural_studly(); // UserFeedback
+
+		You may provide an integer as a second argument to the function to retrieve the singular or plural form of the string:
+
+			$plural=lv_hlp_of('VerifiedHuman')->plural_studly(2); // VerifiedHumans
+			$singular=lv_hlp_of('VerifiedHuman')->plural_studly(1); // VerifiedHuman
+
+		**Note:**  
+		tested on Inflector 1.4.4 and 2.0.10  
+		**Warning:**  
+		`lv_str_plural_studly` function is required
+	* `singular`  
+		Converts a string to its singular form.  
+		This function supports any of the languages support by Doctrine Inflector:
+
+			$singular=lv_hlp_of('cars')->singular(); // car
+			$singular=lv_hlp_of('children')->singular(); // child
+
+		**Note:**  
+		tested on Inflector 1.4.4 and 2.0.10  
+		**Warning:**  
+		`lv_str_singular` function is required
 	* `slug`  
 		Generates a URL friendly "slug" from the given string:
 
@@ -397,6 +490,15 @@ The component extends the `lv_str_ingable` class to `lv_hlp_ingable`
 
 		**Warning:**  
 		`lv_str_slug` function is required
+	* `to_date`  
+		Get the underlying string value as a Carbon instance.
+
+			lv_hlp_of('12-31-2001')->to_date('m-d-Y');
+
+		**Note:**  
+		tested on Carbon 1.39.1 and 2.72.5  
+		**Warning:**  
+		`nesbot/carbon` package is required
 	* `transliterate`  
 		Alias for the `ascii` method  
 		**Warning:**  
@@ -528,4 +630,5 @@ Libraries in this directory have priority over `../../lib`.
 Also you can copy tests to the `./lib/tests` and tools to the `./bin` directory.
 
 ## Sources
-[Traits/Dumpable.php](https://github.com/laravel/framework/blob/master/src/Illuminate/Support/Traits/Dumpable.php)
+[Traits/Dumpable.php](https://github.com/laravel/framework/blob/master/src/Illuminate/Support/Traits/Dumpable.php)  
+[Pluralizer.php](https://github.com/laravel/framework/blob/11.x/src/Illuminate/Support/Pluralizer.php)

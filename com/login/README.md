@@ -30,7 +30,8 @@ To set the desired value use `login_com_reg_name::_()['key']='value'` (except `l
 		see `sec_login.php` library for more info
 	* `remember_cookie_lifetime` [int]  
 		if "remember me" option is checked  
-		in seconds
+		in seconds  
+		default: `31556926`
 	* `session_reload` [closure]  
 		custom session reloader
 	* `on_login_prompt` [closure]  
@@ -41,13 +42,19 @@ To set the desired value use `login_com_reg_name::_()['key']='value'` (except `l
 		do on failed login
 	* `on_logout` [closure]  
 		do before logout
+	* `reload_by_http` [bool]  
+		reload via HTTP 301 redirect  
+		default: `true`
 * `login_com_reg_view`
 	* `template` [string]  
-		`default` or `materialized`
+		`default` or `materialized`  
+		default: `default`
 	* `lang` [string]  
-		`<html lang="lang">`
+		`<html lang="lang">`  
+		default: `en`
 	* `title` [string]  
-		`<title>` for `views/form.php`
+		`<title>` for `views/form.php`  
+		default: `Login`
 	* `assets_path` [string]  
 		default: `/assets`
 	* `login_style` [string]  
@@ -56,15 +63,20 @@ To set the desired value use `login_com_reg_name::_()['key']='value'` (except `l
 		`login_materialized.css` for materialized template  
 		default: `login_default_bright.css`
 	* `inline_style` [bool]  
-		compiles the style and adds it to the inline tag  
-		instead of `link rel="stylesheet"` (not recommended)  
+		compiles the style and adds it to the inline tag instead of `link rel="stylesheet"` (not recommended)  
 		default: `false`
 	* `html_headers` [string]  
 		custom html headers, will be added to the `<head>` section
+	* `favicon` [string]  
+		path to the favicon headers file  
+		the content will be appended to the `<head>` section  
+		**note:** pass the path through the realpath function
 	* `login_label` [string]  
-		login input box placeholder
+		login input box placeholder  
+		default: `Login`
 	* `password_label` [string]  
-		password input box placeholder
+		password input box placeholder  
+		default: `Password`
 	* `login_default_value` [string]  
 		set default text for login box  
 		**note:** this string will be escaped
@@ -77,21 +89,26 @@ To set the desired value use `login_com_reg_name::_()['key']='value'` (except `l
 	* `display_remember_me_checkbox` [bool]  
 		enable (default) or disable "remember me" switch
 	* `remember_me_label` [string]  
-		switch label
+		switch label  
+		default: `Remember me`
 	* `remember_me_box_disabled` [bool]  
 		set "remember me" switch status to disabled state  
 		default: `false`
 	* `wrong_credentials_label` [string]  
 		message about bad credentials  
-		to force display use `$GLOBALS['_login']['wrong_credentials']=true`
-	* `submit_button_label` [string]
+		to force the login page to be displayed, use `login_com_reg::_()['wrong_credentials']=true`  
+		default: `Invalid username or password`
+	* `submit_button_label` [string]  
+		default: `Login`
 	* `submit_button_disabled` [bool]  
 		set submit button status to disabled state  
 		default: `false`
 	* `loading_title` [string]  
-		`<title>` for `views/reload.php`
+		`<title>` for `views/reload.php`  
+		default: `Loading`
 	* `loading_label` [string]  
-		`views/reload.php` content
+		`views/reload.php` content  
+		default: `Loading...`
 * `login_com_reg_csp`  
 	section for the CSP generator  
 	to add element to the policy, do eg `login_com_reg_csp::add('script-src', '\'myhash\'');`
@@ -161,14 +178,21 @@ if(is_logged())
 ```
 
 ## Display reload page only
+Reload via HTTP 301 redirect (default):
 ```
+login_com_reload();
+exit();
+```
+Refresh by displaying the loading page:
+```
+login_com_reg_config::_()['reload_by_http']=false;
 login_com_reload();
 exit();
 ```
 
 ## Custom session reloader for "Remember Me"
 If you want to use `session_start()` with parameters other than the default,  
-you can define the function `$GLOBALS['_login']['config']['session_reload']`  
+you can define the function `login_com_reg_config::_()['session_reload']`  
 eg. for the `sec_lv_encrypter.php` library the function will look like this:
 ```
 login_com_reg_config::_()['session_reload']=function($cookie_lifetime)

@@ -70,18 +70,22 @@
 		);
 	}
 
+	$output_file=null;
+
 	if(isset($argv[1]))
 	{
 		switch($argv[1])
 		{
 			case '-h':
 			case '--help':
-				echo 'Usage: '.basename(__FILE__).' [--remove]'.PHP_EOL;
-			break;
+				echo 'Usage: '.basename(__FILE__).PHP_EOL;
+				echo 'Usage: '.basename(__FILE__).' --out path/to/file.php'.PHP_EOL;
+				echo 'Usage: '.basename(__FILE__).' --remove'.PHP_EOL;
+				exit();
 			case '--remove':
 				if(!is_file(__DIR__.'/../main_original.php'))
 				{
-					echo __DIR__.'/../main_original.php is not a file'.PHP_EOL;
+					echo 'Error: '.__DIR__.'/../main_original.php is not a file'.PHP_EOL;
 					echo 'Maybe '.basename(__FILE__).' was not used yet'.PHP_EOL;
 					echo ' or this file was removed'.PHP_EOL;
 					exit(1);
@@ -92,13 +96,28 @@
 					__DIR__.'/../main_original.php',
 					__DIR__.'/../main.php'
 				);
+
+				exit();
+			case '--out':
+				if(!isset($argv[2]))
+				{
+					echo 'Error: no output file path given'.PHP_EOL;
+					echo 'Usage: '.basename(__FILE__).' --out path/to/file.php'.PHP_EOL;
+					exit(1);
+				}
+
+				if(file_exists($argv[2]))
+				{
+					echo 'Error: '.$argv[2].' already exists'.PHP_EOL;
+					exit(1);
+				}
+
+				$output_file=$argv[2];
 			break;
 			default:
-				echo 'Unrecognized option: '.$argv[1].PHP_EOL;
+				echo 'Error: unrecognized option: '.$argv[1].PHP_EOL;
 				exit(1);
 		}
-
-		exit();
 	}
 
 	if(file_exists(__DIR__.'/../lib/has_php_close_tag.php'))
@@ -113,14 +132,25 @@
 
 	render_content();
 
-	if(file_exists(__DIR__.'/../main.php'))
+	if(($output_file === null) && file_exists(__DIR__.'/../main.php'))
+	{
 		rename(
 			__DIR__.'/../main.php',
 			__DIR__.'/../main_original.php'
 		);
+		rename(
+			__DIR__.'/../_php_polyfill_cache',
+			__DIR__.'/../main.php'
+		);
+
+		exit();
+	}
 
 	rename(
 		__DIR__.'/../_php_polyfill_cache',
-		__DIR__.'/../main.php'
+		$output_file
 	);
+
+	if(file_exists(__DIR__.'/../_php_polyfill_cache'))
+		unlink(__DIR__.'/../_php_polyfill_cache');
 ?>

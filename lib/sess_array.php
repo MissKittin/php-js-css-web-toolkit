@@ -8,20 +8,24 @@
 		 *
 		 * Usage:
 			sess_array::register_handler();
+
 			// slot #0
 			sess_array::session_start(array_optional_session_start_params);
 			$_SESSION['variable']='slot0';
 			session_write_close();
+
 			// slot #1
 			session_id('1');
 			sess_array::session_start(array_optional_session_start_params);
 			$_SESSION['variable']='slot1';
 			session_write_close();
+
 			// back to the slot #0
 			session_id('0');
 			sess_array::session_start(array_optional_session_start_params);
 			echo $_SESSION['variable']; // 'slot0'
 			session_destroy();
+
 			// back to the slot #1
 			session_id('1');
 			sess_array::session_start(array_optional_session_start_params);
@@ -30,15 +34,8 @@
 		 */
 
 		protected static $initialized=false;
+
 		protected $session_data=[];
-
-		public function __construct()
-		{
-			if(static::$initialized)
-				throw new sess_array_exception(static::class.' is a singleton');
-
-			static::$initialized=true;
-		}
 
 		public static function register_handler()
 		{
@@ -56,6 +53,14 @@
 			$params['cache_limiter']='';
 
 			return session_start($params);
+		}
+
+		public function __construct()
+		{
+			if(static::$initialized)
+				throw new sess_array_exception(static::class.' is a singleton');
+
+			static::$initialized=true;
 		}
 
 		public function open($save_path, $session_name)

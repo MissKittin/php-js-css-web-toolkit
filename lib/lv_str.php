@@ -1163,17 +1163,16 @@
 	 *    is_uuid()
 	 *    macro()
 	 *    markdown()
-	 *    reverse()
+	 *    plural()
+	 *    plural_studly()
+	 *    singular()
 	 *    slug()
+	 *    to_date()
 	 *    transliterate()
 	 *    when_is_ascii()
 	 *    when_is_ulid()
 	 *    when_is_uuid()
 	 *   not implemented methods:
-	 *    plural()
-	 *    plural_studly()
-	 *    singular()
-	 *    to_date()
 	 *    to_html_string()
 	 *
 	 * Functions implemented in the lv_hlp component:
@@ -1186,15 +1185,14 @@
 	 *  lv_str_markdown()
 	 *  lv_str_ordered_uuid()
 	 *  lv_str_password()
-	 *  lv_str_reverse()
+	 *  lv_str_plural()
+	 *  lv_str_plural_studly()
+	 *  lv_str_singular()
 	 *  lv_str_slug()
 	 *  lv_str_ulid()
 	 *  lv_str_uuid()
 	 *
 	 * Not implemented functions:
-	 *  lv_str_plural()
-	 *  lv_str_plural_studly()
-	 *  lv_str_singular()
 	 *  lv_str_to_html_string()
 	 *
 	 * Sources:
@@ -1995,6 +1993,13 @@
 
 			return mb_strpos($haystack, (string)$needle, $offset, $encoding);
 		}
+		function lv_str_reverse(string $value)
+		{
+			if(!function_exists('mb_str_split'))
+				throw new lv_str_exception('mb_str_split function is not defined');
+
+			return implode(array_reverse(mb_str_split($value)));
+		}
 		function lv_str_substr(
 			string $string,
 			int $start,
@@ -2124,6 +2129,10 @@
 		function lv_str_pad_right()
 		{
 			throw new lv_str_exception('mbstring extension is not loaded');
+		}
+		function lv_str_reverse()
+		{
+			throw new lv_hlp_exception('mbstring extension is not loaded');
 		}
 		function lv_str_snake()
 		{
@@ -2566,6 +2575,10 @@
 		public function rtrim(string $characters=null)
 		{
 			return new static(rtrim(...array_merge([$this->value], func_get_args())));
+		}
+		public function reverse()
+		{
+			return new static(lv_str_reverse($this->value));
 		}
 		public function scan(string $format)
 		{

@@ -72,9 +72,8 @@
 		");
 		file_put_contents(__DIR__.'/tmp/serve/dashboard/config.php', "<?php
 			\$this
-				->set_lang('en')
-				->set_title('Dashboard')
-			;
+			->	set_lang('en')
+			->	set_title('Dashboard');
 		?>");
 
 		mkdir(__DIR__.'/tmp/serve/posts');
@@ -118,9 +117,8 @@
 		");
 		file_put_contents(__DIR__.'/tmp/serve/posts/config.php', "<?php
 			\$this
-				->set_lang('en')
-				->set_title('Posts')
-			;
+			->	set_lang('en')
+			->	set_title('Posts');
 		?>");
 
 		mkdir(__DIR__.'/tmp/serve/public');
@@ -142,7 +140,7 @@
 			\$admin_panel['global_variable']='global_value';
 
 			\$admin_panel
-				->add_module([
+			->	add_module([
 					'id'=>'dashboard',
 					'path'=>'../dashboard',
 					'config'=>'config.php',
@@ -151,7 +149,7 @@
 					'name'=>'Dashboard',
 					'template_header'=>'Dashboard'
 				])
-				->add_module([
+			->	add_module([
 					'id'=>'posts',
 					'path'=>'../posts',
 					'config'=>'config.php',
@@ -161,17 +159,15 @@
 					'template_header'=>'Posts',
 					'custom_variable'=>'Custom variable here'
 				])
-				->add_menu_entry([
+			->	add_menu_entry([
 					'id'=>'github',
 					'url'=>'https://github.com/MissKittin/php-js-css-web-toolkit',
 					'name'=>'GitHub'
-				])
-			;
+				]);
 
 			\$admin_panel
-				->set_default_module('dashboard')
-				->run()
-			;
+			->	set_default_module('dashboard')
+			->	run();
 		?>");
 
 		mkdir(__DIR__.'/tmp/serve/public/assets');

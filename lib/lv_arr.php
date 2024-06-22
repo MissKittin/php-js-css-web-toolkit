@@ -2850,6 +2850,7 @@
 	 *    combine()
 	 *     warning:
 	 *      make_iterator method is required
+	 *    concat()
 	 *    contains()
 	 *     warning:
 	 *      first method is required
@@ -2930,6 +2931,7 @@
 	 *     warning:
 	 *      first method is required
 	 *      operator_for_where method is required
+	 *    flatten()
 	 *    flip()
 	 *    for_page()
 	 *     warning:
@@ -3007,6 +3009,9 @@
 	 *    mode()
 	 *     warning:
 	 *      collect method is required
+	 *    nth()
+	 *     warning:
+	 *      slice method is required
 	 *    only()
 	 *    pad()
 	 *     warning:
@@ -3222,18 +3227,17 @@
 	 *    [static] wrap()
 	 *     warning:
 	 *      lv_arr_wrap function is required
+	 *    zip()
+	 *     warning:
+	 *      lv_arr_collection class is required
 	 *   methods implemented in the lv_hlp component:
 	 *    dd()
 	 *    dump()
 	 *    ensure()
 	 *    macro()
 	 *   not implemented methods:
-	 *    concat()
-	 *    flatten()
-	 *    nth()
 	 *    take_until_timeout()
 	 *    tap_each()
-	 *    zip()
 	 *
 	 * Functions implemented in the lv_hlp component:
 	 *  lv_arr_to_css_styles()
@@ -4212,6 +4216,7 @@
 			public function chunk_while(callable $callback);
 			public function collapse();
 			public function combine($values);
+			public function concat(array $source);
 			public function contains($key, string $operator=null, $value=null);
 			public function contains_one_item();
 			public function contains_strict($key, $value=null);
@@ -4232,6 +4237,7 @@
 			public function filter(callable $callback=null);
 			public function first(callable $callback=null, $default=null);
 			public function first_or_fail($key=null, string $operator=null, $value=null);
+			public function flatten($depth=INF);
 			public function flip();
 			public function get($key, $default=null);
 			public function group_by($group_by, bool $preserve_keys=false);
@@ -4255,6 +4261,7 @@
 			public function merge($items);
 			public function merge_recursive($items);
 			public function mode($key=null);
+			public function nth(int $step, int $offset=0);
 			public function only($keys);
 			public function pad(int $size, $value);
 			public function pluck($value, string $key=null);
@@ -4287,6 +4294,7 @@
 			public function union($items);
 			public function unique($key=null, bool $strict=false);
 			public function values();
+			public function zip($items);
 	}
 
 	trait lv_arr_enumerates_values
@@ -6209,6 +6217,13 @@
 					trigger_error($error_message, E_USER_WARNING);
 			});
 		}
+		public function concat(array $source)
+		{
+			return new static(function() use($source){
+				yield from $this;
+				yield from $source;
+			});
+		}
 		public function contains($key, string $operator=null, $value=null)
 		{
 			if(
@@ -6381,6 +6396,21 @@
 			->	collect()
 			->	first_or_fail();
 		}
+		public function flatten($depth=INF)
+		{
+			return new static(function() use($depth){
+				foreach($this->source as $item)
+					if(
+						(!is_array($item)) &&
+						(!($item instanceof lv_arr_enumerable))
+					)
+						yield $item;
+					else if($depth === 1)
+						yield from $item;
+					else
+						yield from (new static($item))->flatten($depth-1);
+			});
+		}
 		public function flip()
 		{
 			return new static(function(){
@@ -6540,6 +6570,20 @@
 		public function mode($key=null)
 		{
 			return $this->collect()->mode($key);
+		}
+		public function nth(int $step, int $offset=0)
+		{
+			return new static(function() use($step, $offset){
+				$position=0;
+
+				foreach($this->slice($offset) as $item)
+				{
+					if($position%$step === 0)
+						yield $item;
+
+					++$position;
+				}
+			});
 		}
 		public function only($keys)
 		{
@@ -6990,6 +7034,22 @@
 			return new static(function(){
 				foreach($this->source as $item)
 					yield $item;
+			});
+		}
+		public function zip($items)
+		{
+			$iterables=func_get_args();
+
+			return new static(function() use($iterables){
+				$iterators=lv_arr_collection::make($iterables)->map(function($iterable){
+					return $this->make_iterator($iterable);
+				})->prepend($this->get_iterator());
+
+				while(!empty(array_filter($iterators->contains->valid()->all(), 'strlen')))
+				{
+					yield new static($iterators->map->current());
+					$iterators->each->next();
+				}
 			});
 		}
 	}

@@ -42,7 +42,12 @@
 			<?php }
 		?>
 		<meta name="robots" content="noindex,nofollow">
-		<?php echo login_com_reg_view::_()['html_headers']; ?>
+		<?php
+			echo login_com_reg_view::_()['html_headers'];
+
+			if(login_com_reg_view::_()['favicon'] !== null)
+				readfile(login_com_reg_view::_()['favicon']);
+		?>
 	</head>
 	<body>
 		<div id="login_form">

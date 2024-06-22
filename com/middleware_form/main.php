@@ -48,6 +48,7 @@
 				'assets_path'=>'/assets',
 				'middleware_form_style'=>'middleware_form_default_bright.css',
 				'inline_style'=>false,
+				'favicon'=>null,
 				'submit_button_label'=>'Next',
 				'csp_header'=>[
 					'default-src'=>['\'none\''],
@@ -103,10 +104,16 @@
 		}
 		public function view()
 		{
+			if($this->registry['inline_style'])
+				$this->registry['csp_header']['style-src'][]='\'nonce-mainstyle\'';
+
 			$view=$this->registry;
 
-			if($view['inline_style'])
-				$view['csp_header']['style-src'][]='\'nonce-mainstyle\'';
+			if(
+				($view['favicon'] !== null) &&
+				(!file_exists($view['favicon']))
+			)
+				throw new middleware_form_exception($view['favicon'].' does not exist');
 
 			require __DIR__.'/templates/'.$this->template.'/view.php';
 		}

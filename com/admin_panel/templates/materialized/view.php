@@ -10,8 +10,10 @@
 			foreach($this->registry['_csp_header'] as $_csp_param=>$_csp_values)
 			{
 				echo $_csp_param;
+
 				foreach($_csp_values as $_csp_value)
 					echo ' '.$_csp_value;
+
 				echo ';';
 			}
 		?>">
@@ -48,7 +50,13 @@
 					{ ?><script src="<?php echo $_script; ?>"></script><?php }
 		?>
 		<meta name="robots" content="noindex,nofollow">
-		<?php if(isset($this->registry['_html_headers'])) echo $this->registry['_html_headers']; ?>
+		<?php
+			if(isset($this->registry['_html_headers']))
+				echo $this->registry['_html_headers'];
+
+			if(isset($this->registry['_favicon']))
+				readfile($this->registry['_favicon']);
+		?>
 	</head>
 	<body>
 		<div id="header" class="sb_header">
@@ -56,7 +64,7 @@
 			<div id="logout_button">
 				<?php if(isset($this->registry['_show_logout_button'])) { ?>
 					<form action="<?php echo $_SERVER['REQUEST_URI']; ?>" method="POST">
-						<input type="submit" name="logout" value="<?php echo $this->registry['_logout_button_label']; ?>" class="button sb_button">
+						<input type="submit" name="<?php echo $this->registry['_logout_button_name']; ?>" value="<?php echo $this->registry['_logout_button_label']; ?>" class="button sb_button">
 						<input type="hidden" name="<?php echo $this->registry['_csrf_token']['name']; ?>" value="<?php echo $this->registry['_csrf_token']['value']; ?>">
 					</form>
 				<?php } ?>

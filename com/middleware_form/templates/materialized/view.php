@@ -7,8 +7,10 @@
 			foreach($view['csp_header'] as $csp_param=>$csp_values)
 			{
 				echo $csp_param;
+
 				foreach($csp_values as $csp_value)
 					echo ' '.$csp_value;
+
 				echo ';';
 			}
 		?>">
@@ -45,6 +47,9 @@
 		<?php
 			if(isset($view['html_headers']))
 				echo $view['html_headers'];
+
+			if($view['favicon'] !== null)
+				readfile($view['favicon']);
 		?>
 	</head>
 	<body>

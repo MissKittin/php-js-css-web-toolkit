@@ -45,6 +45,10 @@ you can also delete the cache:
 ```
 php ./com/php_polyfill/bin/mkcache.php --remove
 ```
+or you can define the cache file path:
+```
+php ./com/php_polyfill/bin/mkcache.php --out ./php_polyfill_cache.php
+```
 
 ## Portability
 Create a `./lib` directory  

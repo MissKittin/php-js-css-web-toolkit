@@ -4243,6 +4243,20 @@
 				echo ' [FAIL]'.PHP_EOL;
 				$failed=true;
 			}
+		echo '  -> concat';
+			$collection=$lv_lazy_collect_function(['John Doe']);
+			$concatenated=$collection->concat(['Jane Doe'])->concat(['name'=>'Johnny Doe']);
+			$concatenated_output='';
+			foreach($concatenated as $item)
+				$concatenated_output.=$item;
+			//echo ' ['.$concatenated_output.']';
+			if($concatenated_output === 'John DoeJane DoeJohnny Doe')
+				echo ' [ OK ]'.PHP_EOL;
+			else
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				$failed=true;
+			}
 		echo '  -> contains';
 			$collection=$lv_lazy_collect_function([1, 2, 3, 4, 5]);
 			//echo ' ['.var_export_contains($collection->contains(function(int $value, int $key){
@@ -4738,6 +4752,19 @@
 				$collection->first_where('age'),
 				"array('name'=>'Linda','age'=>14,)"
 			))
+				echo ' [ OK ]'.PHP_EOL;
+			else
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				$failed=true;
+			}
+		echo '  -> flatten';
+			$collection=$lv_lazy_collect_function(['name'=>'taylor', 'languages'=>['php', 'javascript']]);
+			$flattened=$collection->flatten();
+			$flattened_output='';
+			foreach($flattened as $item)
+				$flattened_output.=$item;
+			if($flattened_output === 'taylorphpjavascript')
 				echo ' [ OK ]'.PHP_EOL;
 			else
 			{
@@ -5321,6 +5348,32 @@
 			if(var_export_contains(
 				$lv_lazy_collect_function([1, 1, 2, 2])->mode(),
 				"array(0=>1,1=>2,)"
+			))
+				echo ' [ OK ]'.PHP_EOL;
+			else
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				$failed=true;
+			}
+		echo '  -> nth';
+			$collection=$lv_lazy_collect_function(['a', 'b', 'c', 'd', 'e', 'f']);
+			$nth=$collection->nth(4);
+			//echo ' ['.var_export_contains($nth->all(), '', true).']';
+			if(var_export_contains(
+				$nth->all(),
+				"array(0=>'a',1=>'e',)"
+			))
+				echo ' [ OK ]';
+			else
+			{
+				echo ' [FAIL]';
+				$failed=true;
+			}
+			$nth=$collection->nth(4, 1);
+			//echo ' ['.var_export_contains($nth->all(), '', true).']';
+			if(var_export_contains(
+				$nth->all(),
+				"array(0=>'b',1=>'f',)"
 			))
 				echo ' [ OK ]'.PHP_EOL;
 			else
@@ -6684,6 +6737,20 @@
 				$collection->all(),
 				"array(0=>'JohnDoe',)"
 			))
+				echo ' [ OK ]'.PHP_EOL;
+			else
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				$failed=true;
+			}
+		echo '  -> zip';
+			$collection=$lv_lazy_collect_function(['Chair', 'Desk']);
+			$zipped=$collection->zip([100, 200]);
+			$zipped_output='';
+			foreach($zipped as $item)
+				$zipped_output.=var_export_contains($item->all(), '', true);
+			//echo ' ['.$zipped_output.']';
+			if($zipped_output === "array(0=>'Chair',1=>100,)array(0=>'Desk',1=>200,)")
 				echo ' [ OK ]'.PHP_EOL;
 			else
 			{

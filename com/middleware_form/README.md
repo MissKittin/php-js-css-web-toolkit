@@ -71,6 +71,10 @@ Set config options with the `add_config` method
 	compiles the style and adds it to the inline tag  
 	instead of `link rel="stylesheet"` (not recommended)  
 	default: `false`
+* `favicon` [string]
+	path to the favicon headers file  
+	the content will be appended to the `<head>` section  
+	**note:** pass the path through the realpath function
 * `submit_button_label` [string]  
 	default: `Next`
 

@@ -53,72 +53,89 @@
 	{
 		// source: https://github.com/varspool/php-websocket/blob/master/client/lib/class.websocket_client.php
 
-		$frameHead=[];
+		$frame_head=[];
 		$frame='';
-		$payloadLength=strlen($payload);
+		$payload_length=strlen($payload);
 
 		switch($type)
 		{
 			case 'text':
-				// first byte indicates FIN, Text-Frame (10000001):
-				$frameHead[0]=129;
+				// first byte indicates FIN, Text-Frame (10000001)
+				$frame_head[0]=129;
 			break;
-
 			case 'close':
-				// first byte indicates FIN, Close Frame(10001000):
-				$frameHead[0]=136;
+				// first byte indicates FIN, Close Frame(10001000)
+				$frame_head[0]=136;
 			break;
-
 			case 'ping':
-				// first byte indicates FIN, Ping frame (10001001):
-				$frameHead[0]=137;
+				// first byte indicates FIN, Ping frame (10001001)
+				$frame_head[0]=137;
 			break;
-
 			case 'pong':
-				// first byte indicates FIN, Pong frame (10001010):
-				$frameHead[0]=138;
-			break;
+				// first byte indicates FIN, Pong frame (10001010)
+				$frame_head[0]=138;
 		}
 
 		// set mask and payload length (using 1, 3 or 9 bytes)
-		if($payloadLength > 65535)
+		if($payload_length > 65535)
 		{
-			$payloadLengthBin=str_split(sprintf('%064b', $payloadLength), 8);
-			$frameHead[1]=($masked === true) ? 255 : 127;
-			for($i=0; $i < 8; $i++)
-				$frameHead[$i+2]=bindec($payloadLengthBin[$i]);
+			$payload_length_bin=str_split(sprintf('%064b', $payload_length), 8);
+			$frame_head[1]=127;
+
+			if($masked === true)
+				$frame_head[1]=255;
+
+			for($i=0; $i<8; ++$i)
+				$frame_head[$i+2]=bindec($payload_length_bin[$i]);
+
 			// most significant bit MUST be 0 (close connection if frame too big)
-			if($frameHead[2] > 127)
+			if($frame_head[2] > 127)
 				return false;
 		}
-		else if($payloadLength > 125)
+		else if($payload_length > 125)
 		{
-			$payloadLengthBin=str_split(sprintf('%016b', $payloadLength), 8);
-			$frameHead[1]=($masked === true) ? 254 : 126;
-			$frameHead[2]=bindec($payloadLengthBin[0]);
-			$frameHead[3]=bindec($payloadLengthBin[1]);
+			$payload_length_bin=str_split(sprintf('%016b', $payload_length), 8);
+			$frame_head[1]=126;
+			$frame_head[2]=bindec($payload_length_bin[0]);
+			$frame_head[3]=bindec($payload_length_bin[1]);
+
+			if($masked === true)
+				$frame_head[1]=254;
 		}
 		else
-			$frameHead[1]=($masked === true) ? $payloadLength + 128 : $payloadLength;
+		{
+			$frame_head[1]=$payload_length;
 
-		// convert frame-head to string:
-		foreach(array_keys($frameHead) as $i)
-			$frameHead[$i]=chr($frameHead[$i]);
+			if($masked === true)
+				$frame_head[1]+=128;
+		}
+
+		// convert frame-head to string
+		foreach(array_keys($frame_head) as $i)
+			$frame_head[$i]=chr($frame_head[$i]);
+
 		if($masked === true)
 		{
-			// generate a random mask:
+			// generate a random mask
+
 			$mask=[];
-			for($i=0; $i<4; $i++)
+
+			for($i=0; $i<4; ++$i)
 				$mask[$i]=chr(rand(0, 255));
 
-			$frameHead=array_merge($frameHead, $mask);
+			$frame_head=array_merge($frame_head, $mask);
 		}
-		$frame=implode('', $frameHead);
 
-		// append payload to frame:
+		$frame=implode('', $frame_head);
+
+		// append payload to frame
 		$framePayload=[];
-		for($i=0; $i<$payloadLength; $i++)
-			$frame.=($masked === true) ? $payload[$i] ^ $mask[$i % 4] : $payload[$i];
+
+		for($i=0; $i<$payload_length; ++$i)
+			if($masked === true)
+				$frame.=$payload[$i]^$mask[$i%4];
+			else
+				$frame.=$payload[$i];
 
 		return $frame;
 	}
@@ -227,136 +244,142 @@
 				'"'.PHP_BINARY.'" '.__DIR__.'/../'.basename(__FILE__).' '
 				.'--functions '.__DIR__.'/tmp/websockets/functions.php'
 			);
+
 		echo PHP_EOL;
+		exit();
 	}
-	else
-	{
-		echo ' -> Starting tool (127.0.0.1:8081)';
-			try {
-				$_serve_test_handler=_serve_test(
-					'"'.PHP_BINARY.'" '.__DIR__.'/../'.basename(__FILE__).' '
-					.'--functions '.__DIR__.'/tmp/websockets/functions.php'
-				);
-				echo ' [ OK ]'.PHP_EOL;
-			} catch(Exception $error) {
-				echo ' [FAIL]'.PHP_EOL;
-				echo 'Error: '.$error->getMessage().PHP_EOL;
-				exit(1);
-			}
 
-		function do_exit($_serve_test_handler, $failed=false)
-		{
-			if(is_resource($_serve_test_handler))
-			{
-				echo ' -> Stopping tool'.PHP_EOL;
-
-				$_serve_test_handler_status=@proc_get_status($_serve_test_handler);
-				if(isset($_serve_test_handler_status['pid']))
-				{
-					@exec('taskkill.exe /F /T /PID '.$_serve_test_handler_status['pid'].' 2>&1');
-
-					$ch_pid=$_serve_test_handler_status['pid'];
-					$ch_pid_ex=$ch_pid;
-					$ch_pid_tokill=[];
-					while(($ch_pid_ex !== null) && ($ch_pid_ex !== ''))
-					{
-						$ch_pid=$ch_pid_ex;
-						$ch_pid_tokill[]=$ch_pid_ex;
-						$ch_pid_ex=@shell_exec('pgrep -P '.$ch_pid);
-					}
-					if($ch_pid === $_serve_test_handler_status['pid'])
-						proc_terminate($_serve_test_handler);
-					else
-						foreach(array_reverse($ch_pid_tokill) as $ch_pid)
-							exec('kill '.rtrim($ch_pid).' 2>&1');
-				}
-
-				proc_close($_serve_test_handler);
-			}
-
-			switch($failed)
-			{
-				case false:
-					exit();
-				case true:
-					exit(1);
-			}
-
-			echo PHP_EOL.PHP_EOL
-			.	$failed.PHP_EOL;
-
+	echo ' -> Starting tool (127.0.0.1:8081)';
+		try {
+			$_serve_test_handler=_serve_test(
+				'"'.PHP_BINARY.'" '.__DIR__.'/../'.basename(__FILE__).' '
+				.'--functions '.__DIR__.'/tmp/websockets/functions.php'
+			);
+			echo ' [ OK ]'.PHP_EOL;
+		} catch(Exception $error) {
+			echo ' [FAIL]'.PHP_EOL;
+			echo 'Error: '.$error->getMessage().PHP_EOL;
 			exit(1);
 		}
 
-		echo ' -> Testing tool';
-			$sock=socket_create(AF_INET, SOCK_STREAM, 0);
-			if($sock === false)
+	function do_exit($_serve_test_handler, $failed=false)
+	{
+		if(is_resource($_serve_test_handler))
+		{
+			echo ' -> Stopping tool'.PHP_EOL;
+
+			$_serve_test_handler_status=@proc_get_status($_serve_test_handler);
+
+			if(isset($_serve_test_handler_status['pid']))
 			{
-				echo ' [FAIL]'.PHP_EOL;
-				do_exit($_serve_test_handler, 'socket_create() failed');
+				if(strtoupper(substr(PHP_OS, 0, 3)) === 'WIN')
+					@exec('taskkill.exe /F /T /PID '.$_serve_test_handler_status['pid'].' 2>&1');
+				else
+				{
+					$_ch_pid=$_serve_test_handler_status['pid'];
+					$_ch_pid_ex=$_ch_pid;
+					$_ch_pid_tokill=[];
+
+					while(($_ch_pid_ex !== null) && ($_ch_pid_ex !== ''))
+					{
+						$_ch_pid=$_ch_pid_ex;
+						$_ch_pid_tokill[]=$_ch_pid_ex;
+						$_ch_pid_ex=@shell_exec('pgrep -P '.$_ch_pid);
+					}
+
+					if($_ch_pid === $_serve_test_handler_status['pid'])
+						proc_terminate($_serve_test_handler);
+					else
+						foreach(array_reverse($_ch_pid_tokill) as $_ch_pid)
+							exec('kill '.rtrim($_ch_pid).' 2>&1');
+				}
 			}
 
-			if(!socket_connect($sock, '127.0.0.1', 8081))
-			{
-				echo ' [FAIL]'.PHP_EOL;
-				socket_close($sock);
-				do_exit($_serve_test_handler, 'socket_connect() failed');
-			}
+			proc_close($_serve_test_handler);
+		}
 
-			if(socket_write($sock, ''
-			.	'GET / HTTP/1.1'."\n"
-			.	'Upgrade: WebSocket'."\n"
-			.	'Connection: Upgrade'."\n"
-			.	'Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ=='."\n"
-			.	'Origin: http://localhost/'."\n"
-			.	'Host: 127.0.0.1'."\n"
-			.	"\n"
-			) === false){
-				echo ' [FAIL]'.PHP_EOL;
-				socket_close($sock);
-				do_exit($_serve_test_handler, 'socket_write() headers failed');
-			}
+		switch($failed)
+		{
+			case false:
+				exit();
+			case true:
+				exit(1);
+		}
 
-			$headers=socket_read($sock, 2000);
-			if($headers === false)
-			{
-				echo ' [FAIL]'.PHP_EOL;
-				socket_close($sock);
-				do_exit($_serve_test_handler, 'socket_read() headers failed');
-			}
+		echo PHP_EOL.PHP_EOL
+		.	$failed.PHP_EOL;
 
-			if(socket_write($sock, hybi10_encode('get_time')) === false)
-			{
-				echo ' [FAIL]'.PHP_EOL;
-				socket_close($sock);
-				do_exit($_serve_test_handler, 'socket_write() get_time failed');
-			}
-
-			$current_time=time();
-			$ws_data=socket_read($sock, 2000);
-			if($ws_data === false)
-			{
-				echo ' [FAIL]'.PHP_EOL;
-				socket_close($sock);
-				do_exit($_serve_test_handler, 'socket_read() ws_data failed');
-			}
-			socket_close($sock);
-
-			if(md5($headers) === '777f015a23caf2f805acdb741269f46e')
-				echo ' [ OK ]';
-			else
-			{
-				echo ' [FAIL]';
-				$failed=true;
-			}
-			if(trim(substr($ws_data, 2)) == '["get_time",'.$current_time.']')
-				echo ' [ OK ]'.PHP_EOL;
-			else
-			{
-				echo ' [FAIL]'.PHP_EOL;
-				$failed=true;
-			}
+		exit(1);
 	}
+
+	echo ' -> Testing tool';
+		$sock=socket_create(AF_INET, SOCK_STREAM, 0);
+		if($sock === false)
+		{
+			echo ' [FAIL]'.PHP_EOL;
+			do_exit($_serve_test_handler, 'socket_create() failed');
+		}
+
+		if(!socket_connect($sock, '127.0.0.1', 8081))
+		{
+			echo ' [FAIL]'.PHP_EOL;
+			socket_close($sock);
+			do_exit($_serve_test_handler, 'socket_connect() failed');
+		}
+
+		if(socket_write($sock, ''
+		.	'GET / HTTP/1.1'."\n"
+		.	'Upgrade: WebSocket'."\n"
+		.	'Connection: Upgrade'."\n"
+		.	'Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ=='."\n"
+		.	'Origin: http://localhost/'."\n"
+		.	'Host: 127.0.0.1'."\n"
+		.	"\n"
+		) === false){
+			echo ' [FAIL]'.PHP_EOL;
+			socket_close($sock);
+			do_exit($_serve_test_handler, 'socket_write() headers failed');
+		}
+
+		$headers=socket_read($sock, 2000);
+		if($headers === false)
+		{
+			echo ' [FAIL]'.PHP_EOL;
+			socket_close($sock);
+			do_exit($_serve_test_handler, 'socket_read() headers failed');
+		}
+
+		if(socket_write($sock, hybi10_encode('get_time')) === false)
+		{
+			echo ' [FAIL]'.PHP_EOL;
+			socket_close($sock);
+			do_exit($_serve_test_handler, 'socket_write() get_time failed');
+		}
+
+		$current_time=time();
+		$ws_data=socket_read($sock, 2000);
+		if($ws_data === false)
+		{
+			echo ' [FAIL]'.PHP_EOL;
+			socket_close($sock);
+			do_exit($_serve_test_handler, 'socket_read() ws_data failed');
+		}
+		socket_close($sock);
+
+		if(md5($headers) === '777f015a23caf2f805acdb741269f46e')
+			echo ' [ OK ]';
+		else
+		{
+			echo ' [FAIL]';
+			$failed=true;
+		}
+		if(trim(substr($ws_data, 2)) == '["get_time",'.$current_time.']')
+			echo ' [ OK ]'.PHP_EOL;
+		else
+		{
+			echo ' [FAIL]'.PHP_EOL;
+			$failed=true;
+		}
 
 	do_exit($_serve_test_handler, $failed);
 ?>

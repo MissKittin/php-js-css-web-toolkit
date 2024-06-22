@@ -1,43 +1,64 @@
 <?php
-	function ob_sfucator(
-		array $_ob_sfucator=[],
-		bool $raw=false,
-		string $raw_content=''
-	){
-		/*
-		 * Obsfucate HTML by escaping all characters
-		 *
-		 * Usage:
-			ob_sfucator([
-				// this array is optional
-				'title'=>'Nice title',
-				'label'=>'<h1>Enable javascript to view content</h1>'
-			]);
-		 * or
-			$output=ob_sfucator(
-				[
-					'title'=>'Nice title',
-					'label'=>'<h1>Enable javascript to view content</h1>'
-				],
-				true, $buffer
-			);
-		 */
+	/*
+	 * Obsfucate HTML by escaping all characters
+	 *
+	 * Warning:
+	 *  javascript events like DOMContentLoaded will not be fired
+	 *
+	 * Usage:
+		ob_start(ob_sfucator(
+			'Nice title',
+			'<h1>Enable javascript to view content</h1>'
+		));
+	 * or
+		ob_sfucator
+		::	set_title('Nice title')
+		::	set_label('<h1>Enable javascript to view content</h1>');
+		ob_start('ob_sfucator::run');
+	 */
 
-		$ob_start_function=function($buffer) use($_ob_sfucator)
+	function ob_sfucator(string $title=null, string $label=null)
+	{
+		if($title !== null)
+			ob_sfucator::set_title($title);
+
+		if($label !== null)
+			ob_sfucator::set_label($label);
+
+		return 'ob_sfucator::run';
+	}
+
+	class ob_sfucator
+	{
+
+		protected static $title=null;
+		protected static $label=null;
+
+		public static function set_title(string $title)
+		{
+			static::$title=$title;
+			return static::class;
+		}
+		public static function set_label(string $label)
+		{
+			static::$label=$label;
+			return static::class;
+		}
+		public static function run($buffer)
 		{
 			$buffer_length=strlen($buffer);
 			$hex_string='';
+			$title='';
+			$label='';
 
 			for($i=0; $i<$buffer_length; ++$i)
 				$hex_string.='%'.bin2hex($buffer[$i]);
 
-			$title='';
-			if(isset($_ob_sfucator['title']))
-				$title='<title>'.$_ob_sfucator['title'].'</title>';
+			if(static::$title !== null)
+				$title='<title>'.static::$title.'</title>';
 
-			$label='';
-			if(isset($_ob_sfucator['label']))
-				$label='<noscript>'.$_ob_sfucator['label'].'</noscript>';
+			if(static::$label !== null)
+				$label='<noscript>'.static::$label.'</noscript>';
 
 			return ''
 			.	'<!DOCTYPE html>'
@@ -49,13 +70,7 @@
 			.		'<body onload="document.write(unescape(\''.$hex_string.'\'));">'
 			.			$label
 			.		'</body>'
-			.	'</html>'
-			;
-		};
-
-		if($raw)
-			return $ob_start_function($raw_content);
-
-		ob_start($ob_start_function);
+			.	'</html>';
+		}
 	}
 ?>

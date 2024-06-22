@@ -19,7 +19,7 @@
 	{
 		if(($argv[1] === '-h') || ($argv[1] === '--help'))
 		{
-			echo $argv[0].' [path/to/com-directory]'.PHP_EOL;
+			echo $argv[0].' [path/to/com-directory] [comname]'.PHP_EOL;
 			exit();
 		}
 
@@ -42,9 +42,22 @@
 		}
 	}
 
+	if(isset($argv[2]))
+	{
+		$files=[$argv[2]];
+
+		if(!file_exists($tests_dir.'/'.$files[0]))
+		{
+			echo $tests_dir.'/'.$files[0].' does not exist'.PHP_EOL;
+			exit(1);
+		}
+	}
+	else
+		$files=array_slice(scandir($tests_dir), 2);
+
 	$failed_tests=[];
 
-	foreach(array_slice(scandir($tests_dir), 2) as $component)
+	foreach($files as $component)
 		if(is_dir($tests_dir.'/'.$component.'/tests'))
 			foreach(array_slice(scandir($tests_dir.'/'.$component.'/tests'), 2) as $test)
 				if(substr($test, strrpos($test, '.')) === '.php')

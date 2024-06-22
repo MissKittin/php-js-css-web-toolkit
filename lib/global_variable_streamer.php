@@ -24,10 +24,12 @@
 
 			$GLOBALS['my_var']='';
 			$file=fopen('gvs://my_var', 'r+');
+
 			for($i=0; $i<=10; ++$i)
 				fwrite($file, 'line '.$i.PHP_EOL);
 
 			rewind($file);
+
 			while(!feof($file))
 				echo 'read: '.fgets($file);
 
@@ -43,18 +45,18 @@
 		protected $variable_name;
 		protected $current_position=0;
 
-		public function __construct()
-		{
-			if(static::$protocol_length === null)
-				throw new global_variable_streamer_exception('Use '.static::class.'::register_wrapper() instead');
-		}
-
 		public static function register_wrapper(string $protocol)
 		{
 			if(!stream_wrapper_register($protocol, static::class))
 				throw new global_variable_streamer_exception('Cannot register '.$protocol.' wrapper');
 
 			static::$protocol_length=strlen($protocol);
+		}
+
+		public function __construct()
+		{
+			if(static::$protocol_length === null)
+				throw new global_variable_streamer_exception('Use '.static::class.'::register_wrapper() instead');
 		}
 
 		public function stream_open(
@@ -126,7 +128,6 @@
 						$this->current_position=$new_position;
 						return true;
 					}
-				break;
 			}
 
 			return false;

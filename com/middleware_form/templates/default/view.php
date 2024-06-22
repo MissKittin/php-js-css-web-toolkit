@@ -7,8 +7,10 @@
 			foreach($view['csp_header'] as $csp_param=>$csp_values)
 			{
 				echo $csp_param;
+
 				foreach($csp_values as $csp_value)
 					echo ' '.$csp_value;
+
 				echo ';';
 			}
 		?>">
@@ -30,14 +32,15 @@
 				?></style><?php
 			}
 			else
-			{
-				?><link rel="stylesheet" href="<?php echo $view['assets_path']; ?>/<?php echo $view['middleware_form_style']; ?>"><?php
-			}
+				{ ?><link rel="stylesheet" href="<?php echo $view['assets_path']; ?>/<?php echo $view['middleware_form_style']; ?>"><?php }
 		?>
 		<meta name="robots" content="noindex,nofollow">
 		<?php
 			if(isset($view['html_headers']))
 				echo $view['html_headers'];
+
+			if($view['favicon'] !== null)
+				readfile($view['favicon']);
 		?>
 	</head>
 	<body>

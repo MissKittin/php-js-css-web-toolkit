@@ -3,6 +3,7 @@
 	 * Singleton can be implemented in 2 ways:
 	 *  as trait (t_singleton)
 	 *  or as abstract class (a_singleton)
+	 *
 	 * The difference is that the abstract class
 	 *  supports the final keyword but offers less flexibility
 	 */
@@ -17,6 +18,7 @@
 		 *
 		 * Note:
 		 *  throws an singleton_exception on error
+		 *
 		 * Usage:
 			class my_singleton
 			{
@@ -41,6 +43,18 @@
 
 		protected static $instance=null;
 
+		public static function get_instance()
+		{
+			if(static::$instance === null)
+				static::$instance=new static();
+
+			return static::$instance;
+		}
+		public static function getInstance()
+		{
+			return static::get_instance();
+		}
+
 		protected function __construct()
 		{
 			static::init();
@@ -52,18 +66,6 @@
 		public function __wakeup()
 		{
 			throw new singleton_exception(static::class.': unserialization singleton is not allowed');
-		}
-
-		public static function get_instance()
-		{
-			if(static::$instance === null)
-				static::$instance=new static();
-
-			return static::$instance;
-		}
-		public function getInstance()
-		{
-			return static::get_instance();
 		}
 
 		protected function init() {}
@@ -106,6 +108,15 @@
 			get_instance as _t_singleton_get_instance;
 		}
 
+		final public static function get_instance()
+		{
+			return static::_t_singleton_get_instance();
+		}
+		final public static function getInstance()
+		{
+			return static::_t_singleton_get_instance();
+		}
+
 		final protected function __construct()
 		{
 			$this->_t_singleton_construct();
@@ -117,15 +128,6 @@
 		final public function __wakeup()
 		{
 			$this->_t_singleton_wakeup();
-		}
-
-		final public static function get_instance()
-		{
-			return static::_t_singleton_get_instance();
-		}
-		final public static function getInstance()
-		{
-			return static::_t_singleton_get_instance();
 		}
 	}
 ?>

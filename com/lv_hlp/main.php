@@ -27,6 +27,7 @@
 		'function_exists'=>[
 			'pf_get_debug_type.php'=>'get_debug_type',
 			'pf_mbstring.php'=>'mb_str_split',
+			'pf_is_countable.php'=>'is_countable',
 			'pf_json_validate.php'=>'json_validate'
 		]
 	]);
@@ -83,6 +84,22 @@
 		function lv_hlp_password($length=32, $letters=true, $numbers=true, $symbols=true, $spaces=false)
 		{
 			return lv_str_password($length, $letters, $numbers, $symbols, $spaces);
+		}
+		function lv_hlp_plural(
+			$value,
+			$count=2,
+			$language='english',
+			$uncountable=['recommended', 'related']
+		){
+			return lv_str_plural($value, $count, $language, $uncountable);
+		}
+		function lv_hlp_plural_studly($value, $count=2)
+		{
+			return lv_str_plural_studly($value, $count);
+		}
+		function lv_hlp_singular(string $value)
+		{
+			return lv_str_singular($value);
 		}
 		function lv_hlp_slug($title, $separator='-', $dictionary=['@' => 'at'])
 		{
@@ -232,6 +249,18 @@
 			->	shuffle()
 			->	implode('');
 		}
+		function lv_str_plural_studly(string $value, $count=2)
+		{
+			$parts=preg_split(
+				'/(.)(?=[A-Z])/u',
+				$value,
+				-1,
+				PREG_SPLIT_DELIM_CAPTURE
+			);
+			$last_word=array_pop($parts);
+
+			return implode('', $parts).lv_str_plural($last_word, $count);
+		}
 		function lv_str_slug($title, $separator='-', array $dictionary=['@' => 'at'])
 		{
 			$replacements=[];
@@ -320,9 +349,66 @@
 				->	append($matches[2], $end)
 				->	to_string();
 			}
-			function lv_str_reverse(string $value)
+			function lv_str_plural(
+				string $value,
+				$count=2,
+				string $language='english',
+				array $uncountable=['recommended', 'related']
+			){
+				if(!class_exists('\Doctrine\Inflector\Inflector'))
+					throw new lv_hlp_exception('doctrine/inflector package is not installed');
+
+				// Pluralizer::inflector()
+					static $inflector=null;
+
+					if($inflector === null)
+						$inflector=Doctrine\Inflector\InflectorFactory::createForLanguage($language)->build();
+
+				// Pluralizer::plural()
+					if(is_countable($count))
+						$count=count($count);
+
+					if(
+						((int)abs($count) === 1) ||
+						in_array(strtolower($value), $uncountable) || // Pluralizer::uncountable()
+						(
+							preg_match(
+								'/^(.*)[A-Za-z0-9\x{0080}-\x{FFFF}]$/u',
+								$value
+							) == 0
+						)
+					)
+						return $value;
+
+					$plural=$inflector->pluralize($value);
+
+					// Pluralizer::matchCase()
+						foreach(['mb_strtolower', 'mb_strtoupper', 'ucfirst', 'ucwords'] as $function)
+							if($function($value) === $value)
+								return $function($plural);
+
+						return $plural;
+			}
+			function lv_str_singular(string $value, string $language='english')
 			{
-				return implode(array_reverse(mb_str_split($value)));
+				if(!class_exists('\Doctrine\Inflector\Inflector'))
+					throw new lv_hlp_exception('doctrine/inflector package is not installed');
+
+				// Pluralizer::inflector()
+					static $inflector=null;
+
+					if($inflector === null)
+						$inflector=Doctrine\Inflector\InflectorFactory::createForLanguage($language)->build();
+
+				// Pluralizer::singular()
+					$singular=$inflector->singularize($value);
+
+					// Pluralizer::matchCase()
+						foreach(['mb_strtolower', 'mb_strtoupper', 'ucfirst', 'ucwords'] as $function)
+							if($function($value) === $value)
+								return $function($singular);
+
+						return $singular;
 			}
 		}
 		else /* some boilerplate */
@@ -331,7 +417,11 @@
 			{
 				throw new lv_hlp_exception('mbstring extension is not loaded');
 			}
-			function lv_str_reverse()
+			function lv_hlp_plural()
+			{
+				throw new lv_hlp_exception('mbstring extension is not loaded');
+			}
+			function lv_hlp_singular()
 			{
 				throw new lv_hlp_exception('mbstring extension is not loaded');
 			}
@@ -437,13 +527,21 @@
 			{
 				return lv_hlp_match_all($pattern, $this->value);
 			}
-			public function reverse()
+			public function plural($count=2)
 			{
-				return new static(lv_str_reverse($this->value));
+				return new static(lv_str_plural($this->value, $count));
+			}
+			public function plural_studly($count=2)
+			{
+				return new static(lv_str_plural_studly($this->value, $count));
 			}
 			public function scan(string $format)
 			{
 				return lv_hlp_collect(sscanf($this->value, $format));
+			}
+			public function singular()
+			{
+				return new static(lv_str_singular($this->value));
 			}
 			public function slug(string $separator='-', array $dictionary=['@'=>'at'])
 			{
@@ -460,6 +558,16 @@
 					return lv_hlp_collect();
 
 				return lv_hlp_collect($segments);
+			}
+			public function to_date(string $format, string $tz=null)
+			{
+				if(!class_exists('\Carbon\Carbon'))
+					throw new lv_hlp_exception('nesbot/carbon package is not installed');
+
+				if(is_null($format))
+					return Carbon\Carbon::parse($this->value, $tz);
+
+				return Carbon\Carbon::createFromFormat($format, $this->value, $tz);
 			}
 			public function transliterate()
 			{

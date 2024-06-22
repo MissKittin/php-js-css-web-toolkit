@@ -1,6 +1,6 @@
 <?php
 	/*
-	 * zip.php library test
+	 * mem_zip.php library test
 	 *
 	 * Note:
 	 *  looks for a library at ../lib
@@ -39,10 +39,10 @@
 	$failed=false;
 
 	echo ' -> Testing save';
-		$zip=new ZipFile();
-		$zip->addFile('File 1', 'file1.txt');
-		$zip->addFile('File 2', 'file2/file1.txt');
-		file_put_contents(__DIR__.'/tmp/zip.zip', $zip->file());
+		file_put_contents(__DIR__.'/tmp/zip.zip', (new mem_zip())
+		->	add('File 1', 'file1.txt')
+		->	add('File 2', 'file2/file1.txt')
+		->	get());
 		if(is_file(__DIR__.'/tmp/zip.zip'))
 			echo ' [ OK ]'.PHP_EOL;
 		else

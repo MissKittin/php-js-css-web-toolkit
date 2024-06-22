@@ -70,6 +70,7 @@ Supported cache databases: Redis, Memcached, APCu
 * `lv_str.php` - Laravel string helpers (MIT)
 * `maintenance_break.php` - check to send the maintenance break pattern
 * `measure_exec_time.php` - debugging
+* `mem_zip.php` - create zip file in memory (GNU GPL2)
 * `memcached_connect.php` - open preconfigured connection to the Memcached
 * `ob_cache.php` - cache output buffer
 * `ob_minifier.php` - simple minifier and compressor
@@ -124,7 +125,6 @@ Supported cache databases: Redis, Memcached, APCu
 * `var_export_contains.php` - check if the content of the variable is correct (mainly for testing purposes)
 * `webdevsh.php` - functions for Toptal minifiers
 * `wp_is_serialized.php` - check if string is serialized data - function from Wordpress (GNU GPL2)
-* `zip.php` - make ZIP file in RAM - library from PhpMyAdmin (GNU GPL2)
 
 ## Javascript libraries
 * `addDesktopIcon.js` - create box with win98-style icon

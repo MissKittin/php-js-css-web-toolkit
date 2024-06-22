@@ -87,6 +87,7 @@
 	echo ' [ OK ]'.PHP_EOL;
 
 	echo ' -> Setting up component';
+		login_com_reg_config::_()['reload_by_http']=false;
 		login_com_reg::_()['credentials']=[0, 1];
 		login_com_reg_config::_()['method']='login_single';
 		login_com_reg_config::_()['on_login_success']=function()

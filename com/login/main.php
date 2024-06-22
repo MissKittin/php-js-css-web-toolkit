@@ -68,7 +68,8 @@
 			'on_login_prompt'=>function(){},
 			'on_login_success'=>function(){},
 			'on_login_failed'=>function(){},
-			'on_logout'=>function(){}
+			'on_logout'=>function(){},
+			'reload_by_http'=>true
 		] as $key=>$value)
 			login_com_reg_config::_()[$key]=$value;
 
@@ -80,6 +81,7 @@
 			'login_style'=>'login_default_bright.css', // 'assets_path']/'login_style']
 			'inline_style'=>false,
 			'html_headers'=>'',
+			'favicon'=>null,
 			'login_label'=>'Login',
 			'password_label'=>'Password',
 			'login_box_disabled'=>false,
@@ -139,7 +141,7 @@
 			{
 				logout();
 				login_com_reg_config::_()['on_logout']();
-				login_refresh('require-file', __DIR__.'/templates/'.login_com_reg_view::_()['template'].'/views/reload.php');
+				login_com_reload();
 
 				return true;
 			}
@@ -195,7 +197,7 @@
 						$_SESSION['_com_login_remember_me']=true;
 
 					login_com_reg_config::_()['on_login_success']();
-					login_refresh('require-file', __DIR__.'/templates/'.login_com_reg_view::_()['template'].'/views/reload.php');
+					login_com_reload();
 
 					return true;
 				}
@@ -211,6 +213,12 @@
 
 		if(!is_logged())
 		{
+			if(
+				(login_com_reg_view::_()['favicon'] !== null) &&
+				(!file_exists(login_com_reg_view::_()['favicon']))
+			)
+				throw new login_com_exception(login_com_reg_view::_()['favicon'].' does not exist');
+
 			login_com_reg_config::_()['on_login_prompt']();
 			require __DIR__.'/templates/'.login_com_reg_view::_()['template'].'/views/form.php';
 
@@ -228,6 +236,15 @@
 	}
 	function login_com_reload()
 	{
+		if(login_com_reg_config::_()['reload_by_http'] === true)
+			return header('Location: '.$_SERVER['REQUEST_URI'], true, 301);
+
+		if(
+			(login_com_reg_view::_()['favicon'] !== null) &&
+			(!file_exists(login_com_reg_view::_()['favicon']))
+		)
+			throw new login_com_exception(login_com_reg_view::_()['favicon'].' does not exist');
+
 		login_refresh('require-file', __DIR__.'/templates/'.login_com_reg_view::_()['template'].'/views/reload.php');
 	}
 ?>

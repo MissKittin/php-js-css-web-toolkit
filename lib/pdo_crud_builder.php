@@ -8,7 +8,6 @@
 		 * Note:
 		 *  most of the queries are parameterized to avoid sql injections
 		 *  all args in [] are optional
-		 *  PHP 7 or newer is required
 		 *  throws an pdo_crud_builder_exception on error
 		 *
 		 * Initializing:
@@ -35,15 +34,12 @@
 		 *
 		 *  Operations on tables:
 		 *   Creating table ([] means array):
-				create_table(
-					'table_name',
-					[
-						'id'=>pdo_crud_builder::ID_DEFAULT_PARAMS,
-						'first_column_name'=>'first column type',
-						'second_column_name'=>'second column type',
-						'n_column_name'=>'n column type'
-					]
-				)
+				create_table('table_name', [
+					'id'=>pdo_crud_builder::ID_DEFAULT_PARAMS,
+					'first_column_name'=>'first column type',
+					'second_column_name'=>'second column type',
+					'n_column_name'=>'n column type'
+				])
 		 *   Altering table:
 				alter_table('table_name')
 				alter_table_if_exists('table_name')
@@ -57,9 +53,9 @@
 				rename('new_table_name')
 				rename_to('new_table_name')
 		 *   Dropping table:
-		 *    drop_table('table_name')
+				drop_table('table_name')
 		 *   Truncating table:
-		 *    truncate_table('table_name')
+				truncate_table('table_name')
 		 *
 		 *  Creating ([] means array):
 				insert_into(
@@ -74,22 +70,22 @@
 				)
 		 *
 		 *  Reading:
-		 *   select(string_what)
-		 *   select_top(int_how_many, string_what)
-		 *   select_top_percent(int_how_many, string_what)
-		 *   as(string_what)
-		 *   group_by(string_what)
-		 *   order_by(string_what)
-		 *   join(string_inner|left|right|full, string_what, [string_on])
-		 *   union()
-		 *   union_all()
-		 *   asc()
-		 *   desc()
-		 *   limit(int_how_many, [int_offset])
-		 *   fetch_first(int_how_many, [string_fetch_param], [int_offset_number], [string_offset_param]) // fetch_param default: ROWS ONLY, offset_param default: ROWS
-		 *   fetch_first_percent(int_how_many, [string_fetch_param], [int_offset_number], [string_offset_param]) // fetch_param default: ROWS ONLY, offset_param default: ROWS
-		 *   fetch_next(int_how_many, [string_fetch_param], [int_offset_number], [string_offset_param]) // fetch_param default: ROWS ONLY, offset_param default: ROWS
-		 *   fetch_next_percent(int_how_many, [string_fetch_param], [int_offset_number], [string_offset_param]) // fetch_param default: ROWS ONLY, offset_param default: ROWS
+				select(string_what)
+				select_top(int_how_many, string_what)
+				select_top_percent(int_how_many, string_what)
+				as(string_what)
+				group_by(string_what)
+				order_by(string_what)
+				join(string_inner|left|right|full, string_what, [string_on])
+				union()
+				union_all()
+				asc()
+				desc()
+				limit(int_how_many, [int_offset])
+				fetch_first(int_how_many, [string_fetch_param], [int_offset_number], [string_offset_param]) // fetch_param default: ROWS ONLY, offset_param default: ROWS
+				fetch_first_percent(int_how_many, [string_fetch_param], [int_offset_number], [string_offset_param]) // fetch_param default: ROWS ONLY, offset_param default: ROWS
+				fetch_next(int_how_many, [string_fetch_param], [int_offset_number], [string_offset_param]) // fetch_param default: ROWS ONLY, offset_param default: ROWS
+				fetch_next_percent(int_how_many, [string_fetch_param], [int_offset_number], [string_offset_param]) // fetch_param default: ROWS ONLY, offset_param default: ROWS
 		 *
 		 *  Updating ([] means array):
 				replace_into(
@@ -110,20 +106,20 @@
 				])
 		 *
 		 *  Deleting:
-		 *   delete(string_from)
-		 *    note: you do not have to use from() method
+				delete(string_from)
+		 *   note: you do not have to use from() method
 		 *
 		 *  Miscellaneous statements:
-		 *   from(string)
+				output_into(string_parameters, string_into_where)
+				from(string)
 		 *   where statements:
-		 *    where(string_a, string_operator, string_b)
-		 *     and(string_a, string_operator, string_b)
-		 *     or(string_a, string_operator, string_b)
-		 *    where_like(string_column_name, string_sql_with_wildcards)
-		 *    where_not_like(string_column_name, string_sql_with_wildcards)
-		 *    where_is(string_a, string_what)
-		 *    where_not(string_a, string_operator, string_b)
-		 *   output_into(string_parameters, string_into_where)
+				where(string_a, string_operator, string_b)
+					and(string_a, string_operator, string_b)
+					or(string_a, string_operator, string_b)
+				where_like(string_column_name, string_sql_with_wildcards)
+				where_not_like(string_column_name, string_sql_with_wildcards)
+				where_is(string_a, string_what)
+				where_not(string_a, string_operator, string_b)
 		 *
 		 *  Raw sql input:
 		 *   raw_sql(string)
@@ -180,14 +176,14 @@
 					'on_error'=>function($error) { error_log('pdo_crud_builder'.$error); }
 				])
 		 *  dump all rows from the table:
-		 *   $result=$pdo_crud_builder->table_dump('log');
+				$result=$pdo_crud_builder->table_dump('log');
 		 *  fetch result in while loop: see PDO fetch method
 				$result=$pdo_crud_builder->select('*')->from('log')->exec(true);
 				while($row=$pdo_crud_builder->fetch_row($result)) // or
 				while($row=$result->fetch($pdo_crud_builder->get_fetch_method()))
 		 */
 
-		const ID_DEFAULT_PARAMS='INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL';
+		public const ID_DEFAULT_PARAMS='INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL';
 
 		protected $pdo_handler;
 		protected $fetch_mode;
@@ -296,12 +292,15 @@
 		public function create_table(string $table_name, array $columns)
 		{
 			$sql_columns='';
+
 			foreach($columns as $column_name=>$column_type)
 			{
 				if(!is_string($column_type))
 					throw new pdo_crud_builder_exception('Array value must be a string');
+
 				$sql_columns.=$column_name.' '.$column_type.', ';
 			}
+
 			$sql_columns=substr($sql_columns, 0, -2);
 
 			$this->sql_query.='CREATE TABLE '.$table_name.'('.$sql_columns.') ';
@@ -322,20 +321,24 @@
 		public function insert_into(string $where, string $columns, array $what)
 		{
 			$sql_what='';
+
 			foreach($what as $what_data_set)
 			{
 				if(!is_array($what_data_set))
 					throw new pdo_crud_builder_exception('The dataset must be an array');
 
 				$sql_what.='(';
+
 				foreach($what_data_set as $what_value)
 				{
 					$sql_what.='?, ';
 					$this->sql_parameters[]=$what_value;
 				}
+
 				$sql_what=substr($sql_what, 0, -2);
 				$sql_what.='), ';
 			}
+
 			$sql_what=substr($sql_what, 0, -2);
 
 			$this->sql_query.='INSERT INTO '.$where.'('.$columns.') VALUES'.$sql_what.' ';
@@ -478,45 +481,60 @@
 		public function limit(int $param, int $offset=null)
 		{
 			if($offset === null)
+			{
 				$this->sql_query.='LIMIT '.$param.' ';
-			else
-				$this->sql_query.='LIMIT '.$param.' OFFSET '.$offset.' ';
+				return $this;
+			}
+
+			$this->sql_query.='LIMIT '.$param.' OFFSET '.$offset.' ';
 
 			return $this;
 		}
 		public function fetch_first(int $param, string $rows_param='ROWS ONLY', int $offset=null, string $offset_param='ROWS')
 		{
 			if($offset === null)
+			{
 				$this->sql_query.='FETCH FIRST '.$param.' '.$rows_param.' ';
-			else
-				$this->sql_query.='OFFSET '.$offset.' '.$offset_param.' FETCH FIRST '.$param.' '.$rows_param.' ';
+				return $this;
+			}
+
+			$this->sql_query.='OFFSET '.$offset.' '.$offset_param.' FETCH FIRST '.$param.' '.$rows_param.' ';
 
 			return $this;
 		}
 		public function fetch_first_percent(int $param, string $rows_param='ROWS ONLY', int $offset=null, string $offset_param='ROWS')
 		{
 			if($offset === null)
+			{
 				$this->sql_query.='FETCH FIRST '.$param.' PERCENT '.$rows_param.' ';
-			else
-				$this->sql_query.='OFFSET '.$offset.' '.$offset_param.' FETCH FIRST '.$param.' PERCENT '.$rows_param.' ';
+				return $this;
+			}
+
+			$this->sql_query.='OFFSET '.$offset.' '.$offset_param.' FETCH FIRST '.$param.' PERCENT '.$rows_param.' ';
 
 			return $this;
 		}
 		public function fetch_next(int $param, string $rows_param='ROWS ONLY', int $offset=null, string $offset_param='ROWS')
 		{
 			if($offset === null)
+			{
 				$this->sql_query.='FETCH NEXT '.$param.' '.$rows_param.' ';
-			else
-				$this->sql_query.='OFFSET '.$offset.' '.$offset_param.' FETCH NEXT '.$param.' '.$rows_param.' ';
+				return $this;
+			}
+
+			$this->sql_query.='OFFSET '.$offset.' '.$offset_param.' FETCH NEXT '.$param.' '.$rows_param.' ';
 
 			return $this;
 		}
 		public function fetch_next_percent(int $param, string $rows_param='ROWS ONLY', int $offset=null, string $offset_param='ROWS')
 		{
 			if($offset === null)
+			{
 				$this->sql_query.='FETCH NEXT '.$param.' PERCENT '.$rows_param.' ';
-			else
-				$this->sql_query.='OFFSET '.$offset.' '.$offset_param.' FETCH NEXT '.$param.' PERCENT '.$rows_param.' ';
+				return $this;
+			}
+
+			$this->sql_query.='OFFSET '.$offset.' '.$offset_param.' FETCH NEXT '.$param.' PERCENT '.$rows_param.' ';
 
 			return $this;
 		}
@@ -524,20 +542,24 @@
 		public function replace_into(string $where, string $columns, array $what)
 		{
 			$sql_what='';
+
 			foreach($what as $what_data_set)
 			{
 				if(!is_array($what_data_set))
 					throw new pdo_crud_builder_exception('The dataset must be an array');
 
 				$sql_what.='(';
+
 				foreach($what_data_set as $what_value)
 				{
 					$sql_what.='?, ';
 					$this->sql_parameters[]=$what_value;
 				}
+
 				$sql_what=substr($sql_what, 0, -2);
 				$sql_what.='), ';
 			}
+
 			$sql_what=substr($sql_what, 0, -2);
 
 			$this->sql_query.='REPLACE INTO '.$where.'('.$columns.') VALUES'.$sql_what.' ';
@@ -552,6 +574,7 @@
 		public function set(array $what)
 		{
 			$sql_what='';
+
 			foreach($what as $data_set)
 			{
 				if(!is_array($data_set))
@@ -569,6 +592,7 @@
 				$sql_what.=$data_set[0].' = ?, ';
 				$this->sql_parameters[]=$data_set[1];
 			}
+
 			$sql_what=substr($sql_what, 0, -2);
 
 			$this->sql_query.='SET '.$sql_what.' ';
@@ -642,9 +666,12 @@
 		public function print_exec(bool $echo=false)
 		{
 			if($echo)
+			{
 				echo $this->sql_query;
-			else
-				return $this->sql_query;
+				return;
+			}
+
+			return $this->sql_query;
 		}
 		public function print_query(bool $echo=false)
 		{
@@ -653,9 +680,12 @@
 		public function print_parameters(bool $var_dump=false)
 		{
 			if($var_dump)
+			{
 				var_dump($this->sql_parameters);
-			else
-				return $this->sql_parameters;
+				return;
+			}
+
+			return $this->sql_parameters;
 		}
 		public function print_prepared()
 		{

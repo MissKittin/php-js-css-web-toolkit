@@ -55,6 +55,8 @@
 
 		include __DIR__.'/../main.php';
 
+		login_com_reg_view::_()['favicon']=__DIR__.'/tmp/favicon.html';
+
 		if(getenv('TEST_INLINE_STYLE') === 'yes')
 			login_com_reg_view::_()['inline_style']=true;
 
@@ -92,6 +94,12 @@
 		exit();
 	}
 
-	echo 'Starting PHP server...'.PHP_EOL.PHP_EOL;
+	echo ' -> Creating test pool...';
+		@mkdir(__DIR__.'/tmp');
+		@unlink(__DIR__.'/tmp/favicon.html');
+		file_put_contents(__DIR__.'/tmp/favicon.html', '<!-- favicon content -->');
+	echo ' [ OK ]'.PHP_EOL;
+
+	echo ' -> Starting PHP server...'.PHP_EOL.PHP_EOL;
 	system('"'.PHP_BINARY.'" -S 127.0.0.1:8080  '.__FILE__);
 ?>

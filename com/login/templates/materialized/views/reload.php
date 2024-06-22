@@ -32,6 +32,9 @@
 				<link rel="stylesheet" href="<?php echo login_com_reg_view::_()['assets_path']; ?>/simpleblog_materialized.css">
 				<link rel="stylesheet" href="<?php echo login_com_reg_view::_()['assets_path']; ?>/<?php echo login_com_reg_view::_()['login_style']; ?>">
 			<?php }
+
+			if(login_com_reg_view::_()['favicon'] !== null)
+				readfile(login_com_reg_view::_()['favicon']);
 		?>
 		<meta name="robots" content="noindex,nofollow">
 		<meta http-equiv="refresh" content="0">

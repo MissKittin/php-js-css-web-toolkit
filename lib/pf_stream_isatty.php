@@ -14,13 +14,12 @@
 			if(!is_resource($stream))
 			{
 				trigger_error('stream_isatty() expects parameter 1 to be resource, '.gettype($stream).' given', E_USER_WARNING);
-
 				return false;
 			}
 
 			if(DIRECTORY_SEPARATOR === '\\')
 			{
-				$stat=@fstat($stream);
+				$stat=fstat($stream);
 
 				if($stat === false)
 					return false;
@@ -28,10 +27,10 @@
 				return (($stat['mode'] & 0170000) === 0020000);
 			}
 
-			return (
-				function_exists('posix_isatty') &&
-				@posix_isatty($stream)
-			);
+			if(!function_exists('posix_isatty'))
+				return false;
+
+			return posix_isatty($stream);
 		}
 	}
 ?>

@@ -29,12 +29,15 @@
 				?></style><?php
 			}
 			else
-			{
-				?><link rel="stylesheet" href="<?php echo login_com_reg_view::_()['assets_path']; ?>/<?php echo login_com_reg_view::_()['login_style']; ?>"><?php
-			}
+				{ ?><link rel="stylesheet" href="<?php echo login_com_reg_view::_()['assets_path']; ?>/<?php echo login_com_reg_view::_()['login_style']; ?>"><?php }
 		?>
 		<meta name="robots" content="noindex,nofollow">
-		<?php echo login_com_reg_view::_()['html_headers']; ?>
+		<?php
+			echo login_com_reg_view::_()['html_headers'];
+
+			if(login_com_reg_view::_()['favicon'] !== null)
+				readfile(login_com_reg_view::_()['favicon']);
+		?>
 	</head>
 	<body>
 		<div id="login_form">

@@ -112,19 +112,20 @@
 		protected function _set_default_labels()
 		{
 			$this
-				->add_csp_header('default-src', '\'none\'')
-				->add_csp_header('script-src', '\'self\'')
-				->add_csp_header('connect-src', '\'self\'')
-				->add_csp_header('img-src', '\'self\'')
-				->add_csp_header('style-src', '\'self\'')
-				->add_csp_header('base-uri', '\'self\'')
-				->add_csp_header('form-action', '\'self\'')
+			->	add_csp_header('default-src', '\'none\'')
+			->	add_csp_header('script-src', '\'self\'')
+			->	add_csp_header('connect-src', '\'self\'')
+			->	add_csp_header('img-src', '\'self\'')
+			->	add_csp_header('style-src', '\'self\'')
+			->	add_csp_header('base-uri', '\'self\'')
+			->	add_csp_header('form-action', '\'self\'')
 
-				->set_title('Administration')
-				->set_menu_button_label('Menu')
-				->set_panel_label('Administration')
-				->set_logout_button_label('Logout')
-				->set_inline_assets(false);
+			->	set_title('Administration')
+			->	set_menu_button_label('Menu')
+			->	set_panel_label('Administration')
+			->	set_logout_button_name('logout')
+			->	set_logout_button_label('Logout')
+			->	set_inline_assets(false);
 		}
 		protected function _view($_module)
 		{
@@ -132,6 +133,41 @@
 				require $_module['path'].'/'.$_module['config'];
 
 			require __DIR__.'/templates/'.$this->template.'/view.php';
+		}
+
+		protected function set_lang(string $lang)
+		{
+			$this->registry['_lang']=$lang;
+			return $this;
+		}
+		protected function set_title(string $title)
+		{
+			$this->registry['_title']=$title;
+			return $this;
+		}
+		protected function add_csp_header(string $section, string $value)
+		{
+			$this->registry['_csp_header'][$section][]=$value;
+			return $this;
+		}
+		public function add_style_header(string $path)
+		{
+			$this->registry['_styles'][]=$path;
+			return $this;
+		}
+		public function add_script_header(string $path)
+		{
+			$this->registry['_scripts'][]=$path;
+			return $this;
+		}
+		protected function add_html_header(string $header)
+		{
+			if(!isset($this->registry['_html_headers']))
+				$this->registry['_html_headers']='';
+
+			$this->registry['_html_headers'].=$header;
+
+			return $this;
 		}
 
 		public function add_module(array $params)
@@ -201,6 +237,15 @@
 				throw new admin_panel_exception('Module with id '.$params['id'].' is already registered');
 
 			$this->modules[$params['id']]=$params;
+
+			return $this;
+		}
+		public function add_favicon(string $path)
+		{
+			if(!file_exists($path))
+				throw new admin_panel_exception($path.' does not exist');
+
+			$this->registry['_favicon']=realpath($path);
 
 			return $this;
 		}
@@ -292,41 +337,6 @@
 			}
 		}
 
-		protected function set_lang(string $lang)
-		{
-			$this->registry['_lang']=$lang;
-			return $this;
-		}
-		protected function set_title(string $title)
-		{
-			$this->registry['_title']=$title;
-			return $this;
-		}
-		protected function add_csp_header(string $section, string $value)
-		{
-			$this->registry['_csp_header'][$section][]=$value;
-			return $this;
-		}
-		public function add_style_header(string $path)
-		{
-			$this->registry['_styles'][]=$path;
-			return $this;
-		}
-		public function add_script_header(string $path)
-		{
-			$this->registry['_scripts'][]=$path;
-			return $this;
-		}
-		protected function add_html_header(string $header)
-		{
-			if(!isset($this->registry['_html_headers']))
-				$this->registry['_html_headers']='';
-
-			$this->registry['_html_headers'].=$header;
-
-			return $this;
-		}
-
 		public function set_menu_button_label(string $label)
 		{
 			$this->registry['_menu_button_label']=$label;
@@ -335,6 +345,11 @@
 		public function set_panel_label(string $label)
 		{
 			$this->registry['_panel_label']=$label;
+			return $this;
+		}
+		public function set_logout_button_name(string $name)
+		{
+			$this->registry['_logout_button_name']=$name;
 			return $this;
 		}
 		public function set_logout_button_label(string $label)
