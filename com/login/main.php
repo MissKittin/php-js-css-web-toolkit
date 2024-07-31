@@ -75,6 +75,7 @@
 
 		foreach([
 			'template'=>'default',
+			'templates_dir'=>__DIR__.'/templates',
 			'lang'=>'en',
 			'title'=>'Login', // <title>
 			'assets_path'=>'/assets', // 'assets_path']/'login_style']
@@ -119,7 +120,10 @@
 				throw new login_com_exception('sec_csrf.php library not found');
 		}
 
-		if(!is_dir(__DIR__.'/templates/'.login_com_reg_view::_()['template']))
+		if(!is_dir(login_com_reg_view::_()['templates_dir']))
+			throw new login_com_exception(login_com_reg_view::_()['templates_dir'].' is not a directory');
+
+		if(!is_dir(login_com_reg_view::_()['templates_dir'].'/'.login_com_reg_view::_()['template']))
 			throw new login_com_exception(login_com_reg_view::_()['template'].' template does not exist');
 
 		if(
@@ -220,7 +224,7 @@
 				throw new login_com_exception(login_com_reg_view::_()['favicon'].' does not exist');
 
 			login_com_reg_config::_()['on_login_prompt']();
-			require __DIR__.'/templates/'.login_com_reg_view::_()['template'].'/views/form.php';
+			require login_com_reg_view::_()['templates_dir'].'/'.login_com_reg_view::_()['template'].'/views/form.php';
 
 			return true;
 		}
@@ -245,6 +249,6 @@
 		)
 			throw new login_com_exception(login_com_reg_view::_()['favicon'].' does not exist');
 
-		login_refresh('require-file', __DIR__.'/templates/'.login_com_reg_view::_()['template'].'/views/reload.php');
+		login_refresh('require-file', login_com_reg_view::_()['templates_dir'].'/'.login_com_reg_view::_()['template'].'/views/reload.php');
 	}
 ?>

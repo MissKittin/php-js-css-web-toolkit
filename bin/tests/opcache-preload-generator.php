@@ -62,22 +62,20 @@
 
 	echo ' -> Starting tool'.PHP_EOL.PHP_EOL;
 		chdir(__DIR__.'/tmp/opcache-preload-generator/src');
-		system(
-			'"'.PHP_BINARY.'" '.__DIR__.'/../'.basename(__FILE__).' '
-			.'. '
-			.'. '
-			.'../preload.php'
-			//.' --debug'
+		system('"'.PHP_BINARY.'" "'.__DIR__.'/../'.basename(__FILE__).'" '
+		.	'. '
+		.	'. '
+		.	'../preload.php'
+		//.	' --debug'
 		);
 	echo PHP_EOL;
 
 	echo ' -> Testing preload script';
-		$md5sum=md5(str_replace(PHP_EOL, '', file_get_contents('../preload.php')));
-		// echo $md5sum;
-		if(
-			($md5sum === '23c05d24904c5248b443bc2cb270ef29') || // windows
-			($md5sum === 'da722e76b8de6af80099d8b26f663568') // unix
-		)
+		$data=file('../preload.php');
+		natsort($data);
+		$md5sum=md5(implode($data));
+		//echo ' ['.$md5sum.']';
+		if($md5sum === '8ca972670875182449c67842e96920b8')
 			echo ' [ OK ]'.PHP_EOL;
 		else
 		{

@@ -116,15 +116,14 @@
 						<?php
 					}
 				?>
-			});
+			}, false);
 		</script>
 	</head>
 	<body>
 		<?php
-			if(isset($_GET['theme']))
-			{
-				?><div id="app"></div><?php
-			}
+			if(isset($_GET['theme'])){ ?>
+				<div id="app"></div>
+			<?php }
 			else
 			{ ?>
 				<a href="?theme=default" style="font-size: 30pt;">Default theme</a><br>

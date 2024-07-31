@@ -16,11 +16,12 @@ The logout button action is the current URL via POST
 	params:  
 	* `'base_url'=>'/admin'` - required
 	* `'template'=>'template_name'` - `default` or `materialized`, optional
+	* `'templates_dir'=>'path/to/directory'` - path to the template directory, optional
 	* `'assets_path'=>'/assets'` - optional
 	* `'show_logout_button'=>true` - optional
 	* `'csrf_token'=>['csrf_name', 'csrf_value']` - required by `show_logout_button`
 
-* **[protected]** `_list_modules()` [returns `array(link_name=>url)`]  
+* **[protected]** `_list_modules()` [yields `array(link_name=>url)`]  
 	for view, prepares a list of modules for the menu
 * **[protected]** `_set_default_labels()`  
 	sets default values when called by the constructor
@@ -40,6 +41,22 @@ The logout button action is the current URL via POST
 	* `'url'=>'dashboard'` - must be unique, here: `/admin/dashboard`
 	* `'name'=>'Dashboard'` - in menu, will not be displayed if not defined
 	* `'template_header'=>'Dashboard'` - in page header, will not be displayed if not defined
+* `add_module_class(array_params)` [returns self]  
+	you can add other parameters - they will be redirected to the module  
+	reserved params:  
+	* `_args` - exploded and filtered from URI (eg. `/admin/module/arg1/arg2/arg3`)  
+		**note:** will always be an `array('')` when the requested module is not registered
+	* `_is_default` - `true` when the module was called as default
+	* `_not_found` - `true` when the requested module is not registered
+
+	params:  
+	* `'id'=>'dashboard'` - must be unique
+	* `'class'=>'controller_class'` - class name (you can use `static::class` in static method)
+	* `'config_method'=>'configure_framework'` - view configuration method (here `controller_class::configure_framework`), optional
+	* `'main_method'=>'admin_panel_content'` - here: `controller_class::admin_panel_content`
+	* `'url'=>'dashboard'` - must be unique, here: `/admin/dashboard`
+	* `'name'=>'Dashboard'` - in menu, will not be displayed if not defined
+	* `'template_header'=>'Dashboard'` - in page header, will not be displayed if not defined
 * `remove_module(string_module_id)` [returns self]  
 	unregister a module or menu entry
 * `set_default_module(string_module_id)` [returns self]  
@@ -55,18 +72,18 @@ The logout button action is the current URL via POST
 * `is_default_module_registered()` [returns bool]
 * `run(bool_return_content=false)` [returns string|`null`]  
 	returns rendered page if `return_content=true`
-* **[protected]** `set_lang(string_lang)` [returns self]  
+* `set_lang(string_lang)` [returns self]  
 	for the module configuration script, `<html lang="lang">`
-* **[protected]** `set_title(string_title)` [returns self]  
+* `set_title(string_title)` [returns self]  
 	for the module configuration script, `<title>`  
 	default: `Administration`
-* **[protected]** `add_csp_header(string_section, string_value)` [returns self]  
+* `add_csp_header(string_section, string_value)` [returns self]  
 	for the module configuration script, eg `$this->add_csp_header('script-src', '\'myhash\'')`
 * `add_style_header(string_path)` [returns self]  
 	`<link rel="stylesheet" href="string_path">`
 * `add_script_header(string_path)` [returns self]  
 	`<script src="string_path"></script>`
-* **[protected]** `add_html_header(string_header)` [returns self]  
+* `add_html_header(string_header)` [returns self]  
 	for the module configuration script
 * `add_favicon(string_path)` [returns self]  
 	path to the favicon headers file  
@@ -92,12 +109,75 @@ There are two templates available:
 * `materialized`  
 	based on the Google's Material Design in green
 
-## Modules
+## Standard modules
 All application logic is defined by modules.  
 The module first configures the view in a `config` file, the view is rendered, and then runs the `script` file (see `add_module()`).  
 **Note:** `config` and `script` may point to the same file.
 
-### Example
+## Class modules
+You can also use a class to define modules, for example:
+```
+<?php
+	class admin_panel_class_module
+	{
+		public static function admin_panel_config($admin_panel)
+		{
+			static::$admin_panel
+			->	set_lang('en')
+			->	set_title('Class test A');
+		}
+		public static function admin_panel_start($_module)
+		{
+			echo 'Message from '.static::class.' A';
+		}
+
+		public static function admin_panel_config_b($admin_panel)
+		{
+			static::$admin_panel
+			->	set_lang('en')
+			->	set_title('Class test B');
+		}
+		public static function admin_panel_start_b($_module)
+		{
+			echo 'Message from '.static::class.' B';
+		}
+	}
+
+	// the code below may be in another file
+
+	require './com/admin_panel/main.php';
+
+	$admin_panel=new admin_panel([
+		'base_url'=>'/admin',
+		'assets_path'=>'/assets',
+		'show_logout_button'=>true,
+		'csrf_token'=>['csrf_name', 'csrf_value']
+	]);
+	$admin_panel
+	->	add_module_class([
+			'id'=>'classtest',
+			'class'=>'admin_panel_class_module',
+			'config_method'=>'admin_panel_config',
+			'main_method'=>'admin_panel_start',
+			'url'=>'class-test',
+			'name'=>'Class test A',
+			'template_header'=>'Class test A'
+		])
+	->	add_module_class([
+			'id'=>'classtestb',
+			'class'=>'admin_panel_class_module',
+			'config_method'=>'admin_panel_config_b',
+			'main_method'=>'admin_panel_start_b',
+			'url'=>'class-test-b',
+			'name'=>'Class test B',
+			'template_header'=>'Class test B'
+		])
+	->	set_default_module('classtest')
+	->	run();
+?>
+```
+
+### Example - standard modules
 **Note:** you need to add the `/admin` path to the router  
 Admin router:
 ```

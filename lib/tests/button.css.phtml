@@ -45,8 +45,7 @@
 				.	'button_'.$mode.' '
 				.	$border.' '
 				.	$hover.' '
-				.	$text_shadow
-				;
+				.	$text_shadow;
 
 				foreach([
 					'',
@@ -58,12 +57,12 @@
 				] as $class){
 					$classes.=' '.$class;
 
-					echo '
-						'.$classes.'
+					echo $classes;
+					?>
 						<br><br>
-						<div class="'.$classes.'">Button label</div>
+						<div class="<?php echo $classes; ?>">Button label</div>
 						<hr>
-					';
+					<?php
 				}
 			}
 		?>

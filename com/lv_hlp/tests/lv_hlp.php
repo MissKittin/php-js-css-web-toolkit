@@ -70,13 +70,14 @@
 				echo ' -> Downloading composer'.PHP_EOL;
 
 				$_composer_binary=__DIR__.'/../bin/get-composer.php';
+
 				if(file_exists(__DIR__.'/../../../bin/get-composer.php'))
 					$_composer_binary=__DIR__.'/../../../bin/get-composer.php';
 
 				system(''
 				.	'"'.PHP_BINARY.'" '
-				.	$_composer_binary.' '
-				.	__DIR__.'/tmp/.composer'
+				.	'"'.$_composer_binary.'" '
+				.	'"'.__DIR__.'/tmp/.composer"'
 				);
 
 				if(!file_exists(__DIR__.'/tmp/.composer/composer.phar'))
@@ -96,9 +97,9 @@
 			foreach(['doctrine/inflector', 'league/commonmark', 'nesbot/carbon'] as $_composer_package)
 			{
 				echo ' -> Installing '.$_composer_package.PHP_EOL;
-				system('"'.PHP_BINARY.'" '.$_composer_binary.' '
+				system('"'.PHP_BINARY.'" "'.$_composer_binary.'" '
 				.	'--no-cache '
-				.	'--working-dir='.__DIR__.'/tmp/.composer '
+				.	'"--working-dir='.__DIR__.'/tmp/.composer" '
 				.	'require '.$_composer_package
 				);
 			}
@@ -473,6 +474,88 @@
 					echo ' [FAIL]'.PHP_EOL;
 					$failed=true;
 				}
+
+		echo ' -> Testing lv_hlp_pluralizer';
+			if(class_exists('\Doctrine\Inflector\Inflector') && function_exists('mb_substr'))
+			{
+				echo PHP_EOL;
+
+				echo '  -> plural';
+					if(lv_hlp_pluralizer::plural('car') === 'cars')
+						echo ' [ OK ]';
+					else
+					{
+						echo ' [FAIL]';
+						$failed=true;
+					}
+					if(lv_hlp_pluralizer::plural('child') === 'children')
+						echo ' [ OK ]';
+					else
+					{
+						echo ' [FAIL]';
+						$failed=true;
+					}
+					if(lv_hlp_pluralizer::plural('child', 2) === 'children')
+						echo ' [ OK ]';
+					else
+					{
+						echo ' [FAIL]';
+						$failed=true;
+					}
+					if(lv_hlp_pluralizer::plural('child', 1) === 'child')
+						echo ' [ OK ]'.PHP_EOL;
+					else
+					{
+						echo ' [FAIL]'.PHP_EOL;
+						$failed=true;
+					}
+				echo '  -> lv_str_plural_studly';
+					if(lv_hlp_pluralizer::plural_studly('VerifiedHuman') === 'VerifiedHumans')
+						echo ' [ OK ]';
+					else
+					{
+						echo ' [FAIL]';
+						$failed=true;
+					}
+					if(lv_hlp_pluralizer::plural_studly('UserFeedback') === 'UserFeedback')
+						echo ' [ OK ]';
+					else
+					{
+						echo ' [FAIL]';
+						$failed=true;
+					}
+					if(lv_hlp_pluralizer::plural_studly('VerifiedHuman', 2) === 'VerifiedHumans')
+						echo ' [ OK ]';
+					else
+					{
+						echo ' [FAIL]';
+						$failed=true;
+					}
+					if(lv_hlp_pluralizer::plural_studly('VerifiedHuman', 1) === 'VerifiedHuman')
+						echo ' [ OK ]'.PHP_EOL;
+					else
+					{
+						echo ' [FAIL]'.PHP_EOL;
+						$failed=true;
+					}
+				echo '  -> singular';
+					if(lv_hlp_pluralizer::singular('cars') === 'car')
+						echo ' [ OK ]';
+					else
+					{
+						echo ' [FAIL]';
+						$failed=true;
+					}
+					if(lv_hlp_pluralizer::singular('children') === 'child')
+						echo ' [ OK ]'.PHP_EOL;
+					else
+					{
+						echo ' [FAIL]'.PHP_EOL;
+						$failed=true;
+					}
+			}
+			else
+				echo ' [SKIP]'.PHP_EOL;
 
 		echo ' -> Testing lv_hlp_ingable'.PHP_EOL;
 			echo '  -> ascii';
@@ -895,7 +978,6 @@
 					echo ' [FAIL]'.PHP_EOL;
 					$failed=true;
 				}
-
 	}
 	namespace Test
 	{

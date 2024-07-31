@@ -62,64 +62,64 @@
 	]);
 
 	echo ' -> Testing input'.PHP_EOL;
-	echo '  -> return true';
-		$signature=$filesign->generate_input_signature('Message');
-		if($filesign->verify_input_signature('Message', $signature))
-			echo ' [ OK ]'.PHP_EOL;
-		else
-		{
-			echo ' [FAIL]'.PHP_EOL;
-			$failed=true;
-		}
-	echo '  -> return false';
-		$signature.='bad';
-		if(!$filesign->verify_input_signature('Message', $signature))
-			echo ' [ OK ]'.PHP_EOL;
-		else
-		{
-			echo ' [FAIL]'.PHP_EOL;
-			$failed=true;
-		}
+		echo '  -> return true';
+			$signature=$filesign->generate_input_signature('Message');
+			if($filesign->verify_input_signature('Message', $signature))
+				echo ' [ OK ]'.PHP_EOL;
+			else
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				$failed=true;
+			}
+		echo '  -> return false';
+			$signature.='bad';
+			if(!$filesign->verify_input_signature('Message', $signature))
+				echo ' [ OK ]'.PHP_EOL;
+			else
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				$failed=true;
+			}
 
 	echo ' -> Testing file'.PHP_EOL;
-	echo '  -> return true';
-		$signature=$filesign->generate_file_signature(__FILE__);
-		if($filesign->verify_file_signature(__FILE__, $signature))
-			echo ' [ OK ]'.PHP_EOL;
-		else
-		{
-			echo ' [FAIL]'.PHP_EOL;
-			$failed=true;
-		}
-	echo '  -> return false';
-		$signature.='bad';
-		if(!$filesign->verify_file_signature(__FILE__, $signature))
-			echo ' [ OK ]'.PHP_EOL;
-		else
-		{
-			echo ' [FAIL]'.PHP_EOL;
-			$failed=true;
-		}
+		echo '  -> return true';
+			$signature=$filesign->generate_file_signature(__FILE__);
+			if($filesign->verify_file_signature(__FILE__, $signature))
+				echo ' [ OK ]'.PHP_EOL;
+			else
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				$failed=true;
+			}
+		echo '  -> return false';
+			$signature.='bad';
+			if(!$filesign->verify_file_signature(__FILE__, $signature))
+				echo ' [ OK ]'.PHP_EOL;
+			else
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				$failed=true;
+			}
 
 	echo ' -> Testing encrypt/decrypt'.PHP_EOL;
-	echo '  -> return true';
-		$encrypted=$filesign->encrypt_data('Message');
-		if($filesign->decrypt_data($encrypted) === 'Message')
-			echo ' [ OK ]'.PHP_EOL;
-		else
-		{
-			echo ' [FAIL]'.PHP_EOL;
-			$failed=true;
-		}
-	echo '  -> return false';
-		$encrypted.='bad';
-		if($filesign->decrypt_data($encrypted) === false)
-			echo ' [ OK ]'.PHP_EOL;
-		else
-		{
-			echo ' [FAIL]'.PHP_EOL;
-			$failed=true;
-		}
+		echo '  -> return true';
+			$encrypted=$filesign->encrypt_data('Message');
+			if($filesign->decrypt_data($encrypted) === 'Message')
+				echo ' [ OK ]'.PHP_EOL;
+			else
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				$failed=true;
+			}
+		echo '  -> return false';
+			$encrypted.='bad';
+			if($filesign->decrypt_data($encrypted) === false)
+				echo ' [ OK ]'.PHP_EOL;
+			else
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				$failed=true;
+			}
 
 	if($failed)
 		exit(1);

@@ -28,12 +28,16 @@
 					else if(is_file(__DIR__.'/../'.basename(__FILE__, '.phtml')))
 						require __DIR__.'/../'.basename(__FILE__, '.phtml');
 				?>
-			});
+
+				disableEnterOnForm(document.getElementById('disable-enter-here'));
+			}, false);
 		</script>
 	</head>
 	<body>
+		When you press enter while typing, nothing should happen.
+		<br>
 		<form>
-			<input type="text">
+			<input id="disable-enter-here" type="text">
 			<input type="submit">
 		</form>
 	</body>

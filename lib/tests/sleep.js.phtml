@@ -29,11 +29,11 @@
 						require __DIR__.'/../'.basename(__FILE__, '.phtml');
 				?>
 
-				document.body.innerHTML+='Waiting 3 seconds...';
+				document.body.innerHTML='Waiting 3 seconds...';
 				await sleep(3000);
 				document.body.innerHTML+=' OK';
-			});
+			}, false);
 		</script>
 	</head>
-	<body></body>
+	<body>Test was not executed</body>
 </html>

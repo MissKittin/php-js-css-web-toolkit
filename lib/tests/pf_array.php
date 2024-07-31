@@ -95,61 +95,61 @@
 		$failed=false;
 
 		echo ' -> Testing array_is_list'.PHP_EOL;
-		echo '  -> returns true';
-			if(array_is_list([]))
-				echo ' [ OK ]';
-			else
-			{
-				echo ' [FAIL]';
-				$failed=true;
-			}
-			if(array_is_list(['apple', 2, 3]))
-				echo ' [ OK ]';
-			else
-			{
-				echo ' [FAIL]';
-				$failed=true;
-			}
-			if(array_is_list([0 => 'apple', 'orange']))
-				echo ' [ OK ]'.PHP_EOL;
-			else
-			{
-				echo ' [FAIL]'.PHP_EOL;
-				$failed=true;
-			}
-		echo '  -> returns false';
-			// The array does not start at 0
-			if(array_is_list([1 => 'apple', 'orange']))
-			{
-				echo ' [FAIL]';
-				$failed=true;
-			}
-			else
-				echo ' [ OK ]';
-			// The keys are not in the correct order
-			if(array_is_list([1 => 'apple', 0 => 'orange']))
-			{
-				echo ' [FAIL]';
-				$failed=true;
-			}
-			else
-				echo ' [ OK ]';
-			// Non-integer keys
-			if(array_is_list([0 => 'apple', 'foo' => 'bar']))
-			{
-				echo ' [FAIL]';
-				$failed=true;
-			}
-			else
-				echo ' [ OK ]';
-			// Non-consecutive keys
-			if(array_is_list([0 => 'apple', 2 => 'bar']))
-			{
-				echo ' [FAIL]'.PHP_EOL;
-				$failed=true;
-			}
-			else
-				echo ' [ OK ]'.PHP_EOL;
+			echo '  -> returns true';
+				if(array_is_list([]))
+					echo ' [ OK ]';
+				else
+				{
+					echo ' [FAIL]';
+					$failed=true;
+				}
+				if(array_is_list(['apple', 2, 3]))
+					echo ' [ OK ]';
+				else
+				{
+					echo ' [FAIL]';
+					$failed=true;
+				}
+				if(array_is_list([0 => 'apple', 'orange']))
+					echo ' [ OK ]'.PHP_EOL;
+				else
+				{
+					echo ' [FAIL]'.PHP_EOL;
+					$failed=true;
+				}
+			echo '  -> returns false';
+				// The array does not start at 0
+				if(array_is_list([1 => 'apple', 'orange']))
+				{
+					echo ' [FAIL]';
+					$failed=true;
+				}
+				else
+					echo ' [ OK ]';
+				// The keys are not in the correct order
+				if(array_is_list([1 => 'apple', 0 => 'orange']))
+				{
+					echo ' [FAIL]';
+					$failed=true;
+				}
+				else
+					echo ' [ OK ]';
+				// Non-integer keys
+				if(array_is_list([0 => 'apple', 'foo' => 'bar']))
+				{
+					echo ' [FAIL]';
+					$failed=true;
+				}
+				else
+					echo ' [ OK ]';
+				// Non-consecutive keys
+				if(array_is_list([0 => 'apple', 2 => 'bar']))
+				{
+					echo ' [FAIL]'.PHP_EOL;
+					$failed=true;
+				}
+				else
+					echo ' [ OK ]'.PHP_EOL;
 
 		echo ' -> Testing array_key_first';
 			if(array_key_first(['b'=>1, 'd'=>2, 'c'=>3]) === 'b')

@@ -149,7 +149,10 @@
 
 			if(
 				(!empty($this->http_origin)) &&
-				(!in_array($this->http_headers['Origin'], $this->http_origin))
+				(!in_array(
+					$this->http_headers['Origin'],
+					$this->http_origin
+				))
 			){
 				if(function_exists('websockets_log'))
 					websockets_log('init_client(): origin "'.$this->http_headers['Origin'].'" not allowed');
@@ -158,9 +161,9 @@
 			}
 
 			$key=base64_encode(
-				pack('H*', sha1(
-					$this->http_headers['Sec-WebSocket-Key']
-					.'258EAFA5-E914-47DA-95CA-C5AB0DC85B11'
+				pack('H*', sha1(''
+				.	$this->http_headers['Sec-WebSocket-Key']
+				.	'258EAFA5-E914-47DA-95CA-C5AB0DC85B11'
 				))
 			);
 			$headers=''
@@ -169,14 +172,17 @@
 			.	"Connection: Upgrade\r\n"
 			.	"Sec-WebSocket-Version: 13\r\n"
 			.	"Sec-WebSocket-Accept: $key\r\n"
-			.	"\r\n"
-			;
+			.	"\r\n";
 
-			if(socket_write(
-				$this->client,
-				$headers,
-				strlen($headers)
-			) === false){
+			if(
+				socket_write(
+					$this->client,
+					$headers,
+					strlen($headers)
+				)
+				===
+				false
+			){
 				if(function_exists('websockets_log'))
 					websockets_log('init_client(): connection lost');
 
@@ -191,20 +197,19 @@
 		{
 			$length=ord($text[1])&127;
 
-			if($length == 126)
+			switch($length)
 			{
-				$masks=substr($text, 4, 4);
-				$data=substr($text, 8);
-			}
-			elseif($length == 127)
-			{
-				$masks=substr($text, 10, 4);
-				$data=substr($text, 14);
-			}
-			else
-			{
-				$masks=substr($text, 2, 4);
-				$data=substr($text, 6);
+				case 126:
+					$masks=substr($text, 4, 4);
+					$data=substr($text, 8);
+				break;
+				case 127:
+					$masks=substr($text, 10, 4);
+					$data=substr($text, 14);
+				break;
+				default:
+					$masks=substr($text, 2, 4);
+					$data=substr($text, 6);
 			}
 
 			$text='';
@@ -236,9 +241,7 @@
 		{
 			if(socket_write(
 				$this->client,
-				chr(129).chr(
-					strlen($content)
-				).$content
+				chr(129).chr(strlen($content)).$content
 			) === false){
 				if(function_exists('websockets_log'))
 					websockets_log('write(): connection lost');
@@ -252,9 +255,7 @@
 				websockets_debug('exit() called');
 
 			socket_close($this->client);
-
 			sleep(1);
-
 			exit();
 		}
 		public function get_http_header(string $header)
@@ -415,15 +416,18 @@
 	}
 
 	socket_set_option($_ws_server, SOL_SOCKET, SO_REUSEADDR, 1);
+
 	if($_ws_uds === null)
 		$_ws_sb_result=socket_bind($_ws_server, $_ws_ip, $_ws_port);
 	else
 		$_ws_sb_result=socket_bind($_ws_server, $_ws_uds);
+
 	if($_ws_sb_result === false)
 	{
 		echo 'socket_bind() error: '.socket_strerror(socket_last_error()).PHP_EOL;
 		exit(1);
 	}
+
 	socket_listen($_ws_server);
 	socket_set_block($_ws_server);
 
@@ -439,8 +443,7 @@
 			if(
 				($_ws_children_limit !== 0) &&
 				(count($GLOBALS['_ws_children_pids']) === $_ws_children_limit)
-			)
-			{
+			){
 				if($_debug && function_exists('websockets_debug'))
 					websockets_debug('Child process limit ('.$_ws_children_limit.') reached - connection rejected');
 
@@ -450,28 +453,27 @@
 			{
 				$_child_pid=pcntl_fork();
 
-				if($_child_pid === -1)
+				switch($_child_pid)
 				{
-					socket_close($_ws_client);
+					case -1:
+						socket_close($_ws_client);
 
-					if(function_exists('websockets_log'))
-						websockets_log('Fork error - connection rejected');
+						if(function_exists('websockets_log'))
+							websockets_log('Fork error - connection rejected');
+					break;
+					case 0:
+						websockets_main(new _client($_ws_client, $_ws_read_bytes, $_ws_http_origin, $_debug));
+
+						if($_debug && function_exists('websockets_debug'))
+							websockets_debug('websockets_main ended');
+
+						socket_close($_ws_client);
+						sleep(1);
+						exit();
+					break;
+					default:
+						$GLOBALS['_ws_children_pids'][$_child_pid]=$_child_pid;
 				}
-				else if($_child_pid === 0)
-				{
-					websockets_main(new _client($_ws_client, $_ws_read_bytes, $_ws_http_origin, $_debug));
-
-					if($_debug && function_exists('websockets_debug'))
-						websockets_debug('websockets_main ended');
-
-					socket_close($_ws_client);
-
-					sleep(1);
-
-					exit();
-				}
-				else
-					$GLOBALS['_ws_children_pids'][$_child_pid]=$_child_pid;
 			}
 		}
 

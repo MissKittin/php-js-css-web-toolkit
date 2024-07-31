@@ -30,6 +30,8 @@
 	 *  https://github.com/robinvdvleuten/php-ulid/blob/master/src/Ulid.php
 	 *  https://github.com/mpyw/uuid-ulid-converter/blob/master/src/Converter.php
 	 * License: MIT
+	 *  https://github.com/robinvdvleuten/php-ulid/blob/master/LICENSE
+	 *  https://github.com/mpyw/uuid-ulid-converter/blob/master/LICENSE
 	 */
 
 	class ulid_exception extends Exception {}
@@ -57,12 +59,16 @@
 		// fromTimestamp()
 			static $last_rand_chars=[];
 			static $last_timestamp=null;
+
 			$duplicated_time=false;
 			$time_chars='';
 			$rand_chars='';
 			$encoding_chars='0123456789ABCDEFGHJKMNPQRSTVWXYZ';
 
-			if(($last_timestamp !== null) && ($timestamp === $last_timestamp))
+			if(
+				($last_timestamp !== null) &&
+				($timestamp === $last_timestamp)
+			)
 				$duplicated_time=true;
 
 			$last_timestamp=$timestamp;

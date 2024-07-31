@@ -48,11 +48,13 @@
 		if(isset($argv[2]) && ($argv[2] === 'extended'))
 			$extended=' --extended';
 
-		system(
-			'"'.PHP_BINARY.'" '.__DIR__.'/../'.basename(__FILE__).' '
-			.'"'.((strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') ? '"""'.PHP_BINARY.'"""' : str_replace(' ', '\ ', PHP_BINARY)).' '.__DIR__.'/tmp/file-watch/process.php" '
-			.__DIR__.'/tmp/file-watch/src'
-			.$extended
+		system('"'.PHP_BINARY.'" "'.__DIR__.'/../'.basename(__FILE__).'" '
+		.	'"'
+			.	((strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') ? '"""'.PHP_BINARY.'"""' : str_replace(' ', '\ ', PHP_BINARY)).' '
+			.	((strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') ? '"""'.__DIR__.'/tmp/file-watch/process.php'.'"""' : str_replace(' ', '\ ', __DIR__.'/tmp/file-watch/process.php')).' '
+		.	'" '
+		.	'"'.__DIR__.'/tmp/file-watch/src"'
+		.	$extended
 		);
 
 		exit();
@@ -88,13 +90,12 @@
 
 	echo ' -> Creating test directory';
 		mkdir(__DIR__.'/tmp/file-watch/src');
-		file_put_contents(
-			__DIR__.'/tmp/file-watch/process.php',
-			'<?php '
-				.'file_put_contents(__DIR__."/output.txt", "S".file_get_contents(__DIR__."/src/input.txt")."E");'
-				.'if(file_exists(__DIR__."/src/input2.txt"))'
-				.	'file_put_contents(__DIR__."/output.txt", "X".file_get_contents(__DIR__."/src/input2.txt")."Y", FILE_APPEND);'
-			.' ?>'
+		file_put_contents(__DIR__.'/tmp/file-watch/process.php', ''
+		.	'<?php '
+		.		'file_put_contents(__DIR__."/output.txt", "S".file_get_contents(__DIR__."/src/input.txt")."E");'
+		.		'if(file_exists(__DIR__."/src/input2.txt"))'
+		.			'file_put_contents(__DIR__."/output.txt", "X".file_get_contents(__DIR__."/src/input2.txt")."Y", FILE_APPEND);'
+		.	' ?>'
 		);
 		file_put_contents(__DIR__.'/tmp/file-watch/src/input.txt', '');
 		file_put_contents(__DIR__.'/tmp/file-watch/output.txt', '');
@@ -104,7 +105,7 @@
 
 	echo ' -> Starting tool (standard)';
 		try {
-			$_serve_test_handler=_serve_test('"'.PHP_BINARY.'" '.$argv[0].' serve');
+			$_serve_test_handler=_serve_test('"'.PHP_BINARY.'" "'.$argv[0].'" serve');
 			echo ' [ OK ]'.PHP_EOL;
 		} catch(Exception $error) {
 			echo ' [FAIL]'.PHP_EOL;
@@ -177,7 +178,7 @@
 
 	echo ' -> Starting tool (extended)';
 		try {
-			$_serve_test_handler=_serve_test('"'.PHP_BINARY.'" '.$argv[0].' serve extended');
+			$_serve_test_handler=_serve_test('"'.PHP_BINARY.'" "'.$argv[0].'" serve extended');
 			echo ' [ OK ]'.PHP_EOL;
 		} catch(Exception $error) {
 			echo ' [FAIL]'.PHP_EOL;

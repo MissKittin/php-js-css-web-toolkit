@@ -47,9 +47,8 @@
 		$my_class=new my_class();
 		$my_class->nonstatic_method('arg2'); // echoes 'nonstatic-arg2'
 	 *
-	 * Source:
-	 *  https://github.com/illuminate/macroable/blob/master/Traits/Macroable.php
-	 * License: MIT
+	 * Source: https://github.com/illuminate/macroable/blob/master/Traits/Macroable.php
+	 * License: MIT https://github.com/illuminate/macroable/blob/master/LICENSE.md
 	 */
 
 	class lv_macroable_exception extends Exception {}

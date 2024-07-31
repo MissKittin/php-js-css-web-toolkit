@@ -123,20 +123,20 @@
 
 				if($rotate_every_multiplier === null)
 					$print_log('warning', $file.' unrecognized option rotate_every[1] '.$opts['rotate_every'][1].' - rotating file');
-				else
-					if(file_exists($opts['rotate_every'][2]))
-					{
-						$rotate_every_time=time();
-						$rotate_every_filemtime=filemtime($opts['rotate_every'][2])+($opts['rotate_every'][0]*$rotate_every_multiplier);
+				else if(file_exists($opts['rotate_every'][2]))
+				{
+					$rotate_every_time=time();
+					$rotate_every_filemtime=filemtime($opts['rotate_every'][2])+($opts['rotate_every'][0]*$rotate_every_multiplier);
 
-						if($rotate_every_time < $rotate_every_filemtime)
-						{
-							$print_log('info', $opts['rotate_every'][2].' rotate_every not exceeded ([current] '.$rotate_every_time.' < '.$rotate_every_filemtime.' [timestamp])  - skipping');
-							continue;
-						}
+					if($rotate_every_time < $rotate_every_filemtime)
+					{
+						$print_log('info', $opts['rotate_every'][2].' rotate_every not exceeded ([current] '.$rotate_every_time.' < '.$rotate_every_filemtime.' [timestamp])  - skipping');
+						continue;
 					}
+				}
 
 				$dirname_cache=dirname($opts['rotate_every'][2]);
+
 				if(!file_exists($dirname_cache))
 				{
 					$print_log('info', 'Creating directory '.$dirname_cache);
@@ -148,6 +148,7 @@
 			}
 
 			$dirname_cache=dirname($opts['output_file']);
+
 			if(!file_exists($dirname_cache))
 			{
 				$print_log('info', 'Creating directory '.$dirname_cache);
@@ -155,6 +156,7 @@
 			}
 
 			$print_log('info', 'Rotating '.$file);
+
 			if(!copy($file, $opts['output_file']))
 			{
 				$print_log('error', $file.' rotation error - skipping');
@@ -162,6 +164,7 @@
 			}
 
 			$print_log('info', 'Cleaning '.$file);
+
 			if(file_put_contents($file, '') === false)
 				$print_log('warning', $file.' cleaning failed');
 

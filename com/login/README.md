@@ -49,6 +49,8 @@ To set the desired value use `login_com_reg_name::_()['key']='value'` (except `l
 	* `template` [string]  
 		`default` or `materialized`  
 		default: `default`
+	* `templates_dir` [string]  
+		path to the template directory
 	* `lang` [string]  
 		`<html lang="lang">`  
 		default: `en`

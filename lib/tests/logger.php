@@ -304,47 +304,85 @@
 				case 'Test\log_to_xml':
 					$log_params['file']=__DIR__.'/tmp/logger/log.xml';
 			}
+
 			$log_handler=new $class($log_params);
 
 			foreach(['debug', 'info', 'warn', 'error'] as $method)
 				$log_handler->$method($method.' test');
 
 			$test_failed=false;
+
 			switch($class)
 			{
 				case 'Test\log_to_csv':
-					if(str_replace(PHP_EOL, '', file_get_contents(__DIR__.'/tmp/logger/log.csv')) !== '0000-00-00 00:00:00,test_app,DEBUG,debug test0000-00-00 00:00:00,test_app,INFO,info test0000-00-00 00:00:00,test_app,WARN,warn test0000-00-00 00:00:00,test_app,ERROR,error test')
+					if(
+						str_replace(PHP_EOL, '', file_get_contents(__DIR__.'/tmp/logger/log.csv'))
+						!==
+						'0000-00-00 00:00:00,test_app,DEBUG,debug test0000-00-00 00:00:00,test_app,INFO,info test0000-00-00 00:00:00,test_app,WARN,warn test0000-00-00 00:00:00,test_app,ERROR,error test'
+					)
 						$test_failed=true;
 				break;
 				case 'Test\log_to_json':
-					if(file_get_contents(__DIR__.'/tmp/logger/log.json') !== '[["0000-00-00 00:00:00","test_app","DEBUG","debug test"],["0000-00-00 00:00:00","test_app","INFO","info test"],["0000-00-00 00:00:00","test_app","WARN","warn test"],["0000-00-00 00:00:00","test_app","ERROR","error test"]]')
+					if(
+						file_get_contents(__DIR__.'/tmp/logger/log.json')
+						!==
+						'[["0000-00-00 00:00:00","test_app","DEBUG","debug test"],["0000-00-00 00:00:00","test_app","INFO","info test"],["0000-00-00 00:00:00","test_app","WARN","warn test"],["0000-00-00 00:00:00","test_app","ERROR","error test"]]'
+					)
 						$test_failed=true;
 				break;
 				case 'Test\log_to_mail':
 					foreach(['DEBUG', 'INFO', 'WARN', 'ERROR'] as $mail_callback_output_test)
 						if(!isset($GLOBALS['_mail_callback_output'][$mail_callback_output_test]))
 							$test_failed=true;
-						else if($GLOBALS['_mail_callback_output'][$mail_callback_output_test] !== 'example@example.com-test_app-'.strtolower($mail_callback_output_test).' test')
+						else if(
+							$GLOBALS['_mail_callback_output'][$mail_callback_output_test]
+							!==
+							'example@example.com-test_app-'.strtolower($mail_callback_output_test).' test'
+						)
 							$test_failed=true;
 				break;
 				case 'Test\log_to_pdo':
 					$pdo_fetch=$pdo_handler->query('SELECT * FROM logger')->fetchAll();
 
-					if($pdo_fetch[0]['id'].$pdo_fetch[0]['date'].$pdo_fetch[0]['app_name'].$pdo_fetch[0]['priority'].$pdo_fetch[0]['message'] !== '10000-00-00 00:00:00test_appDEBUGdebug test')
+					if(
+						$pdo_fetch[0]['id'].$pdo_fetch[0]['date'].$pdo_fetch[0]['app_name'].$pdo_fetch[0]['priority'].$pdo_fetch[0]['message']
+						!==
+						'10000-00-00 00:00:00test_appDEBUGdebug test'
+					)
 						$test_failed=true;
-					if($pdo_fetch[1]['id'].$pdo_fetch[1]['date'].$pdo_fetch[1]['app_name'].$pdo_fetch[1]['priority'].$pdo_fetch[1]['message'] !== '20000-00-00 00:00:00test_appINFOinfo test')
+					if(
+						$pdo_fetch[1]['id'].$pdo_fetch[1]['date'].$pdo_fetch[1]['app_name'].$pdo_fetch[1]['priority'].$pdo_fetch[1]['message']
+						!==
+						'20000-00-00 00:00:00test_appINFOinfo test'
+					)
 						$test_failed=true;
-					if($pdo_fetch[2]['id'].$pdo_fetch[2]['date'].$pdo_fetch[2]['app_name'].$pdo_fetch[2]['priority'].$pdo_fetch[2]['message'] !== '30000-00-00 00:00:00test_appWARNwarn test')
+					if(
+						$pdo_fetch[2]['id'].$pdo_fetch[2]['date'].$pdo_fetch[2]['app_name'].$pdo_fetch[2]['priority'].$pdo_fetch[2]['message']
+						!==
+						'30000-00-00 00:00:00test_appWARNwarn test'
+					)
 						$test_failed=true;
-					if($pdo_fetch[3]['id'].$pdo_fetch[3]['date'].$pdo_fetch[3]['app_name'].$pdo_fetch[3]['priority'].$pdo_fetch[3]['message'] !== '40000-00-00 00:00:00test_appERRORerror test')
+					if(
+						$pdo_fetch[3]['id'].$pdo_fetch[3]['date'].$pdo_fetch[3]['app_name'].$pdo_fetch[3]['priority'].$pdo_fetch[3]['message']
+						!==
+						'40000-00-00 00:00:00test_appERRORerror test'
+					)
 						$test_failed=true;
 				break;
 				case 'Test\log_to_txt':
-					if(str_replace(PHP_EOL, '', file_get_contents(__DIR__.'/tmp/logger/log.txt')) !== '0000-00-00 00:00:00 test_app [DEBUG] debug test0000-00-00 00:00:00 test_app [INFO] info test0000-00-00 00:00:00 test_app [WARN] warn test0000-00-00 00:00:00 test_app [ERROR] error test')
+					if(
+						str_replace(PHP_EOL, '', file_get_contents(__DIR__.'/tmp/logger/log.txt'))
+						!==
+						'0000-00-00 00:00:00 test_app [DEBUG] debug test0000-00-00 00:00:00 test_app [INFO] info test0000-00-00 00:00:00 test_app [WARN] warn test0000-00-00 00:00:00 test_app [ERROR] error test'
+					)
 						$test_failed=true;
 				break;
 				case 'Test\log_to_xml':
-					if(file_get_contents(__DIR__.'/tmp/logger/log.xml') !== '<?xml version="1.0" encoding="UTF-8" ?><journal><entry><date>0000-00-00 00:00:00</date><appname>test_app</appname><priority>DEBUG</priority><message>debug test</message></entry><entry><date>0000-00-00 00:00:00</date><appname>test_app</appname><priority>INFO</priority><message>info test</message></entry><entry><date>0000-00-00 00:00:00</date><appname>test_app</appname><priority>WARN</priority><message>warn test</message></entry><entry><date>0000-00-00 00:00:00</date><appname>test_app</appname><priority>ERROR</priority><message>error test</message></entry></journal>')
+					if(
+						file_get_contents(__DIR__.'/tmp/logger/log.xml')
+						!==
+						'<?xml version="1.0" encoding="UTF-8" ?><journal><entry><date>0000-00-00 00:00:00</date><appname>test_app</appname><priority>DEBUG</priority><message>debug test</message></entry><entry><date>0000-00-00 00:00:00</date><appname>test_app</appname><priority>INFO</priority><message>info test</message></entry><entry><date>0000-00-00 00:00:00</date><appname>test_app</appname><priority>WARN</priority><message>warn test</message></entry><entry><date>0000-00-00 00:00:00</date><appname>test_app</appname><priority>ERROR</priority><message>error test</message></entry></journal>'
+					)
 						$test_failed=true;
 			}
 			if($test_failed)

@@ -1205,7 +1205,7 @@
 	 *  https://github.com/laravel/framework/blob/10.x/src/Illuminate/Support/Traits/Tappable.php
 	 *  https://github.com/laravel/framework/blob/10.x/src/Illuminate/Support/helpers.php
 	 *  https://github.com/laravel/framework/blob/10.x/src/Illuminate/Support/HigherOrderTapProxy.php
-	 * License: MIT
+	 * License: MIT https://github.com/laravel/framework/blob/10.x/LICENSE.md
 	 */
 
 	class lv_str_exception extends Exception {}

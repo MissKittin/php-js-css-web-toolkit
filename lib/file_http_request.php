@@ -74,22 +74,22 @@
 		public function set_url(string $url)
 		{
 			$this->reset_fields(false);
-
 			$this->url=$url;
+
 			return $this;
 		}
 		public function set_method(string $method)
 		{
 			$this->reset_fields();
-
 			$this->request_method=$method;
+
 			return $this;
 		}
 		public function set_header(string $header, string $value)
 		{
 			$this->reset_fields();
-
 			$this->request_headers[$header]=$value;
+
 			return $this;
 		}
 		public function set_content(string $content, bool $append=false)
@@ -97,9 +97,12 @@
 			$this->reset_fields();
 
 			if($append && ($this->request_content !== null))
+			{
 				$this->request_content.=$content;
-			else
-				$this->request_content=$content;
+				return $this;
+			}
+
+			$this->request_content=$content;
 
 			return $this;
 		}
@@ -119,6 +122,7 @@
 				if(!empty($this->request_headers))
 				{
 					$request_headers=[];
+
 					foreach($this->request_headers as $header_name=>$header_value)
 						$request_headers[]=$header_name.': '.$header_value;
 
@@ -134,6 +138,7 @@
 				$this->reset_fields(false);
 
 			$response=file_get_contents($this->url, false, $this->request_context);
+
 			if($response === false)
 			{
 				$this->reset_fields();
@@ -155,9 +160,11 @@
 				return $this->parsed_response_headers;
 
 			$i=0;
+
 			foreach($this->response_headers as $response_header)
 			{
 				$strpos=strpos($response_header, ':');
+
 				if($strpos === false)
 				{
 					$this->parsed_response_headers=[];
@@ -224,17 +231,30 @@
 					foreach($cookie as $cookie_param)
 					{
 						$strpos=strpos($cookie_param, '=');
+
 						if($strpos === false)
+						{
 							$this->response_cookies[$cookie_name][trim($cookie_param)]=true;
-						else
-							$this->response_cookies[$cookie_name][trim(substr($cookie_param, 0, $strpos))]=trim(substr($cookie_param, $strpos+1));
+							continue;
+						}
+
+						$this->response_cookies[$cookie_name][
+							trim(substr(
+								$cookie_param,
+								0,
+								$strpos
+							))
+						]=trim(substr(
+							$cookie_param,
+							$strpos+1
+						));
 					}
 				}
 
 			if(isset($this->response_cookies[$name]))
 				return $this->response_cookies[$name];
-			else
-				$this->response_cookies[$name]=false;
+
+			$this->response_cookies[$name]=false;
 
 			return $default_value;
 		}

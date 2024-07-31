@@ -1,71 +1,64 @@
 <?php
-	class queue_worker_exception extends Exception {}
-	class queue_worker
-	{
-		/*
-		 * The Worker
-		 * She is not afraid of any job
-		 *
-		 * Warning:
-		 *  only for *nix systems
-		 *  posix extension is recommended (for queue server)
-		 *  pcntl extension is optional (for queue server)
-		 *   if it is not available the fork option will be turned off automatically
-		 *
-		 * Note:
-		 *  the server can execute jobs in parallel: using several instances
-		 *   listening to one fifo or/and using the fork option flag
-		 *  if the fork fails, the server will execute the job sequentially
-		 *  throws an queue_worker_exception on error
-		 *
-		 * Queue server start:
-			queue_worker::start_worker(
-				string_path_to_fifo,
-				string_path_to_functions_php,
-				bool_fork=false, // enable parallel execution via PCNTL
-				int_children_limit=0, // limit background processes
-				bool_recreate_fifo=true, // use this if you want to run multiple instances
-				bool_debug=false
-			)
-		 *
-		 * Initialization:
-		 *  $queue_worker=new queue_worker('./tmp/queue_worker.fifo')
-		 *
-		 * Example usage: send jobs to the server immediately
-			$queue_worker
-				->write([
-					'name'=>'John',
-					'file'=>'./tmp/john',
-					'mail'=>'john@example.com'
-				])
-				->write([
-					'name'=>'Michael',
-					'file'=>'./tmp/michael',
-					'mail'=>'michael@example.com'
-				])
-		 *
-		 * Example usage: add jobs to the queue
-			$queue_worker
-				->add_to_queue([
-					'name'=>'John',
-					'file'=>'./tmp/john',
-					'mail'=>'john@example.com'
-				])
-				->add_to_queue([
-					'name'=>'Michael',
-					'file'=>'./tmp/michael',
-					'mail'=>'michael@example.com'
-				]);
-			$queue_worker->write_queue(); // optional, will be executed automatically on unset() or shutdown
-		 *
-		 * Example functions.php:
+	/*
+	 * The Worker
+	 * She is not afraid of any job
+	 *
+	 * Warning:
+	 *  pcntl extension is optional (for queue server)
+	 *  if it is not available the fork option will be turned off automatically
+	 *
+	 * Classes:
+	 *  queue_worker_fifo - use named pipe as information transport
+	 *   warning: only for *nix systems
+	 *  queue_worker_redis - use Redis as information transport
+	 *
+	 * Note:
+	 *  the server can execute jobs in parallel: using several instances
+	 *   listening to one fifo or/and using the fork option flag
+	 *  if the fork fails, the server will execute the job sequentially
+	 *  throws an queue_worker_exception on error
+	 *
+	 * Queue server start and initialization:
+	 *  see below in class
+	 *
+	 * Example usage: send jobs to the server immediately
+		$queue_worker
+		->	write([
+				'name'=>'John',
+				'file'=>'./tmp/john',
+				'mail'=>'john@example.com'
+			])
+		->	write([
+				'name'=>'Michael',
+				'file'=>'./tmp/michael',
+				'mail'=>'michael@example.com'
+			]);
+	 *
+	 * Example usage: add jobs to the queue
+		$queue_worker
+		->	add_to_queue([
+				'name'=>'John',
+				'file'=>'./tmp/john',
+				'mail'=>'john@example.com'
+			])
+		->	add_to_queue([
+				'name'=>'Michael',
+				'file'=>'./tmp/michael',
+				'mail'=>'michael@example.com'
+			]);
+		$queue_worker->write_queue(); // optional, will be executed automatically on unset() or shutdown
+	 *
+	 * Example functions.php:
+		<?php
 			// Here you can include libraries
 
 			function queue_worker_main($input_data, $worker_meta)
 			{
 				// This function must be defined
 
-				echo 'Worker: Queue worker fifo: '.$worker_meta['worker_fifo'].PHP_EOL;
+				// redis worker doesn't have this
+				if(isset($worker_meta['worker_fifo']))
+					echo 'Worker: Queue worker fifo: '.$worker_meta['worker_fifo'].PHP_EOL;
 
 				if($worker_meta['worker_fork'])
 				{
@@ -100,15 +93,66 @@
 			{
 				echo 'Worker: Sending mail with '.$file.' for '.$name.' to '.$mail.PHP_EOL;
 			}
-		 *
-		 * Source:
-		 *  https://web.archive.org/web/20120416013625/http://squirrelshaterobots.com/programming/php/building-a-queue-server-in-php-part-3-accepting-input-from-named-pipes/
-		 */
+		?>
+	 */
+
+	class queue_worker_exception extends Exception {}
+
+	abstract class queue_worker_abstract
+	{
+		// Generic class - go ahead
 
 		protected static $children_pids=[];
 
-		protected $worker_fifo;
 		protected $queue=[];
+
+		public function __destruct()
+		{
+			$this->write_queue();
+		}
+
+		public function add_to_queue($worker_input)
+		{
+			$this->queue[]=$worker_input;
+			return $this;
+		}
+		public function write_queue()
+		{
+			if(!empty($this->queue))
+				foreach($this->queue as $job)
+					$this->write($job);
+
+			return $this;
+		}
+	}
+
+	class queue_worker_fifo extends queue_worker_abstract
+	{
+		/*
+		 * The Worker
+		 * I N  T H E  F I F O
+		 *
+		 * Warning:
+		 *  only for *nix systems
+		 *  posix extension is recommended (for queue server)
+		 *
+		 * Queue server start:
+			queue_worker_fifo::start_worker(
+				'string_path/to/fifo',
+				'string_path/to/functions.php',
+				false, // bool_fork, enable parallel execution via PCNTL
+				0, // int_children_limit, limit background processes
+				true, // bool_recreate_fifo, use this if you want to run multiple instances
+				false // bool_debug
+			);
+		 *
+		 * Initialization:
+		 *  $queue_worker=new queue_worker_fifo('./tmp/queue_worker.fifo');
+		 *
+		 * Source: https://web.archive.org/web/20120416013625/http://squirrelshaterobots.com/programming/php/building-a-queue-server-in-php-part-3-accepting-input-from-named-pipes/
+		 */
+
+		protected $worker_fifo;
 
 		public static function start_worker(
 			string $worker_fifo,
@@ -145,9 +189,12 @@
 			if(!function_exists('queue_worker_main'))
 				throw new queue_worker_exception('queue_worker_main function not defined in '.$worker_functions);
 
-			if($recreate_fifo && file_exists($worker_fifo))
-				if(!unlink($worker_fifo))
-					throw new queue_worker_exception('Unable to remove stale file');
+			if(
+				$recreate_fifo &&
+				file_exists($worker_fifo) &&
+				(!unlink($worker_fifo))
+			)
+				throw new queue_worker_exception('Unable to remove stale file');
 
 			if(file_exists($worker_fifo))
 			{
@@ -164,6 +211,7 @@
 			}
 
 			$worker_input=fopen($worker_fifo, 'r+');
+
 			if(!$worker_input)
 				throw new queue_worker_exception('Fifo opening error');
 
@@ -318,10 +366,6 @@
 
 			$this->worker_fifo=realpath($worker_fifo);
 		}
-		public function __destruct()
-		{
-			$this->write_queue();
-		}
 
 		public function write($worker_input)
 		{
@@ -330,16 +374,236 @@
 
 			return $this;
 		}
-		public function add_to_queue($worker_input)
-		{
-			$this->queue[]=$worker_input;
-			return $this;
+	}
+	class queue_worker_redis extends queue_worker_abstract
+	{
+		/*
+		 * The Worker
+		 * I N  T H E  R E D I S
+		 *
+		 * Queue server start:
+			queue_worker_redis::start_worker(
+				$redis_handler, // object
+				'string_path/to/functions.php',
+				'string_key-prefix', // default: queue_worker__
+				false, // bool_fork, enable parallel execution via PCNTL
+				0, // int_children_limit, limit background processes
+				false // bool_debug
+			);
+		 *
+		 * Initialization:
+		 *  $queue_worker=new queue_worker_redis($redis_handler, 'key_prefix__');
+		 */
+
+		protected $redis_handler;
+		protected $prefix;
+
+		public static function start_worker(
+			$redis_handler,
+			string $worker_functions,
+			string $prefix='queue_worker__',
+			bool $worker_fork=false,
+			int $children_limit=0,
+			bool $debug=false
+		){
+			if(php_sapi_name() !== 'cli')
+				throw new queue_worker_exception('This method is only for CLI');
+
+			if(!is_object($redis_handler))
+				throw new queue_worker_exception('The redis_handler parameter is not an object');
+
+			if($worker_fork && (!function_exists('pcntl_fork')))
+			{
+				if($debug)
+					echo '[D] PCNTL extension not available - forking disabled'.PHP_EOL;
+
+				$worker_fork=false;
+				$children_limit=0;
+			}
+
+			if($children_limit < 0)
+				throw new queue_worker_exception('Child process limit cannot be negative');
+
+			if($worker_functions !== null)
+			{
+				if(!file_exists($worker_functions))
+					throw new queue_worker_exception($worker_functions.' not exist');
+
+				if((include $worker_functions) === false)
+					throw new queue_worker_exception($worker_functions.' inclusion error');
+			}
+
+			if(!function_exists('queue_worker_main'))
+				throw new queue_worker_exception('queue_worker_main function not defined in '.$worker_functions);
+
+			if($debug)
+			{
+				if($worker_functions === null)
+					echo '[D] Functions file disabled'.PHP_EOL;
+				else
+					echo '[D] Functions path: '.$worker_functions.PHP_EOL;
+
+				if($worker_fork)
+				{
+					echo '[D] Forking enabled'.PHP_EOL;
+
+					if($children_limit === 0)
+						echo '[D] Child process limit disabled'.PHP_EOL;
+					else
+						echo '[D] Child process limit enabled: '.$children_limit.PHP_EOL;
+				}
+				else
+					echo '[D] Forking disabled'.PHP_EOL;
+			}
+
+			if($worker_fork)
+			{
+				declare(ticks=1);
+				pcntl_signal(SIGCHLD, function($signal){
+					if($signal === SIGCHLD)
+						foreach(static::$children_pids as $pid)
+							if(pcntl_waitpid($pid, $status, WNOHANG|WUNTRACED) !== 0)
+								unset(static::$children_pids[$pid]);
+				});
+			}
+
+			while(true)
+			{
+				$queue=[];
+				$iterator=null;
+
+				do
+				{
+					try {
+						$keys=$redis_handler->scan($iterator, $prefix.'*');
+					} catch(Throwable $error) {
+						if($debug)
+							echo '[D] Caught Redis error: '.$error->getMessage().PHP_EOL;
+
+						$keys=false;
+					}
+
+					if($keys === false)
+						break;
+
+					foreach($keys as $key)
+					{
+						$queue[]=$redis_handler->get($key);
+						$redis_handler->del($key);
+					}
+				}
+				while($iterator > 0);
+
+				if(empty($queue))
+				{
+					if($debug)
+						echo '[D] No jobs to do - waiting'.PHP_EOL;
+
+					if(empty(static::$children_pids))
+						sleep(5);
+					else
+					{
+						if($debug)
+							echo '[D]  Background processes are running - not waiting'.PHP_EOL;
+
+						usleep(500000); // 0.5s
+					}
+				}
+				else
+					foreach($queue as $job_id=>$job_content)
+					{
+						if($worker_fork)
+						{
+							$child_pid=pcntl_fork();
+
+							if($child_pid === -1)
+							{
+								if($debug)
+								{
+									echo '[D][E] Fork error, job content: '.$job_content.PHP_EOL;
+									echo '[D] Executing this job sequentially'.PHP_EOL;
+								}
+
+								queue_worker_main(
+									unserialize($job_content),
+									[
+										'worker_fifo'=>$worker_fifo,
+										'worker_fork'=>false,
+										'children_limit'=>$children_limit,
+										'debug'=>$debug
+									]
+								);
+							}
+							else if($child_pid === 0)
+							{
+								if($debug)
+									echo '[D] Processing job '.$job_id.': '.$job_content.PHP_EOL;
+
+								queue_worker_main(
+									unserialize($job_content),
+									[
+										'worker_fifo'=>$worker_fifo,
+										'worker_fork'=>$worker_fork,
+										'children_limit'=>$children_limit,
+										'debug'=>$debug
+									]
+								);
+
+								sleep(1);
+								exit();
+							}
+							else
+								static::$children_pids[$child_pid]=$child_pid;
+
+							if(
+								($child_pid !== -1) &&
+								($children_limit !== 0) &&
+								(count(static::$children_pids) === $children_limit)
+							){
+								if($debug)
+									echo '[D] Child process limit ('.$children_limit.') reached - waiting'.PHP_EOL;
+
+								while(pcntl_waitpid(0, $fork_status) !== -1);
+							}
+						}
+						else
+						{
+							if($debug)
+								echo '[D] Processing job '.$job_id.': '.$job_content.PHP_EOL;
+
+							queue_worker_main(
+								unserialize($job_content),
+								[
+									'worker_fork'=>$worker_fork,
+									'children_limit'=>$children_limit,
+									'debug'=>$debug
+								]
+							);
+						}
+
+						unset($queue[$job_id]);
+					}
+			}
 		}
-		public function write_queue()
+
+		public function __construct(
+			$redis_handler,
+			string $prefix='queue_worker__'
+		){
+			if(!is_object($redis_handler))
+				throw new queue_worker_exception('The redis_handler parameter is not an object');
+
+			$this->redis_handler=$redis_handler;
+			$this->prefix=$prefix;
+		}
+
+		public function write($worker_input)
 		{
-			if(!empty($this->queue))
-				foreach($this->queue as $job)
-					$this->write($job);
+			if($this->redis_handler->set(
+				$this->prefix.strtr(microtime(false), ' ', '_'),
+				serialize($worker_input)
+			) === false)
+				throw new queue_worker_exception('Unable to send data to the queue server');
 
 			return $this;
 		}

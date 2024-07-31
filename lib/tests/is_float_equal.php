@@ -61,22 +61,22 @@
 	$failed=false;
 
 	echo ' -> Testing library'.PHP_EOL;
-	echo '  -> returns true';
-		if(is_float_equal(1.234567891234567, 1.234567891234567))
-			echo ' [ OK ]'.PHP_EOL;
-		else
-		{
-			echo ' [FAIL]'.PHP_EOL;
-			$failed=true;
-		}
-	echo '  -> returns false';
-		if(!is_float_equal(1.234567891234567, 1.234567891234568))
-			echo ' [ OK ]'.PHP_EOL;
-		else
-		{
-			echo ' [FAIL]'.PHP_EOL;
-			$failed=true;
-		}
+		echo '  -> returns true';
+			if(is_float_equal(1.234567891234567, 1.234567891234567))
+				echo ' [ OK ]'.PHP_EOL;
+			else
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				$failed=true;
+			}
+		echo '  -> returns false';
+			if(!is_float_equal(1.234567891234567, 1.234567891234568))
+				echo ' [ OK ]'.PHP_EOL;
+			else
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				$failed=true;
+			}
 
 	if($failed)
 		exit(1);

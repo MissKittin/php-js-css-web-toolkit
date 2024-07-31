@@ -9,26 +9,36 @@
 		 *  ob_start('ob_minifier')
 		 */
 
-		$buffer=preg_replace([
-			'!/\*[^*]*\*+([^/][^*]*\*+)*/!',
-			'/(?=<!--)([\s\S]*?)-->/'
-		], '', $buffer);
-		$buffer=str_replace([
-			'type="text/css"',
-			"' type='text/css'",
-			' type="text/javascript"',
-			" type='text/javascript'"
-		], ' ', $buffer);
-		$buffer=str_replace([
-			"\r\n",
-			"\r",
-			"\n",
-			"\t",
-			'  ',
-			'    ',
-			'    '
-		], '', $buffer);
-		$buffer=str_replace(['\'\'', '-src\''], ['\' \'', '-src \''], $buffer);
-		return $buffer;
+		return str_replace(
+			['\'\'', '-src\''],
+			['\' \'', '-src \''],
+			str_replace(
+				[
+					"\r\n",
+					"\r",
+					"\n",
+					"\t",
+					'  '
+				],
+				'',
+				str_replace(
+					[
+						'type="text/css"',
+						"' type='text/css'",
+						' type="text/javascript"',
+						" type='text/javascript'"
+					],
+					' ',
+					preg_replace(
+						[
+							'!/\*[^*]*\*+([^/][^*]*\*+)*/!',
+							'/(?=<!--)([\s\S]*?)-->/'
+						],
+						'',
+						$buffer
+					)
+				)
+			)
+		);
 	}
 ?>

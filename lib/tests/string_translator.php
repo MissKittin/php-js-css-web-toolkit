@@ -49,20 +49,28 @@
 			echo ' [FAIL]';
 			$failed=true;
 		}
-		if($lang(
-			'%m minutes and %s second%d left',
-			['%m'=>2, '%s'=>3, '%d'=>'s']
-		) === '2 minutes and 3 seconds left')
+		if(
+			$lang(
+				'%m minutes and %s second%d left',
+				['%m'=>2, '%s'=>3, '%d'=>'s']
+			)
+			===
+			'2 minutes and 3 seconds left'
+		)
 			echo ' [ OK ]';
 		else
 		{
 			echo ' [FAIL]';
 			$failed=true;
 		}
-		if($lang(
-			'%m minutes and %s second%d left',
-			['%m'=>2, '%s'=>1, '%d'=>'']
-		) === '2 minutes and 1 second left')
+		if(
+			$lang(
+				'%m minutes and %s second%d left',
+				['%m'=>2, '%s'=>1, '%d'=>'']
+			)
+			===
+			'2 minutes and 1 second left'
+		)
 			echo ' [ OK ]'.PHP_EOL;
 		else
 		{
@@ -90,20 +98,28 @@
 			echo ' [FAIL]';
 			$failed=true;
 		}
-		if($lang(
-			'%m minutes and %s second%d left',
-			['%m'=>2, '%x'=>'y', '%s'=>5, '%d'=>'']
-		) === 'Zostalo 2 minuty i 5 sekund')
+		if(
+			$lang(
+				'%m minutes and %s second%d left',
+				['%m'=>2, '%x'=>'y', '%s'=>5, '%d'=>'']
+			)
+			===
+			'Zostalo 2 minuty i 5 sekund'
+		)
 			echo ' [ OK ]';
 		else
 		{
 			echo ' [FAIL]';
 			$failed=true;
 		}
-		if($lang(
-			'%m minutes and %s second%d left',
-			['%m'=>5, '%x'=>'', '%s'=>1, '%d'=>'a']
-		) === 'Zostalo 5 minut i 1 sekunda')
+		if(
+			$lang(
+				'%m minutes and %s second%d left',
+				['%m'=>5, '%x'=>'', '%s'=>1, '%d'=>'a']
+			)
+			===
+			'Zostalo 5 minut i 1 sekunda'
+		)
 			echo ' [ OK ]'.PHP_EOL;
 		else
 		{
@@ -117,8 +133,7 @@
 		.		'"String": "Sznurek",'
 		.		'"Log in": "Zaloguj sie",'
 		.		'"%m minutes and %s second%d left": "Zostalo %m minut%x i %s sekund%d"'
-		.	'}'
-		;
+		.	'}';
 		$lang=new string_translator(string_translator::from_json($json));
 		if($lang('String') === 'Sznurek')
 			echo ' [ OK ]';
@@ -134,20 +149,28 @@
 			echo ' [FAIL]';
 			$failed=true;
 		}
-		if($lang(
-			'%m minutes and %s second%d left',
-			['%m'=>2, '%x'=>'y', '%s'=>5, '%d'=>'']
-		) === 'Zostalo 2 minuty i 5 sekund')
+		if(
+			$lang(
+				'%m minutes and %s second%d left',
+				['%m'=>2, '%x'=>'y', '%s'=>5, '%d'=>'']
+			)
+			===
+			'Zostalo 2 minuty i 5 sekund'
+		)
 			echo ' [ OK ]';
 		else
 		{
 			echo ' [FAIL]';
 			$failed=true;
 		}
-		if($lang(
-			'%m minutes and %s second%d left',
-			['%m'=>5, '%x'=>'', '%s'=>1, '%d'=>'a']
-		) === 'Zostalo 5 minut i 1 sekunda')
+		if(
+			$lang(
+				'%m minutes and %s second%d left',
+				['%m'=>5, '%x'=>'', '%s'=>1, '%d'=>'a']
+			)
+			===
+			'Zostalo 5 minut i 1 sekunda'
+		)
 			echo ' [ OK ]'.PHP_EOL;
 		else
 		{
@@ -168,8 +191,7 @@
 		.			'"Log in": "Awtorizowatsia",'
 		.			'"%m minutes and %s second%d left": "Wnimanje: %m minuty i %s sekundy"'
 		.		'}'
-		.	'}'
-		;
+		.	'}';
 		$lang=new string_translator(string_translator::from_json($json, 'pl'));
 		if($lang('String') === 'Sznurek')
 			echo ' [ OK ]';
@@ -185,20 +207,28 @@
 			echo ' [FAIL]';
 			$failed=true;
 		}
-		if($lang(
-			'%m minutes and %s second%d left',
-			['%m'=>2, '%x'=>'y', '%s'=>5, '%d'=>'']
-		) === 'Zostalo 2 minuty i 5 sekund')
+		if(
+			$lang(
+				'%m minutes and %s second%d left',
+				['%m'=>2, '%x'=>'y', '%s'=>5, '%d'=>'']
+			)
+			===
+			'Zostalo 2 minuty i 5 sekund'
+		)
 			echo ' [ OK ]';
 		else
 		{
 			echo ' [FAIL]';
 			$failed=true;
 		}
-		if($lang(
-			'%m minutes and %s second%d left',
-			['%m'=>5, '%x'=>'', '%s'=>1, '%d'=>'a']
-		) === 'Zostalo 5 minut i 1 sekunda')
+		if(
+			$lang(
+				'%m minutes and %s second%d left',
+				['%m'=>5, '%x'=>'', '%s'=>1, '%d'=>'a']
+			)
+			===
+			'Zostalo 5 minut i 1 sekunda'
+		)
 			echo ' [ OK ]'.PHP_EOL;
 		else
 		{

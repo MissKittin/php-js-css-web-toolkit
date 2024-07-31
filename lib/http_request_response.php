@@ -156,8 +156,7 @@
 	 *  http_not_extended
 	 *  http_network_authentication_required
 	 *
-	 * Source:
-	 *  https://github.com/symfony/symfony/blob/6.0/src/Symfony/Component/HttpFoundation/Response.php
+	 * Source: https://github.com/symfony/symfony/blob/6.0/src/Symfony/Component/HttpFoundation/Response.php
 	 */
 
 	class http_request_response_exception extends Exception {}
@@ -203,19 +202,23 @@
 			}
 
 			$params_sorted=[];
+
 			foreach(explode(',', $params) as $param)
 			{
 				if(strpos($param, ';') === false)
+				{
 					$params_sorted[trim($param)]=1;
-				else
-					$params_sorted[trim(substr(
-						$param, 0, strpos($param, ';')
-					))]=trim(substr(
-						$param, strrpos($param, '=')+1
-					));
-			}
-			krsort($params_sorted);
+					continue;
+				}
 
+				$params_sorted[trim(substr(
+					$param, 0, strpos($param, ';')
+				))]=trim(substr(
+					$param, strrpos($param, '=')+1
+				));
+			}
+
+			krsort($params_sorted);
 			$this->cache_parsed_http_headers[$header]=$params_sorted;
 
 			return $params_sorted;
@@ -239,16 +242,21 @@
 			}
 
 			$params_sorted=[];
+
 			foreach(explode(',', $params) as $param)
 			{
 				$param_delimiter=strpos($param, '=');
-				if($param_delimiter === false)
-					$params_sorted[trim($param)]=true;
-				else
-					$params_sorted[trim(substr($param, 0, $param_delimiter))]=trim(substr($param, $param_delimiter+1));
-			}
-			krsort($params_sorted);
 
+				if($param_delimiter === false)
+				{
+					$params_sorted[trim($param)]=true;
+					continue;
+				}
+
+				$params_sorted[trim(substr($param, 0, $param_delimiter))]=trim(substr($param, $param_delimiter+1));
+			}
+
+			krsort($params_sorted);
 			$this->cache_parsed_http_headers['Cache-Control']=$params_sorted;
 
 			return $params_sorted;
@@ -288,6 +296,7 @@
 			}
 
 			$this->cache_parsed_http_headers['DNT']=true;
+
 			return true;
 		}
 		public function encoding()
@@ -385,7 +394,10 @@
 
 		public function json()
 		{
-			if(($this->method() !== 'POST') && ($this->content_type() !== 'application/json'))
+			if(
+				($this->method() !== 'POST') &&
+				($this->content_type() !== 'application/json')
+			)
 				return false;
 
 			return json_decode(trim(file_get_contents('php://input')));
@@ -412,7 +424,6 @@
 						return $value[0];
 
 					return null;
-				break;
 				case 'set_':
 					$key=substr($key, 4);
 
@@ -422,7 +433,6 @@
 						unset($_SESSION[$key]);
 
 					return $this;
-				break;
 				default:
 					throw new http_request_response_exception('No get_ or set_ prefix');
 			}
@@ -440,7 +450,11 @@
 			if($_SERVER['REQUEST_METHOD'] !== 'POST')
 				throw new http_request_response_exception('Only POST method is supported');
 
-			foreach(['destination', 'max_file_size', 'allowed_mimes'] as $param)
+			foreach([
+				'destination',
+				'max_file_size',
+				'allowed_mimes'
+			] as $param)
 				if(isset($params[$param]))
 					$this->$param=$params[$param];
 		}
@@ -471,12 +485,14 @@
 				throw new http_request_response_exception($file.' was not uploaded correctly');
 
 			$file_size=filesize($_FILES[$file]['tmp_name']);
+
 			if($file_size === 0)
 			{
 				unlink($_FILES[$file]['tmp_name']);
 				unset($_FILES[$file]);
 				throw new http_request_response_exception($file.' is empty');
 			}
+
 			if(($this->max_file_size !== null) && ($file_size > $this->max_file_size))
 			{
 				unlink($_FILES[$file]['tmp_name']);
@@ -487,6 +503,7 @@
 			if(!empty($this->allowed_mimes))
 			{
 				$file_mime=mime_content_type($_FILES[$file]['tmp_name']);
+
 				if(!in_array($file_mime, $this->allowed_mimes))
 				{
 					unlink($_FILES[$file]['tmp_name']);
@@ -510,9 +527,11 @@
 				throw new http_request_response_exception($destination.$file_name.' already exists');
 
 			$result=copy($_FILES[$file]['tmp_name'], $destination.$file_name);
+
 			if($result)
 			{
 				unlink($_FILES[$file]['tmp_name']);
+
 				$this->moved_files[$file]=[
 					'name'=>$_FILES[$file]['name'],
 					'tmp_name'=>$_FILES[$file]['tmp_name'],
@@ -520,6 +539,7 @@
 					'destination'=>$destination,
 					'moved_file'=>realpath($destination.$file_name)
 				];
+
 				unset($_FILES[$file]);
 			}
 
@@ -692,9 +712,12 @@
 		public function response_content($content)
 		{
 			if($this->response_content === null)
+			{
 				$this->response_content=$content;
-			else
-				$this->response_content.=$content;
+				return $this;
+			}
+
+			$this->response_content.=$content;
 
 			return $this;
 		}
@@ -764,10 +787,10 @@
 				ob_end_clean();
 
 			$this
-				->content_type($content_type)
-				->header('Content-Length', filesize($file_path))
-				->header('Content-Disposition', 'attachment; filename='.$file_name)
-				->header('Content-Description', $file_description);
+			->	content_type($content_type)
+			->	header('Content-Length', filesize($file_path))
+			->	header('Content-Disposition', 'attachment; filename='.$file_name)
+			->	header('Content-Description', $file_description);
 
 			if(!$this->send_response())
 				return false;
@@ -784,6 +807,7 @@
 
 			$this->content_type('application/json');
 			$this->response_content=json_encode($content, JSON_UNESCAPED_UNICODE);
+
 			return $this->send_response();
 		}
 	}

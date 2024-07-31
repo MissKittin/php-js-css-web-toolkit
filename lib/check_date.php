@@ -49,22 +49,30 @@
 			{
 				if(date('d') >= $start_day)
 					return true;
+
+				return false;
 			}
-			else if($current_month < $start_month)
+
+			if($current_month < $start_month)
 			{
 				if($current_date <= strtotime($current_year.'-'.$end_month.'-'.$end_day))
 					return true;
+
+				return false;
 			}
-			else
-				if($current_date >= strtotime($current_year.'-'.$start_month.'-'.$start_day))
-					return true;
+
+			if($current_date >= strtotime($current_year.'-'.$start_month.'-'.$start_day))
+				return true;
 
 			return false;
 		};
 
 		if($start_month <= $end_month)
 		{
-			if(($start_month === $end_month) && ($start_day > $end_day))
+			if(
+				($start_month === $end_month) &&
+				($start_day > $end_day)
+			)
 				return $calculate_between_years(
 					$start_month,
 					$current_date,
@@ -74,8 +82,7 @@
 					$start_day
 				);
 
-			if
-			(
+			if(
 				($current_date >= strtotime($current_year.'-'.$start_month.'-'.$start_day)) &&
 				($current_date <= strtotime($current_year.'-'.$end_month.'-'.$end_day))
 			)

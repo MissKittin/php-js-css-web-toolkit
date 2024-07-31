@@ -38,7 +38,7 @@
 						echo '/* simpleblog_materialized.css library not found */';
 
 					exit();
-				;;
+				break;
 				default:
 					exit();
 			}
@@ -159,5 +159,5 @@
 	echo ' [ OK ]'.PHP_EOL;
 
 	echo ' -> Starting PHP server...'.PHP_EOL.PHP_EOL;
-	system('"'.PHP_BINARY.'" -S 127.0.0.1:8080  '.__FILE__);
+		system('"'.PHP_BINARY.'" -S 127.0.0.1:8080 "'.__FILE__.'"');
 ?>

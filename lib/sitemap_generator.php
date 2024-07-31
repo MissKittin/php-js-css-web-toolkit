@@ -18,10 +18,10 @@
 				]
 			]);
 
-			$sitemap->add('/loc-a');
-			$sitemap->add('/loc-b', ['changefreq'=>'daily']);
-
-			echo $sitemap->get();
+			echo $sitemap
+			->	add('/loc-a');
+			->	add('/loc-b', ['changefreq'=>'daily'])
+			->	get();
 		 */
 
 		protected $url='';
@@ -68,15 +68,25 @@
 		{
 			$sitemap=''
 			.	'<?xml version="1.0" encoding="UTF-8" ?>'."\n"
-			.	'<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'."\n"
-			;
+			.	'<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'
+			.	"\n";
 
 			foreach($this->content as $loc=>$tags)
 			{
 				$sitemap.='<url>'."\n";
-					$sitemap.='<loc>'.$this->url.$loc.'</loc>'."\n";
+					$sitemap.=''
+					.	'<loc>'
+					.		$this->url.$loc
+					.	'</loc>'
+					.	"\n";
+
 					foreach($tags as $tag_name=>$tag_value)
-						$sitemap.='<'.$tag_name.'>'.$tag_value.'</'.$tag_name.'>'."\n";
+						$sitemap.=''
+						.	'<'.$tag_name.'>'
+						.		$tag_value
+						.	'</'.$tag_name.'>'
+						.	"\n";
+
 				$sitemap.='</url>'."\n";
 			}
 

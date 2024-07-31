@@ -35,8 +35,10 @@
 		protected $call_getenv;
 		protected $env=[];
 
-		public function __construct(string $file=null, bool $call_getenv=true)
-		{
+		public function __construct(
+			string $file=null,
+			bool $call_getenv=true
+		){
 			$this->call_getenv=$call_getenv;
 
 			if(($file !== null) && file_exists($file))
@@ -53,15 +55,13 @@
 					{
 						$line[1]=trim($line[1]);
 
-						if
-						(
+						if(
 							($line[1] !== '') &&
 							($line[0][0] !== '#')
 						){
 							$line_last_char=substr($line[1], -1);
 
-							if
-							(
+							if(
 								(
 									($line[1][0] === '"') &&
 									($line_last_char === '"')
@@ -70,10 +70,12 @@
 									($line[1][0] === '\'') &&
 									($line_last_char === '\'')
 								)
-							)
+							){
 								$this->env[$line[0]]=substr($line[1], 1, -1);
-							else
-								$this->env[$line[0]]=$line[1];
+								continue;
+							}
+
+							$this->env[$line[0]]=$line[1];
 						}
 					}
 				}

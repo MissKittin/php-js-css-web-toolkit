@@ -47,25 +47,25 @@
 
 		mkdir(__DIR__.'/tmp/matthiasmullie-minify/assets');
 		file_put_contents(__DIR__.'/tmp/matthiasmullie-minify/assets/test.css', ''
-			.'body {'."\n"
-			.'	color: #ffffff;'."\n"
-			.'	background-color: #000000;'."\n"
-			.'}'
+		.	'body {'."\n"
+		.	'	color: #ffffff;'."\n"
+		.	'	background-color: #000000;'."\n"
+		.	'}'
 		);
 		file_put_contents(__DIR__.'/tmp/matthiasmullie-minify/assets/test.js', ''
-			.'document.addEventListener("DOMContentLoaded", function(){'."\n"
-			.'	var test=1;'."\n"
-			.'	var testb=2;'."\n"
-			.'	console.log(test);'."\n"
-			.'	console.log(testb);'."\n"
-			.'}, true);'
+		.	'document.addEventListener("DOMContentLoaded", function(){'."\n"
+		.	'	var test=1;'."\n"
+		.	'	var testb=2;'."\n"
+		.	'	console.log(test);'."\n"
+		.	'	console.log(testb);'."\n"
+		.	'}, true);'
 		);
 	echo ' [ OK ]'.PHP_EOL;
 
 	$failed=false;
 
 	echo ' -> Downloading composer'.PHP_EOL.PHP_EOL;
-		system('"'.PHP_BINARY.'" '.__DIR__.'/tmp/matthiasmullie-minify/get-composer.php');
+		system('"'.PHP_BINARY.'" "'.__DIR__.'/tmp/matthiasmullie-minify/get-composer.php"');
 
 		if(!file_exists(__DIR__.'/tmp/matthiasmullie-minify/composer.phar'))
 		{
@@ -75,7 +75,11 @@
 	echo PHP_EOL;
 
 	echo ' -> Downloading matthiasmullie/minify package'.PHP_EOL.PHP_EOL;
-		system('"'.PHP_BINARY.'" '.__DIR__.'/tmp/matthiasmullie-minify/composer.phar --optimize-autoloader --no-cache --working-dir='.__DIR__.'/tmp/matthiasmullie-minify require matthiasmullie/minify');
+		system('"'.PHP_BINARY.'" "'.__DIR__.'/tmp/matthiasmullie-minify/composer.phar" '
+		.	'--no-cache '
+		.	'"--working-dir='.__DIR__.'/tmp/matthiasmullie-minify" '
+		.	'require matthiasmullie/minify'
+		);
 
 		if(!file_exists(__DIR__.'/tmp/matthiasmullie-minify/vendor/matthiasmullie/minify'))
 		{
@@ -85,7 +89,7 @@
 	echo PHP_EOL;
 
 	echo ' -> Starting tool'.PHP_EOL.PHP_EOL;
-		system('"'.PHP_BINARY.'" '.__DIR__.'/tmp/matthiasmullie-minify/matthiasmullie-minify.php --dir '.__DIR__.'/tmp/matthiasmullie-minify/assets');
+		system('"'.PHP_BINARY.'" "'.__DIR__.'/tmp/matthiasmullie-minify/matthiasmullie-minify.php" --dir "'.__DIR__.'/tmp/matthiasmullie-minify/assets"');
 	echo PHP_EOL;
 
 	echo ' -> Testing output files';

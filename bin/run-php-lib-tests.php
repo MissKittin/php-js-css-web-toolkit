@@ -62,12 +62,13 @@
 	$failed_tests=[];
 
 	echo ' -> Directory: '.$tests_dir.PHP_EOL;
+
 	foreach($files as $test)
 		if(substr($test, strrpos($test, '.')) === '.php')
 		{
 			echo '-> Running '.$test.PHP_EOL;
 
-			system('"'.PHP_BINARY.'" '.$tests_dir.'/'.$test, $test_result);
+			system('"'.PHP_BINARY.'" "'.$tests_dir.'/'.$test.'"', $test_result);
 
 			if($test_result !== 0)
 				$failed_tests[]=$test;

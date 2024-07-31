@@ -48,10 +48,9 @@
 
 	echo ' -> Testing library';
 		if(
-			md5(
-				str_get_html(base64_decode(_extract_line(72)))
-				->find('table#wt-5hr tr.soft td', 0)->plaintext
-			)
+			md5(str_get_html(base64_decode(_extract_line(71)))
+			->	find('table#wt-5hr tr.soft td', 0)
+			->	plaintext)
 			===
 			'a6016faa91639a9638d1231d87803436'
 		)

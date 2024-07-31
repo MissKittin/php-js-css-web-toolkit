@@ -93,8 +93,12 @@
 			<div id="admin_module">
 				<?php if(isset($_module['template_header'])) { ?>
 					<h1><?php echo $_module['template_header']; ?></h1>
-				<?php } ?>
-				<?php require $_module['path'].'/'.$_module['script']; ?>
+				<?php }
+					if(isset($_module['class']) && isset($_module['main_method']))
+						$_module['class']::{$_module['main_method']}($_module);
+					else
+						require $_module['path'].'/'.$_module['script'];
+				?>
 			</div>
 		</div>
 	</body>

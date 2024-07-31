@@ -108,25 +108,68 @@
 		];
 
 		echo ' -> Testing gd2 module';
-		if(function_exists('imagecreate'))
-		{
-			echo PHP_EOL;
+			if(function_exists('imagecreate'))
+			{
+				echo PHP_EOL;
 
-			foreach(['jpeg', 'bmp', 'gif', 'png'] as $format)
-				switch($format)
-				{
-					case 'bmp':
-						if(!function_exists('\imagebmp'))
-						{
-							echo '  -> Testing '.$format.' [SKIP]'.PHP_EOL;
-							continue 2;
-						}
-					default:
+				foreach(['jpeg', 'bmp', 'gif', 'png'] as $format)
+					switch($format)
+					{
+						case 'bmp':
+							if(!function_exists('\imagebmp'))
+							{
+								echo '  -> Testing '.$format.' [SKIP]'.PHP_EOL;
+								continue 2;
+							}
+						default:
+							echo '  -> Testing '.$format.PHP_EOL;
+
+							echo '   -> captcha_get';
+								$image=captcha_get('Test\captcha_gd2', [$format]);
+								file_put_contents(__DIR__.'/tmp/sec_captcha/sec_captcha_gd2-'.$_SESSION['_captcha']['token'].'.'.$format, $image);
+								if(!empty($image))
+									echo ' [ OK ]'.PHP_EOL;
+								else
+								{
+									echo ' [FAIL]'.PHP_EOL;
+									$failed=true;
+								}
+
+							echo '   -> captcha_check';
+								if(captcha_check($_SESSION['_captcha']['token']))
+									echo ' [ OK ]';
+								else
+								{
+									echo ' [FAIL]';
+									$failed=true;
+								}
+								if(!isset($_SESSION['_captcha']))
+									echo ' [ OK ]'.PHP_EOL;
+								else
+								{
+									echo ' [FAIL]'.PHP_EOL;
+									$failed=true;
+								}
+					}
+			}
+			else
+			{
+				echo ' [FAIL]'.PHP_EOL.' <-  gd2 extension is not loaded'.PHP_EOL;
+				$no_extensions['gd2']=true;
+			}
+
+		echo ' -> Testing imagick module';
+			if(class_exists('Imagick'))
+				try {
+					echo PHP_EOL;
+
+					foreach(['jpeg', 'bmp', 'gif', 'png'] as $format)
+					{
 						echo '  -> Testing '.$format.PHP_EOL;
 
 						echo '   -> captcha_get';
-							$image=captcha_get('Test\captcha_gd2', [$format]);
-							file_put_contents(__DIR__.'/tmp/sec_captcha/sec_captcha_gd2-'.$_SESSION['_captcha']['token'].'.'.$format, $image);
+							$image=captcha_get('Test\captcha_imagick', [$format]);
+							file_put_contents(__DIR__.'/tmp/sec_captcha/sec_captcha_imagick-'.$_SESSION['_captcha']['token'].'.'.$format, $image);
 							if(!empty($image))
 								echo ' [ OK ]'.PHP_EOL;
 							else
@@ -150,103 +193,60 @@
 								echo ' [FAIL]'.PHP_EOL;
 								$failed=true;
 							}
+					}
+				} catch(\Throwable $error) {
+					echo PHP_EOL.'  <- error: '.$error->getMessage().PHP_EOL;
 				}
-		}
-		else
-		{
-			echo ' [FAIL]'.PHP_EOL.' <-  gd2 extension is not loaded'.PHP_EOL;
-			$no_extensions['gd2']=true;
-		}
-
-		echo ' -> Testing imagick module';
-		if(class_exists('Imagick'))
-			try {
-				echo PHP_EOL;
-
-				foreach(['jpeg', 'bmp', 'gif', 'png'] as $format)
-				{
-					echo '  -> Testing '.$format.PHP_EOL;
-
-					echo '   -> captcha_get';
-						$image=captcha_get('Test\captcha_imagick', [$format]);
-						file_put_contents(__DIR__.'/tmp/sec_captcha/sec_captcha_imagick-'.$_SESSION['_captcha']['token'].'.'.$format, $image);
-						if(!empty($image))
-							echo ' [ OK ]'.PHP_EOL;
-						else
-						{
-							echo ' [FAIL]'.PHP_EOL;
-							$failed=true;
-						}
-
-					echo '   -> captcha_check';
-						if(captcha_check($_SESSION['_captcha']['token']))
-							echo ' [ OK ]';
-						else
-						{
-							echo ' [FAIL]';
-							$failed=true;
-						}
-						if(!isset($_SESSION['_captcha']))
-							echo ' [ OK ]'.PHP_EOL;
-						else
-						{
-							echo ' [FAIL]'.PHP_EOL;
-							$failed=true;
-						}
-				}
-			} catch(\Throwable $error) {
-				echo PHP_EOL.'  <- error: '.$error->getMessage().PHP_EOL;
+			else
+			{
+				echo ' [FAIL]'.PHP_EOL.' <-  imagick extension is not loaded'.PHP_EOL;
+				$no_extensions['imagick']=true;
 			}
-		else
-		{
-			echo ' [FAIL]'.PHP_EOL.' <-  imagick extension is not loaded'.PHP_EOL;
-			$no_extensions['imagick']=true;
-		}
 
 		echo ' -> Testing imagick2 module';
-		if(class_exists('Imagick'))
-			try {
-				echo PHP_EOL;
+			if(class_exists('Imagick'))
+				try {
+					echo PHP_EOL;
 
-				foreach(['jpeg', 'bmp', 'gif', 'png'] as $format)
-				{
-					echo '  -> Testing '.$format.PHP_EOL;
+					foreach(['jpeg', 'bmp', 'gif', 'png'] as $format)
+					{
+						echo '  -> Testing '.$format.PHP_EOL;
 
-					echo '   -> captcha_get';
-						$image=captcha_get('Test\captcha_imagick2', [$format]);
-						file_put_contents(__DIR__.'/tmp/sec_captcha/sec_captcha_imagick2-'.$_SESSION['_captcha']['token'].'.'.$format, $image);
-						if(!empty($image))
-							echo ' [ OK ]'.PHP_EOL;
-						else
-						{
-							echo ' [FAIL]'.PHP_EOL;
-							$failed=true;
-						}
+						echo '   -> captcha_get';
+							$image=captcha_get('Test\captcha_imagick2', [$format]);
+							file_put_contents(__DIR__.'/tmp/sec_captcha/sec_captcha_imagick2-'.$_SESSION['_captcha']['token'].'.'.$format, $image);
+							if(!empty($image))
+								echo ' [ OK ]'.PHP_EOL;
+							else
+							{
+								echo ' [FAIL]'.PHP_EOL;
+								$failed=true;
+							}
 
-					echo '   -> captcha_check';
-						if(captcha_check($_SESSION['_captcha']['token']))
-							echo ' [ OK ]';
-						else
-						{
-							echo ' [FAIL]';
-							$failed=true;
-						}
-						if(!isset($_SESSION['_captcha']))
-							echo ' [ OK ]'.PHP_EOL;
-						else
-						{
-							echo ' [FAIL]'.PHP_EOL;
-							$failed=true;
-						}
+						echo '   -> captcha_check';
+							if(captcha_check($_SESSION['_captcha']['token']))
+								echo ' [ OK ]';
+							else
+							{
+								echo ' [FAIL]';
+								$failed=true;
+							}
+							if(!isset($_SESSION['_captcha']))
+								echo ' [ OK ]'.PHP_EOL;
+							else
+							{
+								echo ' [FAIL]'.PHP_EOL;
+								$failed=true;
+							}
+					}
+				} catch(\Throwable $error) {
+					echo PHP_EOL.'  <- error: '.$error->getMessage().PHP_EOL;
 				}
-			} catch(\Throwable $error) {
-				echo PHP_EOL.'  <- error: '.$error->getMessage().PHP_EOL;
+			else
+			{
+				echo ' [FAIL]'.PHP_EOL.' <-  imagick extension is not loaded'.PHP_EOL;
+				$no_extensions['imagick']=true;
 			}
-		else
-		{
-			echo ' [FAIL]'.PHP_EOL.' <-  imagick extension is not loaded'.PHP_EOL;
-			$no_extensions['imagick']=true;
-		}
 
 		if($failed)
 			exit(1);

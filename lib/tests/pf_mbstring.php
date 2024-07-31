@@ -113,6 +113,7 @@
 					$failed=true;
 				}
 			echo PHP_EOL;
+
 		echo ' -> Testing mb_ord';
 			if(mb_ord('A', 'UTF-8') === 65)
 				echo ' [ OK ]';
@@ -135,6 +136,7 @@
 				echo ' [FAIL]'.PHP_EOL;
 				$failed=true;
 			}
+
 		echo ' -> Testing mb_scrub';
 			if(mb_scrub('Hello World!') === 'Hello World!')
 				echo ' [ OK ]';
@@ -150,6 +152,7 @@
 				echo ' [FAIL]'.PHP_EOL;
 				$failed=true;
 			}
+
 		echo ' -> Testing mb_str_split';
 			if(var_export_contains(
 				mb_str_split('Hello 🐘🐘🐘', 2),
@@ -161,6 +164,7 @@
 				echo ' [FAIL]'.PHP_EOL;
 				$failed=true;
 			}
+
 		echo ' -> Testing mb_str_pad';
 			if(mb_str_pad('▶▶', 6, '❤❓❇', STR_PAD_RIGHT) === '▶▶❤❓❇❤')
 				echo ' [ OK ]';

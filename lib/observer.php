@@ -4,6 +4,7 @@
 	 *
 	 * Note:
 	 *  observer class can be inherited or use t_observer trait
+	 *  throws an observer_exception on error
 	 *
 	 * Example usage:
 		class logger implements i_observer
@@ -50,13 +51,16 @@
 		$my_observer_object=new my_observer();
 
 		$my_observer_object
-			->attach(new article())
-			->attach(new rss())
-			->attach($logger_object);
+		->	attach(new article())
+		->	attach(new rss())
+		->	attach($logger_object);
+
 		$my_observer_object->add('New article content');
 		$my_observer_object->detach($logger_object);
 		$my_observer_object->add('Second article content');
 	 */
+
+	class observer_exception extends Exception {}
 
 	interface i_observer
 	{
@@ -69,12 +73,24 @@
 
 		public function attach(i_observer $observer)
 		{
-			$this->observers[spl_object_hash($observer)]=$observer;
+			$object_hash=spl_object_hash($observer);
+
+			if(isset($this->observers[$object_hash]))
+				throw new observer_exception('Object hash '.$object_hash.' is currently in use');
+
+			$this->observers[$object_hash]=$observer;
+
 			return $this;
 		}
 		public function detach(i_observer $observer)
 		{
-			unset($this->observers[spl_object_hash($observer)]);
+			$object_hash=spl_object_hash($observer);
+
+			if(!isset($this->observers[$object_hash]))
+				throw new observer_exception('Object hash '.$object_hash.' was not attached');
+
+			unset($this->observers[$object_hash]);
+
 			return $this;
 		}
 		public function notify()

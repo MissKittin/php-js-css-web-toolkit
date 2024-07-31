@@ -53,10 +53,10 @@
 		public function __sleep()
 		{
 			$function_body='';
-
 			$current_file=new SplFileObject($this->reflection->getFilename());
 			$current_file->seek($this->reflection->getStartLine()-1);
 			$end_line=$this->reflection->getEndLine();
+
 			while($current_file->key() < $end_line)
 			{
 				$function_body.=$current_file->current();
@@ -66,7 +66,6 @@
 			$begin=strpos($function_body, 'function');
 			$end=strrpos($function_body, '}');
 			$this->closure_body=substr($function_body, $begin, $end-$begin+1);
-
 			$this->closure_vars=$this->reflection->getStaticVariables();
 
 			return ['closure_vars', 'closure_body'];
@@ -74,15 +73,18 @@
 		public function __unserialize($data)
 		{
 			foreach($data as $data_field)
+			{
 				if(is_array($data_field))
-					extract($data_field);
-				else
 				{
-					eval('$this->reflection='.$data_field.';');
-
-					if(!$this->reflection instanceOf Closure)
-						throw new superclosure_exception('Closure expected in unserialized data');
+					extract($data_field);
+					continue;
 				}
+
+				eval('$this->reflection='.$data_field.';');
+
+				if(!$this->reflection instanceOf Closure)
+					throw new superclosure_exception('Closure expected in unserialized data');
+			}
 
 			$this->reflection=new ReflectionFunction($this->reflection);
 		}

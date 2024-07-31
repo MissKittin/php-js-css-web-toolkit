@@ -146,6 +146,7 @@
 				echo '  -> '.$method;
 
 				$caught=false;
+
 				try{
 					if($method === 'get_response_cookie')
 						$request_response->$method('mycookie');
@@ -154,6 +155,7 @@
 				} catch(\Throwable $error) {
 					$caught=true;
 				}
+
 				if($caught)
 					echo ' [ OK ]'.PHP_EOL;
 				else
@@ -164,76 +166,76 @@
 			}
 
 		echo ' -> Testing request methods'.PHP_EOL;
-		echo '  -> send throws an Exception';
-			$caught=false;
-			try {
-				$request_response->send();
-			} catch(\Throwable $error) {
-				$caught=true;
-			}
-			if($caught)
-				echo ' [ OK ]'.PHP_EOL;
-			else
-			{
-				echo ' [FAIL]'.PHP_EOL;
-				$errors[]='send throws an Exception';
-			}
-		echo '  -> set_url';
-			$request_response->set_url('myurl');
-			if($request_response->_get_field('url') === 'myurl')
-				echo ' [ OK ]'.PHP_EOL;
-			else
-			{
-				echo ' [FAIL]'.PHP_EOL;
-				$errors[]='set_url';
-			}
-		echo '  -> set_method';
-			$request_response->set_method('mymethod');
-			if($request_response->_get_field('request_method') === 'mymethod')
-				echo ' [ OK ]'.PHP_EOL;
-			else
-			{
-				echo ' [FAIL]'.PHP_EOL;
-				$errors[]='set_method';
-			}
-		echo '  -> set_header';
-			$request_response->set_header('myheader', 'myheadervalue');
-			if($request_response->_get_field('request_headers')['myheader'] === 'myheadervalue')
-				echo ' [ OK ]'.PHP_EOL;
-			else
-			{
-				echo ' [FAIL]'.PHP_EOL;
-				$errors[]='set_header';
-			}
-		echo '  -> set_content'.PHP_EOL;
-		echo '   -> set';
-			$request_response->set_content('my content', false);
-			if($request_response->_get_field('request_content') === 'my content')
-				echo ' [ OK ]'.PHP_EOL;
-			else
-			{
-				echo ' [FAIL]'.PHP_EOL;
-				$errors[]='set_content set';
-			}
-		echo '   -> append';
-			$request_response->set_content('appended content', true);
-			if($request_response->_get_field('request_content') === 'my contentappended content')
-				echo ' [ OK ]'.PHP_EOL;
-			else
-			{
-				echo ' [FAIL]'.PHP_EOL;
-				$errors[]='set_content append';
-			}
-		echo '  -> send returns false';
-			$GLOBALS['allow_reset_fields']=false;
-			if($request_response->send() === false)
-				echo ' [ OK ]'.PHP_EOL;
-			else
-			{
-				echo ' [FAIL]'.PHP_EOL;
-				$errors[]='send returns false';
-			}
-			$GLOBALS['allow_reset_fields']=true;
+			echo '  -> send throws an Exception';
+				$caught=false;
+				try {
+					$request_response->send();
+				} catch(\Throwable $error) {
+					$caught=true;
+				}
+				if($caught)
+					echo ' [ OK ]'.PHP_EOL;
+				else
+				{
+					echo ' [FAIL]'.PHP_EOL;
+					$errors[]='send throws an Exception';
+				}
+			echo '  -> set_url';
+				$request_response->set_url('myurl');
+				if($request_response->_get_field('url') === 'myurl')
+					echo ' [ OK ]'.PHP_EOL;
+				else
+				{
+					echo ' [FAIL]'.PHP_EOL;
+					$errors[]='set_url';
+				}
+			echo '  -> set_method';
+				$request_response->set_method('mymethod');
+				if($request_response->_get_field('request_method') === 'mymethod')
+					echo ' [ OK ]'.PHP_EOL;
+				else
+				{
+					echo ' [FAIL]'.PHP_EOL;
+					$errors[]='set_method';
+				}
+			echo '  -> set_header';
+				$request_response->set_header('myheader', 'myheadervalue');
+				if($request_response->_get_field('request_headers')['myheader'] === 'myheadervalue')
+					echo ' [ OK ]'.PHP_EOL;
+				else
+				{
+					echo ' [FAIL]'.PHP_EOL;
+					$errors[]='set_header';
+				}
+			echo '  -> set_content'.PHP_EOL;
+				echo '   -> set';
+					$request_response->set_content('my content', false);
+					if($request_response->_get_field('request_content') === 'my content')
+						echo ' [ OK ]'.PHP_EOL;
+					else
+					{
+						echo ' [FAIL]'.PHP_EOL;
+						$errors[]='set_content set';
+					}
+				echo '   -> append';
+					$request_response->set_content('appended content', true);
+					if($request_response->_get_field('request_content') === 'my contentappended content')
+						echo ' [ OK ]'.PHP_EOL;
+					else
+					{
+						echo ' [FAIL]'.PHP_EOL;
+						$errors[]='set_content append';
+					}
+				echo '  -> send returns false';
+					$GLOBALS['allow_reset_fields']=false;
+					if($request_response->send() === false)
+						echo ' [ OK ]'.PHP_EOL;
+					else
+					{
+						echo ' [FAIL]'.PHP_EOL;
+						$errors[]='send returns false';
+					}
+					$GLOBALS['allow_reset_fields']=true;
 
 		echo ' -> Injecting response headers and content';
 			$request_response->_inject_response_headers([
@@ -255,62 +257,62 @@
 		echo ' [ OK ]'.PHP_EOL;
 
 		echo ' -> Testing response methods'.PHP_EOL;
-		echo '  -> get_response_headers';
-			if(var_export_contains(
-				$request_response->get_response_headers(),
-				"array('Date'=>array(0=>'Sat,12Apr200817:30:38GMT',),'Server'=>array(0=>'Apache/2.2.3(CentOS)',),'Last-Modified'=>array(0=>'Tue,15Nov200513:24:10GMT',),'ETag'=>array(0=>'\"280100-1b6-80bfd280\"',),'Accept-Ranges'=>array(0=>'bytes',),'Content-Length'=>array(0=>'438',),'Connection'=>array(0=>'close',),'Content-Type'=>array(0=>'text/html;charset=UTF-8',),'Set-Cookie'=>array(0=>'mycookie=goodvalue;Domain=somecompany.co.uk;Path=/;Expires=Wed,21Oct201507:28:00GMT',1=>'mysecondcookie=goodvaluee;Domain=somecompanyy.co.uk;Path=/;Expires=Weed,21Oct201507:28:00GMT',),)"
-			))
-				echo ' [ OK ]'.PHP_EOL;
-			else
-			{
-				echo ' [FAIL]'.PHP_EOL;
-				$errors[]='get_response_headers';
-			}
-		echo '  -> get_response_protocol';
-			if($request_response->get_response_protocol() === 'HTTP/1.1')
-				echo ' [ OK ]'.PHP_EOL;
-			else
-			{
-				echo ' [FAIL]'.PHP_EOL;
-				$errors[]='get_response_protocol';
-			}
-		echo '  -> get_response_status';
-			if($request_response->get_response_status() === '200')
-				echo ' [ OK ]'.PHP_EOL;
-			else
-			{
-				echo ' [FAIL]'.PHP_EOL;
-				$errors[]='get_response_status';
-			}
-		echo '  -> get_response_cookie';
-			if(var_export_contains(
-				$request_response->get_response_cookie('mycookie'),
-				"array('value'=>'goodvalue','Domain'=>'somecompany.co.uk','Path'=>'/','Expires'=>'Wed,21Oct201507:28:00GMT',)"
-			))
-				echo ' [ OK ]';
-			else
-			{
-				echo ' [FAIL]';
-				$errors[]='get_response_cookie phase 1';
-			}
-			if(var_export_contains(
-				$request_response->get_response_cookie('mysecondcookie'),
-				"array('value'=>'goodvaluee','Domain'=>'somecompanyy.co.uk','Path'=>'/','Expires'=>'Weed,21Oct201507:28:00GMT',)"
-			))
-				echo ' [ OK ]'.PHP_EOL;
-			else
-			{
-				echo ' [FAIL]'.PHP_EOL;
-				$errors[]='get_response_cookie phase 2';
-			}
-		echo '  -> get_response_content';
-			if($request_response->get_response_content() === 'good content')
-				echo ' [ OK ]'.PHP_EOL;
-			else
-			{
-				echo ' [FAIL]'.PHP_EOL;
-				$errors[]='get_response_content';
-			}
+			echo '  -> get_response_headers';
+				if(var_export_contains(
+					$request_response->get_response_headers(),
+					"array('Date'=>array(0=>'Sat,12Apr200817:30:38GMT',),'Server'=>array(0=>'Apache/2.2.3(CentOS)',),'Last-Modified'=>array(0=>'Tue,15Nov200513:24:10GMT',),'ETag'=>array(0=>'\"280100-1b6-80bfd280\"',),'Accept-Ranges'=>array(0=>'bytes',),'Content-Length'=>array(0=>'438',),'Connection'=>array(0=>'close',),'Content-Type'=>array(0=>'text/html;charset=UTF-8',),'Set-Cookie'=>array(0=>'mycookie=goodvalue;Domain=somecompany.co.uk;Path=/;Expires=Wed,21Oct201507:28:00GMT',1=>'mysecondcookie=goodvaluee;Domain=somecompanyy.co.uk;Path=/;Expires=Weed,21Oct201507:28:00GMT',),)"
+				))
+					echo ' [ OK ]'.PHP_EOL;
+				else
+				{
+					echo ' [FAIL]'.PHP_EOL;
+					$errors[]='get_response_headers';
+				}
+			echo '  -> get_response_protocol';
+				if($request_response->get_response_protocol() === 'HTTP/1.1')
+					echo ' [ OK ]'.PHP_EOL;
+				else
+				{
+					echo ' [FAIL]'.PHP_EOL;
+					$errors[]='get_response_protocol';
+				}
+			echo '  -> get_response_status';
+				if($request_response->get_response_status() === '200')
+					echo ' [ OK ]'.PHP_EOL;
+				else
+				{
+					echo ' [FAIL]'.PHP_EOL;
+					$errors[]='get_response_status';
+				}
+			echo '  -> get_response_cookie';
+				if(var_export_contains(
+					$request_response->get_response_cookie('mycookie'),
+					"array('value'=>'goodvalue','Domain'=>'somecompany.co.uk','Path'=>'/','Expires'=>'Wed,21Oct201507:28:00GMT',)"
+				))
+					echo ' [ OK ]';
+				else
+				{
+					echo ' [FAIL]';
+					$errors[]='get_response_cookie phase 1';
+				}
+				if(var_export_contains(
+					$request_response->get_response_cookie('mysecondcookie'),
+					"array('value'=>'goodvaluee','Domain'=>'somecompanyy.co.uk','Path'=>'/','Expires'=>'Weed,21Oct201507:28:00GMT',)"
+				))
+					echo ' [ OK ]'.PHP_EOL;
+				else
+				{
+					echo ' [FAIL]'.PHP_EOL;
+					$errors[]='get_response_cookie phase 2';
+				}
+			echo '  -> get_response_content';
+				if($request_response->get_response_content() === 'good content')
+					echo ' [ OK ]'.PHP_EOL;
+				else
+				{
+					echo ' [FAIL]'.PHP_EOL;
+					$errors[]='get_response_content';
+				}
 
 		if(!empty($errors))
 		{

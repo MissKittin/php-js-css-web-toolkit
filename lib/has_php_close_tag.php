@@ -14,8 +14,7 @@
 		 * Usage:
 		 *  if(has_php_close_tag(file_get_contents('file.php')))
 		 *
-		 * Source:
-		 *  https://stackoverflow.com/a/38406054
+		 * Source: https://stackoverflow.com/a/38406054
 		 */
 
 		if(!function_exists('token_get_all'))
@@ -28,8 +27,12 @@
 			if(is_array($token))
 			{
 				if(token_name($token[0]) === 'T_CLOSE_TAG')
+				{
 					$return=true;
-				elseif(token_name($token[0]) === 'T_OPEN_TAG')
+					continue;
+				}
+
+				if(token_name($token[0]) === 'T_OPEN_TAG')
 				{
 					$is_php=true;
 					$return=false;

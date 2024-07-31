@@ -100,11 +100,9 @@
 
 		echo ' -> Testing library';
 			class spl_test_class {}
-
 			$spl_test_object_a=new spl_test_class();
 			$spl_test_object_b=new spl_test_class();
 			$spl_test_object_c=new spl_test_class();
-
 			if(spl_object_id($spl_test_object_a) === 5)
 				echo ' [ OK ]';
 			else

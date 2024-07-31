@@ -60,23 +60,18 @@
 		switch($type)
 		{
 			case 'text':
-				// first byte indicates FIN, Text-Frame (10000001)
 				$frame_head[0]=129;
 			break;
 			case 'close':
-				// first byte indicates FIN, Close Frame(10001000)
 				$frame_head[0]=136;
 			break;
 			case 'ping':
-				// first byte indicates FIN, Ping frame (10001001)
 				$frame_head[0]=137;
 			break;
 			case 'pong':
-				// first byte indicates FIN, Pong frame (10001010)
 				$frame_head[0]=138;
 		}
 
-		// set mask and payload length (using 1, 3 or 9 bytes)
 		if($payload_length > 65535)
 		{
 			$payload_length_bin=str_split(sprintf('%064b', $payload_length), 8);
@@ -88,7 +83,6 @@
 			for($i=0; $i<8; ++$i)
 				$frame_head[$i+2]=bindec($payload_length_bin[$i]);
 
-			// most significant bit MUST be 0 (close connection if frame too big)
 			if($frame_head[2] > 127)
 				return false;
 		}
@@ -110,14 +104,11 @@
 				$frame_head[1]+=128;
 		}
 
-		// convert frame-head to string
 		foreach(array_keys($frame_head) as $i)
 			$frame_head[$i]=chr($frame_head[$i]);
 
 		if($masked === true)
 		{
-			// generate a random mask
-
 			$mask=[];
 
 			for($i=0; $i<4; ++$i)
@@ -127,9 +118,6 @@
 		}
 
 		$frame=implode('', $frame_head);
-
-		// append payload to frame
-		$framePayload=[];
 
 		for($i=0; $i<$payload_length; ++$i)
 			if($masked === true)
@@ -142,9 +130,8 @@
 
 	if(isset($argv[1]) && ($argv[1] === 'serve'))
 	{
-		system(
-			'"'.PHP_BINARY.'" '.__DIR__.'/../serve.php'.' '
-			.'--docroot '.__DIR__.'/tmp/websockets '
+		system('"'.PHP_BINARY.'" "'.__DIR__.'/../serve.php"'.' '
+		.	'--docroot "'.__DIR__.'/tmp/websockets" '
 		);
 		exit();
 	}
@@ -183,45 +170,43 @@
 	echo ' [ OK ]'.PHP_EOL;
 
 	echo ' -> Creating test directory';
-		file_put_contents(
-			__DIR__.'/tmp/websockets/functions.php', '<?php '
-			.'function websockets_main($client)'
-			.'{'
-			.	'while(true)'
-			.		'switch($client->read())'
-			.		'{'
-			.			'case "get_time":'
-			.				'$client->write(json_encode('
-			.					'["get_time", time()]'
-			.				'));'
-			.			'break;'
-			.			'case "exit":'
-			.				'$client->exit();'
-			.		'}'
-			.'}'
+		file_put_contents(__DIR__.'/tmp/websockets/functions.php', '<?php '
+		.	'function websockets_main($client)'
+		.	'{'
+		.		'while(true)'
+		.			'switch($client->read())'
+		.			'{'
+		.				'case "get_time":'
+		.					'$client->write(json_encode('
+		.						'["get_time", time()]'
+		.					'));'
+		.				'break;'
+		.				'case "exit":'
+		.					'$client->exit();'
+		.			'}'
+		.	'}'
 		);
-		file_put_contents(
-			__DIR__.'/tmp/websockets/index.php', ''
-			.'<html>'
-			.	'<head>'
-			.		'<script>'
-			.			'document.addEventListener("DOMContentLoaded", function(){'
-			.				'var socket=new WebSocket("ws://127.0.0.1:8081");'
-			.				'socket.addEventListener("open", function(){'
-			.					'socket.send("get_time");'
-			.				'});'
-			.				'socket.addEventListener("message", function(event){'
-			.					'var data=JSON.parse(event.data);'
-			.					'if(data[0] === "get_time")'
-			.						'document.getElementById("output").innerHTML="Current timestamp: "+data[1];'
-			.					'else '
-			.						'document.getElementById("output").innerHTML="WebSocket test failed - bad response";'
-			.				'});'
-			.			'}, false);'
-			.		'</script>'
-			.	'</head>'
-			.	'<body><h1 id="output">WebSocket test failed</h1></body>'
-			.'</html>'
+		file_put_contents(__DIR__.'/tmp/websockets/index.php', ''
+		.	'<html>'
+		.		'<head>'
+		.			'<script>'
+		.				'document.addEventListener("DOMContentLoaded", function(){'
+		.					'var socket=new WebSocket("ws://127.0.0.1:8081");'
+		.				'socket.addEventListener("open", function(){'
+		.						'socket.send("get_time");'
+		.					'});'
+		.					'socket.addEventListener("message", function(event){'
+		.						'var data=JSON.parse(event.data);'
+		.						'if(data[0] === "get_time")'
+		.							'document.getElementById("output").innerHTML="Current timestamp: "+data[1];'
+		.						'else '
+		.							'document.getElementById("output").innerHTML="WebSocket test failed - bad response";'
+		.					'});'
+		.				'}, false);'
+		.			'</script>'
+		.		'</head>'
+		.		'<body><h1 id="output">WebSocket test failed</h1></body>'
+		.	'</html>'
 		);
 	echo ' [ OK ]'.PHP_EOL;
 
@@ -231,7 +216,7 @@
 	{
 		echo ' -> Starting serve tool (127.0.0.1:8080)';
 			try {
-				$_serve_test_handler=_serve_test('"'.PHP_BINARY.'" '.$argv[0].' serve');
+				$_serve_test_handler=_serve_test('"'.PHP_BINARY.'" "'.$argv[0].'" serve');
 				echo ' [ OK ]'.PHP_EOL;
 			} catch(Exception $error) {
 				echo ' [FAIL]'.PHP_EOL;
@@ -240,9 +225,8 @@
 			}
 
 		echo ' -> Starting tool (127.0.0.1:8081)'.PHP_EOL.PHP_EOL;
-			system(
-				'"'.PHP_BINARY.'" '.__DIR__.'/../'.basename(__FILE__).' '
-				.'--functions '.__DIR__.'/tmp/websockets/functions.php'
+			system('"'.PHP_BINARY.'" "'.__DIR__.'/../'.basename(__FILE__).'" '
+			.	'--functions "'.__DIR__.'/tmp/websockets/functions.php"'
 			);
 
 		echo PHP_EOL;
@@ -251,9 +235,8 @@
 
 	echo ' -> Starting tool (127.0.0.1:8081)';
 		try {
-			$_serve_test_handler=_serve_test(
-				'"'.PHP_BINARY.'" '.__DIR__.'/../'.basename(__FILE__).' '
-				.'--functions '.__DIR__.'/tmp/websockets/functions.php'
+			$_serve_test_handler=_serve_test('"'.PHP_BINARY.'" "'.__DIR__.'/../'.basename(__FILE__).'" '
+			.	'--functions "'.__DIR__.'/tmp/websockets/functions.php"'
 			);
 			echo ' [ OK ]'.PHP_EOL;
 		} catch(Exception $error) {

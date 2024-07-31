@@ -2,9 +2,8 @@
 	/*
 	 * spl_object_id() polyfill
 	 *
-	 * Sources:
-	 *  https://github.com/symfony/polyfill-php72/blob/1.x/Php72.php
-	 * License: MIT
+	 * Source: https://github.com/symfony/polyfill-php72/blob/1.x/Php72.php
+	 * License: MIT https://github.com/symfony/polyfill-php72/blob/1.x/LICENSE
 	 */
 
 	if(!function_exists('spl_object_id'))

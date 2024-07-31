@@ -7,9 +7,8 @@
 		 * Warning:
 		 *  converts string to UTF-8
 		 *
-		 * Source:
-		 *  https://github.com/symfony/polyfill-mbstring/blob/1.x/Mbstring.php
-		 * License: MIT
+		 * Source: https://github.com/symfony/polyfill-mbstring/blob/1.x/Mbstring.php
+		 * License: MIT https://github.com/symfony/polyfill-mbstring/blob/1.x/LICENSE
 		 */
 
 		if(!function_exists('mb_chr'))

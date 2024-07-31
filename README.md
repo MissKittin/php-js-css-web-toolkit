@@ -29,6 +29,7 @@ Supported cache databases: Redis, Memcached, APCu
 * `opcache-preload-generator.php` - opcache preload script generator
 * `pdo-connect.php` - interface for `pdo_connect.php` library - seed databases
 * `queue-worker.php` - interface for `queue_worker.php` server
+* `remove-gpl.php` - remove GPL-licensed libraries
 * `run-php-bin-tests.php` - run PHP tool tests in batch mode
 * `run-php-com-tests.php` - run PHP components tests in batch mode
 * `run-php-lib-tests.php` - run PHP library tests in batch mode
@@ -44,7 +45,6 @@ Supported cache databases: Redis, Memcached, APCu
 * `ascii.php` - ASCII conversion (MIT)
 * `assets_compiler.php`
 * `async_process_builder.php` - `proc_*` wrapper and standard input-output-error interface
-* `blog_page_slicer.php` - select n elements from array at start point
 * `cache_container.php` - cache manager
 * `check_date.php` - check if is between DD.MM - DD.MM
 * `check_var.php` - check if variable and eventually return value
@@ -101,6 +101,7 @@ Supported cache databases: Redis, Memcached, APCu
 * `registry.php` - design pattern
 * `relative_path.php` - get relative path between two files/directories
 * `rmdir_recursive.php` - remove non-empty directories
+* `scandir_recursive.php` - scan directory recursively
 * `sec_bruteforce.php` - trivial banning method by IP on n unsuccessful attempts
 * `sec_captcha.php` - CAPTCHA image generator
 * `sec_csrf.php` - CSRF protection helpers
@@ -159,7 +160,7 @@ Supported cache databases: Redis, Memcached, APCu
 * `copyleft.css` - flipped `&copy;`
 * `fakelink.css` - link-styled span
 * `simpleblog_default.css` - simpleblog default skin - layout template
-* `simpleblog_materialized.css` - Material design theme from simpleblog admin panel
+* `simpleblog_materialized.css` - Material design theme from simpleblog admin panel (MIT)
 * `tooltip.css` - CSS tooltips
 
 ## PHP components

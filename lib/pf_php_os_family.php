@@ -2,9 +2,8 @@
 	/*
 	 * PHP_OS_FAMILY polyfill
 	 *
-	 * Sources:
-	 *  https://github.com/symfony/polyfill-php72/blob/1.x/Php72.php
-	 * License: MIT
+	 * Source: https://github.com/symfony/polyfill-php72/blob/1.x/Php72.php
+	 * License: MIT https://github.com/symfony/polyfill-php72/blob/1.x/LICENSE
 	 */
 
 	if(!defined('PHP_OS_FAMILY'))

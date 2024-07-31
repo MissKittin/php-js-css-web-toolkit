@@ -38,6 +38,7 @@
 			foreach(['a', 'b', 'c'] as $table)
 			{
 				$database->exec('CREATE TABLE table'.$table.'(id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, columna TEXT, columnb TEXT)');
+
 				foreach(['a', 'b', 'c', 'd', 'e', 'f'] as $row)
 					$database->exec('INSERT INTO table'.$table.'(columna, columnb) VALUES("cella'.$row.'", "cellb'.$row.'")');
 			}
@@ -47,7 +48,9 @@
 
 	echo ' -> Testing tool';
 		if(
-			md5(shell_exec('"'.PHP_BINARY.'" '.__DIR__.'/../sqlite3-db-dump.php '.__DIR__.'/tmp/sqlite3-db-dump/sqlite3-db-dump.sqlite3'))
+			md5(shell_exec('"'.PHP_BINARY.'" "'.__DIR__.'/../sqlite3-db-dump.php" '
+			.	'"'.__DIR__.'/tmp/sqlite3-db-dump/sqlite3-db-dump.sqlite3"'
+			))
 			===
 			'60071847ffd1fa2efce1fc9a606b15fe'
 		)

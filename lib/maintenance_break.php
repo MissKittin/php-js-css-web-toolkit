@@ -80,8 +80,9 @@
 
 		$cookie_name=$params['cookie_name'];
 		$get_name=$params['get_name'];
-		$set_cookie=function($a, $b, $c, $d, $e, $f, $g){
-			setcookie($a, $b, $c, $d, $e, $f, $g);
+		$set_cookie=function(...$args)
+		{
+			setcookie(...$args);
 		};
 
 		if(isset($params['set_cookie']))
@@ -98,7 +99,16 @@
 
 		if(isset($_GET[$get_name]))
 		{
-			$set_cookie($cookie_name, md5($get_name), time()+3600, '', '', false, true);
+			$set_cookie(
+				$cookie_name,
+				md5($get_name),
+				time()+3600,
+				'',
+				'',
+				false,
+				true
+			);
+
 			return true;
 		}
 
@@ -138,8 +148,9 @@
 		$cookie_name=$params['cookie_name'];
 		$path=$params['path'];
 		$request_uri=null;
-		$set_cookie=function($a, $b, $c, $d, $e, $f, $g){
-			setcookie($a, $b, $c, $d, $e, $f, $g);
+		$set_cookie=function(...$args)
+		{
+			setcookie(...$args);
 		};
 
 		if(isset($params['request_uri']))
@@ -168,13 +179,24 @@
 
 		if($request_uri === $path)
 		{
-			$set_cookie($cookie_name, md5($path), time()+3600, '', '', false, true);
+			$set_cookie(
+				$cookie_name,
+				md5($path),
+				time()+3600,
+				'',
+				'',
+				false,
+				true
+			);
+
 			return true;
 		}
 
-		if(isset($_COOKIE[$cookie_name]))
-			if($_COOKIE[$cookie_name] === md5($path))
-				return true;
+		if(
+			isset($_COOKIE[$cookie_name]) &&
+			($_COOKIE[$cookie_name] === md5($path))
+		)
+			return true;
 
 		return false;
 	}
@@ -237,9 +259,10 @@
 
 		if(!isset($params['allowed_ip']))
 			throw new InvalidArgumentException('allowed_ip parameter is not defined');
-		$allowed_ip=$params['allowed_ip'];
 
+		$allowed_ip=$params['allowed_ip'];
 		$remote_ip=null;
+
 		if(isset($params['remote_ip']))
 		{
 			if(!is_string($params['remote_ip']))

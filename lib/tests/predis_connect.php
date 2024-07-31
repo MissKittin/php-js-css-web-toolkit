@@ -73,8 +73,8 @@
 
 			system(''
 			.	'"'.PHP_BINARY.'" '
-			.	__DIR__.'/../../bin/get-composer.php '
-			.	__DIR__.'/tmp/.composer'
+			.	'"'.__DIR__.'/../../bin/get-composer.php" '
+			.	'"'.__DIR__.'/tmp/.composer"'
 			);
 
 			if(!file_exists(__DIR__.'/tmp/.composer/composer.phar'))
@@ -92,9 +92,9 @@
 		}
 
 		echo '  -> Installing predis/predis'.PHP_EOL;
-			system('"'.PHP_BINARY.'" '.$_composer_binary.' '
+			system('"'.PHP_BINARY.'" "'.$_composer_binary.'" '
 			.	'--no-cache '
-			.	'--working-dir='.__DIR__.'/tmp/.composer '
+			.	'"--working-dir='.__DIR__.'/tmp/.composer" '
 			.	'require predis/predis'
 			);
 	}

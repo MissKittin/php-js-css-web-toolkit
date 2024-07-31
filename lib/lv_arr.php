@@ -2,6 +2,8 @@
 	/*
 	 * Laravel 10 array helpers & collections
 	 *
+	 * This library is licensed under the MIT license, see https://github.com/illuminate/collections/blob/master/LICENSE.md
+	 *
 	 * Note:
 	 *  throws an lv_arr_exception on error
 	 *
@@ -3134,12 +3136,40 @@
 	 *     warning:
 	 *      equality method is required
 	 *      use_as_callable method is required
+	 *    take_until_timeout()
+	 *     returns a new lazy collection that will enumerate values
+	 *     until the specified time
+	 *     after that time, the collection will then stop enumerating
+			$lazy_collection=$lv_lazy_collection_class::times(PHP_INT_MAX)->take_until_timeout(
+				(new DateTime())->modify('+1 minute')
+			);
+			foreach($lazy_collection as $number)
+			{
+				var_dump($number);
+				sleep(1);
+			}
+			// int(1)
+			// int(2)
+			// ...
+			// int(58)
+			// int(59)
 	 *    take_while()
 	 *     warning:
 	 *      equality method is required
 	 *      take_until method is required
 	 *      use_as_callable method is required
 	 *    tap()
+	 *    tap_each()
+	 *     while the each method calls the given callback for each item
+	 *     in the collection right away, the tap_each method only calls
+	 *     the given callback as the items are being pulled out
+	 *     of the list one by one
+			// nothing has been dumped so far
+			$lazy_collection=lv_arr_lazy_collection::times(PHP_INT_MAX)->tap_each(function(int $value){
+				var_dump($value);
+			});
+			// three items are dumped
+			$array=$lazy_collection->take(3)->all(); // [1, 2, 3]
 	 *    to_array()
 	 *     warning:
 	 *      all method is required
@@ -3235,9 +3265,6 @@
 	 *    dump()
 	 *    ensure()
 	 *    macro()
-	 *   not implemented methods:
-	 *    take_until_timeout()
-	 *    tap_each()
 	 *
 	 * Functions implemented in the lv_hlp component:
 	 *  lv_arr_to_css_styles()
@@ -3254,7 +3281,6 @@
 	 *  https://github.com/illuminate/collections/blob/master/HigherOrderCollectionProxy.php
 	 *  https://github.com/illuminate/collections/blob/master/Enumerable.php
 	 *  https://github.com/illuminate/collections/blob/master/LazyCollection.php
-	 * License: MIT
 	 */
 
 	class lv_arr_exception extends Exception {}
@@ -6991,6 +7017,23 @@
 				}
 			});
 		}
+		public function take_until_timeout(DateTimeInterface $timeout)
+		{
+			$timeout=$timeout->getTimestamp();
+
+			return new static(function() use($timeout){
+				if(time() >= $timeout)
+					return;
+
+				foreach($this as $key=>$value)
+				{
+					yield $key=>$value;
+
+					if(time() >= $timeout)
+						break;
+				}
+			});
+		}
 		public function take_while($value)
 		{
 			$callback=$value;
@@ -7000,6 +7043,16 @@
 
 			return $this->take_until(function($item, $key) use($callback){
 				return (!$callback($item, $key));
+			});
+		}
+		public function tap_each(callable $callback)
+		{
+			return new static(function() use($callback){
+				foreach($this as $key=>$value)
+				{
+					$callback($value, $key);
+					yield $key=>$value;
+				}
 			});
 		}
 		public function undot()

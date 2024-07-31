@@ -53,7 +53,10 @@
 	$failed=false;
 
 	echo ' -> Starting tool'.PHP_EOL.PHP_EOL;
-		system('"'.PHP_BINARY.'" '.__DIR__.'/../assets-compiler.php '.__DIR__.'/tmp/assets-compiler/assets '.__DIR__.'/tmp/assets-compiler/public');
+		system('"'.PHP_BINARY.'" "'.__DIR__.'/../assets-compiler.php" '
+		.	'"'.__DIR__.'/tmp/assets-compiler/assets" '
+		.	'"'.__DIR__.'/tmp/assets-compiler/public"'
+		);
 	echo PHP_EOL;
 
 	echo ' -> Testing output files';

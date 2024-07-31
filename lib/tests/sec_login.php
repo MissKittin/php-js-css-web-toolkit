@@ -104,64 +104,70 @@
 		$failed=false;
 
 		echo ' -> Testing login_single'.PHP_EOL;
-		echo '  -> returns true';
-			if(login_single('login-test', 'test', 'login-test', '$2y$10$H2UEollYJTP0l1Qe4njXl.B.2OlJ1/CkhZSIBGn.OLvUGeWNebXPO'))
-				echo ' [ OK ]'.PHP_EOL;
-			else
-			{
-				echo ' [FAIL]'.PHP_EOL;
-				$failed=true;
-			}
-		echo '  -> returns false';
-			if(!login_single('login-test', 'wrongpassword', 'login-test', '$2y$10$H2UEollYJTP0l1Qe4njXl.B.2OlJ1/CkhZSIBGn.OLvUGeWNebXPO'))
-				echo ' [ OK ]'.PHP_EOL;
-			else
-			{
-				echo ' [FAIL]'.PHP_EOL;
-				$failed=true;
-			}
+			echo '  -> returns true';
+				if(login_single('login-test', 'test',
+					'login-test',
+					'$2y$10$H2UEollYJTP0l1Qe4njXl.B.2OlJ1/CkhZSIBGn.OLvUGeWNebXPO'
+				))
+					echo ' [ OK ]'.PHP_EOL;
+				else
+				{
+					echo ' [FAIL]'.PHP_EOL;
+					$failed=true;
+				}
+			echo '  -> returns false';
+				if(!login_single('login-test', 'wrongpassword',
+					'login-test',
+					'$2y$10$H2UEollYJTP0l1Qe4njXl.B.2OlJ1/CkhZSIBGn.OLvUGeWNebXPO'
+				))
+					echo ' [ OK ]'.PHP_EOL;
+				else
+				{
+					echo ' [FAIL]'.PHP_EOL;
+					$failed=true;
+				}
 
 		echo ' -> Testing login_multi'.PHP_EOL;
-		echo '  -> returns true';
-			if(login_multi('login-test', 'test', [
-				'login-test'=>'$2y$10$H2UEollYJTP0l1Qe4njXl.B.2OlJ1/CkhZSIBGn.OLvUGeWNebXPO',
-				'login-test2'=>'$2y$10$H2UEollYJTP0l1Qe4njXl.B.2OlJ1/CkhZSIBGn.OLvUGeWNebXPO'
-			]))
-				echo ' [ OK ]'.PHP_EOL;
-			else
-			{
-				echo ' [FAIL]'.PHP_EOL;
-				$failed=true;
-			}
-		echo '  -> returns false';
-			if(!login_multi('login-test', 'wrongpassword', [
-				'login-test'=>'$2y$10$H2UEollYJTP0l1Qe4njXl.B.2OlJ1/CkhZSIBGn.OLvUGeWNebXPO',
-				'login-test2'=>'$2y$10$H2UEollYJTP0l1Qe4njXl.B.2OlJ1/CkhZSIBGn.OLvUGeWNebXPO'
-			]))
-				echo ' [ OK ]'.PHP_EOL;
-			else
-			{
-				echo ' [FAIL]'.PHP_EOL;
-				$failed=true;
-			}
+			echo '  -> returns true';
+				if(login_multi('login-test', 'test', [
+					'login-test'=>'$2y$10$H2UEollYJTP0l1Qe4njXl.B.2OlJ1/CkhZSIBGn.OLvUGeWNebXPO',
+					'login-test2'=>'$2y$10$H2UEollYJTP0l1Qe4njXl.B.2OlJ1/CkhZSIBGn.OLvUGeWNebXPO'
+				]))
+					echo ' [ OK ]'.PHP_EOL;
+				else
+				{
+					echo ' [FAIL]'.PHP_EOL;
+					$failed=true;
+				}
+			echo '  -> returns false';
+				if(!login_multi('login-test', 'wrongpassword', [
+					'login-test'=>'$2y$10$H2UEollYJTP0l1Qe4njXl.B.2OlJ1/CkhZSIBGn.OLvUGeWNebXPO',
+					'login-test2'=>'$2y$10$H2UEollYJTP0l1Qe4njXl.B.2OlJ1/CkhZSIBGn.OLvUGeWNebXPO'
+				]))
+					echo ' [ OK ]'.PHP_EOL;
+				else
+				{
+					echo ' [FAIL]'.PHP_EOL;
+					$failed=true;
+				}
 
 		echo ' -> Testing login_callback'.PHP_EOL;
-		echo '  -> returns true';
-			if(login_callback('login-test', 'test', 'Test\find_password'))
-				echo ' [ OK ]'.PHP_EOL;
-			else
-			{
-				echo ' [FAIL]'.PHP_EOL;
-				$failed=true;
-			}
-		echo '  -> returns false';
-			if(!login_callback('login-test', 'wrongpassword', 'Test\find_password'))
-				echo ' [ OK ]'.PHP_EOL;
-			else
-			{
-				echo ' [FAIL]'.PHP_EOL;
-				$failed=true;
-			}
+			echo '  -> returns true';
+				if(login_callback('login-test', 'test', 'Test\find_password'))
+					echo ' [ OK ]'.PHP_EOL;
+				else
+				{
+					echo ' [FAIL]'.PHP_EOL;
+					$failed=true;
+				}
+			echo '  -> returns false';
+				if(!login_callback('login-test', 'wrongpassword', 'Test\find_password'))
+					echo ' [ OK ]'.PHP_EOL;
+				else
+				{
+					echo ' [FAIL]'.PHP_EOL;
+					$failed=true;
+				}
 
 		echo ' -> Testing is_logged (returns true)';
 			if(is_logged(false))

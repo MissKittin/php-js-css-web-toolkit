@@ -79,11 +79,15 @@ Set config options with the `add_config` method
 	default: `Next`
 
 ## Templates
-To select a template, add an argument to the constructor:  
+To select a template, add an argument to the constructor:
 ```
 $middleware_form=new middleware_form(); // select default template
 $middleware_form=new middleware_form('default'); // same as above
 $middleware_form=new middleware_form('materialized'); // self explanatory
+```
+If you created your own template:
+```
+$middleware_form=new middleware_form('my_template', './app/templates');
 ```
 
 ## Example usage - captcha

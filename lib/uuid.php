@@ -71,7 +71,7 @@
 	 *  https://www.uuidgenerator.net/dev-corner/php
 	 *  https://github.com/fab2s/SoUuid/blob/master/src/SoUuid.php
 	 *  https://gist.github.com/joel-james/3a6201861f12a7acf4f2
-	 * License: MIT
+	 * License: MIT https://github.com/fab2s/SoUuid/blob/master/LICENSE
 	 */
 
 	class uuid_exception extends Exception {}

@@ -93,10 +93,13 @@
 						$_params['log_callback']('Executing job '.$_params['directory'].'/'.$_job);
 
 						if((include $_params['crontab'].'/'.$_params['directory'].'/'.$_job) === false)
+						{
 							$_params['log_callback']('Job '.$_params['directory'].'/'.$_job.' inclusion error');
-						else
-							if($_params['debug'])
-								$_params['debug_callback']('Job '.$_params['directory'].'/'.$_job.' ended');
+							continue;
+						}
+
+						if($_params['debug'])
+							$_params['debug_callback']('Job '.$_params['directory'].'/'.$_job.' ended');
 					}
 			}
 			else
@@ -144,10 +147,13 @@
 						$_params['log_callback']('Executing job '.$_match.'/'.$_job);
 
 						if((include $_params['crontab'].'/'.$_match.'/'.$_job) === false)
+						{
 							$_params['log_callback']('Job '.$_match.'/'.$_job.' inclusion error');
-						else
-							if($_params['debug'])
-								$_params['debug_callback']('Job '.$_match.'/'.$_job.' ended');
+							continue;
+						}
+
+						if($_params['debug'])
+							$_params['debug_callback']('Job '.$_match.'/'.$_job.' ended');
 					}
 			}
 	}
@@ -196,6 +202,7 @@
 			throw new cron_exception($_params['tasks'].' is not a directory');
 
 		$_current_timestamp=time();
+
 		if($_params['debug'])
 			$_params['debug_callback']('Current timestamp: '.$_current_timestamp);
 
@@ -203,25 +210,30 @@
 		{
 			$_job_timestamp=substr($_job, 0, strpos($_job, '_'));
 
-			if((!empty($_job_timestamp)) && ($_job_timestamp <= $_current_timestamp))
-			{
+			if(
+				(!empty($_job_timestamp)) &&
+				($_job_timestamp <= $_current_timestamp)
+			){
 				$_params['log_callback']('Executing job '.$_job);
 
 				if((include $_params['tasks'].'/'.$_job) === false)
+				{
 					$_params['log_callback']('Job '.$_job.' inclusion error');
-				else
+					continue;
+				}
+
+				if($_params['debug'])
+					$_params['debug_callback']('Job '.$_job.' ended');
+
+				if(unlink($_params['tasks'].'/'.$_job))
 				{
 					if($_params['debug'])
-						$_params['debug_callback']('Job '.$_job.' ended');
+						$_params['debug_callback']('Job '.$_job.' removed');
 
-					if(unlink($_params['tasks'].'/'.$_job))
-					{
-						if($_params['debug'])
-							$_params['debug_callback']('Job '.$_job.' removed');
-					}
-					else
-						$_params['log_callback']('Fatal error: cannot remove '.$_params['tasks'].'/'.$_job);
+					continue;
 				}
+
+				$_params['log_callback']('Fatal error: cannot remove '.$_params['tasks'].'/'.$_job);
 			}
 		}
 	}
@@ -250,26 +262,26 @@
 		 *   perform the appropriate functions
 		 *
 		 * Usage (short way):
-			(new cron_closure)
-				->add('0_0_1_1_-', function(){
+			(new cron_closure())
+			->	add('0_0_1_1_-', function(){
 					echo 'yearly';
 				})
-				->add('0_0_1_-_-', function(){
+			->	add('0_0_1_-_-', function(){
 					echo 'monthly';
 				})
-				->add('0_0_-_-_0', function(){
+			->	add('0_0_-_-_0', function(){
 					echo 'weekly';
 				})
-				->add('0_0_-_-_-', function(){
+			->	add('0_0_-_-_-', function(){
 					echo 'daily';
 				})
-				->add('0_-_-_-_-', function(){
+			->	add('0_-_-_-_-', function(){
 					echo 'hourly';
 				})
-				->add('-_-_-_-_-', function(){
+			->	add('-_-_-_-_-', function(){
 					echo 'every minute';
 				})
-				->run();
+			->	run();
 		 */
 
 		protected $closures=[];

@@ -17,48 +17,60 @@
 	{
 		$a='';
 
-		if((!empty($classes)) || (!empty($functions)))
-		{
+		if(
+			(!empty($classes)) ||
+			(!empty($functions))
+		){
 			$a.='<?php ';
 
 			if(!empty($classes))
 			{
-				$a.='spl_autoload_register(function($c){'
-					.'switch(strtolower($c))'
-					.'{';
+				$a.=''
+				.'spl_autoload_register(function($c){'
+				.	'switch(strtolower($c))'
+				.	'{';
+
 						foreach($classes as $class=>$file)
 						{
 							$a.='case \''.strtolower($class).'\':';
+
 								if($debug)
 									$a.='error_log(__FILE__.\' autoloader: loading \'.__DIR__.\'/'.$file.'\');';
-								$a.='require __DIR__.\'/'.$file.'\''
-							.';break;';
+
+								$a.='require __DIR__.\'/'.$file.'\'';
+							$a.=';break;';
 						}
+
 					$a.='}'
 				.'});';
 			}
 
 			if(!empty($functions))
 			{
-				$a.='function load_function(string $f)'
+				$a.=''
+				.'function load_function(string $f)'
 				.'{'
-					.'if(!function_exists($f))'
-						.'switch(strtolower($f))'
-						.'{';
+				.	'if(!function_exists($f))'
+				.		'switch(strtolower($f))'
+				.		'{';
 							foreach($functions as $function=>$file)
 							{
 								$a.='case \''.strtolower($function).'\':';
+
 									if($debug)
 										$a.='error_log(__FILE__.\' load_function: loading \'.__DIR__.\'/'.$file.'\');';
-									$a.='require __DIR__.\'/'.$file.'\''
-								.';break;';
+
+									$a.='require __DIR__.\'/'.$file.'\'';
+								$a.=';break;';
 							}
+
 							$a.='default:';
 								if($debug)
 									$a.='error_log(__FILE__.\' load_function: function \'.$f.\' not found\');';
+
 								$a.='return false;'
-						.'}'
-					.'return true;'
+				.		'}'
+				.	'return true;'
 				.'}';
 			}
 
@@ -135,24 +147,20 @@
 
 	$classes=[];
 	$functions=[];
+
 	foreach($input_dirs as $input_dir)
-		foreach(
-			new RecursiveIteratorIterator(
-				new RecursiveDirectoryIterator($input_dir, RecursiveDirectoryIterator::SKIP_DOTS)
-			)
-			as $input_file
-		)
+		foreach(new RecursiveIteratorIterator(
+			new RecursiveDirectoryIterator($input_dir, RecursiveDirectoryIterator::SKIP_DOTS)
+		) as $input_file)
 			if(
 				(!is_dir($input_file)) &&
 				(pathinfo($input_file, PATHINFO_EXTENSION) === 'php')
 			){
 				foreach($ignores as $ignore)
-					if(
-						strpos(
-							strtr($input_file->getPathname(), '\\', '/'),
-							strtr($ignore, '\\', '/')
-						) !== false
-					){
+					if(strpos(
+						strtr($input_file->getPathname(), '\\', '/'),
+						strtr($ignore, '\\', '/')
+					) !== false){
 						echo '[IGN] '.$input_file->getPathname().PHP_EOL;
 						continue 2;
 					}
@@ -160,7 +168,7 @@
 				echo $input_file.PHP_EOL;
 
 				try {
-					$definitions=find_php_definitions(file_get_contents($input_file));
+					$definitions=find_php_definitions(file_get_contents($input_file), true);
 				} catch(find_php_definitions_exception $error) {
 					echo ' error: '.$error->getMessage().PHP_EOL;
 					continue;
@@ -174,6 +182,7 @@
 							continue;
 
 						echo ' error: class '.$class.' already exists in '.$classes[$class].PHP_EOL;
+
 						continue;
 					}
 
@@ -188,6 +197,7 @@
 							continue;
 
 						echo ' error: interface '.$interface.' already exists in '.$classes[$interface].PHP_EOL;
+
 						continue;
 					}
 
@@ -202,6 +212,7 @@
 							continue;
 
 						echo ' error: trait '.$trait.' already exists in '.$classes[$trait].PHP_EOL;
+
 						continue;
 					}
 
@@ -216,6 +227,7 @@
 							continue;
 
 						echo ' error: function '.$function.' already exists in '.$functions[$function].PHP_EOL;
+
 						continue;
 					}
 

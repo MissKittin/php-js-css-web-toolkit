@@ -37,19 +37,41 @@
 					case 'clockDigitalImage': ?>
 						clockDigitalImage(
 							'clock_div_id',
-							['/tmp/clock/0.png', '/tmp/clock/1.png', '/tmp/clock/2.png', '/tmp/clock/3.png', '/tmp/clock/4.png', '/tmp/clock/5.png', '/tmp/clock/6.png', '/tmp/clock/7.png', '/tmp/clock/8.png', '/tmp/clock/9.png'],
+							[
+								'/tmp/clock/0.png',
+								'/tmp/clock/1.png',
+								'/tmp/clock/2.png',
+								'/tmp/clock/3.png',
+								'/tmp/clock/4.png',
+								'/tmp/clock/5.png',
+								'/tmp/clock/6.png',
+								'/tmp/clock/7.png',
+								'/tmp/clock/8.png',
+								'/tmp/clock/9.png'
+							],
 							'/tmp/clock/separator.png'
 						);
 					<?php break;
 					case 'clockDigitalImageSprite': ?>
 						clockDigitalImageSprite(
 							'clock_div_id',
-							'/tmp/clock/clock.png', // sprite image url
-							'24px', // clock's height (the same as sprite image url)
-							'16px', // clock's digit width
-							'8px', // clock's separator width
-							['0px', '16px', '32px', '48px', '64px', '80px', '96px', '112px', '128px', '144px'], // digit's offsets
-							'160px' // separator offset
+							'/tmp/clock/clock.png',
+							'24px',
+							'16px',
+							'8px',
+							[
+								'0px',
+								'16px',
+								'32px',
+								'48px',
+								'64px',
+								'80px',
+								'96px',
+								'112px',
+								'128px',
+								'144px'
+							],
+							'160px'
 						);
 					<?php break;
 					case 'clockAnalogCSS': ?>
@@ -58,13 +80,19 @@
 					case 'clockAnalogImage': ?>
 						clockAnalogImage(
 							'clock_div_id',
-							['/tmp/clock/clock-face.png', '/tmp/clock/hour-hand.png', '/tmp/clock/minute-hand.png', '/tmp/clock/second-hand.png', '/tmp/clock/top-image.png']
+							[
+								'/tmp/clock/clock-face.png',
+								'/tmp/clock/hour-hand.png',
+								'/tmp/clock/minute-hand.png',
+								'/tmp/clock/second-hand.png',
+								'/tmp/clock/top-image.png'
+							]
 						);
 					<?php break;
 					case 'clockAnalogImageSprite': ?>
 						clockAnalogImageSprite(
 							'clock_div_id',
-							'/tmp/clock/clockspriteanalog.png', // sprite image url
+							'/tmp/clock/clockspriteanalog.png',
 							['400px', '800px', '1200px', '1600px']
 						);
 					<?php break;
@@ -92,12 +120,14 @@
 				}
 			else
 			{ ?>
-				<a href="?clock=clockDigital" style="font-size: 30pt;">clockDigital</a><br>
-				<a href="?clock=clockDigitalImage" style="font-size: 30pt;">clockDigitalImage</a><br>
-				<a href="?clock=clockDigitalImageSprite" style="font-size: 30pt;">clockDigitalImageSprite</a><br>
-				<a href="?clock=clockAnalogCSS" style="font-size: 30pt;">clockAnalogCSS</a><br>
-				<a href="?clock=clockAnalogImage" style="font-size: 30pt;">clockAnalogImage</a><br>
-				<a href="?clock=clockAnalogImageSprite" style="font-size: 30pt;">clockAnalogImageSprite</a>
+				<div style="font-size: 30pt;">
+					<a href="?clock=clockDigital">clockDigital</a><br>
+					<a href="?clock=clockDigitalImage">clockDigitalImage</a><br>
+					<a href="?clock=clockDigitalImageSprite">clockDigitalImageSprite</a><br>
+					<a href="?clock=clockAnalogCSS">clockAnalogCSS</a><br>
+					<a href="?clock=clockAnalogImage">clockAnalogImage</a><br>
+					<a href="?clock=clockAnalogImageSprite">clockAnalogImageSprite</a>
+				</div>
 				<?php }
 		?>
 	</body>

@@ -19,7 +19,7 @@
 
 		$process_pipes=null;
 		$process_handler=proc_open(
-			'"'.PHP_BINARY.'" '.$argv[0].' force',
+			'"'.PHP_BINARY.'" "'.$argv[0].'" force',
 			[
 				0=>['pty'],
 				1=>['pty'],
@@ -92,10 +92,10 @@
 			}
 
 		echo ' -> Stopping test server'.PHP_EOL;
-		fclose($process_pipes[1]);
-		fclose($process_pipes[2]);
-		proc_terminate($process_handler);
-		proc_close($process_handler);
+			fclose($process_pipes[1]);
+			fclose($process_pipes[2]);
+			proc_terminate($process_handler);
+			proc_close($process_handler);
 
 		if($failed)
 			exit(1);

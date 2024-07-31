@@ -82,7 +82,12 @@
 			<div id="content_header" class="sb_content_header"><h3><?php echo $_module['template_header']; ?></h3></div>
 		<?php } ?>
 		<div id="content" class="sb_content">
-			<?php require $_module['path'].'/'.$_module['script']; ?>
+			<?php
+				if(isset($_module['class']) && isset($_module['main_method']))
+					$_module['class']::{$_module['main_method']}($_module);
+				else
+					require $_module['path'].'/'.$_module['script'];
+			?>
 		</div>
 	</body>
 </html>

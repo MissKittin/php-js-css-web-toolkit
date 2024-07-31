@@ -49,8 +49,7 @@
 		if(
 			check_argv('--help') ||
 			check_argv('-h')
-		)
-		{
+		){
 			echo 'Usage:'.PHP_EOL;
 			echo ' serve.php [--ip 127.0.0.1] [--port 8080] [--docroot ./public] [--preload ./var/lib/app_preload.php] [--threads 1]'.PHP_EOL;
 			echo PHP_EOL;

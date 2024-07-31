@@ -77,11 +77,13 @@
 		echo $argv[2].' is not a directory (from '.$argv[1].')'.PHP_EOL;
 		exit(1);
 	}
+
 	if(!is_dir(dirname($argv[3])))
 	{
 		echo dirname($argv[3]).' is not a directory (from '.$argv[1].')'.PHP_EOL;
 		exit(1);
 	}
+
 	if(@file_put_contents($argv[3], '') === false)
 	{
 		echo $argv[3].' write error'.PHP_EOL;
@@ -89,6 +91,7 @@
 	}
 
 	$blacklist=[];
+	$add_to_list__already_added=[];
 	@include $argv[2].'/opcache-preload-generator.config.php';
 
 	if(isset($argv[4]) && ($argv[4] === '--debug'))
@@ -97,14 +100,16 @@
 		{
 			global $argv;
 
-			file_put_contents($argv[3],
-				' /* '.$message.' */ '.PHP_EOL,
-			FILE_APPEND);
+			file_put_contents(
+				$argv[3],
+				' /* '.$message.' */ '."\n",
+				FILE_APPEND
+			);
 		}
 	}
 	else
 	{
-		function _debug(){}
+		function _debug() {}
 	}
 	function is_in_blacklist($file_name, $blacklist)
 	{
@@ -145,7 +150,6 @@
 					_debug('[:] ended '.$include_file);
 				}
 	}
-	$add_to_list__already_added=[];
 	function add_to_list($file)
 	{
 		global $add_to_list__already_added;
@@ -155,12 +159,13 @@
 		{
 			_debug('adding '.$file);
 
-			file_put_contents($argv[3],
-				'opcache_compile_file(\''
-					.relative_path($argv[3], $file)
-				.'\');'
-				.PHP_EOL,
-			FILE_APPEND);
+			file_put_contents(
+				$argv[3], ''
+				.'opcache_compile_file(\''
+				.	relative_path($argv[3], $file)
+				.'\');'."\n",
+				FILE_APPEND
+			);
 
 			$add_to_list__already_added[]=$file;
 		}
@@ -168,21 +173,21 @@
 			_debug($file.' already added');
 	}
 
-	file_put_contents($argv[3],
-		'<?php'.PHP_EOL
-		.'chdir(__DIR__);'.PHP_EOL,
-	FILE_APPEND);
+	file_put_contents(
+		$argv[3], ''
+		.'<?php'."\n"
+		.'chdir(__DIR__);'."\n",
+		FILE_APPEND
+	);
 
-		foreach(
-			new RecursiveIteratorIterator(
-				new RecursiveDirectoryIterator(
-					$argv[2],
-					RecursiveDirectoryIterator::SKIP_DOTS
-				)
+		foreach(new RecursiveIteratorIterator(
+			new RecursiveDirectoryIterator(
+				$argv[2],
+				RecursiveDirectoryIterator::SKIP_DOTS
 			)
-		as $file)
-		{
+		) as $file){
 			$file_name=strtr($file->getPathname(), '\\', '/');
+
 			if(
 				(!is_in_blacklist($file_name, $blacklist)) &&
 				(strtolower($file->getExtension()) === 'php')
@@ -194,7 +199,9 @@
 			}
 		}
 
-	file_put_contents($argv[3],
+	file_put_contents(
+		$argv[3],
 		'?>',
-	FILE_APPEND);
+		FILE_APPEND
+	);
 ?>

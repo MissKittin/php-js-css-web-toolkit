@@ -29,9 +29,14 @@
 						require __DIR__.'/../'.basename(__FILE__, '.phtml');
 				?>
 
-				sendNotification('Nice content', 'Nicest title', '/tmp/sendNotification.png');
+				var result=sendNotification('Nice content', 'Nicest title', '/tmp/sendNotification.png');
+
+				if(result)
+					document.body.innerHTML='Access granted';
+				else
+					document.body.innerHTML='Access denied';
 			}, false);
 		</script>
 	</head>
-	<body></body>
+	<body>Test was not started</body>
 </html>

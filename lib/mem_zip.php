@@ -13,7 +13,7 @@
 			->	get(); // send the zip content to the client
 		 *
 		 * Source: https://github.com/phpmyadmin/phpmyadmin/blob/RELEASE_4_5_5_1/libraries/zip.lib.php
-		 * License: GNU GPL2
+		 * License: GNU GPL2 https://github.com/phpmyadmin/phpmyadmin/blob/RELEASE_4_5_5_1/LICENSE
 		 * Official ZIP file format: http://www.pkware.com/support/zip-app-note
 		 */
 

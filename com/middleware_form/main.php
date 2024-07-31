@@ -5,18 +5,25 @@
 		protected $is_form_sent=true;
 		protected $registry=[];
 		protected $template;
+		protected $templates_dir;
 
-		public function __construct(string $template='default')
-		{
+		public function __construct(
+			string $template='default',
+			string $templates_dir=__DIR__.'/templates'
+		){
 			$this->load_function([
 				'check_var.php'=>'check_post',
 				'sec_csrf.php'=>'csrf_check_token'
 			]);
 
-			if(!file_exists(__DIR__.'/templates/'.$template))
+			if(!is_dir($templates_dir))
+				throw new middleware_form_exception($templates_dir.' is not a directory');
+
+			if(!file_exists($templates_dir.'/'.$template))
 				throw new middleware_form_exception('The '.$template.' template does not exist');
 
 			$this->template=$template;
+			$this->templates_dir=realpath($templates_dir);
 			$this->setup_registry();
 
 			if((!csrf_check_token('post')) || (check_post('middleware_form') === null))
@@ -38,7 +45,7 @@
 		}
 		protected function parse_fields($view)
 		{
-			require __DIR__.'/templates/'.$this->template.'/parse_fields.php';
+			require $this->templates_dir.'/'.$this->template.'/parse_fields.php';
 		}
 		protected function setup_registry()
 		{
@@ -115,7 +122,7 @@
 			)
 				throw new middleware_form_exception($view['favicon'].' does not exist');
 
-			require __DIR__.'/templates/'.$this->template.'/view.php';
+			require $this->templates_dir.'/'.$this->template.'/view.php';
 		}
 	}
 ?>

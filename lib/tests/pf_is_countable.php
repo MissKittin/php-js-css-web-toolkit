@@ -95,36 +95,36 @@
 		$failed=false;
 
 		echo ' -> Testing is_countable'.PHP_EOL;
-		echo '  -> returns true';
-			if(is_countable([1, 2, 3]))
-				echo ' [ OK ]';
-			else
-			{
-				echo ' [FAIL]';
-				$failed=true;
-			}
-			if(is_countable(new \ArrayIterator(['foo', 'bar', 'baz'])))
-				echo ' [ OK ]';
-			else
-			{
-				echo ' [FAIL]';
-				$failed=true;
-			}
-			if(is_countable(new \ArrayIterator()))
-				echo ' [ OK ]'.PHP_EOL;
-			else
-			{
-				echo ' [FAIL]'.PHP_EOL;
-				$failed=true;
-			}
-		echo '  -> returns false';
-			if(is_countable(new \stdClass()))
-			{
-				echo ' [FAIL]'.PHP_EOL;
-				$failed=true;
-			}
-			else
-				echo ' [ OK ]'.PHP_EOL;
+			echo '  -> returns true';
+				if(is_countable([1, 2, 3]))
+					echo ' [ OK ]';
+				else
+				{
+					echo ' [FAIL]';
+					$failed=true;
+				}
+				if(is_countable(new \ArrayIterator(['foo', 'bar', 'baz'])))
+					echo ' [ OK ]';
+				else
+				{
+					echo ' [FAIL]';
+					$failed=true;
+				}
+				if(is_countable(new \ArrayIterator()))
+					echo ' [ OK ]'.PHP_EOL;
+				else
+				{
+					echo ' [FAIL]'.PHP_EOL;
+					$failed=true;
+				}
+			echo '  -> returns false';
+				if(is_countable(new \stdClass()))
+				{
+					echo ' [FAIL]'.PHP_EOL;
+					$failed=true;
+				}
+				else
+					echo ' [ OK ]'.PHP_EOL;
 
 		if($failed)
 			exit(1);

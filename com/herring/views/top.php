@@ -46,8 +46,8 @@
 				<?php $this->load_library(['sortTable.js'=>null]); ?>
 
 				var i;
-
 				var tableRows=document.getElementsByTagName('td');
+
 				for(i=0; i<tableRows.length; i++)
 				{
 					tableRows[i].addEventListener('mouseover', function(){
@@ -62,6 +62,7 @@
 				}
 
 				var tables=document.getElementsByTagName('table');
+
 				for(i=0; i<tables.length; i++)
 					if(!tables[i].classList.contains('grid_table'))
 						sortTable(tables[i]);

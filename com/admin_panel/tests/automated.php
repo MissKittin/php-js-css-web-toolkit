@@ -1,4 +1,15 @@
 <?php
+	$test_hashes=[
+		'notfound'=>'28d91b7627af1f8cbc9b8540467e37dc',
+		'default'=>'35ac74a13c4dcfb215b1ba8a6e9b8854',
+		'dashboard'=>'64b68c520b95496ba9b591db39dfb6e8',
+		'posts-new'=>'586f0f5283ad192bcfcb2c37c50ea38f',
+		'posts-edit'=>'0a0ec05f73b541d9e51e4c57222ed50f',
+		'posts-del'=>'94e06b10d012424b6490103825f9b121',
+		'class-a'=>'e895f6de2c52106e85fba4d1b12e9405',
+		'class-b'=>'a55947cbb8360ce2cc59c370c11c6f97'
+	];
+
 	foreach(['assets_compiler.php', 'rmdir_recursive.php'] as $library)
 	{
 		echo ' Including '.$library;
@@ -45,7 +56,7 @@
 
 	@mkdir(__DIR__.'/tmp');
 
-	echo ' -> Creating test pool...';
+	echo ' -> Creating test pool';
 		rmdir_recursive(__DIR__.'/tmp/automatic');
 		mkdir(__DIR__.'/tmp/automatic');
 
@@ -108,6 +119,36 @@
 		mkdir(__DIR__.'/tmp/automatic/public');
 
 		file_put_contents(__DIR__.'/tmp/automatic/public/index.php', "<?php
+			if(!class_exists('admin_panel_class_module'))
+			{
+				class admin_panel_class_module
+				{
+					public static function admin_panel_config(\$admin_panel)
+					{
+						\$admin_panel
+						->	set_lang('en')
+						->	set_title('Class test A');
+					}
+					public static function admin_panel_start(\$_module)
+					{
+						echo 'Message from '.static::class.'::'.__FUNCTION__.'<br>';
+						echo '<pre>'; var_dump(\$_module); echo '</pre>';
+					}
+
+					public static function admin_panel_config_b(\$admin_panel)
+					{
+						\$admin_panel
+						->	set_lang('en')
+						->	set_title('Class test B');
+					}
+					public static function admin_panel_start_b(\$_module)
+					{
+						echo 'Message from '.static::class.'::'.__FUNCTION__.'<br>';
+						echo '<pre>'; var_dump(\$_module); echo '</pre>';
+					}
+				}
+			}
+
 			\$admin_panel=new admin_panel([
 				'base_url'=>'/admin',
 				'assets_path'=>'/assets',
@@ -144,11 +185,37 @@
 					'id'=>'github',
 					'url'=>'https://github.com/MissKittin/php-js-css-web-toolkit',
 					'name'=>'GitHub'
+				])
+			->	add_module_class([
+					'id'=>'classtest',
+					'class'=>'admin_panel_class_module',
+					'config_method'=>'admin_panel_config',
+					'main_method'=>'admin_panel_start',
+					'url'=>'class-test',
+					'name'=>'Class test A',
+					'template_header'=>'Class test A'
+				])
+			->	add_module_class([
+					'id'=>'classtestb',
+					'class'=>'admin_panel_class_module',
+					'config_method'=>'admin_panel_config_b',
+					'main_method'=>'admin_panel_start_b',
+					'url'=>'class-test-b',
+					'name'=>'Class test B',
+					'template_header'=>'Class test B'
 				]);
+
+			\$admin_panel['_favicon']='./favicon.html';
+
+			\$_index_pwd=getcwd();
+			chdir(__DIR__);
 
 			\$result=\$admin_panel
 			->	set_default_module('dashboard')
 			->	run(true);
+
+			chdir(\$_index_pwd);
+			unset(\$_index_pwd);
 		?>");
 
 		file_put_contents(__DIR__.'/tmp/automatic/public/favicon.html', '<!-- favicon content -->');
@@ -172,10 +239,7 @@
 			echo ' ('.md5($result).')';
 		}
 		$hash=md5($result);
-		if(
-			($hash === '3a5fe993734a80b6391c5e7a2291ef48') || // windows
-			($hash === '311f5b7bc29870e73952ab17fceeac4f') // linux
-		)
+		if($hash === $test_hashes['notfound'])
 			echo ' [ OK ]'.PHP_EOL;
 		else
 		{
@@ -193,10 +257,7 @@
 			echo ' ('.md5($result).')';
 		}
 		$hash=md5($result);
-		if(
-			($hash === 'ffac6f0000b0f49fe962018bc34ade64') || // windows
-			($hash === 'bc0c278b3f5a37c409cc714fa4a100ac') // linux
-		)
+		if($hash === $test_hashes['default'])
 			echo ' [ OK ]'.PHP_EOL;
 		else
 		{
@@ -214,10 +275,7 @@
 			echo ' ('.md5($result).')';
 		}
 		$hash=md5($result);
-		if(
-			($hash === '26d60e2c19177489b78d3ce18b3be565') || // windows
-			($hash === '6a3f4d819d995e77b216aa88cabffc8c') // linux
-		)
+		if($hash === $test_hashes['dashboard'])
 			echo ' [ OK ]'.PHP_EOL;
 		else
 		{
@@ -226,54 +284,88 @@
 		}
 
 	echo ' -> Testing posts'.PHP_EOL;
-	echo '  -> new';
-		$result='';
-		$_SERVER['REQUEST_URI']='/admin/posts/new';
-		include './index.php';
-		if(isset($argv[1]) && ($argv[1] === 'sumdebug'))
-		{
-			file_put_contents(__DIR__.'/tmp/automatic/result_posts-new.html', $result);
-			echo ' ('.md5($result).')';
-		}
-		if(md5($result) === '7ad1745ce3928100b40b10c0bc267895')
-			echo ' [ OK ]'.PHP_EOL;
-		else
-		{
-			echo ' [FAIL]'.PHP_EOL;
-			$failed=true;
-		}
-	echo '  -> edit';
-		$result='';
-		$_SERVER['REQUEST_URI']='/admin/posts/edit';
-		include './index.php';
-		if(isset($argv[1]) && ($argv[1] === 'sumdebug'))
-		{
-			file_put_contents(__DIR__.'/tmp/automatic/result_posts-edit.html', $result);
-			echo ' ('.md5($result).')';
-		}
-		if(md5($result) === '1fe3e5516fc78179ab1c8210a87f41b6')
-			echo ' [ OK ]'.PHP_EOL;
-		else
-		{
-			echo ' [FAIL]'.PHP_EOL;
-			$failed=true;
-		}
-	echo '  -> delete';
-		$result='';
-		$_SERVER['REQUEST_URI']='/admin/posts/delete';
-		include './index.php';
-		if(isset($argv[1]) && ($argv[1] === 'sumdebug'))
-		{
-			file_put_contents(__DIR__.'/tmp/automatic/result_posts-delete.html', $result);
-			echo ' ('.md5($result).')';
-		}
-		if(md5($result) === '5fcfdc4f82f45ae86ad8a53a8adc7017')
-			echo ' [ OK ]'.PHP_EOL;
-		else
-		{
-			echo ' [FAIL]'.PHP_EOL;
-			$failed=true;
-		}
+		echo '  -> new';
+			$result='';
+			$_SERVER['REQUEST_URI']='/admin/posts/new';
+			include './index.php';
+			if(isset($argv[1]) && ($argv[1] === 'sumdebug'))
+			{
+				file_put_contents(__DIR__.'/tmp/automatic/result_posts-new.html', $result);
+				echo ' ('.md5($result).')';
+			}
+			if(md5($result) === $test_hashes['posts-new'])
+				echo ' [ OK ]'.PHP_EOL;
+			else
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				$failed=true;
+			}
+		echo '  -> edit';
+			$result='';
+			$_SERVER['REQUEST_URI']='/admin/posts/edit';
+			include './index.php';
+			if(isset($argv[1]) && ($argv[1] === 'sumdebug'))
+			{
+				file_put_contents(__DIR__.'/tmp/automatic/result_posts-edit.html', $result);
+				echo ' ('.md5($result).')';
+			}
+			if(md5($result) === $test_hashes['posts-edit'])
+				echo ' [ OK ]'.PHP_EOL;
+			else
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				$failed=true;
+			}
+		echo '  -> delete';
+			$result='';
+			$_SERVER['REQUEST_URI']='/admin/posts/delete';
+			include './index.php';
+			if(isset($argv[1]) && ($argv[1] === 'sumdebug'))
+			{
+				file_put_contents(__DIR__.'/tmp/automatic/result_posts-delete.html', $result);
+				echo ' ('.md5($result).')';
+			}
+			if(md5($result) === $test_hashes['posts-del'])
+				echo ' [ OK ]'.PHP_EOL;
+			else
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				$failed=true;
+			}
+
+	echo ' -> Testing class module'.PHP_EOL;
+		echo '  -> module A';
+			$result='';
+			$_SERVER['REQUEST_URI']='/admin/class-test';
+			include './index.php';
+			if(isset($argv[1]) && ($argv[1] === 'sumdebug'))
+			{
+				file_put_contents(__DIR__.'/tmp/automatic/result_class-a.html', $result);
+				echo ' ('.md5($result).')';
+			}
+			if(md5($result) === $test_hashes['class-a'])
+				echo ' [ OK ]'.PHP_EOL;
+			else
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				$failed=true;
+			}
+		echo '  -> module B';
+			$result='';
+			$_SERVER['REQUEST_URI']='/admin/class-test-b';
+			include './index.php';
+			if(isset($argv[1]) && ($argv[1] === 'sumdebug'))
+			{
+				file_put_contents(__DIR__.'/tmp/automatic/result_class-b.html', $result);
+				echo ' ('.md5($result).')';
+			}
+			if(md5($result) === $test_hashes['class-b'])
+				echo ' [ OK ]'.PHP_EOL;
+			else
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				$failed=true;
+			}
 
 	if($failed)
 		exit(1);

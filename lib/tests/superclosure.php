@@ -64,8 +64,6 @@
 	$GLOBALS['superclosure_meta_executed']=false;
 	$GLOBALS['superclosure_meta_arg_content']='';
 	$GLOBALS['superclosure_meta_use_var_content']='';
-	$failed=false;
-
 	$use_var='use_var_value';
 	$classes=[
 		'superclosure'=>new superclosure(function($arg) use($use_var){
@@ -79,6 +77,8 @@
 			$GLOBALS['superclosure_meta_use_var_content']=$use_var;
 		})
 	];
+	$failed=false;
+
 	foreach($classes as $class_name=>$closure)
 	{
 		echo ' -> Testing '.$class_name;
@@ -114,43 +114,43 @@
 		$superclosure_meta=new superclosure_meta(function() use($use_var){
 			$GLOBALS['superclosure_meta_executed']=true;
 		});
-	echo '  -> get_closure_vars';
-		if(var_export_contains(
-			$superclosure_meta->get_closure_vars(),
-			"array('use_var'=>'use_var_value',)"
-		))
-			echo ' [ OK ]'.PHP_EOL;
-		else
-		{
-			echo ' [FAIL]'.PHP_EOL;
-			$failed=true;
-		}
-	echo '  -> get_closure_body';
-		if(md5($superclosure_meta->get_closure_body()) === '71f68fa66d6a4c26e9cfdf45c44a48e4')
-			echo ' [ OK ]'.PHP_EOL;
-		else
-		{
-			echo ' [FAIL]'.PHP_EOL;
-			$failed=true;
-		}
-	echo '  -> __sleep'; // $this->sleep_called === true
-		$serialized_closure=serialize($superclosure_meta);
-		$unserialized_closure=unserialize($serialized_closure);
+		echo '  -> get_closure_vars';
+			if(var_export_contains(
+				$superclosure_meta->get_closure_vars(),
+				"array('use_var'=>'use_var_value',)"
+			))
+				echo ' [ OK ]'.PHP_EOL;
+			else
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				$failed=true;
+			}
+		echo '  -> get_closure_body';
+			if(md5($superclosure_meta->get_closure_body()) === '71f68fa66d6a4c26e9cfdf45c44a48e4')
+				echo ' [ OK ]'.PHP_EOL;
+			else
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				$failed=true;
+			}
+		echo '  -> __sleep'; // $this->sleep_called === true
+			$serialized_closure=serialize($superclosure_meta);
+			$unserialized_closure=unserialize($serialized_closure);
 
-		try {
-			$unserialized_closure();
-		} catch(Throwable $error) {
-			echo ' [FAIL]'.PHP_EOL;
-			exit(1);
-		}
+			try {
+				$unserialized_closure();
+			} catch(Throwable $error) {
+				echo ' [FAIL]'.PHP_EOL;
+				exit(1);
+			}
 
-		if($GLOBALS['superclosure_meta_executed'])
-			echo ' [ OK ]'.PHP_EOL;
-		else
-		{
-			echo ' [FAIL]'.PHP_EOL;
-			$failed=true;
-		}
+			if($GLOBALS['superclosure_meta_executed'])
+				echo ' [ OK ]'.PHP_EOL;
+			else
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				$failed=true;
+			}
 
 	if($failed)
 		exit(1);

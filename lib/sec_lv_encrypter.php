@@ -3,6 +3,8 @@
 	 * Laravel Encrypter class
 	 * with adapters and session handlers
 	 *
+	 * This library is licensed under the MIT license, see http://opensource.org/licenses/MIT
+	 *
 	 * Warning:
 	 *  the key may leak through stack trace!!!
 	 *   please display_errors=off
@@ -17,7 +19,6 @@
 	 *  lv_encrypter
 	 *   main class - content encryptor/decryptor and key generator
 	 *   from laravel framework
-	 *   distributed under the MIT license
 	 *   note: you cannot inherit from this class
 	 *  lv_cookie_encrypter
 	 *   adapter between setcookie and lv_encrypter
@@ -65,7 +66,7 @@
 		 *   lv_encrypter::supported_ciphers()
 		 *
 		 * Source: https://github.com/illuminate/encryption/blob/master/Encrypter.php
-		 * License: MIT
+		 * License: MIT https://github.com/illuminate/encryption/blob/master/LICENSE.md
 		 */
 
 		private static $supported_ciphers=[

@@ -53,7 +53,7 @@
 				var calculatedSeconds=seconds2human(73632827);
 
 				if(calculatedSeconds['days'] === 12)
-					document.body.innerHTML+='seconds2human days [ OK ]<br>';
+					document.body.innerHTML='seconds2human days [ OK ]<br>';
 				else
 					document.body.innerHTML+='seconds2human days [FAIL]<br>';
 				if(calculatedSeconds['hours'] === 5)
@@ -87,8 +87,8 @@
 					else
 						document.body.innerHTML+='convertSeconds '+element+' [FAIL]<br>';
 				});
-			});
+			}, false);
 		</script>
 	</head>
-	<body></body>
+	<body>Test was not executed</body>
 </html>

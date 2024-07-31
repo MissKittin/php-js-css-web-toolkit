@@ -86,9 +86,9 @@
 
 	echo ' -> Testing library';
 		$my_observer_object
-			->attach(new article())
-			->attach(new rss())
-			->attach($logger_object);
+		->	attach(new article())
+		->	attach(new rss())
+		->	attach($logger_object);
 		$my_observer_object->add('New article content');
 		$my_observer_object->detach($logger_object);
 		$my_observer_object->add('Second article content');

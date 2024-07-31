@@ -109,22 +109,22 @@
 		$failed=false;
 
 		echo ' -> Testing json_validate'.PHP_EOL;
-		echo '  -> returns true';
-			if(json_validate('{ "test": { "foo": "bar" } }'))
-				echo ' [ OK ]'.PHP_EOL;
-			else
-			{
-				echo ' [FAIL]'.PHP_EOL;
-				$failed=true;
-			}
-		echo '  -> returns false';
-			if(json_validate('{ "": "": "" } }'))
-			{
-				echo ' [FAIL]'.PHP_EOL;
-				$failed=true;
-			}
-			else
-				echo ' [ OK ]'.PHP_EOL;
+			echo '  -> returns true';
+				if(json_validate('{ "test": { "foo": "bar" } }'))
+					echo ' [ OK ]'.PHP_EOL;
+				else
+				{
+					echo ' [FAIL]'.PHP_EOL;
+					$failed=true;
+				}
+			echo '  -> returns false';
+				if(json_validate('{ "": "": "" } }'))
+				{
+					echo ' [FAIL]'.PHP_EOL;
+					$failed=true;
+				}
+				else
+					echo ' [ OK ]'.PHP_EOL;
 
 		if($failed)
 			exit(1);

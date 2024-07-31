@@ -12,7 +12,7 @@
 	function include_into_namespace(
 		string $namespace,
 		string $code,
-		$has_close_tag=null
+		bool $has_close_tag=null
 	){
 		/*
 		 * Function that facilitates including libraries to a namespace
@@ -20,9 +20,9 @@
 		 */
 
 		if($has_close_tag === null)
-			include_into_namespace_b($namespace, $code);
-		else
-			include_into_namespace_a($namespace, $code, $has_close_tag);
+			return include_into_namespace_b($namespace, $code);
+
+		include_into_namespace_a($namespace, $code, $has_close_tag);
 	}
 	function include_into_namespace_a(
 		string $namespace,

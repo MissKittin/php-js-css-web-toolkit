@@ -6176,6 +6176,22 @@
 				echo ' [FAIL]'.PHP_EOL;
 				$failed=true;
 			}
+		echo '  -> take_until_timeout';
+			$GLOBALS['take_until_timeout_output']='';
+			$lazy_collection=$lv_lazy_collection_class::times(PHP_INT_MAX)->take_until_timeout((new DateTime())->modify('+2 seconds'));
+			foreach($lazy_collection as $number)
+			{
+				$GLOBALS['take_until_timeout_output'].=$number;
+				echo '.';
+				sleep(1);
+			}
+			if($GLOBALS['take_until_timeout_output'] === '12')
+				echo ' [ OK ]'.PHP_EOL;
+			else
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				$failed=true;
+			}
 		echo '  -> take_while';
 			$collection=$lv_lazy_collect_function([1, 2, 3, 4]);
 			$subset=$collection->take_while(function(int $item){
@@ -6213,6 +6229,27 @@
 				$GLOBALS['tap_va'],
 				"array(3=>1,0=>2,2=>3,1=>4,4=>5,)"
 			))
+				echo ' [ OK ]'.PHP_EOL;
+			else
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				$failed=true;
+			}
+		echo '  -> tap_each';
+			$GLOBALS['tap_va']='';
+			$lazy_collection=$lv_lazy_collection_class::times(PHP_INT_MAX)->tap_each(function(int $value){
+				$GLOBALS['tap_va'].=$value;
+			});
+			$array=$lazy_collection->take(3)->all();
+			if($GLOBALS['tap_va'] === '123')
+				echo ' [ OK ]';
+			else
+			{
+				echo ' [FAIL]';
+				$failed=true;
+			}
+			//echo ' ['.var_export_contains($array, '', true).']';
+			if(var_export_contains($array, 'array(0=>1,1=>2,2=>3,)'))
 				echo ' [ OK ]'.PHP_EOL;
 			else
 			{

@@ -9,9 +9,8 @@
 		 * or
 		 *  if(wp_is_serialized($data, false))
 		 *
-		 * Source:
-		 *  https://developer.wordpress.org/reference/functions/is_serialized/
-		 * License: GNU GPL2
+		 * Source: https://developer.wordpress.org/reference/functions/is_serialized/
+		 * License: GNU GPL2 https://github.com/WordPress/wordpress-develop/blob/6.6/src/license.txt
 		 */
 
 		$data=trim($data);
@@ -41,10 +40,11 @@
 				return false;
 
 			// but neither must be in the first X characters
-			if(($semicolon !== false) && ($semicolon < 3))
-				return false;
-			if(($brace !== false) && ($brace < 4))
-				return false;
+				if(($semicolon !== false) && ($semicolon < 3))
+					return false;
+
+				if(($brace !== false) && ($brace < 4))
+					return false;
 		}
 
 		$token=$data[0];
@@ -66,7 +66,11 @@
 			case 'b':
 			case 'i':
 			case 'd':
-				$end=$strict ? '$' : '';
+				$end='';
+
+				if($strict)
+					$end='$';
+
 				return (bool)preg_match('/^'.$token.':[0-9.E+-]+;'.$end.'/', $data); // 0 || false => false
 		}
 

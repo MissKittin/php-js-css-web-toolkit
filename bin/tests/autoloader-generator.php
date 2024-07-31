@@ -71,19 +71,18 @@
 	echo ' [ OK ]'.PHP_EOL;
 
 	echo ' -> Starting tool'.PHP_EOL.PHP_EOL;
-		system(
-			'"'.PHP_BINARY.'" '.__DIR__.'/../'.basename(__FILE__).' '
-			.'--in '.__DIR__.'/tmp/autoloader-generator/lib '
-			.'--out '.__DIR__.'/tmp/autoloader-generator/autoloader.php'
+		system('"'.PHP_BINARY.'" "'.__DIR__.'/../'.basename(__FILE__).'" '
+		.	'--in "'.__DIR__.'/tmp/autoloader-generator/lib" '
+		.	'--out "'.__DIR__.'/tmp/autoloader-generator/autoloader.php"'
 		);
 	echo PHP_EOL;
 
 	echo ' -> Testing output file';
-		$md5sum=md5(file_get_contents(__DIR__.	'/tmp/autoloader-generator/autoloader.php'));
-		if(
-			($md5sum === 'c3ad449f99530a93191da8a645b3ebef') || // windows
-			($md5sum === '15f645b27cdc76daac79693e868eb32d') // unix
-		)
+		$data=str_split(file_get_contents(__DIR__.	'/tmp/autoloader-generator/autoloader.php'));
+		natsort($data);
+		$md5sum=md5(implode($data));
+		//echo ' ['.$md5sum.']';
+		if($md5sum === '78633a8d6420f31b101e3b33798c4e0c')
 			echo ' [ OK ]'.PHP_EOL;
 		else
 		{

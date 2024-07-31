@@ -5,8 +5,9 @@
 		 * Asset compiler
 		 *
 		 * Usage:
-		 *  assets_compiler('path/to/source.css', 'path/to/output-file.css')
-		 *  where source.css can be file or directory
+			assets_compiler('path/to/source.css', 'path/to/output-file.css');
+		 * where
+		 *  source.css can be file or directory
 		 *  and output-file.css must be file or not exist
 		 *
 		 * Asset sources/Examples:
@@ -36,12 +37,15 @@
 		 *  empty array -> no files concatenated
 		 */
 
-		if(file_exists($output_file) && (file_put_contents($output_file, '') === false))
+		if(
+			file_exists($output_file) &&
+			(file_put_contents($output_file, '') === false)
+		)
 			return 1;
 
 		if(is_file($asset_dir.'/main.php'))
 		{
-			ob_start(function($content) use($output_file) {
+			ob_start(function($content) use($output_file){
 				file_put_contents($output_file, $content, FILE_APPEND);
 			});
 
@@ -62,9 +66,8 @@
 
 			return $processed_files;
 		}
-		else
-			if(file_put_contents($output_file, file_get_contents($asset_dir)) === false)
-				return 2;
+		else if(file_put_contents($output_file, file_get_contents($asset_dir)) === false)
+			return 2;
 
 		return 0;
 	}

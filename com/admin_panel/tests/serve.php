@@ -56,6 +56,7 @@
 	}
 
 	$admin_panel_template='default';
+
 	if(isset($argv[2]))
 		$admin_panel_template=$argv[2];
 
@@ -126,6 +127,33 @@
 		file_put_contents(__DIR__.'/tmp/serve/public/index.php', "<?php
 			include __DIR__.'/../../../../main.php';
 
+			class admin_panel_class_module
+			{
+				public static function admin_panel_config(\$admin_panel)
+				{
+					\$admin_panel
+					->	set_lang('en')
+					->	set_title('Class test A');
+				}
+				public static function admin_panel_start(\$_module)
+				{
+					echo 'Message from '.static::class.'::'.__FUNCTION__.'<br>';
+					echo '<pre>'; var_dump(\$_module); echo '</pre>';
+				}
+
+				public static function admin_panel_config_b(\$admin_panel)
+				{
+					\$admin_panel
+					->	set_lang('en')
+					->	set_title('Class test B');
+				}
+				public static function admin_panel_start_b(\$_module)
+				{
+					echo 'Message from '.static::class.'::'.__FUNCTION__.'<br>';
+					echo '<pre>'; var_dump(\$_module); echo '</pre>';
+				}
+			}
+
 			\$admin_panel=new admin_panel([
 				'base_url'=>'/admin',
 				'template'=>'$admin_panel_template',
@@ -163,9 +191,25 @@
 					'id'=>'github',
 					'url'=>'https://github.com/MissKittin/php-js-css-web-toolkit',
 					'name'=>'GitHub'
-				]);
-
-			\$admin_panel
+				])
+			->	add_module_class([
+					'id'=>'classtest',
+					'class'=>'admin_panel_class_module',
+					'config_method'=>'admin_panel_config',
+					'main_method'=>'admin_panel_start',
+					'url'=>'class-test',
+					'name'=>'Class test A',
+					'template_header'=>'Class test A'
+				])
+			->	add_module_class([
+					'id'=>'classtestb',
+					'class'=>'admin_panel_class_module',
+					'config_method'=>'admin_panel_config_b',
+					'main_method'=>'admin_panel_start_b',
+					'url'=>'class-test-b',
+					'name'=>'Class test B',
+					'template_header'=>'Class test B'
+				])
 			->	set_default_module('dashboard')
 			->	run();
 		?>");
@@ -181,7 +225,7 @@
 		else if(file_exists(__DIR__.'/../../../lib/simpleblog_materialized.css'))
 			copy(__DIR__.'/../../../lib/simpleblog_materialized.css', __DIR__.'/tmp/serve/public/assets/simpleblog_materialized.css');
 
-	chdir(__DIR__.'/tmp/serve/public');
 	echo 'Starting PHP server...'.PHP_EOL.PHP_EOL;
-	system('"'.PHP_BINARY.'" -S 127.0.0.1:8080  '.__FILE__);
+		chdir(__DIR__.'/tmp/serve/public');
+		system('"'.PHP_BINARY.'" -S 127.0.0.1:8080 "'.__FILE__.'"');
 ?>

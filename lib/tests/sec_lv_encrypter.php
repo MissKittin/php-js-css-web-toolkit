@@ -409,8 +409,8 @@
 
 						system(''
 						.	'"'.PHP_BINARY.'" '
-						.	__DIR__.'/../../bin/get-composer.php '
-						.	__DIR__.'/tmp/.composer'
+						.	'"'.__DIR__.'/../../bin/get-composer.php" '
+						.	'"'.__DIR__.'/tmp/.composer"'
 						);
 
 						if(!file_exists(__DIR__.'/tmp/.composer/composer.phar'))
@@ -428,9 +428,9 @@
 					}
 
 					echo '  -> Installing predis/predis'.PHP_EOL;
-						system('"'.PHP_BINARY.'" '.$_composer_binary.' '
+						system('"'.PHP_BINARY.'" "'.$_composer_binary.'" '
 						.	'--no-cache '
-						.	'--working-dir='.__DIR__.'/tmp/.composer '
+						.	'"--working-dir='.__DIR__.'/tmp/.composer" '
 						.	'require predis/predis'
 						);
 				}
@@ -1019,7 +1019,7 @@
 		{
 			echo ' -> Restarting test'.PHP_EOL;
 
-			system('"'.PHP_BINARY.'" '.$argv[0].' _restart_test_', $restart_test_result);
+			system('"'.PHP_BINARY.'" "'.$argv[0].'" _restart_test_', $restart_test_result);
 
 			if($restart_test_result !== 0)
 				$errors[]='restart test';

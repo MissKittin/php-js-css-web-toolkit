@@ -1,6 +1,6 @@
 <?php
 	class find_php_definitions_exception extends Exception {}
-	function find_php_definitions(string $source)
+	function find_php_definitions(string $source, bool $ignore_errors=false)
 	{
 		/*
 		 * Look up the definition of functions,
@@ -14,7 +14,8 @@
 		 *  throws an find_php_definitions_exception on error
 		 *
 		 * Usage:
-		 *  find_php_definitions(file_get_contents('file.php'))
+		 *  $tokens=find_php_definitions(file_get_contents('file.php'));
+		 *  $tokens=find_php_definitions(file_get_contents('file.php'), false); // disable "already exists" errors (only the first hit will be qualified)
 		 *  returns array('classes'=>array, 'functions'=>array, 'interfaces'=>array, 'traits'=>array)
 		 *
 		 * Source:
@@ -71,46 +72,84 @@
 					else if($next_string_is_interface)
 					{
 						if(in_array($current_namespace.$token[1], $return_array['classes']))
-							throw new find_php_definitions_exception($current_namespace.$token[1].' already exists in classes');
-						if(in_array($current_namespace.$token[1], $return_array['interfaces']))
-							throw new find_php_definitions_exception($current_namespace.$token[1].' already exists in interfaces');
-						if(in_array($current_namespace.$token[1], $return_array['traits']))
-							throw new find_php_definitions_exception($current_namespace.$token[1].' already exists in traits');
-
-						$return_array['interfaces'][]=$current_namespace.$token[1];
-						$next_string_is_interface=false;
+						{
+							if(!$ignore_errors)
+								throw new find_php_definitions_exception($current_namespace.$token[1].' already exists in classes');
+						}
+						else if(in_array($current_namespace.$token[1], $return_array['interfaces']))
+						{
+							if(!$ignore_errors)
+								throw new find_php_definitions_exception($current_namespace.$token[1].' already exists in interfaces');
+						}
+						else if(in_array($current_namespace.$token[1], $return_array['traits']))
+						{
+							if(!$ignore_errors)
+								throw new find_php_definitions_exception($current_namespace.$token[1].' already exists in traits');
+						}
+						else
+						{
+							$return_array['interfaces'][]=$current_namespace.$token[1];
+							$next_string_is_interface=false;
+						}
 					}
 					else if($next_string_is_trait)
 					{
 						if(in_array($current_namespace.$token[1], $return_array['classes']))
-							throw new find_php_definitions_exception($current_namespace.$token[1].' already exists in classes');
-						if(in_array($current_namespace.$token[1], $return_array['interfaces']))
-							throw new find_php_definitions_exception($current_namespace.$token[1].' already exists in interfaces');
-						if(in_array($current_namespace.$token[1], $return_array['traits']))
-							throw new find_php_definitions_exception($current_namespace.$token[1].' already exists in traits');
-
-						$return_array['traits'][]=$current_namespace.$token[1];
-						$next_string_is_trait=false;
+						{
+							if(!$ignore_errors)
+								throw new find_php_definitions_exception($current_namespace.$token[1].' already exists in classes');
+						}
+						else if(in_array($current_namespace.$token[1], $return_array['interfaces']))
+						{
+							if(!$ignore_errors)
+								throw new find_php_definitions_exception($current_namespace.$token[1].' already exists in interfaces');
+						}
+						else if(in_array($current_namespace.$token[1], $return_array['traits']))
+						{
+							if(!$ignore_errors)
+								throw new find_php_definitions_exception($current_namespace.$token[1].' already exists in traits');
+						}
+						else
+						{
+							$return_array['traits'][]=$current_namespace.$token[1];
+							$next_string_is_trait=false;
+						}
 					}
 					else if($next_string_is_class)
 					{
 						if(in_array($current_namespace.$token[1], $return_array['classes']))
-							throw new find_php_definitions_exception($current_namespace.$token[1].' already exists in classes');
-						if(in_array($current_namespace.$token[1], $return_array['interfaces']))
-							throw new find_php_definitions_exception($current_namespace.$token[1].' already exists in interfaces');
-						if(in_array($current_namespace.$token[1], $return_array['traits']))
-							throw new find_php_definitions_exception($current_namespace.$token[1].' already exists in traits');
-
-						$return_array['classes'][]=$current_namespace.$token[1];
-						$next_string_is_class=false;
+						{
+							if(!$ignore_errors)
+								throw new find_php_definitions_exception($current_namespace.$token[1].' already exists in classes');
+						}
+						else if(in_array($current_namespace.$token[1], $return_array['interfaces']))
+						{
+							if(!$ignore_errors)
+								throw new find_php_definitions_exception($current_namespace.$token[1].' already exists in interfaces');
+						}
+						else if(in_array($current_namespace.$token[1], $return_array['traits']))
+						{
+							if(!$ignore_errors)
+								throw new find_php_definitions_exception($current_namespace.$token[1].' already exists in traits');
+						}
+						else
+						{
+							$return_array['classes'][]=$current_namespace.$token[1];
+							$next_string_is_class=false;
+						}
 					}
 					else if($next_string_is_function)
 					{
 						if(in_array($current_namespace.$token[1], $return_array['functions']))
-							throw new find_php_definitions_exception($current_namespace.$token[1].' already exists in functions');
-
-						$return_array['functions'][]=$current_namespace.$token[1];
-						$next_string_is_function=false;
+						{
+							if(!$ignore_errors)
+								throw new find_php_definitions_exception($current_namespace.$token[1].' already exists in functions');
+						}
+						else
+						{
+							$return_array['functions'][]=$current_namespace.$token[1];
+							$next_string_is_function=false;
+						}
 					}
 				break;
 				case '(':
@@ -124,6 +163,10 @@
 				break;
 				case T_CURLY_OPEN:
 				case '{':
+					// anonymous classes (return new class {})
+					if($next_string_is_class)
+						$next_string_is_class=false;
+
 					if($is_in_class)
 						++$braces_count;
 				break;

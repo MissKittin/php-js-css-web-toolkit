@@ -79,11 +79,10 @@
 		{
 			$data_size=strlen($data);
 
-			$GLOBALS[$this->variable_name]=
-				substr($GLOBALS[$this->variable_name], 0, $this->current_position)
-				.$data.
-				substr($GLOBALS[$this->variable_name], $this->current_position+$data_size)
-			;
+			$GLOBALS[$this->variable_name]=''
+			.	substr($GLOBALS[$this->variable_name], 0, $this->current_position)
+			.	$data
+			.	substr($GLOBALS[$this->variable_name], $this->current_position+$data_size);
 
 			$this->current_position+=$data_size;
 

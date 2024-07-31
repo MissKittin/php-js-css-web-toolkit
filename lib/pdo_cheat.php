@@ -40,41 +40,38 @@
 			])
 	 *  Create a table (alternative method):
 			$my_table->new_table()
-				->id(pdo_cheat::default_id_type)
-				->name('VARCHAR(30)')
-				->surname('VARCHAR(30)')
-				->personal_id('INTEGER')
-				->save_table()
+			->	id(pdo_cheat::default_id_type)
+			->	name('VARCHAR(30)')
+			->	surname('VARCHAR(30)')
+			->	personal_id('INTEGER')
+			->	save_table()
 	 *  Alter the table (if_exists() is optional):
 	 *   note: after using this, the cheater instance is invalidated
 	 *    you need to initialize the cheater again
 			$my_table->alter_table()->if_exists()
-				->add_example_name('INTEGER')
+			->	add_example_name('INTEGER')
 			$my_table->alter_table()->if_exists()
-				->drop_example_name()
-				// with SQLite3, the operation may take longer
+			->	drop_example_name() // with SQLite3, the operation may take longer
 			$my_table->alter_table()->if_exists()
-				->rename_from_example_name()
-				->rename_to_new_name()
-				// with SQLite3, the operation may take longer
+			->	rename_from_example_name()
+			->	rename_to_new_name() // with SQLite3, the operation may take longer
 			$my_table->alter_table()->if_exists()
-				->modify_example_name('VARCHAR(30)')
-				// with SQLite3, the operation may take longer
+			->	modify_example_name('VARCHAR(30)') // with SQLite3, the operation may take longer
 			$my_table->alter_table()->if_exists()
-				->rename_table('newname')
+			->	rename_table('newname')
 	 *  Create a new row:
 			$my_table->new_row()
-				->name('Test')
-				->surname('tseT')
-				->personal_id(20)
-				->save_row()
+			->	name('Test')
+			->	surname('tseT')
+			->	personal_id(20)
+			->	save_row()
 	 *  Reading the row (first result):
 			$test_person=$my_table->get_row()
-				->select_id()
-				// and
-				->select_personal_id()
-				->get_row_by_name('Test')
-				->get_row()
+			->	select_id()
+			//	// and
+			->	select_personal_id()
+			->	get_row_by_name('Test')
+			->	get_row()
 	 *  Cell reading:
 			$value=$test_person->personal_id()
 	 *  Dump a row from memory:
@@ -82,23 +79,21 @@
 	 *  Reading the row (second result) and editing the row:
 			$test_mod=$my_table->get_row();
 			$test_mod
-				->get_row_by_name('Test')
-				// and
-				->get_row_by_surname('tseT')
-				->get_row();
+			->	get_row_by_name('Test')
+			//	// and
+			->	get_row_by_surname('tseT')
+			->	get_row();
 			$test_mod=$test_mod->get_next_row();
 			if($test_mod !== false)
-			{
 				$test_mod
-					->personal_id(40)
-					->save_row();
-			}
+				->	personal_id(40)
+				->	save_row();
 	 *  Delete a row:
 			$my_table->delete_row()
-				->name('Test')
-				// and
-				->surname('tseT')
-				->delete_row()
+			->	name('Test')
+			//	// and
+			->	surname('tseT')
+			->	delete_row()
 	 *  Clearing the table (does not reset the id counter):
 			$my_table->clear_table()->flush_table()
 	 *  Dropping a table:

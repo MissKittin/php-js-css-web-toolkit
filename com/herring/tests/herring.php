@@ -34,17 +34,20 @@
 			'short'=>[
 				'clients'=>32, // 256 records
 				'csv_sum'=>'2c3839f21acbe4c8d2eb0b6a576da527',
-				'html_sum'=>'ab3c180e5048351b45046f2d879ab4da'
+				'html_sum'=>'432018e22f7dc68e9a80be9d2dc63aa7',
+				'html_short_sum'=>'06053c90ca3b64f4ac48cf102831d321'
 			],
 			'long'=>[
 				'clients'=>255, // 2040 records
 				'csv_sum'=>'62f60e0a2c03fdc2ad4f35c78a93c526',
-				'html_sum'=>'e32685aa21cf86c7c928453237f2970b'
+				'html_sum'=>'6e679c981f70d32c0eeffb000bb5b114',
+				'html_short_sum'=>'4174540ddcad85f120c680e0c41fb6de'
 			],
 			'longlong'=>[
 				'clients'=>125000, // 1000000 records
-				'csv_sum'=>'7ec6d5978b5816f9615f519eaed49b73',
-				'html_sum'=>'f0d6c18ff312aab838c0ac62e471f8a0'
+				'csv_sum'=>'0fcd721e26bb28ed7e500e00ce299cea',
+				'html_sum'=>'7ccdd281f46de3590e79ed11db152d9f',
+				'html_short_sum'=>'47a8057d213918ba693941b61b0ae351'
 			]
 		];
 
@@ -166,7 +169,9 @@
 			foreach([
 				'herring.csv',
 				'herring.html',
+				'herring-short.html',
 				'herring-csv.html',
+				'herring-csv-short.html',
 				'herring.sqlite3',
 				'herring_pre_flush.sqlite3',
 				'herring_pre_move.sqlite3'
@@ -389,7 +394,8 @@
 			$benchmark=new \measure_exec_time_from_here();
 			try {
 				$herring_maintenance->dump_archive_to_csv(__DIR__.'/tmp/herring.csv');
-				//echo ' ('.md5(file_get_contents(__DIR__.'/tmp/herring.csv')).')';
+				if(isset($argv[2]) && ($argv[2] === 'sumdebug'))
+					echo ' ('.md5(file_get_contents(__DIR__.'/tmp/herring.csv')).')';
 				if(md5(file_get_contents(__DIR__.'/tmp/herring.csv')) === $test_options[$test_option]['csv_sum'])
 					echo ' [ OK ]'.PHP_EOL;
 				else
@@ -409,7 +415,8 @@
 			$benchmark=new \measure_exec_time_from_here();
 			try {
 				$herring_maintenance->generate_report(__DIR__.'/tmp/herring.html');
-				//echo ' ('.md5(file_get_contents(__DIR__.'/tmp/herring.html')).')';
+				if(isset($argv[2]) && ($argv[2] === 'sumdebug'))
+					echo ' ('.md5(file_get_contents(__DIR__.'/tmp/herring.html')).')';
 				if(md5(file_get_contents(__DIR__.'/tmp/herring.html')) === $test_options[$test_option]['html_sum'])
 					echo ' [ OK ]'.PHP_EOL;
 				else
@@ -424,6 +431,27 @@
 				$pdo_errors['generate_report']=$pdo_handler->errorInfo()[2];
 			}
 			$benchmarks['generate_report']=$benchmark->get_exec_time();
+
+		echo ' -> Testing generate_report_short';
+			$benchmark=new \measure_exec_time_from_here();
+			try {
+				$herring_maintenance->generate_report_short(__DIR__.'/tmp/herring-short.html');
+				if(isset($argv[2]) && ($argv[2] === 'sumdebug'))
+					echo ' ('.md5(file_get_contents(__DIR__.'/tmp/herring-short.html')).')';
+				if(md5(file_get_contents(__DIR__.'/tmp/herring-short.html')) === $test_options[$test_option]['html_short_sum'])
+					echo ' [ OK ]'.PHP_EOL;
+				else
+				{
+					echo ' [FAIL]'.PHP_EOL;
+					$failed=true;
+				}
+			} catch(Throwable $error) {
+				echo ' [FAIL]'.PHP_EOL;
+				$failed=true;
+				$exceptions[]=['generate_report_short', $error->getMessage()];
+				$pdo_errors['generate_report_short']=$pdo_handler->errorInfo()[2];
+			}
+			$benchmarks['generate_report_short']=$benchmark->get_exec_time();
 
 		if(file_exists(__DIR__.'/tmp/herring.sqlite3'))
 		{
@@ -459,6 +487,8 @@
 				$benchmark=new \measure_exec_time_from_here();
 				try {
 					herring_mock::generate_report_from_csv(__DIR__.'/tmp/herring.csv', __DIR__.'/tmp/herring-csv.html');
+					if(isset($argv[2]) && ($argv[2] === 'sumdebug'))
+						echo ' ('.md5(file_get_contents(__DIR__.'/tmp/herring-csv.html')).')';
 					if(md5(file_get_contents(__DIR__.'/tmp/herring-csv.html')) === $test_options[$test_option]['html_sum'])
 						echo ' [ OK ]'.PHP_EOL;
 					else
@@ -473,6 +503,32 @@
 					$pdo_errors['generate_report_from_csv']=$pdo_handler->errorInfo()[2];
 				}
 				$benchmarks['generate_report_from_csv']=$benchmark->get_exec_time();
+			}
+			else
+				echo ' [SKIP]'.PHP_EOL;
+
+		echo ' -> Testing generate_report_short_from_csv';
+			if(in_array('sqlite', PDO::getAvailableDrivers()))
+			{
+				$benchmark=new \measure_exec_time_from_here();
+				try {
+					herring_mock::generate_report_short_from_csv(__DIR__.'/tmp/herring.csv', __DIR__.'/tmp/herring-csv-short.html');
+					if(isset($argv[2]) && ($argv[2] === 'sumdebug'))
+						echo ' ('.md5(file_get_contents(__DIR__.'/tmp/herring-csv-short.html')).')';
+					if(md5(file_get_contents(__DIR__.'/tmp/herring-csv-short.html')) === $test_options[$test_option]['html_short_sum'])
+						echo ' [ OK ]'.PHP_EOL;
+					else
+					{
+						echo ' [FAIL]'.PHP_EOL;
+						$failed=true;
+					}
+				} catch(Throwable $error) {
+					echo ' [FAIL]'.PHP_EOL;
+					$failed=true;
+					$exceptions[]=['generate_report_short_from_csv', $error->getMessage()];
+					$pdo_errors['generate_report_shory_from_csv']=$pdo_handler->errorInfo()[2];
+				}
+				$benchmarks['generate_report_short_from_csv']=$benchmark->get_exec_time();
 			}
 			else
 				echo ' [SKIP]'.PHP_EOL;

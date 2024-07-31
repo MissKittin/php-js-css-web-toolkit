@@ -5,7 +5,7 @@
 	 * Sources:
 	 *  https://www.php.net/manual/en/function.str-starts-with.php
 	 *  https://github.com/symfony/polyfill/blob/1.x/src/Php80/Php80.php
-	 * License: MIT
+	 * License: MIT https://github.com/symfony/polyfill/blob/1.x/LICENSE
 	 */
 
 	if(!function_exists('str_contains'))
@@ -28,7 +28,7 @@
 	 * Sources:
 	 *  https://www.php.net/manual/en/function.str-starts-with.php
 	 *  https://github.com/symfony/polyfill/blob/1.x/src/Php80/Php80.php
-	 * License: MIT
+	 * License: MIT https://github.com/symfony/polyfill/blob/1.x/LICENSE
 	 */
 
 	if(!function_exists('str_ends_with'))

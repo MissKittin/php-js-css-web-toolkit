@@ -10,35 +10,29 @@
 	 *  var_export_contains.php library is required
 	 */
 
-	foreach([
-		//'pf_php_float.php',
-		//'is_float_equal.php',
-		'var_export_contains.php'
-	] as $library){
-		echo ' -> Including '.$library;
-			if(is_file(__DIR__.'/../lib/'.$library))
-			{
-				if(@(include __DIR__.'/../lib/'.$library) === false)
-				{
-					echo ' [FAIL]'.PHP_EOL;
-					exit(1);
-				}
-			}
-			else if(is_file(__DIR__.'/../'.$library))
-			{
-				if(@(include __DIR__.'/../'.$library) === false)
-				{
-					echo ' [FAIL]'.PHP_EOL;
-					exit(1);
-				}
-			}
-			else
+	echo ' -> Including var_export_contains.php';
+		if(is_file(__DIR__.'/../lib/var_export_contains.php'))
+		{
+			if(@(include __DIR__.'/../lib/var_export_contains.php') === false)
 			{
 				echo ' [FAIL]'.PHP_EOL;
 				exit(1);
 			}
-		echo ' [ OK ]'.PHP_EOL;
-	}
+		}
+		else if(is_file(__DIR__.'/../var_export_contains.php'))
+		{
+			if(@(include __DIR__.'/../var_export_contains.php') === false)
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				exit(1);
+			}
+		}
+		else
+		{
+			echo ' [FAIL]'.PHP_EOL;
+			exit(1);
+		}
+	echo ' [ OK ]'.PHP_EOL;
 
 	echo ' -> Including '.basename(__FILE__);
 		if(is_file(__DIR__.'/../lib/'.basename(__FILE__)))
@@ -90,14 +84,13 @@
 			'weeks'=>121.74739914021
 		] as $format=>$result){
 			echo '  -> '.$format;
-			//if(is_float_equal(convert_seconds(73632827, $format), $result))
-			if(abs(convert_seconds(73632827, $format)-$result) < 0.00001)
-				echo ' [ OK ]'.PHP_EOL;
-			else
-			{
-				echo ' [FAIL]'.PHP_EOL;
-				$failed=true;
-			}
+				if(abs(convert_seconds(73632827, $format)-$result) < 0.00001)
+					echo ' [ OK ]'.PHP_EOL;
+				else
+				{
+					echo ' [FAIL]'.PHP_EOL;
+					$failed=true;
+				}
 		}
 
 	if($failed)

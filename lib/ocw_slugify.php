@@ -13,7 +13,7 @@
 	 * Source:
 	 *  https://ourcodeworld.com/articles/read/253/creating-url-slugs-properly-in-php-including-transliteration-support-for-utf-8
 	 *  https://gist.github.com/sgmurphy/3098978
-	 * License: CC0 1.0 Deed
+	 * License: CC0 1.0 Deed https://creativecommons.org/publicdomain/zero/1.0/deed.en
 	 */
 
 	class ocw_slugify_exception extends Exception {}

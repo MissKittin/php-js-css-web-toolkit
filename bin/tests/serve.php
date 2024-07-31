@@ -56,9 +56,9 @@
 	if(isset($argv[1]) && ($argv[1] === 'serve'))
 	{
 		system(
-			'"'.PHP_BINARY.'" '.__DIR__.'/../'.basename(__FILE__).' '
+			'"'.PHP_BINARY.'" "'.__DIR__.'/../'.basename(__FILE__).'" '
 			.'--port '.$http_server_port.' '
-			.'--docroot '.__DIR__.'/tmp/serve '
+			.'--docroot "'.__DIR__.'/tmp/serve" '
 		);
 		exit();
 	}
@@ -105,7 +105,7 @@
 
 	echo ' -> Starting tool';
 		try {
-			$_serve_test_handler=_serve_test('"'.PHP_BINARY.'" '.$argv[0].' serve');
+			$_serve_test_handler=_serve_test('"'.PHP_BINARY.'" "'.$argv[0].'" serve');
 			echo ' [ OK ]'.PHP_EOL;
 		} catch(Exception $error) {
 			echo ' [FAIL]'.PHP_EOL;

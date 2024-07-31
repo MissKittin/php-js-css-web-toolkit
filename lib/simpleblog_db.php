@@ -34,24 +34,24 @@
 	 *  creating a database handler (basic version):
 			$db=new simpleblog_db([
 				'db_path'=>'./simpleblog_db'
-			])
+			]);
 	 *  creating a database handler (cache-enabled version):
 			$db=new simpleblog_db_cache([
 				'db_path'=>'./simpleblog_db'
 				'cache_path'=>'./simpleblog_db_cache'
-			])
+			]);
 	 *  creating a database handler (zip version):
 			$db=new simpleblog_db_zip([
 				'db_path'=>'./simpleblog_db.zip',
 				'db_compression'=>true // optional
-			])
+			]);
 	 *  adding a record:
 			$db->add('sample-record', [
 				'name'=>'value',
 				'subrecord'=>[
 					'subrecord_name'=>'subrecord_value'
 				]
-			])
+			]);
 	 *  adding multiple records (optimizes simpleblog_db_zip performance):
 			$db->add_bulk('sample-record', [
 				'name'=>'value',
@@ -61,19 +61,19 @@
 			]);
 			$db->reopen_db();
 	 *  record name change [returns bool]:
-			$db->rename('sample-record', 'renamed-record')
+			$db->rename('sample-record', 'renamed-record');
 	 *  edit a record (you can use also add_bulk):
 			$db->add('sample-record', [
 				'name'=>'new value'
-			])
+			]);
 	 *  record list [returns array]:
-			$db->list()
+			$db->list();
 	 *  reading record [returns array]:
-			$db->read('sample-record')
+			$db->read('sample-record');
 	 *  search for keys/subrecords [returns array]:
-			$db->find('subrecord/subrecord_name')
+			$db->find('subrecord/subrecord_name');
 	 *  delete a record:
-			$db->delete('sample-record')
+			$db->delete('sample-record');
 	 *
 	 * Sources:
 	 *  simpleblog_db_zip::array_flat() https://stackoverflow.com/a/9546302
@@ -89,15 +89,15 @@
 		public function __construct(array $params)
 		{
 			foreach($this->constructor_params as $param)
-				if(isset($params[$param]))
-				{
-					if(!is_string($params[$param]))
-						throw new simpleblog_db_exception('The input array parameter '.$param.' is not a string');
-
-					$this->$param=$params[$param];
-				}
-				else
+			{
+				if(!isset($params[$param]))
 					throw new simpleblog_db_exception('The '.$param.' parameter was not specified for the constructor');
+
+				if(!is_string($params[$param]))
+					throw new simpleblog_db_exception('The input array parameter '.$param.' is not a string');
+
+				$this->$param=$params[$param];
+			}
 
 			if(!is_dir($this->db_path))
 				throw new simpleblog_db_exception('Wrong db_path or pointing to file');
@@ -129,13 +129,22 @@
 				throw new simpleblog_db_exception('The database could not be saved');
 
 			foreach($content as $key=>$value)
+			{
 				if($value === null)
+				{
 					$this->delete($record_name.'/'.$key);
-				else if(is_array($value))
+					continue;
+				}
+
+				if(is_array($value))
+				{
 					(__METHOD__)($record_name.'/'.$key, $value);
-				else
-					if(file_put_contents($this->db_path.'/'.$record_name.'/'.$key, $value) === false)
-						throw new simpleblog_db_exception('The database could not be saved');
+					continue;
+				}
+
+				if(file_put_contents($this->db_path.'/'.$record_name.'/'.$key, $value) === false)
+					throw new simpleblog_db_exception('The database could not be saved');
+			}
 
 			return null;
 		}
@@ -164,15 +173,18 @@
 			$record_content=[];
 
 			foreach(array_slice(scandir($this->db_path.'/'.$record_name), 2) as $key)
+			{
 				if(is_dir($this->db_path.'/'.$record_name.'/'.$key))
-					$record_content[$key]=(__METHOD__)($record_name.'/'.$key);
-				else
 				{
-					$record_content[$key]=file_get_contents($this->db_path.'/'.$record_name.'/'.$key);
-
-					if($record_content[$key] === false)
-						throw new simpleblog_db_exception('Database could not be read');
+					$record_content[$key]=(__METHOD__)($record_name.'/'.$key);
+					continue;
 				}
+
+				$record_content[$key]=file_get_contents($this->db_path.'/'.$record_name.'/'.$key);
+
+				if($record_content[$key] === false)
+					throw new simpleblog_db_exception('Database could not be read');
+			}
 
 			return $record_content;
 		}
@@ -187,30 +199,34 @@
 			{
 				if(!unlink($this->db_path.'/'.$record_name))
 					throw new simpleblog_db_exception('The database could not be saved');
-			}
-			else
-			{
-				foreach(new DirectoryIterator($this->db_path.'/'.$record_name) as $file)
-					if(!$file->isDot())
-					{
-						if($file->isFile())
-						{
-							if(!unlink($file->getPathname()))
-								throw new simpleblog_db_exception('The database could not be saved');
-						}
-						else
-							(__METHOD__)(strtr(
-								substr(
-									$file->getPathname(),
-									strlen($this->db_path)+1
-								),
-								'\\', '/'
-							));
-					}
 
-				if(!rmdir($this->db_path.'/'.$record_name))
-					throw new simpleblog_db_exception('The database could not be saved');
+				return null;
 			}
+
+			foreach(new DirectoryIterator($this->db_path.'/'.$record_name) as $file)
+			{
+				if($file->isDot())
+					continue;
+
+				if($file->isFile())
+				{
+					if(!unlink($file->getPathname()))
+						throw new simpleblog_db_exception('The database could not be saved');
+
+					continue;
+				}
+
+				(__METHOD__)(strtr(
+					substr(
+						$file->getPathname(),
+						strlen($this->db_path)+1
+					),
+					'\\', '/'
+				));
+			}
+
+			if(!rmdir($this->db_path.'/'.$record_name))
+				throw new simpleblog_db_exception('The database could not be saved');
 		}
 		public function find(string $path)
 		{
@@ -453,9 +469,12 @@
 				$new_key.=$key;
 
 				if(is_array($value))
+				{
 					$result=array_merge($result, (__METHOD__)($value, $new_key));
-				else
-					$result[$new_key]=$value;
+					continue;
+				}
+
+				$result[$new_key]=$value;
 			}
 
 			return $result;
@@ -468,8 +487,8 @@
 			{
 				$keys=explode('/', $key);
 				$last_key=array_pop($keys);
-
 				$node=&$result;
+
 				foreach($keys as $k)
 				{
 					if(!array_key_exists($k, $node))
@@ -494,16 +513,19 @@
 			$this->open_db();
 
 			foreach($this->array_flat($content) as $key=>$value)
+			{
 				if($value === null)
-					$this->delete_bulk($record_name.'/'.$key);
-				else
 				{
-					if(!$this->db_handler->addFromString($record_name.'/'.$key, $value))
-						throw new simpleblog_db_exception('The database could not be saved');
-
-					if($this->db_compression)
-						$this->db_handler->setCompressionName($record_name.'/'.$key, ZipArchive::CM_DEFLATE);
+					$this->delete_bulk($record_name.'/'.$key);
+					continue;
 				}
+
+				if(!$this->db_handler->addFromString($record_name.'/'.$key, $value))
+					throw new simpleblog_db_exception('The database could not be saved');
+
+				if($this->db_compression)
+					$this->db_handler->setCompressionName($record_name.'/'.$key, ZipArchive::CM_DEFLATE);
+			}
 		}
 
 		public function list()
@@ -523,6 +545,7 @@
 			}
 
 			$i=0;
+
 			foreach($result as $record)
 			{
 				unset($result[$record]);

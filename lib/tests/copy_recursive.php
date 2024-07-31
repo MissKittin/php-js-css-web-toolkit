@@ -34,30 +34,6 @@
 		}
 	echo ' [ OK ]'.PHP_EOL;
 
-	echo ' -> Including var_export_contains.php';
-		if(is_file(__DIR__.'/../lib/var_export_contains.php'))
-		{
-			if(@(include __DIR__.'/../lib/var_export_contains.php') === false)
-			{
-				echo ' [FAIL]'.PHP_EOL;
-				exit(1);
-			}
-		}
-		else if(is_file(__DIR__.'/../var_export_contains.php'))
-		{
-			if(@(include __DIR__.'/../var_export_contains.php') === false)
-			{
-				echo ' [FAIL]'.PHP_EOL;
-				exit(1);
-			}
-		}
-		else
-		{
-			echo ' [FAIL]'.PHP_EOL;
-			exit(1);
-		}
-	echo ' [ OK ]'.PHP_EOL;
-
 	echo ' -> Including '.basename(__FILE__);
 		if(is_file(__DIR__.'/../lib/'.basename(__FILE__)))
 		{

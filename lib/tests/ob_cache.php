@@ -137,27 +137,45 @@
 				}
 			echo ' [ OK ]'.PHP_EOL;
 
-			if(!file_exists(__DIR__.'/tmp/.composer/vendor/predis'))
+			if(!file_exists(__DIR__.'/tmp/.composer/vendor/predis/predis'))
 			{
-				echo '  -> Installing Predis'.PHP_EOL;
-
 				@mkdir(__DIR__.'/tmp');
 				@mkdir(__DIR__.'/tmp/.composer');
 
 				if(file_exists(__DIR__.'/../../bin/composer.phar'))
-					system('"'.PHP_BINARY.'" '.__DIR__.'/../../bin/composer.phar --no-cache --working-dir='.__DIR__.'/tmp/.composer require predis/predis');
+					$_composer_binary=__DIR__.'/../../bin/composer.phar';
 				else if(file_exists(__DIR__.'/tmp/.composer/composer.phar'))
-					system('"'.PHP_BINARY.'" '.__DIR__.'/tmp/.composer/composer.phar --no-cache --working-dir='.__DIR__.'/tmp/.composer require predis/predis');
+					$_composer_binary=__DIR__.'/tmp/.composer/composer.phar';
 				else if(file_exists(__DIR__.'/../../bin/get-composer.php'))
 				{
-					system('"'.PHP_BINARY.'" '.__DIR__.'/../../bin/get-composer.php '.__DIR__.'/tmp/.composer');
-					system('"'.PHP_BINARY.'" '.__DIR__.'/tmp/.composer/composer.phar --no-cache --working-dir='.__DIR__.'/tmp/.composer require predis/predis');
+					echo '  -> Downloading composer'.PHP_EOL;
+
+					system(''
+					.	'"'.PHP_BINARY.'" '
+					.	'"'.__DIR__.'/../../bin/get-composer.php" '
+					.	'"'.__DIR__.'/tmp/.composer"'
+					);
+
+					if(!file_exists(__DIR__.'/tmp/.composer/composer.phar'))
+					{
+						echo '  <- composer download failed [FAIL]'.PHP_EOL;
+						exit(1);
+					}
+
+					$_composer_binary=__DIR__.'/tmp/.composer/composer.phar';
 				}
 				else
 				{
 					echo 'Error: get-composer.php tool not found'.PHP_EOL;
 					exit(1);
 				}
+
+				echo '  -> Installing predis/predis'.PHP_EOL;
+					system('"'.PHP_BINARY.'" "'.$_composer_binary.'" '
+					.	'--no-cache '
+					.	'"--working-dir='.__DIR__.'/tmp/.composer" '
+					.	'require predis/predis'
+					);
 			}
 
 			echo '  -> Including composer autoloader';
@@ -170,7 +188,7 @@
 
 			if(!class_exists('\Predis\Client'))
 			{
-				echo '  <- predis package is not installed [FAIL]'.PHP_EOL;
+				echo '  <- predis/predis package is not installed [FAIL]'.PHP_EOL;
 				exit(1);
 			}
 
@@ -319,36 +337,36 @@
 	$errors=[];
 
 	echo ' -> Testing ob_file_cache'.PHP_EOL;
-	echo '  -> permanent cache';
-		ob_start();
-		ob_file_cache(__DIR__.'/tmp/ob_cache/ob_cache-1.txt', 0);
-		echo 'good value';
-		@ob_end_clean();
-		@ob_end_clean();
+		echo '  -> permanent cache';
+			ob_start();
+			ob_file_cache(__DIR__.'/tmp/ob_cache/ob_cache-1.txt', 0);
+			echo 'good value';
+			@ob_end_clean();
+			@ob_end_clean();
 
-		if(file_get_contents(__DIR__.'/tmp/ob_cache/ob_cache-1.txt') === 'good value')
-			echo ' [ OK ]'.PHP_EOL;
-		else
-		{
-			echo ' [FAIL]'.PHP_EOL;
-			$errors[]='ob_file_cache permanent cache failed';
-		}
-	echo '  -> temporary cache';
-		file_put_contents(__DIR__.'/tmp/ob_cache/ob_cache-2.txt', '');
-		sleep(4);
+			if(file_get_contents(__DIR__.'/tmp/ob_cache/ob_cache-1.txt') === 'good value')
+				echo ' [ OK ]'.PHP_EOL;
+			else
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				$errors[]='ob_file_cache permanent cache failed';
+			}
+		echo '  -> temporary cache';
+			file_put_contents(__DIR__.'/tmp/ob_cache/ob_cache-2.txt', '');
+			sleep(4);
 
-		ob_start();
-		ob_file_cache(__DIR__.'/tmp/ob_cache/ob_cache-2.txt', 1);
-		echo 'new value';
-		@ob_end_clean();
+			ob_start();
+			ob_file_cache(__DIR__.'/tmp/ob_cache/ob_cache-2.txt', 1);
+			echo 'new value';
+			@ob_end_clean();
 
-		if(file_get_contents(__DIR__.'/tmp/ob_cache/ob_cache-2.txt') === 'new value')
-			echo ' [ OK ]'.PHP_EOL;
-		else
-		{
-			echo ' [FAIL]'.PHP_EOL;
-			$errors[]='ob_file_cache temporary cache failed';
-		}
+			if(file_get_contents(__DIR__.'/tmp/ob_cache/ob_cache-2.txt') === 'new value')
+				echo ' [ OK ]'.PHP_EOL;
+			else
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				$errors[]='ob_file_cache temporary cache failed';
+			}
 
 	echo ' -> Testing ob_redis_cache'.PHP_EOL;
 		if(isset($redis_handler))

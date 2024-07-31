@@ -79,7 +79,7 @@
 		{
 			echo ' -> Force APCu apc.enable_cli=1'.PHP_EOL;
 			system(
-				'"'.PHP_BINARY.'" -d apc.enable_cli=1 '.$argv[0].' apcu-force',
+				'"'.PHP_BINARY.'" -d apc.enable_cli=1 "'.$argv[0].'" apcu-force',
 				$test_result
 			);
 			exit($test_result);
@@ -321,8 +321,8 @@
 
 					system(''
 					.	'"'.PHP_BINARY.'" '
-					.	__DIR__.'/../../bin/get-composer.php '
-					.	__DIR__.'/tmp/.composer'
+					.	'"'.__DIR__.'/../../bin/get-composer.php" '
+					.	'"'.__DIR__.'/tmp/.composer"'
 					);
 
 					if(!file_exists(__DIR__.'/tmp/.composer/composer.phar'))
@@ -340,9 +340,9 @@
 				}
 
 				echo '  -> Installing predis/predis'.PHP_EOL;
-					system('"'.PHP_BINARY.'" '.$_composer_binary.' '
+					system('"'.PHP_BINARY.'" "'.$_composer_binary.'" '
 					.	'--no-cache '
-					.	'--working-dir='.__DIR__.'/tmp/.composer '
+					.	'"--working-dir='.__DIR__.'/tmp/.composer" '
 					.	'require predis/predis'
 					);
 			}

@@ -48,7 +48,7 @@
 					return timestamp;
 				}
 
-				document.body.innerHTML+='Testing checkDate<br>';
+				document.body.innerHTML='Testing checkDate<br>';
 				document.body.innerHTML+='&nbsp;one year<br>';
 
 				timestamp=OriginalDate.parse('05/10/2022 00:00:00'); // mm/dd/yyyy
@@ -162,8 +162,8 @@
 					document.body.innerHTML+='&nbsp;one day after [ OK ]<br>';
 				else
 					document.body.innerHTML+='&nbsp;one day after [FAIL]<br>';
-			});
+			}, false);
 		</script>
 	</head>
-	<body></body>
+	<body>Test was not executed</body>
 </html>

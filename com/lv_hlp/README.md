@@ -2,7 +2,8 @@
 Extension of `lv_arr.php` and `lv_str.php` libraries  
 This file only describes new and modified functions/methods  
 The rest of the documentation is located in the `lv_arr.php` and `lv_str.php` libraries  
-**This component is licensed under the MIT License**
+  
+**This component is licensed under the MIT License, see [LICENSE.md](https://github.com/laravel/framework/blob/11.x/LICENSE.md)**
 
 ## Required libraries
 * `ascii.php`
@@ -34,14 +35,16 @@ The rest of the documentation is located in the `lv_arr.php` and `lv_str.php` li
 * `nesbot/carbon`
 * `symfony/var-dumper` (for development)
 ```
-php composer.phar --optimize-autoloader require league/commonmark
+php composer.phar --optimize-autoloader require doctrine/inflector league/commonmark nesbot/carbon
 php composer.phar --optimize-autoloader require --dev symfony/var-dumper
 ```
 composer.json:
 ```
 {
     "require": {
-        "league/commonmark": "*"
+        "doctrine/inflector": "*",
+        "league/commonmark": "*",
+        "nesbot/carbon": "*"
     },
     "require-dev": {
         "symfony/var-dumper": "*"
@@ -185,7 +188,7 @@ require './com/lv_hlp/main.php';
 	`lv_hlp_collection` class is required
 * `lv_str_plural` `lv_hlp_plural`  
 	Converts a singular word string to its plural form.  
-	This function supports any of the languages support by Doctrine Inflector:
+	This function supports any of the languages supported by Doctrine Inflector:
 
 		$plural=lv_str_plural('car'); // cars
 		$plural=lv_str_plural('child'); // children
@@ -195,6 +198,11 @@ require './com/lv_hlp/main.php';
 		$plural=lv_str_plural('child', 2); // children
 		$singular=lv_str_plural('child', 1); // child
 
+	You can also specify the language and list of uncountable words:
+
+		$plural=lv_str_plural('child', 2, 'english', ['recommended', 'related']); // children
+		$singular=lv_str_plural('child', 1, 'english', ['recommended', 'related']); // child
+
 	**Note:**  
 	tested on Inflector 1.4.4 and 2.0.10  
 	**Warning:**  
@@ -202,7 +210,7 @@ require './com/lv_hlp/main.php';
 	`doctrine/inflector` package is required
 * `lv_str_plural_studly` `lv_hlp_plural_studly`  
 	Converts a singular word string formatted in studly caps case to its plural form.  
-	This function supports any of the languages support by Doctrine Inflector:
+	This function supports any of the languages supported by Doctrine Inflector:
 
 		$plural=lv_str_plural_studly('VerifiedHuman'); // VerifiedHumans
 		$plural=lv_str_plural_studly('UserFeedback'); // UserFeedback
@@ -212,16 +220,26 @@ require './com/lv_hlp/main.php';
 		$plural=lv_str_plural_studly('VerifiedHuman', 2); // VerifiedHumans
 		$singular=lv_str_plural_studly('VerifiedHuman', 1); // VerifiedHuman
 
+	You can also specify the language and list of uncountable words:
+
+		$plural=lv_str_plural_studly('VerifiedHuman', 2, 'english', ['recommended', 'related']); // VerifiedHumans
+		$singular=lv_str_plural_studly('VerifiedHuman', 1, 'english', ['recommended', 'related']); // VerifiedHuman
+
 	**Note:**  
 	tested on Inflector 1.4.4 and 2.0.10  
 	**Warning:**  
 	`lv_str_plural` function is required
 * `lv_str_singular` `lv_hlp_singular`  
 	Converts a string to its singular form.  
-	This function supports any of the languages support by Doctrine Inflector:
+	This function supports any of the languages supported by Doctrine Inflector:
 
 		$singular=lv_str_singular('cars'); // car
 		$singular=lv_str_singular('children'); // child
+
+	You can also specify the language:
+
+		$singular=lv_str_singular('cars', 'english'); // car
+		$singular=lv_str_singular('children', 'english'); // child
 
 	**Note:**  
 	tested on Inflector 1.4.4 and 2.0.10  
@@ -276,6 +294,38 @@ require './com/lv_hlp/main.php';
 * `lv_hlp_lazy_collect`  
 	A complementary function to `lv_arr_lazy_collect`  
 	Returns an instance of `lv_hlp_lazy_collection`
+
+## Pluralizer
+If you need a better solution than single plural/singular functions, use the `lv_hlp_pluralizer` class:
+```
+// you can define uncountable words
+lv_hlp_pluralizer::$uncountable=['recommended', 'related'];
+
+// you can change the language
+lv_hlp_pluralizer::use_language('english');
+
+// just like lv_str_plural
+$plural=lv_hlp_pluralizer::plural('car');
+$plural=lv_hlp_pluralizer::plural('car', 2);
+$singular=lv_hlp_pluralizer::plural('car', 1);
+
+// just like lv_str_plural_studly
+$plural_studly=lv_hlp_pluralizer::plural_studly('VerifiedHuman');
+$plural_studly=lv_hlp_pluralizer::plural_studly('VerifiedHuman', 2);
+$singular=lv_hlp_pluralizer::plural_studly('VerifiedHuman', 1);
+
+// just like lv_str_singular
+$singular=lv_hlp_pluralizer::singular('cars');
+
+// you can get an instance of Inflector
+$inflector=lv_hlp_pluralizer::inflector();
+```
+For more info, see `lv_str_plural`, `lv_str_plural_studly` and `lv_str_singular` [string helpers](#string-helpers).  
+**Note:**  
+tested on Inflector 1.4.4 and 2.0.10  
+**Warning:**  
+`mbstring` extension is required  
+`doctrine/inflector` package is required
 
 ## Fluent strings
 The component extends the `lv_str_ingable` class to `lv_hlp_ingable`  
@@ -454,7 +504,7 @@ The component extends the `lv_str_ingable` class to `lv_hlp_ingable`
 		**Note:**  
 		tested on Inflector 1.4.4 and 2.0.10  
 		**Warning:**  
-		`lv_str_plural` function is required
+		`lv_hlp_pluralizer` class is required
 	* `plural_studly`  
 		Converts a singular word string formatted in studly caps case to its plural form.  
 		This function supports any of the languages support by Doctrine Inflector:
@@ -470,7 +520,7 @@ The component extends the `lv_str_ingable` class to `lv_hlp_ingable`
 		**Note:**  
 		tested on Inflector 1.4.4 and 2.0.10  
 		**Warning:**  
-		`lv_str_plural_studly` function is required
+		`lv_hlp_pluralizer` class is required
 	* `singular`  
 		Converts a string to its singular form.  
 		This function supports any of the languages support by Doctrine Inflector:
@@ -481,7 +531,7 @@ The component extends the `lv_str_ingable` class to `lv_hlp_ingable`
 		**Note:**  
 		tested on Inflector 1.4.4 and 2.0.10  
 		**Warning:**  
-		`lv_str_singular` function is required
+		`lv_hlp_pluralizer` class is required
 	* `slug`  
 		Generates a URL friendly "slug" from the given string:
 

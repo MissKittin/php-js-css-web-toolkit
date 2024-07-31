@@ -59,8 +59,7 @@
 			.		'"String": "Sznurek",'
 			.		'"Log in": "Zaloguj sie",'
 			.		'"%m minutes and %s second%d left": "Zostalo %m minut%x i %s sekund%d"'
-			.	'}'
-			;
+			.	'}';
 			$lang=new string_translator(string_translator::from_json($json));
 		 *
 		 * Usage - load from JSON (multi language):
@@ -76,8 +75,7 @@
 			.			'"Log in": "Awtorizowatsia",'
 			.			'"%m minutes and %s second%d left": "Wnimanje: %m minuty i %s sekundy"'
 			.		'}'
-			.	'}'
-			;
+			.	'}';
 			$lang=new string_translator(string_translator::from_json($json, 'pl'));
 		 */
 

@@ -3,7 +3,7 @@
 	 * json_validate() polyfill
 	 *
 	 * Source: https://github.com/symfony/polyfill-php83/blob/1.x/Php83.php
-	 * License: MIT
+	 * License: MIT https://github.com/symfony/polyfill-php83/blob/1.x/LICENSE
 	 */
 
 	if(!function_exists('json_validate'))

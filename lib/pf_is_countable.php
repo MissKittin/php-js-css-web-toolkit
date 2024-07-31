@@ -3,7 +3,7 @@
 	 * is_countable() polyfill
 	 *
 	 * Source: https://github.com/symfony/polyfill/blob/1.x/src/Php73/bootstrap.php
-	 * License: MIT
+	 * License: MIT https://github.com/symfony/polyfill/blob/1.x/LICENSE
 	 */
 
 	if(!function_exists('is_countable'))

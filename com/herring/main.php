@@ -20,8 +20,11 @@
 		protected $_views_path=__DIR__;
 		protected $_no_view_date=false;
 
-		public static function generate_report_from_csv(string $input_file, string $output_file=null)
-		{
+		public static function generate_report_from_csv(
+			string $input_file,
+			string $output_file=null,
+			bool $full_report=true
+		){
 			if(!class_exists('PDO'))
 				throw new herring_exception('PDO extension is not loaded');
 
@@ -53,6 +56,7 @@
 				throw new herring_exception('PDO exec error (CREATE TABLE)');
 
 			fgets($csv_handler);
+
 			while(($csv_data=fgetcsv($csv_handler, 1000, ',')) !== false)
 			{
 				$query=$pdo_handler->prepare(''
@@ -93,10 +97,26 @@
 
 			fclose($csv_handler);
 
+			if($full_report)
+				return (new static([
+					'pdo_handler'=>$pdo_handler,
+					'maintenance_mode'=>true
+				]))->generate_report($output_file);
+
 			return (new static([
 				'pdo_handler'=>$pdo_handler,
 				'maintenance_mode'=>true
-			]))->generate_report($output_file);
+			]))->generate_report_short($output_file);
+		}
+		public static function generate_report_short_from_csv(
+			string $input_file,
+			string $output_file=null
+		){
+			return static::generate_report_from_csv(
+				$input_file,
+				$output_file,
+				false
+			);
 		}
 
 		public function __construct(array $params)
@@ -516,8 +536,10 @@
 			if($output_file === null)
 				return $output;
 		}
-		public function generate_report(string $output_file=null)
-		{
+		public function generate_report(
+			string $output_file=null,
+			bool $full_report=true
+		){
 			if($this->maintenance_mode !== true)
 				throw new herring_exception('You haven\'t turned on maintenance mode');
 
@@ -745,144 +767,146 @@
 			// second table end
 				$save_report($output, '</td></tr></table>');
 
-			// third table: date - hour - hits
-				$query=$this->pdo_handler->query(''
-				.	'SELECT date, timestamp '
-				.	'FROM '.$this->table_name_prefix.'archive'
-				);
+			if($full_report)
+			{
+				// third table: date - hour - hits
+					$query=$this->pdo_handler->query(''
+					.	'SELECT date, timestamp '
+					.	'FROM '.$this->table_name_prefix.'archive'
+					);
 
-				if($query === false)
-					throw new herring_exception('PDO query error (SELECT date, timestamp FROM '.$this->table_name_prefix.'archive)');
+					if($query === false)
+						throw new herring_exception('PDO query error (SELECT date, timestamp FROM '.$this->table_name_prefix.'archive)');
 
-				$save_report(
-					$output,
-					$this->generate_html_table('begin', ['Date', 'Hour', 'Hits'])
-				);
+					$save_report(
+						$output,
+						$this->generate_html_table('begin', ['Date', 'Hour', 'Hits'])
+					);
 
-				$hits=[];
-				$last_hit_date=null;
+					$hits=[];
+					$last_hit_date=null;
 
-				while($row=$query->fetch(PDO::FETCH_ASSOC))
-				{
-					if($last_hit_date === null)
-						$last_hit_date=$row['date'];
-					else if($last_hit_date !== $row['date'])
+					while($row=$query->fetch(PDO::FETCH_ASSOC))
 					{
-						foreach($hits as $hit_date=>$hit_hours)
-							foreach($hit_hours as $hit_hour=>$hit_count)
-								$save_report($output, $this->generate_html_table(
-									'data',
-									[$hit_date, $hit_hour, $hit_count]
-								));
+						if($last_hit_date === null)
+							$last_hit_date=$row['date'];
+						else if($last_hit_date !== $row['date'])
+						{
+							foreach($hits as $hit_date=>$hit_hours)
+								foreach($hit_hours as $hit_hour=>$hit_count)
+									$save_report($output, $this->generate_html_table(
+										'data',
+										[$hit_date, $hit_hour, $hit_count]
+									));
 
-						$hits=[];
-						$last_hit_date=$row['date'];
+							$hits=[];
+							$last_hit_date=$row['date'];
+						}
+
+						$current_hit_hour=gmdate('H', $row['timestamp']);
+
+						if(isset($hits[$row['date']][$current_hit_hour]))
+							++$hits[$row['date']][$current_hit_hour];
+						else
+							$hits[$row['date']][$current_hit_hour]=1;
 					}
 
-					$current_hit_hour=gmdate('H', $row['timestamp']);
+					foreach($hits as $hit_date=>$hit_hours)
+						foreach($hit_hours as $hit_hour=>$hit_count)
+							$save_report($output, $this->generate_html_table(
+								'data',
+								[$hit_date, $hit_hour, $hit_count]
+							));
 
-					if(isset($hits[$row['date']][$current_hit_hour]))
-						++$hits[$row['date']][$current_hit_hour];
-					else
-						$hits[$row['date']][$current_hit_hour]=1;
-				}
+					$save_report($output, $this->generate_html_table('end', null));
 
-				foreach($hits as $hit_date=>$hit_hours)
-					foreach($hit_hours as $hit_hour=>$hit_count)
-						$save_report($output, $this->generate_html_table(
-							'data',
-							[$hit_date, $hit_hour, $hit_count]
-						));
+				// fourth table: ip - date - hour - hits - page - referer - cookie_id - user agent
+					$query=$this->pdo_handler->query(''
+					.	'SELECT ip, date, timestamp, cookie_id, user_agent, referer, uri '
+					.	'FROM '.$this->table_name_prefix.'archive '
+					.	'ORDER BY timestamp ASC'
+					);
 
-				$save_report($output, $this->generate_html_table('end', null));
+					if($query === false)
+						throw new herring_exception('PDO query error (SELECT ip, date, cookie_id, user_agent, referer, uri FROM '.$this->table_name_prefix.'archive)');
 
-			// fourth table: ip - date - hour - hits - page - referer - cookie_id - user agent
-				$query=$this->pdo_handler->query(''
-				.	'SELECT ip, date, timestamp, cookie_id, user_agent, referer, uri '
-				.	'FROM '.$this->table_name_prefix.'archive '
-				.	'ORDER BY timestamp ASC'
-				);
+					$save_report(
+						$output,
+						$this->generate_html_table('begin', [
+							'IP',
+							'Date',
+							'Hour',
+							'Hits',
+							'Page',
+							'Referer',
+							'Cookie ID',
+							'User agent'
+						])
+					);
 
-				if($query === false)
-					throw new herring_exception('PDO query error (SELECT ip, date, cookie_id, user_agent, referer, uri FROM '.$this->table_name_prefix.'archive)');
+					$hits=[];
+					$last_hit_date=null;
 
-				$save_report(
-					$output,
-					$this->generate_html_table('begin', [
-						'IP',
-						'Date',
-						'Hour',
-						'Hits',
-						'Page',
-						'Referer',
-						'Cookie ID',
-						'User agent'
-					])
-				);
-
-				$hits=[];
-				$last_hit_date=null;
-
-				while($row=$query->fetch(PDO::FETCH_ASSOC))
-				{
-					if($last_hit_date === null)
-						$last_hit_date=$row['date'];
-					else if($last_hit_date !== $row['date'])
+					while($row=$query->fetch(PDO::FETCH_ASSOC))
 					{
-						foreach($hits as $hit)
-							$save_report($output, $this->generate_html_table('data', [
-								$hit['ip'],
-								$hit['date'],
-								gmdate('H:i:s', $hit['timestamp']),
-								$hit['hits'],
-								$hit['page'],
-								$hit['referer'],
-								$hit['cookie_id'],
-								$hit['user_agent']
-							]));
+						if($last_hit_date === null)
+							$last_hit_date=$row['date'];
+						else if($last_hit_date !== $row['date'])
+						{
+							foreach($hits as $hit)
+								$save_report($output, $this->generate_html_table('data', [
+									$hit['ip'],
+									$hit['date'],
+									gmdate('H:i:s', $hit['timestamp']),
+									$hit['hits'],
+									$hit['page'],
+									$hit['referer'],
+									$hit['cookie_id'],
+									$hit['user_agent']
+								]));
 
-						$hits=[];
-						$last_hit_date=$row['date'];
+							$hits=[];
+							$last_hit_date=$row['date'];
+						}
+
+						$hit_id=''
+						.	$row['ip']
+						.	$row['date']
+						.	$row['cookie_id']
+						.	$row['user_agent']
+						.	$row['referer']
+						.	$row['uri'];
+
+						if(isset($hits[$hit_id]))
+							++$hits[$hit_id]['hits'];
+						else
+							$hits[$hit_id]=[
+								'ip'=>$row['ip'],
+								'date'=>$row['date'],
+								'timestamp'=>$row['timestamp'],
+								'cookie_id'=>$row['cookie_id'],
+								'user_agent'=>$row['user_agent'],
+								'referer'=>$row['referer'],
+								'page'=>$row['uri'],
+								'hits'=>1
+							];
 					}
 
-					$hit_id=''
-					.	$row['ip']
-					.	$row['date']
-					.	$row['cookie_id']
-					.	$row['user_agent']
-					.	$row['referer']
-					.	$row['uri']
-					;
+					// last day in the database
+					foreach($hits as $hit)
+						$save_report($output, $this->generate_html_table('data', [
+							$hit['ip'],
+							$hit['date'],
+							gmdate('H:i:s', $hit['timestamp']),
+							$hit['hits'],
+							$hit['page'],
+							$hit['referer'],
+							$hit['cookie_id'],
+							$hit['user_agent']
+						]));
 
-					if(isset($hits[$hit_id]))
-						++$hits[$hit_id]['hits'];
-					else
-						$hits[$hit_id]=[
-							'ip'=>$row['ip'],
-							'date'=>$row['date'],
-							'timestamp'=>$row['timestamp'],
-							'cookie_id'=>$row['cookie_id'],
-							'user_agent'=>$row['user_agent'],
-							'referer'=>$row['referer'],
-							'page'=>$row['uri'],
-							'hits'=>1
-						];
-				}
-
-				// last day in the database
-				foreach($hits as $hit)
-					$save_report($output, $this->generate_html_table('data', [
-						$hit['ip'],
-						$hit['date'],
-						gmdate('H:i:s', $hit['timestamp']),
-						$hit['hits'],
-						$hit['page'],
-						$hit['referer'],
-						$hit['cookie_id'],
-						$hit['user_agent']
-					]));
-
-				$save_report($output, $this->generate_html_table('end', null));
+					$save_report($output, $this->generate_html_table('end', null));
+			}
 
 			$save_report($output, 'Generated in '.$generator_time->get_exec_time().' seconds');
 
@@ -894,6 +918,10 @@
 
 			if($output_file === null)
 				return $output;
+		}
+		public function generate_report_short(string $output_file=null)
+		{
+			return $this->generate_report($output_file, false);
 		}
 	}
 ?>

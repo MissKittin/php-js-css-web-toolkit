@@ -27,6 +27,8 @@
 	 *  https://github.com/illuminate/support/blob/master/Str.php
 	 *  https://github.com/voku/portable-ascii/blob/master/src/voku/helper/ASCII.php
 	 * License: MIT
+	 *  https://github.com/illuminate/support/blob/master/LICENSE.md
+	 *  https://github.com/voku/portable-ascii/blob/master/LICENSE.txt
 	 */
 
 	class ascii_exception extends Exception {}

@@ -35,48 +35,48 @@
 	$failed=false;
 
 	echo ' -> Testing is_form_sent'.PHP_EOL;
-	echo '  -> returns false';
-		$GLOBALS['mock_csrf_check_token']=false;
-		$GLOBALS['mock_check_post']=null;
-		$form=new middleware_form_test();
-		if(!$form->is_form_sent())
-			echo ' [ OK ]';
-		else
-		{
-			echo ' [FAIL]';
-			$failed=true;
-		}
-		$GLOBALS['mock_csrf_check_token']=true;
-		$GLOBALS['mock_check_post']=null;
-		$form=new middleware_form_test();
-		if(!$form->is_form_sent())
-			echo ' [ OK ]';
-		else
-		{
-			echo ' [FAIL]';
-			$failed=true;
-		}
-		$GLOBALS['mock_csrf_check_token']=false;
-		$GLOBALS['mock_check_post']='submit_button';
-		$form=new middleware_form_test();
-		if(!$form->is_form_sent())
-			echo ' [ OK ]'.PHP_EOL;
-		else
-		{
-			echo ' [FAIL]'.PHP_EOL;
-			$failed=true;
-		}
-	echo '  -> returns true';
-		$GLOBALS['mock_csrf_check_token']=true;
-		$GLOBALS['mock_check_post']='submit_button';
-		$form=new middleware_form_test();
-		if($form->is_form_sent())
-			echo ' [ OK ]'.PHP_EOL;
-		else
-		{
-			echo ' [FAIL]'.PHP_EOL;
-			$failed=true;
-		}
+		echo '  -> returns false';
+			$GLOBALS['mock_csrf_check_token']=false;
+			$GLOBALS['mock_check_post']=null;
+			$form=new middleware_form_test();
+			if(!$form->is_form_sent())
+				echo ' [ OK ]';
+			else
+			{
+				echo ' [FAIL]';
+				$failed=true;
+			}
+			$GLOBALS['mock_csrf_check_token']=true;
+			$GLOBALS['mock_check_post']=null;
+			$form=new middleware_form_test();
+			if(!$form->is_form_sent())
+				echo ' [ OK ]';
+			else
+			{
+				echo ' [FAIL]';
+				$failed=true;
+			}
+			$GLOBALS['mock_csrf_check_token']=false;
+			$GLOBALS['mock_check_post']='submit_button';
+			$form=new middleware_form_test();
+			if(!$form->is_form_sent())
+				echo ' [ OK ]'.PHP_EOL;
+			else
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				$failed=true;
+			}
+		echo '  -> returns true';
+			$GLOBALS['mock_csrf_check_token']=true;
+			$GLOBALS['mock_check_post']='submit_button';
+			$form=new middleware_form_test();
+			if($form->is_form_sent())
+				echo ' [ OK ]'.PHP_EOL;
+			else
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				$failed=true;
+			}
 
 	echo ' -> Testing parse_fields (default template)';
 		$GLOBALS['mock_csrf_check_token']=false;
