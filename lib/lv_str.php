@@ -1676,7 +1676,7 @@
 		string $haystack,
 		string $needle,
 		int $offset=0,
-		int $length=null
+		?int $length=null
 	){
 		if(!is_null($length))
 			return substr_count($haystack, $needle, $offset, $length);
@@ -1698,7 +1698,7 @@
 	{
 		return preg_split('/(?=\p{Lu})/u', $string, -1, PREG_SPLIT_NO_EMPTY);
 	}
-	function lv_str_unwrap(string $value, string $before, string $after=null)
+	function lv_str_unwrap(string $value, string $before, ?string $after=null)
 	{
 		if(lv_str_starts_with($value, $before))
 			$value=lv_str_substr(
@@ -1714,7 +1714,7 @@
 
 		return $value;
 	}
-	function lv_str_word_count(string $string, string $characters=null)
+	function lv_str_word_count(string $string, ?string $characters=null)
 	{
 		return str_word_count($string, 0, $characters);
 	}
@@ -1726,7 +1726,7 @@
 	){
 		return wordwrap($string, $characters, $break, $cut_long_words);
 	}
-	function lv_str_wrap(string $value, string $before, string $after=null)
+	function lv_str_wrap(string $value, string $before, ?string $after=null)
 	{
 		if($after === null)
 			return $before.$value.$before;
@@ -1931,7 +1931,7 @@
 			string $string,
 			string $character,
 			int $index,
-			int $length=null,
+			?int $length=null,
 			string $encoding='UTF-8'
 		){
 			if($character === '')
@@ -1986,7 +1986,7 @@
 			$short=max(0, $length-mb_strlen($value));
 			return $value.mb_substr(str_repeat($pad, $short), 0, $short);
 		}
-		function lv_str_position(string $haystack, $needle, int $offset=0, string $encoding=null)
+		function lv_str_position(string $haystack, $needle, int $offset=0, ?string $encoding=null)
 		{
 			if($encoding === null)
 				$encoding=mb_internal_encoding();
@@ -2003,7 +2003,7 @@
 		function lv_str_substr(
 			string $string,
 			int $start,
-			int $length=null,
+			?int $length=null,
 			string $encoding='UTF-8'
 		){
 			return mb_substr($string, $start, $length, $encoding);
@@ -2237,7 +2237,7 @@
 				};
 			}
 
-			public function unless($value=null, callable $callback=null, callable $default=null)
+			public function unless($value=null, ?callable $callback=null, ?callable $default=null)
 			{
 				if($value instanceof Closure)
 					$value=$value($this);
@@ -2255,7 +2255,7 @@
 
 				return $this;
 			}
-			public function when($value=null, callable $callback=null, callable $default=null)
+			public function when($value=null, ?callable $callback=null, ?callable $default=null)
 			{
 				if($value instanceof Closure)
 					$value=$value($this);
@@ -2311,7 +2311,7 @@
 				};
 			}
 
-			public function tap(callable $callback=null)
+			public function tap(?callable $callback=null)
 			{
 				if(is_null($callback))
 					return $this->higher_order_tap_proxy($this);
@@ -2489,11 +2489,11 @@
 		{
 			return new static(lv_str_lower($this->value));
 		}
-		public function ltrim(string $characters=null)
+		public function ltrim(?string $characters=null)
 		{
 			return new static(ltrim(...array_merge([$this->value], func_get_args())));
 		}
-		public function mask(string $character, int $index, int $length=null, string $encoding='UTF-8')
+		public function mask(string $character, int $index, ?int $length=null, string $encoding='UTF-8')
 		{
 			return new static(lv_str_mask($this->value, $character, $index, $length, $encoding));
 		}
@@ -2525,7 +2525,7 @@
 		{
 			return new static($callback($this));
 		}
-		public function position(string $needle, int $offset=0, string $encoding=null)
+		public function position(string $needle, int $offset=0, ?string $encoding=null)
 		{
 			return lv_str_position($this->value, $needle, $offset, $encoding);
 		}
@@ -2572,7 +2572,7 @@
 
 			return new static(preg_replace($pattern, $replace, $this->value, $limit));
 		}
-		public function rtrim(string $characters=null)
+		public function rtrim(?string $characters=null)
 		{
 			return new static(rtrim(...array_merge([$this->value], func_get_args())));
 		}
@@ -2623,11 +2623,11 @@
 		{
 			return new static(lv_str_studly($this->value));
 		}
-		public function substr(int $start, int $length=null, string $encoding='UTF-8')
+		public function substr(int $start, ?int $length=null, string $encoding='UTF-8')
 		{
 			return new static(lv_str_substr($this->value, $start, $length, $encoding));
 		}
-		public function substr_count(string $needle, int $offset=0, int $length=null)
+		public function substr_count(string $needle, int $offset=0, ?int $length=null)
 		{
 			return lv_str_substr_count($this->value, $needle, $offset, $length);
 		}
@@ -2674,7 +2674,7 @@
 		{
 			return $this->value;
 		}
-		public function trim(string $characters=null)
+		public function trim(?string $characters=null)
 		{
 			return new static(trim(...array_merge([$this->value], func_get_args())));
 		}
@@ -2686,7 +2686,7 @@
 		{
 			return lv_str_ucsplit($this->value);
 		}
-		public function unwrap(string $before, string $after=null)
+		public function unwrap(string $before, ?string $after=null)
 		{
 			return new static(lv_str_unwrap($this->value, $before, $after));
 		}
@@ -2698,47 +2698,47 @@
 		{
 			return $this->to_string();
 		}
-		public function when_contains($needles, callable $callback, callable $default=null)
+		public function when_contains($needles, callable $callback, ?callable $default=null)
 		{
 			return $this->when($this->contains($needles), $callback, $default);
 		}
-		public function when_contains_all(array $needles, callable $callback, callable $default=null)
+		public function when_contains_all(array $needles, callable $callback, ?callable $default=null)
 		{
 			return $this->when($this->contains_all($needles), $callback, $default);
 		}
-		public function when_empty(callable $callback, callable $default=null)
+		public function when_empty(callable $callback, ?callable $default=null)
 		{
 			return $this->when($this->is_empty(), $callback, $default);
 		}
-		public function when_ends_with($needles, callable $callback, callable $default=null)
+		public function when_ends_with($needles, callable $callback, ?callable $default=null)
 		{
 			return $this->when($this->ends_with($needles), $callback, $default);
 		}
-		public function when_exactly(string $value, callable $callback, callable $default=null)
+		public function when_exactly(string $value, callable $callback, ?callable $default=null)
 		{
 			return $this->when($this->exactly($value), $callback, $default);
 		}
-		public function when_is($pattern, callable $callback, callable $default=null)
+		public function when_is($pattern, callable $callback, ?callable $default=null)
 		{
 			return $this->when($this->is($pattern), $callback, $default);
 		}
-		public function when_not_empty(callable $callback, callable $default=null)
+		public function when_not_empty(callable $callback, ?callable $default=null)
 		{
 			return $this->when($this->is_not_empty(), $callback, $default);
 		}
-		public function when_not_exactly(string $value, callable $callback, callable $default=null)
+		public function when_not_exactly(string $value, callable $callback, ?callable $default=null)
 		{
 			return $this->when((!$this->exactly($value)), $callback, $default);
 		}
-		public function when_starts_with($needles, callable $callback, callable $default=null)
+		public function when_starts_with($needles, callable $callback, ?callable $default=null)
 		{
 			return $this->when($this->starts_with($needles), $callback, $default);
 		}
-		public function when_test(string $pattern, callable $callback, callable $default=null)
+		public function when_test(string $pattern, callable $callback, ?callable $default=null)
 		{
 			return $this->when($this->test($pattern), $callback, $default);
 		}
-		public function word_count(string $characters=null)
+		public function word_count(?string $characters=null)
 		{
 			return lv_str_word_count($this->value, $characters);
 		}
@@ -2750,7 +2750,7 @@
 		{
 			return new static(lv_str_words($this->value, $words, $end));
 		}
-		public function wrap(string $before, string $after=null)
+		public function wrap(string $before, ?string $after=null)
 		{
 			return new static(lv_str_wrap($this->value, $before, $after));
 		}

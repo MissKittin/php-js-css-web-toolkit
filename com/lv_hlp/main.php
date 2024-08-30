@@ -648,7 +648,7 @@
 
 				return lv_hlp_collect($segments);
 			}
-			public function to_date(string $format, string $tz=null)
+			public function to_date(string $format, ?string $tz=null)
 			{
 				if(!class_exists('\Carbon\Carbon'))
 					throw new lv_hlp_exception('nesbot/carbon package is not installed');
@@ -666,15 +666,15 @@
 			{
 				return lv_hlp_collect(lv_str_ucsplit($this->value));
 			}
-			public function when_is_ascii(callable $callback, callable $default=null)
+			public function when_is_ascii(callable $callback, ?callable $default=null)
 			{
 				return $this->when($this->is_ascii(), $callback, $default);
 			}
-			public function when_is_ulid(callable $callback, callable $default=null)
+			public function when_is_ulid(callable $callback, ?callable $default=null)
 			{
 				return $this->when($this->is_ulid(), $callback, $default);
 			}
-			public function when_is_uuid(callable $callback, callable $default=null)
+			public function when_is_uuid(callable $callback, ?callable $default=null)
 			{
 				return $this->when($this->is_uuid(), $callback, $default);
 			}

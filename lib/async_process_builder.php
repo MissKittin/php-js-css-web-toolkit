@@ -384,7 +384,7 @@
 		{
 			return $this->getenv(...$args);
 		}
-		public function setenv(string $name, string $value=null)
+		public function setenv(string $name, ?string $value=null)
 		{
 			if($this->process_started())
 				throw new async_process_builder_exception('The process is already running');

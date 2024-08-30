@@ -153,7 +153,7 @@
 			substr($hashing, 20, 12)
 		);
 	}
-	function generate_uuid_v4(string $data=null)
+	function generate_uuid_v4(?string $data=null)
 	{
 		if(function_exists('random_bytes'))
 			$random_bytes=function($bytes)

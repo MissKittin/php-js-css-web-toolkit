@@ -475,8 +475,8 @@
 		}
 		public function move_uploaded_file(
 			string $file,
-			string $destination=null,
-			string $file_name=null
+			?string $destination=null,
+			?string $file_name=null
 		){
 			if(!isset($_FILES[$file]))
 				throw new http_request_response_exception($file.' not exists');

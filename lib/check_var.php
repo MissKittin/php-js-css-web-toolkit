@@ -237,7 +237,7 @@
 
 		return $output_array;
 	}
-	function argv2array(string $delimiter=null)
+	function argv2array(?string $delimiter=null)
 	{
 		static $cache=[];
 
@@ -332,7 +332,7 @@
 		return null;
 	}
 
-	function check_files(string $array_item, string $array_nested_item=null)
+	function check_files(string $array_item, ?string $array_nested_item=null)
 	{
 		if(
 			($array_nested_item === null) &&

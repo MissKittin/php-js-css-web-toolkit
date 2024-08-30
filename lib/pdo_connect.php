@@ -54,7 +54,7 @@
 
 	class pdo_connect_exception extends Exception {}
 
-	function pdo_connect(string $db, callable $on_error=null)
+	function pdo_connect(string $db, ?callable $on_error=null)
 	{
 		/*
 		 * PDO connection helper
@@ -201,7 +201,7 @@
 
 		return $pdo_handler;
 	}
-	function pdo_connect_array(array $db_config, callable $on_error=null, bool $type_hint=true)
+	function pdo_connect_array(array $db_config, ?callable $on_error=null, bool $type_hint=true)
 	{
 		/*
 		 * PDO connection helper

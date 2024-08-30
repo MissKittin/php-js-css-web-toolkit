@@ -36,7 +36,7 @@
 		protected $env=[];
 
 		public function __construct(
-			string $file=null,
+			?string $file=null,
 			bool $call_getenv=true
 		){
 			$this->call_getenv=$call_getenv;

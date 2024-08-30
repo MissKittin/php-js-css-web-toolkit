@@ -1,5 +1,5 @@
 <?php
-	function logrotate(array $files, callable $print_log=null)
+	function logrotate(array $files, ?callable $print_log=null)
 	{
 		/*
 		 * Journalists rotation machine

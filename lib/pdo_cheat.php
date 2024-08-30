@@ -309,7 +309,7 @@
 				$this->_pdo_cheat__save_table_schema($table_schema[0]);
 		}
 
-		public function dump_table(int $limit=null, int $limit_offset=null)
+		public function dump_table(?int $limit=null, ?int $limit_offset=null)
 		{
 			if($this->table_altered)
 				throw new pdo_cheat_exception('The table has been altered - this cheater instance is not valid anymore');

@@ -22,7 +22,7 @@
 
 		public static function generate_report_from_csv(
 			string $input_file,
-			string $output_file=null,
+			?string $output_file=null,
 			bool $full_report=true
 		){
 			if(!class_exists('PDO'))
@@ -110,7 +110,7 @@
 		}
 		public static function generate_report_short_from_csv(
 			string $input_file,
-			string $output_file=null
+			?string $output_file=null
 		){
 			return static::generate_report_from_csv(
 				$input_file,
@@ -470,7 +470,7 @@
 			if($this->pdo_handler->exec('DELETE FROM '.$this->table_name_prefix.'archive') === false)
 				throw new herring_exception('Failed to flush the '.$this->table_name_prefix.'archive');
 		}
-		public function dump_archive_to_csv(string $output_file=null)
+		public function dump_archive_to_csv(?string $output_file=null)
 		{
 			if($this->maintenance_mode !== true)
 				throw new herring_exception('You haven\'t turned on maintenance mode');
@@ -537,7 +537,7 @@
 				return $output;
 		}
 		public function generate_report(
-			string $output_file=null,
+			?string $output_file=null,
 			bool $full_report=true
 		){
 			if($this->maintenance_mode !== true)
@@ -919,7 +919,7 @@
 			if($output_file === null)
 				return $output;
 		}
-		public function generate_report_short(string $output_file=null)
+		public function generate_report_short(?string $output_file=null)
 		{
 			return $this->generate_report($output_file, false);
 		}

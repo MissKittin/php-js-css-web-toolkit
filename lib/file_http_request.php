@@ -203,7 +203,7 @@
 
 			return $this->response_status;
 		}
-		public function get_response_cookie(string $name, string $default_value=null)
+		public function get_response_cookie(string $name, ?string $default_value=null)
 		{
 			if($this->request_context === null)
 				throw new file_http_request_exception('The request was not sent or failed');

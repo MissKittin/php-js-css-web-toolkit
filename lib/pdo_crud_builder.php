@@ -432,7 +432,7 @@
 			$this->sql_query.='ORDER BY '.$what.' ';
 			return $this;
 		}
-		public function join(string $method, string $what, string $on=null)
+		public function join(string $method, string $what, ?string $on=null)
 		{
 			switch($method)
 			{
@@ -478,7 +478,7 @@
 			$this->sql_query.='DESC ';
 			return $this;
 		}
-		public function limit(int $param, int $offset=null)
+		public function limit(int $param, ?int $offset=null)
 		{
 			if($offset === null)
 			{
@@ -490,7 +490,7 @@
 
 			return $this;
 		}
-		public function fetch_first(int $param, string $rows_param='ROWS ONLY', int $offset=null, string $offset_param='ROWS')
+		public function fetch_first(int $param, string $rows_param='ROWS ONLY', ?int $offset=null, string $offset_param='ROWS')
 		{
 			if($offset === null)
 			{
@@ -502,7 +502,7 @@
 
 			return $this;
 		}
-		public function fetch_first_percent(int $param, string $rows_param='ROWS ONLY', int $offset=null, string $offset_param='ROWS')
+		public function fetch_first_percent(int $param, string $rows_param='ROWS ONLY', ?int $offset=null, string $offset_param='ROWS')
 		{
 			if($offset === null)
 			{
@@ -514,7 +514,7 @@
 
 			return $this;
 		}
-		public function fetch_next(int $param, string $rows_param='ROWS ONLY', int $offset=null, string $offset_param='ROWS')
+		public function fetch_next(int $param, string $rows_param='ROWS ONLY', ?int $offset=null, string $offset_param='ROWS')
 		{
 			if($offset === null)
 			{
@@ -526,7 +526,7 @@
 
 			return $this;
 		}
-		public function fetch_next_percent(int $param, string $rows_param='ROWS ONLY', int $offset=null, string $offset_param='ROWS')
+		public function fetch_next_percent(int $param, string $rows_param='ROWS ONLY', ?int $offset=null, string $offset_param='ROWS')
 		{
 			if($offset === null)
 			{
@@ -696,7 +696,7 @@
 
 			return $stmt;
 		}
-		public function table_dump(string $table_name, int $limit=null, int $limit_offset=null)
+		public function table_dump(string $table_name, ?int $limit=null, ?int $limit_offset=null)
 		{
 			$this->flush_all();
 

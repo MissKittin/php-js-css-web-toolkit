@@ -23,7 +23,7 @@
 		protected $eof_ctrl_dir="\x50\x4b\x05\x06\x00\x00\x00\x00";
 		protected $old_offset=0;
 
-		public static function set_headers(string $file_name, string $description=null)
+		public static function set_headers(string $file_name, ?string $description=null)
 		{
 			header('Content-Type: application/octet-stream');
 			header('Content-Disposition: attachment; filename='.$file_name);

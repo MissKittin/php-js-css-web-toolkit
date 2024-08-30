@@ -1,5 +1,5 @@
 <?php
-	function http_basic_auth(string $username, string $password, string $realm, callable $error_callback=null)
+	function http_basic_auth(string $username, string $password, string $realm, ?callable $error_callback=null)
 	{
 		/*
 		 * Request and validate basic HTTP authentication

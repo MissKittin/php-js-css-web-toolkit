@@ -269,7 +269,7 @@
 		{
 			return $this->http_headers;
 		}
-		public function get_cookie(string $name, string $default_value=null)
+		public function get_cookie(string $name, ?string $default_value=null)
 		{
 			if(!empty($this->http_cookies))
 			{

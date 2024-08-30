@@ -96,7 +96,7 @@
 
 			return $this;
 		}
-		public function add_error_message(string $message=null)
+		public function add_error_message(?string $message=null)
 		{
 			if($message === null)
 				unset($this->registry['error_message']);

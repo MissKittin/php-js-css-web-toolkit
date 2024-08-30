@@ -188,8 +188,8 @@
 	}
 	function captcha_imagick(
 		string $encoding='jpeg',
-		string $token_image_font=null,
-		int $token_image_font_size=null
+		?string $token_image_font=null,
+		?int $token_image_font_size=null
 	){
 		/*
 		 * Generates a token and a 100x20px image
@@ -259,7 +259,7 @@
 	}
 	function captcha_imagick2(
 		string $encoding='jpeg',
-		string $token_image_font=null,
+		?string $token_image_font=null,
 		int $token_image_font_size=20
 	){
 		/*

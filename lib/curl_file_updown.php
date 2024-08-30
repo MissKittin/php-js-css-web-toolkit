@@ -133,7 +133,7 @@
 		}
 		function curl_file_download(
 			string $url,
-			string $destination=null,
+			?string $destination=null,
 			array $params=[],
 			array $curl_opts=[]
 		){

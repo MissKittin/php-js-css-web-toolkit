@@ -13,7 +13,7 @@
 
 		if(!function_exists('mb_chr'))
 		{
-			function mb_chr(int $code, string $encoding=null)
+			function mb_chr(int $code, ?string $encoding=null)
 			{
 				if(0x80 > $code %= 0x200000)
 					$s=chr($code);
@@ -53,7 +53,7 @@
 
 		if(!function_exists('mb_ord'))
 		{
-			function mb_ord(string $s, string $encoding=null)
+			function mb_ord(string $s, ?string $encoding=null)
 			{
 				if($encoding === null)
 					$encoding=mb_internal_encoding();
@@ -109,7 +109,7 @@
 
 		if(!function_exists('mb_scrub'))
 		{
-			function mb_scrub(string $string, string $encoding=null)
+			function mb_scrub(string $string, ?string $encoding=null)
 			{
 				if($encoding === null)
 					$encoding=mb_internal_encoding();
@@ -128,7 +128,7 @@
 
 		if(!function_exists('mb_str_split'))
 		{
-			function mb_str_split(string $string, int $split_length=1, string $encoding=null)
+			function mb_str_split(string $string, int $split_length=1, ?string $encoding=null)
 			{
 				if(
 					($string !== null) &&
@@ -228,7 +228,7 @@
 				int $length,
 				string $pad_string=' ',
 				int $pad_type=STR_PAD_RIGHT,
-				string $encoding=null
+				?string $encoding=null
 			): string {
 				if(!in_array($pad_type, [STR_PAD_RIGHT, STR_PAD_LEFT, STR_PAD_BOTH], true))
 					throw new ValueError('mb_str_pad(): Argument #4 ($pad_type) must be STR_PAD_LEFT, STR_PAD_RIGHT, or STR_PAD_BOTH');

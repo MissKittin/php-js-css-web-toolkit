@@ -49,7 +49,7 @@
 
 	class redis_connect_exception extends Exception {}
 
-	function redis_connect(string $db, callable $on_error=null)
+	function redis_connect(string $db, ?callable $on_error=null)
 	{
 		/*
 		 * Redis connection helper
@@ -123,7 +123,7 @@
 
 		return redis_connect_array($db_config, $on_error, false);
 	}
-	function redis_connect_array(array $db_config, callable $on_error=null, bool $type_hint=true)
+	function redis_connect_array(array $db_config, ?callable $on_error=null, bool $type_hint=true)
 	{
 		/*
 		 * Redis connection helper

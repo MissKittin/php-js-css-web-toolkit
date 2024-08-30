@@ -81,7 +81,7 @@
 
 		protected $strings=[];
 
-		public static function from_json(string $json, string $language=null)
+		public static function from_json(string $json, ?string $language=null)
 		{
 			$json=trim($json);
 

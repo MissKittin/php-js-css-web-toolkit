@@ -145,8 +145,8 @@
 		}
 
 		public static function login_callback(
-			string $input_login=null,
-			string $input_password=null,
+			?string $input_login=null,
+			?string $input_password=null,
 			callable $callback
 		){
 			if(session_status() !== PHP_SESSION_ACTIVE)
@@ -172,8 +172,8 @@
 			return false;
 		}
 		public static function login_single(
-			string $input_login=null,
-			string $input_password=null,
+			?string $input_login=null,
+			?string $input_password=null,
 			string $login,
 			string $password
 		){
@@ -190,8 +190,8 @@
 			);
 		}
 		public static function login_multi(
-			string $input_login=null,
-			string $input_password=null,
+			?string $input_login=null,
+			?string $input_password=null,
 			array $login_array
 		){
 			return self::login_callback(
@@ -219,7 +219,7 @@
 		}
 		public static function is_logged(
 			bool $session_regenerate=true,
-			callable $on_check_fail=null
+			?callable $on_check_fail=null
 		){
 			if(session_status() !== PHP_SESSION_ACTIVE)
 				throw new login_exception('Session not started');

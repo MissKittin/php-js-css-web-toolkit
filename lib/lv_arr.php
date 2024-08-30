@@ -3389,7 +3389,7 @@
 		lv_arr_forget($array, $keys);
 		return $array;
 	}
-	function lv_arr_first(array $array, callable $callback=null, $default=null)
+	function lv_arr_first(array $array, ?callable $callback=null, $default=null)
 	{
 		if(is_null($callback))
 		{
@@ -3659,7 +3659,7 @@
 
 		return $items;
 	}
-	function lv_arr_last(array $array, callable $callback=null, $default=null)
+	function lv_arr_last(array $array, ?callable $callback=null, $default=null)
 	{
 		if(is_null($callback))
 		{
@@ -3774,7 +3774,7 @@
 	{
 		return http_build_query($array, '', '&', PHP_QUERY_RFC3986);
 	}
-	function lv_arr_random(array $array, int $number=null, bool $preserve_keys=false)
+	function lv_arr_random(array $array, ?int $number=null, bool $preserve_keys=false)
 	{
 		$requested=1;
 		$count=count($array);
@@ -3864,7 +3864,7 @@
 
 		return $array;
 	}
-	function lv_arr_shuffle(array $array, int $seed=null)
+	function lv_arr_shuffle(array $array, ?int $seed=null)
 	{
 		if(is_null($seed))
 		{
@@ -4174,13 +4174,13 @@
 	interface lv_arr_enumerable extends Countable, IteratorAggregate, JsonSerializable
 	{
 		// trait conditionable -> lv_arr_enumerates_values
-			public function unless($value, callable $callback, callable $default=null);
-			public function when($value, callable $callback=null, callable $default=null);
+			public function unless($value, callable $callback, ?callable $default=null);
+			public function when($value, ?callable $callback=null, ?callable $default=null);
 
 		// lv_arr_enumerates_values
 			public static function empty();
 			public static function make(array $items=[]);
-			public static function times(int $number, callable $callback=null);
+			public static function times(int $number, ?callable $callback=null);
 			public static function unwrap($value);
 			public static function wrap($value);
 
@@ -4192,8 +4192,8 @@
 			public function each(callable $callback);
 			public function each_spread(callable $callback);
 			public function escape_when_casting_to_string(bool $escape=true);
-			public function every($key, string $operator=null, $value=null);
-			public function first_where($key, string $operator=null, $value=null);
+			public function every($key, ?string $operator=null, $value=null);
+			public function first_where($key, ?string $operator=null, $value=null);
 			public function flat_map(callable $callback);
 			public function for_page(int $page, int $per_page);
 			public function is_not_empty();
@@ -4202,7 +4202,7 @@
 			public function map_to_groups(callable $callback);
 			public function max($callback=null);
 			public function min($callback=null);
-			public function partition($key, string $operator=null, $value=null);
+			public function partition($key, ?string $operator=null, $value=null);
 			public function percentage(callable $callback, int $precision=2);
 			public function pipe(callable $callback);
 			public function pipe_into(string $class);
@@ -4210,18 +4210,18 @@
 			public function reduce(callable $callback, $initial=null);
 			public function reduce_spread(callable $callback, ...$initial);
 			public function reject($callback=true);
-			public function some($key, string $operator=null, $value=null);
+			public function some($key, ?string $operator=null, $value=null);
 			public function sum($callback=null);
 			public function tap(callable $callback);
 			public function to_array();
 			public function to_json(int $options=0);
 			public function unique_strict($key=null);
-			public function unless_empty(callable $callback, callable $default=null);
-			public function unless_not_empty(callable $callback, callable $default=null);
+			public function unless_empty(callable $callback, ?callable $default=null);
+			public function unless_not_empty(callable $callback, ?callable $default=null);
 			public function value(string $key, $default=null);
-			public function when_empty(callable $callback, callable $default=null);
-			public function when_not_empty(callable $callback, callable $default=null);
-			public function where($key, string $operator=null, $value=null);
+			public function when_empty(callable $callback, ?callable $default=null);
+			public function when_not_empty(callable $callback, ?callable $default=null);
+			public function where($key, ?string $operator=null, $value=null);
 			public function where_strict(string $key, $value);
 			public function where_between(string $key, array $values);
 			public function where_in(string $key, $values, bool $strict=false);
@@ -4230,8 +4230,8 @@
 			public function where_not_between(string $key, array $values);
 			public function where_not_in(string $key, $values, bool $strict=false);
 			public function where_not_in_strict(string $key, $values);
-			public function where_not_null(string $key=null);
-			public function where_null(string $key=null);
+			public function where_not_null(?string $key=null);
+			public function where_null(?string $key=null);
 
 		// collections
 			public static function range(int $from, int $to);
@@ -4243,7 +4243,7 @@
 			public function collapse();
 			public function combine($values);
 			public function concat(array $source);
-			public function contains($key, string $operator=null, $value=null);
+			public function contains($key, ?string $operator=null, $value=null);
 			public function contains_one_item();
 			public function contains_strict($key, $value=null);
 			public function count(): int;
@@ -4255,21 +4255,21 @@
 			public function diff_keys($items);
 			public function diff_keys_using($items, callable $callback);
 			public function diff_using($items, callable $callback);
-			public function doesnt_contain($key, string $operator=null, $value=null);
+			public function doesnt_contain($key, ?string $operator=null, $value=null);
 			public function dot();
 			public function duplicates($callback=null, bool $strict=false);
-			public function duplicates_strict(callable $callback=null);
+			public function duplicates_strict(?callable $callback=null);
 			public function except($keys);
-			public function filter(callable $callback=null);
-			public function first(callable $callback=null, $default=null);
-			public function first_or_fail($key=null, string $operator=null, $value=null);
+			public function filter(?callable $callback=null);
+			public function first(?callable $callback=null, $default=null);
+			public function first_or_fail($key=null, ?string $operator=null, $value=null);
 			public function flatten($depth=INF);
 			public function flip();
 			public function get($key, $default=null);
 			public function group_by($group_by, bool $preserve_keys=false);
 			public function has($key);
 			public function has_any($key);
-			public function implode($value, string $glue=null);
+			public function implode($value, ?string $glue=null);
 			public function intersect($items);
 			public function intersect_assoc($items);
 			public function intersect_assoc_using($items, callable $callback);
@@ -4279,7 +4279,7 @@
 			public function join(string $glue, string $final_glue='');
 			public function key_by($key_by);
 			public function keys();
-			public function last(callable $callback=null, $default=null);
+			public function last(?callable $callback=null, $default=null);
 			public function map(callable $callback);
 			public function map_to_dictionary(callable $callback);
 			public function map_with_keys(callable $callback);
@@ -4290,7 +4290,7 @@
 			public function nth(int $step, int $offset=0);
 			public function only($keys);
 			public function pad(int $size, $value);
-			public function pluck($value, string $key=null);
+			public function pluck($value, ?string $key=null);
 			public function random($number=null);
 			public function replace($items);
 			public function replace_recursive($items);
@@ -4301,9 +4301,9 @@
 			public function skip(int $count);
 			public function skip_until($value);
 			public function skip_while($value);
-			public function slice(int $offset, int $length=null);
+			public function slice(int $offset, ?int $length=null);
 			public function sliding(int $size=2, int $step=1);
-			public function sole($key=null, string $operator=null, $value=null);
+			public function sole($key=null, ?string $operator=null, $value=null);
 			public function sort($callback=null);
 			public function sort_by($callback, int $options=SORT_REGULAR, bool $descending=false);
 			public function sort_by_desc($callback, int $options=SORT_REGULAR);
@@ -4396,7 +4396,7 @@
 				};
 			}
 
-			public function unless($value=null, callable $callback=null, callable $default=null)
+			public function unless($value=null, ?callable $callback=null, ?callable $default=null)
 			{
 				if($value instanceof Closure)
 					$value=$value($this);
@@ -4414,7 +4414,7 @@
 
 				return $this;
 			}
-			public function when($value=null, callable $callback=null, callable $default=null)
+			public function when($value=null, ?callable $callback=null, ?callable $default=null)
 			{
 				if($value instanceof Closure)
 					$value=$value($this);
@@ -4449,7 +4449,7 @@
 		{
 			return new static($items);
 		}
-		public static function times(int $number, callable $callback=null)
+		public static function times(int $number, ?callable $callback=null)
 		{
 			if($number < 1)
 				return new static();
@@ -4545,7 +4545,7 @@
 				return $value;
 			};
 		}
-		protected function operator_for_where($key, /*string*/ $operator=null, $value=null)
+		protected function operator_for_where($key, /*?string*/ $operator=null, $value=null)
 		{
 			if($this->use_as_callable($key))
 				return $key;
@@ -4645,7 +4645,7 @@
 			$this->escape_when_casting_to_string=$escape;
 			return $this;
 		}
-		public function every($key, string $operator=null, $value=null)
+		public function every($key, ?string $operator=null, $value=null)
 		{
 			if(func_num_args() === 1)
 			{
@@ -4660,7 +4660,7 @@
 
 			return (__METHOD__)($this->operator_for_where(...func_get_args()));
 		}
-		public function first_where($key, string $operator=null, $value=null)
+		public function first_where($key, ?string $operator=null, $value=null)
 		{
 			return $this->first($this->operator_for_where(...func_get_args()));
 		}
@@ -4744,7 +4744,7 @@
 					return $result;
 				});
 		}
-		public function partition($key, string $operator=null, $value=null)
+		public function partition($key, ?string $operator=null, $value=null)
 		{
 			$passed=[];
 			$failed=[];
@@ -4829,7 +4829,7 @@
 				return ($value != $callback);
 			});
 		}
-		public function some($key, string $operator=null, $value=null)
+		public function some($key, ?string $operator=null, $value=null)
 		{
 			return $this->contains(...func_get_args());
 		}
@@ -4867,11 +4867,11 @@
 		{
 			return $this->unique($key, true);
 		}
-		public function unless_empty(callable $callback, callable $default=null)
+		public function unless_empty(callable $callback, ?callable $default=null)
 		{
 			return $this->when_not_empty($callback, $default);
 		}
-		public function unless_not_empty(callable $callback, callable $default=null)
+		public function unless_not_empty(callable $callback, ?callable $default=null)
 		{
 			return $this->when_empty($callback, $default);
 		}
@@ -4882,15 +4882,15 @@
 
 			return lv_arr_value($default);
 		}
-		public function when_empty(callable $callback, callable $default=null)
+		public function when_empty(callable $callback, ?callable $default=null)
 		{
 			return $this->when($this->is_empty(), $callback, $default);
 		}
-		public function when_not_empty(callable $callback, callable $default=null)
+		public function when_not_empty(callable $callback, ?callable $default=null)
 		{
 			return $this->when($this->is_not_empty(), $callback, $default);
 		}
-		public function where($key, string $operator=null, $value=null)
+		public function where($key, ?string $operator=null, $value=null)
 		{
 			return $this->filter($this->operator_for_where(...func_get_args()));
 		}
@@ -4952,11 +4952,11 @@
 		{
 			return $this->where_not_in($key, $values, true);
 		}
-		public function where_not_null(string $key=null)
+		public function where_not_null(?string $key=null)
 		{
 			return $this->where($key, '!==', null);
 		}
-		public function where_null(string $key=null)
+		public function where_null(?string $key=null)
 		{
 			return $this->where_strict($key, null);
 		}
@@ -5130,7 +5130,7 @@
 
 			return $result;
 		}
-		public function contains($key, string $operator=null, $value=null)
+		public function contains($key, ?string $operator=null, $value=null)
 		{
 			if(func_num_args() === 1)
 			{
@@ -5228,7 +5228,7 @@
 				$callback
 			));
 		}
-		public function doesnt_contain($key, string $operator=null, $value=null)
+		public function doesnt_contain($key, ?string $operator=null, $value=null)
 		{
 			return (!$this->contains(...func_get_args()));
 		}
@@ -5258,7 +5258,7 @@
 
 			return $duplicates;
 		}
-		public function duplicates_strict(callable $callback=null)
+		public function duplicates_strict(?callable $callback=null)
 		{
 			return $this->duplicates($callback, true);
 		}
@@ -5275,18 +5275,18 @@
 
 			return new static(lv_arr_except($this->items, $keys));
 		}
-		public function filter(callable $callback=null)
+		public function filter(?callable $callback=null)
 		{
 			if($callback === null)
 				return new static(array_filter($this->items));
 
 			return new static(lv_arr_where($this->items, $callback));
 		}
-		public function first(callable $callback=null, $default=null)
+		public function first(?callable $callback=null, $default=null)
 		{
 			return lv_arr_first($this->items, $callback, $default);
 		}
-		public function first_or_fail($key=null, string $operator=null, $value=null)
+		public function first_or_fail($key=null, ?string $operator=null, $value=null)
 		{
 			$placeholder=new class(){};
 			$filter=$key;
@@ -5406,7 +5406,7 @@
 
 			return false;
 		}
-		public function implode($value, string $glue=null)
+		public function implode($value, ?string $glue=null)
 		{
 			if($glue === null)
 				$glue='';
@@ -5509,7 +5509,7 @@
 		{
 			return new static(array_keys($this->items));
 		}
-		public function last(callable $callback=null, $default=null)
+		public function last(?callable $callback=null, $default=null)
 		{
 			return lv_arr_last($this->items, $callback, $default);
 		}
@@ -5651,7 +5651,7 @@
 		{
 			return new static(array_pad($this->items, $size, $value));
 		}
-		public function pluck($value, string $key=null)
+		public function pluck($value, ?string $key=null)
 		{
 			return new static(lv_arr_pluck($this->items, $value, $key));
 		}
@@ -5792,7 +5792,7 @@
 			->	skip_while($value)
 			->	all());
 		}
-		public function slice(int $offset, int $length=null)
+		public function slice(int $offset, ?int $length=null)
 		{
 			return new static(array_slice($this->items, $offset, $length, true));
 		}
@@ -5804,7 +5804,7 @@
 				return ($this->slice(($number-1)*$step, $size));
 			});
 		}
-		public function sole($key=null, string $operator=null, $value=null)
+		public function sole($key=null, ?string $operator=null, $value=null)
 		{
 			$filter=$key;
 
@@ -5910,7 +5910,7 @@
 
 			return new static($items);
 		}
-		public function splice(int $offset, int $length=null, array $replacement=[])
+		public function splice(int $offset, ?int $length=null, array $replacement=[])
 		{
 			if(func_num_args() === 1)
 				return new static(array_splice($this->items, $offset));
@@ -6250,7 +6250,7 @@
 				yield from $source;
 			});
 		}
-		public function contains($key, string $operator=null, $value=null)
+		public function contains($key, ?string $operator=null, $value=null)
 		{
 			if(
 				(func_num_args() === 1) &&
@@ -6352,7 +6352,7 @@
 		{
 			return $this->passthru('diff_using', func_get_args());
 		}
-		public function doesnt_contain($key, string $operator=null, $value=null)
+		public function doesnt_contain($key, ?string $operator=null, $value=null)
 		{
 			return (!$this->contains(...func_get_args()));
 		}
@@ -6364,7 +6364,7 @@
 		{
 			return $this->passthru('duplicates', func_get_args());
 		}
-		public function duplicates_strict(callable $callback=null)
+		public function duplicates_strict(?callable $callback=null)
 		{
 			return $this->passthru('duplicates_strict', func_get_args());
 		}
@@ -6376,7 +6376,7 @@
 		{
 			return $this->passthru('except', func_get_args());
 		}
-		public function filter(callable $callback=null)
+		public function filter(?callable $callback=null)
 		{
 			if(is_null($callback))
 				$callback=function($value)
@@ -6390,7 +6390,7 @@
 						yield $key=>$value;
 			});
 		}
-		public function first(callable $callback=null, $default=null)
+		public function first(?callable $callback=null, $default=null)
 		{
 			$iterator=$this->get_iterator();
 
@@ -6408,7 +6408,7 @@
 
 			return lv_arr_value($default);
 		}
-		public function first_or_fail($key=null, string $operator=null, $value=null)
+		public function first_or_fail($key=null, ?string $operator=null, $value=null)
 		{
 			$filter=$key;
 
@@ -6494,7 +6494,7 @@
 
 			return false;
 		}
-		public function implode($value, string $glue=null)
+		public function implode($value, ?string $glue=null)
 		{
 			return $this->collect()->implode(...func_get_args());
 		}
@@ -6549,7 +6549,7 @@
 					yield $key;
 			});
 		}
-		public function last(callable $callback=null, $default=null)
+		public function last(?callable $callback=null, $default=null)
 		{
 			$needle=new class(){};
 			$placeholder=$needle;
@@ -6659,7 +6659,7 @@
 					yield $value;
 			});
 		}
-		public function pluck($value, string $key=null)
+		public function pluck($value, ?string $key=null)
 		{
 			return new static(function() use($value, $key){
 				[$value, $key]=$this->explode_pluck_parameters($value, $key);
@@ -6865,7 +6865,7 @@
 				}
 			});
 		}
-		public function slice(int $offset, int $length=null)
+		public function slice(int $offset, ?int $length=null)
 		{
 			if(($offset < 0) || ($length < 0))
 				return $this->passthru('slice', func_get_args());
@@ -6911,7 +6911,7 @@
 				}
 			});
 		}
-		public function sole($key=null, string $operator=null, $value=null)
+		public function sole($key=null, ?string $operator=null, $value=null)
 		{
 			$filter=$key;
 

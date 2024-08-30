@@ -17,7 +17,7 @@
 		ob_start('ob_sfucator::run');
 	 */
 
-	function ob_sfucator(string $title=null, string $label=null)
+	function ob_sfucator(?string $title=null, ?string $label=null)
 	{
 		if($title !== null)
 			ob_sfucator::set_title($title);
