@@ -3,12 +3,12 @@
 	<head>
 		<title><?php echo login_com_reg_view::_()['loading_title']; ?></title>
 		<meta charset="utf-8">
-		<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'self'<?php if(login_com_reg_view::_()['inline_style']) echo ' \'nonce-mainstyle\'';?>;">
+		<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'self'<?php if(login_com_reg_view::_()['inline_style']) echo ' \'nonce-'.login_com_reg::_()['inline_style_nonce'].'\''; ?>;">
 		<meta name="viewport" content="width=device-width, initial-scale=1">
 		<?php
 			if(login_com_reg_view::_()['inline_style'])
 			{
-				?><style nonce="mainstyle"><?php
+				?><style nonce="<?php echo login_com_reg::_()['inline_style_nonce']; ?>"><?php
 					if(is_dir(__DIR__.'/../assets/'.login_com_reg_view::_()['login_style']))
 						foreach(
 							array_diff(

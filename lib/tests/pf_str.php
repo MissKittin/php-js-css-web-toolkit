@@ -9,6 +9,7 @@
 	 * Warning:
 	 *  has_php_close_tag.php library is required
 	 *  include_into_namespace.php library is required
+	 *  pf_ValueError.php library is required
 	 */
 
 	namespace Test
@@ -37,7 +38,8 @@
 
 		foreach([
 			'has_php_close_tag.php',
-			'include_into_namespace.php'
+			'include_into_namespace.php',
+			'pf_ValueError.php'
 		] as $library){
 			echo ' -> Including '.$library;
 				if(is_file(__DIR__.'/../lib/'.$library))
@@ -63,6 +65,10 @@
 				}
 			echo ' [ OK ]'.PHP_EOL;
 		}
+
+		echo ' -> Mocking classes';
+			class ValueError extends \ValueError {}
+		echo ' [ OK ]'.PHP_EOL;
 
 		echo ' -> Including '.basename(__FILE__);
 			if(is_file(__DIR__.'/../lib/'.basename(__FILE__)))
@@ -133,6 +139,41 @@
 				else
 					echo ' [ OK ]'.PHP_EOL;
 
+		echo ' -> Testing str_decrement';
+			try {
+				str_decrement('A');
+				echo ' [FAIL]';
+				$failed=true;
+			} catch(ValueError $error) {
+				echo ' [ OK ]';
+			}
+			try {
+				if(str_decrement('ABC') === 'ABB')
+					echo ' [ OK ]';
+				else
+				{
+					echo ' [FAIL]';
+					$failed=true;
+				}
+				if(str_decrement('ZA') === 'YZ')
+					echo ' [ OK ]';
+				else
+				{
+					echo ' [FAIL]';
+					$failed=true;
+				}
+				if(str_decrement('AA') === 'Z')
+					echo ' [ OK ]'.PHP_EOL;
+				else
+				{
+					echo ' [FAIL]'.PHP_EOL;
+					$failed=true;
+				}
+			} catch(ValueError $error) {
+				echo ' [FAIL] (caught)'.PHP_EOL;
+				$failed=true;
+			}
+
 		echo ' -> Testing str_ends_with'.PHP_EOL;
 			echo '  -> returns true';
 				if(str_ends_with('abcdefghi', 'ghi'))
@@ -164,6 +205,29 @@
 				}
 				else
 					echo ' [ OK ]'.PHP_EOL;
+
+		echo ' -> Testing str_increment';
+			if(str_increment('ABC') === 'ABD')
+				echo ' [ OK ]';
+			else
+			{
+				echo ' [FAIL]';
+				$failed=true;
+			}
+			if(str_increment('DZ') === 'EA')
+				echo ' [ OK ]';
+			else
+			{
+				echo ' [FAIL]';
+				$failed=true;
+			}
+			if(str_increment('ZZ') === 'AAA')
+				echo ' [ OK ]'.PHP_EOL;
+			else
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				$failed=true;
+			}
 
 		echo ' -> Testing str_starts_with'.PHP_EOL;
 			echo '  -> returns true';

@@ -126,14 +126,27 @@
 		if(!is_dir(login_com_reg_view::_()['templates_dir'].'/'.login_com_reg_view::_()['template']))
 			throw new login_com_exception(login_com_reg_view::_()['template'].' template does not exist');
 
+		if(login_com_reg_view::_()['inline_style'])
+		{
+			if(!function_exists('rand_str_secure'))
+			{
+				if(file_exists(__DIR__.'/lib/rand_str.php'))
+					require __DIR__.'/lib/rand_str.php';
+				else if(file_exists(__DIR__.'/../../lib/rand_str.php'))
+					require __DIR__.'/../../lib/rand_str.php';
+				else
+					throw new login_com_exception('rand_str.php library not found');
+			}
+
+			login_com_reg::_()['inline_style_nonce']=rand_str_secure(32);
+			login_com_reg_csp::add('style-src', '\'nonce-'.login_com_reg::_()['inline_style_nonce'].'\'');
+		}
+
 		if(
 			(login_com_reg_view::_()['template'] === 'materialized') &&
 			(login_com_reg_view::_()['login_style'] === 'login_default_bright.css')
 		)
 			login_com_reg_view::_()['login_style']='login_materialized.css';
-
-		if(login_com_reg_view::_()['inline_style'])
-			login_com_reg_csp::add('style-src', '\'nonce-mainstyle\'');
 
 		foreach(['on_login_prompt', 'on_login_success', 'on_login_failed', 'on_logout'] as $callback)
 			if(!is_callable(login_com_reg_config::_()[$callback]))
@@ -205,12 +218,9 @@
 
 					return true;
 				}
-				else
-				{
-					login_com_reg::_()['wrong_credentials']=true;
-					login_com_reg_config::_()['on_login_failed']();
-				}
 
+				login_com_reg::_()['wrong_credentials']=true;
+				login_com_reg_config::_()['on_login_failed']();
 				login_com_reg::_()['result']=null;
 			}
 		}
@@ -228,7 +238,8 @@
 
 			return true;
 		}
-		else if(check_session('_com_login_remember_me') === true)
+
+		if(check_session('_com_login_remember_me') === true)
 		{
 			session_write_close();
 			login_com_reg_config::_()['session_reload'](
@@ -248,6 +259,21 @@
 			(!file_exists(login_com_reg_view::_()['favicon']))
 		)
 			throw new login_com_exception(login_com_reg_view::_()['favicon'].' does not exist');
+
+		if(login_com_reg_view::_()['inline_style'])
+		{
+			if(!function_exists('rand_str_secure'))
+			{
+				if(file_exists(__DIR__.'/lib/rand_str.php'))
+					require __DIR__.'/lib/rand_str.php';
+				else if(file_exists(__DIR__.'/../../lib/rand_str.php'))
+					require __DIR__.'/../../lib/rand_str.php';
+				else
+					throw new login_com_exception('rand_str.php library not found');
+			}
+
+			login_com_reg::_()['inline_style_nonce']=rand_str_secure(32);
+		}
 
 		login_refresh('require-file', login_com_reg_view::_()['templates_dir'].'/'.login_com_reg_view::_()['template'].'/views/reload.php');
 	}

@@ -101,10 +101,10 @@
 			iterator_to_array(scandir_recursive('.', true)),
 			"array(0=>'1',1=>'A/1',2=>'A/2',3=>'A/3',4=>'B/1',5=>'B/2',6=>'B/3',)"
 		))
-			echo ' [ OK ]';
+			echo ' [ OK ]'.PHP_EOL;
 		else
 		{
-			echo ' [FAIL]';
+			echo ' [FAIL]'.PHP_EOL;
 			$failed=true;
 		}
 

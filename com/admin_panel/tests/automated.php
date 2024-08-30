@@ -1,8 +1,8 @@
 <?php
 	$test_hashes=[
-		'notfound'=>'28d91b7627af1f8cbc9b8540467e37dc',
-		'default'=>'35ac74a13c4dcfb215b1ba8a6e9b8854',
-		'dashboard'=>'64b68c520b95496ba9b591db39dfb6e8',
+		'notfound'=>'eff3f25091d823463f1d1d2af19ed15e',
+		'default'=>'8785071b1cddbef5727d26dcdede9a3b',
+		'dashboard'=>'109af2ece7cda0cfe5d4afa88468dac5',
 		'posts-new'=>'586f0f5283ad192bcfcb2c37c50ea38f',
 		'posts-edit'=>'0a0ec05f73b541d9e51e4c57222ed50f',
 		'posts-del'=>'94e06b10d012424b6490103825f9b121',
@@ -12,7 +12,7 @@
 
 	foreach(['assets_compiler.php', 'rmdir_recursive.php'] as $library)
 	{
-		echo ' Including '.$library;
+		echo ' -> Including '.$library;
 			if(file_exists(__DIR__.'/../lib/'.$library))
 			{
 				if(@(include __DIR__.'/../lib/'.$library) === false)

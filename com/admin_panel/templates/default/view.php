@@ -4,10 +4,13 @@
 		<title><?php echo $this->registry['_title']; ?></title>
 		<meta charset="utf-8">
 		<meta http-equiv="Content-Security-Policy" content="<?php
-			if($this->registry['_inline_assets'])
+			if($this->registry['_inline_assets'][0])
 			{
-				$this->registry['_csp_header']['script-src'][]='\'nonce-mainscript\'';
-				$this->registry['_csp_header']['style-src'][]='\'nonce-mainstyle\'';
+				$this->registry['_inline_assets'][1]=rand_str_secure(32);
+				$this->registry['_inline_assets'][2]=rand_str_secure(32);
+
+				$this->registry['_csp_header']['script-src'][]='\'nonce-'.$this->registry['_inline_assets'][1].'\'';
+				$this->registry['_csp_header']['style-src'][]='\'nonce-'.$this->registry['_inline_assets'][2].'\'';
 			}
 
 			foreach($this->registry['_csp_header'] as $_csp_param=>$_csp_values)
@@ -22,9 +25,9 @@
 		?>">
 		<meta name="viewport" content="width=device-width, initial-scale=1">
 		<?php
-			if($this->registry['_inline_assets'])
+			if($this->registry['_inline_assets'][0])
 			{
-				?><style nonce="mainstyle"><?php
+				?><style nonce="<?php echo $this->registry['_inline_assets'][2]; ?>"><?php
 					if(is_dir(__DIR__.'/assets/admin_panel_default.css'))
 						foreach(
 							array_diff(
@@ -45,9 +48,9 @@
 					{ ?><link rel="stylesheet" href="<?php echo $_style; ?>"><?php }
 		?>
 		<?php
-			if($this->registry['_inline_assets'])
+			if($this->registry['_inline_assets'][0])
 			{
-				?><script nonce="mainscript"><?php
+				?><script nonce="<?php echo $this->registry['_inline_assets'][1]; ?>"><?php
 					if(is_file(__DIR__.'/assets/admin_panel_default.js'))
 						readfile(__DIR__.'/assets/admin_panel_default.js');
 				?></script><?php

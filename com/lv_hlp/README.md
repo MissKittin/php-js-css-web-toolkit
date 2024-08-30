@@ -65,6 +65,14 @@ Just include the component:
 require './com/lv_hlp/main.php';
 ```
 
+## Hint
+The names of the functions and classes are quite long. To shorten them:
+```
+use lv_hlp_collection as collection;
+use lv_hlp_pluralizer as pluralizer;
+use function lv_str_kebab as kebab;
+```
+
 ## String helpers
 * `lv_hlp_of`  
 	Get a new stringable object from the given string  
@@ -114,7 +122,7 @@ require './com/lv_hlp/main.php';
 		// Inject: alert(&quot;Hello XSS!&quot;);
 
 	**Note:**  
-	tested on CommonMark 1.6.7  
+	tested on CommonMark 1.6.7 and 2.5.3  
 	**Warning:**  
 	`league/commonmark` package is required
 * `lv_str_is_ascii` `lv_hlp_is_ascii`  
@@ -167,7 +175,7 @@ require './com/lv_hlp/main.php';
 		// Inject: alert(&quot;Hello XSS!&quot;);
 
 	**Note:**  
-	tested on CommonMark 1.6.7  
+	tested on CommonMark 1.6.7 and 2.5.3  
 	**Warning:**  
 	`league/commonmark` package is required
 * `lv_str_ordered_uuid` `lv_hlp_ordered_uuid`  
@@ -422,7 +430,7 @@ The component extends the `lv_str_ingable` class to `lv_hlp_ingable`
 			// Inject: alert(&quot;Hello XSS!&quot;);
 
 		**Note:**  
-		tested on CommonMark 1.6.7  
+		tested on CommonMark 1.6.7 and 2.5.3  
 		**Warning:**  
 		`lv_str_inline_markdown` function is required
 	* `is_ascii`  
@@ -486,7 +494,7 @@ The component extends the `lv_str_ingable` class to `lv_hlp_ingable`
 			// Inject: alert(&quot;Hello XSS!&quot;);
 
 		**Note:**  
-		tested on CommonMark 1.6.7  
+		tested on CommonMark 1.6.7 and 2.5.3  
 		**Warning:**  
 		`lv_str_markdown` function is required
 	* `plural`  
@@ -546,7 +554,7 @@ The component extends the `lv_str_ingable` class to `lv_hlp_ingable`
 			lv_hlp_of('12-31-2001')->to_date('m-d-Y');
 
 		**Note:**  
-		tested on Carbon 1.39.1 and 2.72.5  
+		tested on Carbon 1.39.1, 2.72.5 and 3.8.0  
 		**Warning:**  
 		`nesbot/carbon` package is required
 	* `transliterate`  

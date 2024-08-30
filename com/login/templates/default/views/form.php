@@ -16,7 +16,7 @@
 		<?php
 			if(login_com_reg_view::_()['inline_style'])
 			{
-				?><style nonce="mainstyle"><?php
+				?><style nonce="<?php echo login_com_reg::_()['inline_style_nonce']; ?>"><?php
 					if(is_dir(__DIR__.'/../assets/'.login_com_reg_view::_()['login_style']))
 						foreach(
 							array_diff(

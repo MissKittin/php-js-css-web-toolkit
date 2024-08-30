@@ -16,7 +16,7 @@
 		<?php
 			if(login_com_reg_view::_()['inline_style'])
 			{
-				?><style nonce="mainstyle"><?php
+				?><style nonce="<?php echo login_com_reg::_()['inline_style_nonce']; ?>"><?php
 					if(is_file(__DIR__.'/../../../lib/simpleblog_materialized.css'))
 						readfile(__DIR__.'/../../../lib/simpleblog_materialized.css');
 					else if(is_file(__DIR__.'/../../../../../lib/simpleblog_materialized.css'))

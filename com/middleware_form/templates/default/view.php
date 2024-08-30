@@ -16,9 +16,9 @@
 		?>">
 		<meta name="viewport" content="width=device-width, initial-scale=1">
 		<?php
-			if($view['inline_style'])
+			if($view['inline_style'][0])
 			{
-				?><style nonce="mainstyle"><?php
+				?><style nonce="<?php echo $view['inline_style'][1]; ?>"><?php
 				echo $view['middleware_form_style'];
 					if(is_dir(__DIR__.'/assets/'.$view['middleware_form_style']))
 						foreach(

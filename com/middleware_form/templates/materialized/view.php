@@ -16,9 +16,9 @@
 		?>">
 		<meta name="viewport" content="width=device-width, initial-scale=1">
 		<?php
-			if($view['inline_style'])
+			if($view['inline_style'][0])
 			{
-				?><style nonce="mainstyle"><?php
+				?><style nonce="<?php echo $view['inline_style'][1]; ?>"><?php
 					if(is_file(__DIR__.'/../../lib/simpleblog_materialized.css'))
 						readfile(__DIR__.'/../../lib/simpleblog_materialized.css');
 					else if(is_file(__DIR__.'/../../../../lib/simpleblog_materialized.css'))

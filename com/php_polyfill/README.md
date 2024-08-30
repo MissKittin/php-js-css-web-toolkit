@@ -2,11 +2,14 @@
 Backport some features
 
 ## Note
-Throws an `Exception` if the library is not found
+Throws an `php_polyfill_exception` if the library is not found
 
 ## Required libraries
 * `has_php_close_tag.php` (for `mkcache.php`)
 * `pf_getallheaders.php`
+### for older than 8.4
+* `pf_array.php` - `array_all()`, `array_any()`, `array_find()` and `array_find_key()`
+* `pf_mbstring.php` - `mb_lcfirst()` and `mb_ucfirst()`
 ### for older than 8.3
 * `pf_mbstring.php` - `mb_str_pad()`
 * `pf_json_validate.php`
@@ -32,7 +35,8 @@ Throws an `Exception` if the library is not found
 ## Usage
 Just include the component:
 ```
-require './com/php_polyfill/main.php';
+<?php
+	require './com/php_polyfill/main.php';
 ```
 
 ## Cache

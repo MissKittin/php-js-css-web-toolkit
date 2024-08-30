@@ -22,7 +22,12 @@
 		80100=>['array'], // array_is_list()
 		80300=>[
 			'mbstring', // mb_str_pad()
-			'json_validate'
+			'json_validate',
+			'str' // str_decrement() str_increment()
+		],
+		80400=>[
+			'array', // array_all() array_any() array_find() array_find_key()
+			'mbstring' // mb_lcfirst() mb_ucfirst()
 		]
 	];
 ?>

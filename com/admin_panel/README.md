@@ -4,6 +4,7 @@ A small framework
 ## Required libraries
 * `registry.php`
 * `simpleblog_materialized.css` (for materialized template)
+* `rand_str.php` (if `set_inline_assets(true)` was used)
 * `assets_compiler.php` (for tests)
 * `rmdir_recursive.php` (for tests)
 

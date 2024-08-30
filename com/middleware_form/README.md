@@ -5,6 +5,7 @@ You can specify any form
 * `check_var.php`
 * `sec_csrf.php`
 * `simpleblog_materialized.css` (for materialized template)
+* `rand_str.php` (if `add_config('inline_style', true)` was used)
 
 ## Note
 Throws an `middleware_form_exception` on error

@@ -25,7 +25,7 @@
 			#richTextEditorBoxWithoutCallbacks {
 				border: 1px solid black;
 			}
-			#richTextEditorBox textarea
+			#richTextEditorBox textarea,
 			#richTextEditorBoxWithoutCallbacks textarea {
 				height: 400px;
 				width: 100%;
@@ -44,33 +44,53 @@
 				?>
 
 				richTextEditor(document.getElementById('richTextEditorBox'), 'richTextEditorOutput', {
-					'sourceId':'richTextEditorOutput', // textarea id
-					'content':'Initial content', // JSON encoded string
-					'height':'400px', // same as in styles
-					'linkCallback':function()
+					'sourceId': 'richTextEditorOutput', // textarea id
+					'content': 'Initial content', // JSON encoded string
+					'height': '400px', // same as in styles
+					'linkCallback': function()
 					{
 						return 'https://google.com';
 					},
-					'imgCallback':function()
+					'imgCallback': function()
 					{
 						return [
 							'http://localhost:8080/image.jpg',
 							'Alternate text'
 						];
 					},
-					'fontColorCallback':function()
+					'fontColorCallback': function()
 					{
 						return 'blue';
 					},
-					'backColorCallback':function()
+					'backColorCallback': function()
 					{
 						return '#ff0000';
+					},
+					'buttonLabels': {
+						'bold': 'Grube',
+						'italic': 'Włoskie',
+						'underline': 'Podkreślome',
+						'left': 'Lewe',
+						'center': 'Środkowe',
+						'right': 'Prawe',
+						'paragraph': 'Paragraf',
+						'addLink': 'Link',
+						'removeLink': 'Usuń link',
+						'addImg': 'Obrazek',
+						'addOl': 'Lista numerowana',
+						'addUl': 'Lista nienumerowana',
+						'src': 'Źródło',
+						'heading': 'Nagłówek',
+						'fontSize': 'Wielkość czcionki',
+						'fColor': 'Kolor czcionki',
+						'bColor': 'Kolor tła',
+						'removeFormat': 'Usuń formatowanie'
 					}
 				});
 
 				richTextEditor(document.getElementById('richTextEditorBoxWithoutCallbacks'), 'richTextEditorOutputWithoutCallbacks', {
-					'sourceId':'richTextEditorOutputWithoutCallbacks', // textarea id
-					'height':'400px' // same as in styles
+					'sourceId': 'richTextEditorOutputWithoutCallbacks', // textarea id
+					'height': '400px' // same as in styles
 				});
 			}, false);
 		</script>

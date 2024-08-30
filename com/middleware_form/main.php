@@ -54,7 +54,10 @@
 				'title'=>'Middleware form',
 				'assets_path'=>'/assets',
 				'middleware_form_style'=>'middleware_form_default_bright.css',
-				'inline_style'=>false,
+				'inline_style'=>[
+					false,
+					'' // style nonce
+				],
 				'favicon'=>null,
 				'submit_button_label'=>'Next',
 				'csp_header'=>[
@@ -79,7 +82,18 @@
 		}
 		public function add_config(string $key, $value)
 		{
+			if($key === 'inline_style')
+			{
+				if(!is_bool($value))
+					throw new middleware_form_exception('inline_style must be a boolean');
+
+				$this->registry['inline_style'][0]=$value;
+
+				return $this;
+			}
+
 			$this->registry[$key]=$value;
+
 			return $this;
 		}
 		public function add_csp_header(string $section, string $value)
@@ -111,8 +125,13 @@
 		}
 		public function view()
 		{
-			if($this->registry['inline_style'])
-				$this->registry['csp_header']['style-src'][]='\'nonce-mainstyle\'';
+			if($this->registry['inline_style'][0])
+			{
+				$this->load_function(['rand_str.php'=>'rand_str_secure']);
+
+				$this->registry['inline_style'][1]=rand_str_secure(32);
+				$this->registry['csp_header']['style-src'][]='\'nonce-'.$this->registry['inline_style'][1].'\'';
+			}
 
 			$view=$this->registry;
 

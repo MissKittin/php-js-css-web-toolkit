@@ -144,8 +144,18 @@
 			if(!class_exists('\League\CommonMark\MarkdownConverter'))
 				throw new lv_hlp_exception('league/commonmark package is not installed');
 
+			static $environment=null;
+
+			if($environment === null)
+			{
+				$environment='League\CommonMark\Environment';
+
+				if(class_exists('League\CommonMark\Environment\Environment'))
+					$environment='League\CommonMark\Environment\Environment';
+			}
+
 			return (string)(new League\CommonMark\MarkdownConverter(
-				(new League\CommonMark\Environment($options))
+				(new $environment($options))
 				->	addExtension(
 						new League\CommonMark\Extension\GithubFlavoredMarkdownExtension()
 					)

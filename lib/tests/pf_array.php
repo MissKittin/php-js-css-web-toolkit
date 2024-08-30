@@ -94,6 +94,102 @@
 
 		$failed=false;
 
+		echo ' -> Testing array_all';
+			if(array_all(['foo@example.com', 'bar@example.com', 'baz@example.com'], function($value){
+				return filter_var($value, FILTER_VALIDATE_EMAIL);
+			}))
+				echo ' [ OK ]';
+			else
+			{
+				echo ' [FAIL]';
+				$failed=true;
+			}
+			if(array_all(['foo@example.com', 'bar@example.com', 'baz'], function($value){
+				return filter_var($value, FILTER_VALIDATE_EMAIL);
+			})){
+				echo ' [FAIL]';
+				$failed=true;
+			}
+			else
+				echo ' [ OK ]';
+			if(array_all([1=>'', 2=>'', 3=>''], function($value, $key){
+				return is_numeric($key);
+			}))
+				echo ' [ OK ]'.PHP_EOL;
+			else
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				$failed=true;
+			}
+
+		echo ' -> Testing array_any';
+			if(array_any(['foo@example.com', 'https://php.watch', 'foobar'], function($value){
+				return filter_var($value, FILTER_VALIDATE_URL);
+			}))
+				echo ' [ OK ]';
+			else
+			{
+				echo ' [FAIL]';
+				$failed=true;
+			}
+			if(array_any(['https://php.watch', new class(){}], function($value){
+				return filter_var($value, FILTER_VALIDATE_EMAIL);
+			})){
+				echo ' [FAIL]';
+				$failed=true;
+			}
+			else
+				echo ' [ OK ]';
+			if(array_any([1=>'', 'bar'=>'', 'baz'=>''], function($value, $key){
+				return is_numeric($key);
+			}))
+				echo ' [ OK ]'.PHP_EOL;
+			else
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				$failed=true;
+			}
+
+		echo ' -> Testing array_find';
+			if(array_find([1, 2, 3, 4, 5], function($value){
+				return ($value%2 === 0);
+			}) === 2)
+				echo ' [ OK ]';
+			else
+			{
+				echo ' [FAIL]';
+				$failed=true;
+			}
+			if(array_find(['a'=>'foo', 2=>'bar'], function($value, $key){
+				return is_numeric($key);
+			}) === 'bar')
+				echo ' [ OK ]'.PHP_EOL;
+			else
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				$failed=true;
+			}
+
+		echo ' -> Testing array_find_key';
+			if(array_find_key(['foo'=>1, 'bar'=>2, 'baz'=>3], function($value){
+				return ($value%2 === 0);
+			}) === 'bar')
+				echo ' [ OK ]';
+			else
+			{
+				echo ' [FAIL]';
+				$failed=true;
+			}
+			if(array_find_key(['a'=>'foo', 2=>'bar'], function($value, $key){
+				return is_numeric($key);
+			}) === 2)
+				echo ' [ OK ]'.PHP_EOL;
+			else
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				$failed=true;
+			}
+
 		echo ' -> Testing array_is_list'.PHP_EOL;
 			echo '  -> returns true';
 				if(array_is_list([]))

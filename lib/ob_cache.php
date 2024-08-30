@@ -7,6 +7,7 @@
 	 *  this library may conflict with other libraries that uses output buffer control
 	 *
 	 * Note:
+	 *  gzips the content if browser supports it
 	 *  if int_expire_seconds is 0 cache won't be refreshed
 	 *  in ob_redis_cache timeout is handled by Redis
 	 *  in ob_memcached_cache timeout is handled by Memcached
@@ -85,8 +86,8 @@
 					(!$_ob_cache['browser_gzip_support'])
 				)
 					return $raw_buffer;
-				else
-					return $buffer;
+
+				return $buffer;
 			});
 		};
 
@@ -117,12 +118,16 @@
 				{
 					header('Content-Encoding: gzip');
 					readfile($output_file);
+
+					return 0;
 				}
-				else
-					readgzfile($output_file);
+
+				readgzfile($output_file);
+
+				return 0;
 			}
-			else
-				readfile($output_file);
+
+			readfile($output_file);
 
 			return 0;
 		}
@@ -203,8 +208,8 @@
 					(!$_ob_cache['browser_gzip_support'])
 				)
 					return $raw_buffer;
-				else
-					return $buffer;
+
+				return $buffer;
 			});
 
 			return 1;
@@ -216,12 +221,16 @@
 			{
 				header('Content-Encoding: gzip');
 				echo $cache_content;
+
+				return 0;
 			}
-			else
-				echo gzdecode($cache_content);
+
+			echo gzdecode($cache_content);
+
+			return 0;
 		}
-		else
-			echo $cache_content;
+
+		echo $cache_content;
 
 		return 0;
 	}
@@ -294,8 +303,8 @@
 					(!$_ob_cache['browser_gzip_support'])
 				)
 					return $raw_buffer;
-				else
-					return $buffer;
+
+				return $buffer;
 			});
 
 			return 1;
@@ -307,12 +316,16 @@
 			{
 				header('Content-Encoding: gzip');
 				echo $cache_content;
+
+				return 0;
 			}
-			else
-				echo gzdecode($cache_content);
+
+			echo gzdecode($cache_content);
+
+			return 0;
 		}
-		else
-			echo $cache_content;
+
+		echo $cache_content;
 
 		return 0;
 	}

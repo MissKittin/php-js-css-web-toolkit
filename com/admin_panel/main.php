@@ -141,9 +141,7 @@
 			if(isset($_module['config']))
 				require $_module['path'].'/'.$_module['config'];
 			else if(isset($_module['class']) && isset($_module['config_method']))
-			{
 				$_module['class']::{$_module['config_method']}($this);
-			}
 
 			require $this->templates_dir.'/'.$this->template.'/view.php';
 		}
@@ -407,7 +405,24 @@
 		}
 		public function set_inline_assets(bool $option)
 		{
-			$this->registry['_inline_assets']=$option;
+			if(
+				$option &&
+				(!function_exists('rand_str_secure'))
+			){
+				if(file_exists(__DIR__.'/lib/rand_str.php'))
+					require __DIR__.'/lib/rand_str.php';
+				else if(file_exists(__DIR__.'/../../lib/rand_str.php'))
+					require __DIR__.'/../../lib/rand_str.php';
+				else
+					throw new admin_panel_exception('rand_str.php library not found');
+			}
+
+			$this->registry['_inline_assets']=[
+				$option,
+				'', // script nonce
+				'' // style nonce
+			];
+
 			return $this;
 		}
 	}

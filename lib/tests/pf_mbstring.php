@@ -137,6 +137,15 @@
 				$failed=true;
 			}
 
+		echo ' -> Testing mb_lcfirst';
+			if(mb_lcfirst('Łámał') === 'łámał')
+				echo ' [ OK ]'.PHP_EOL;
+			else
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				$failed=true;
+			}
+
 		echo ' -> Testing mb_scrub';
 			if(mb_scrub('Hello World!') === 'Hello World!')
 				echo ' [ OK ]';
@@ -188,6 +197,22 @@
 				$failed=true;
 			}
 			if(mb_str_pad('🎉', 3, '祝', STR_PAD_LEFT) === '祝祝🎉')
+				echo ' [ OK ]'.PHP_EOL;
+			else
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				$failed=true;
+			}
+
+		echo ' -> Testing mb_ucfirst';
+			if(mb_ucfirst('łámał') === 'Łámał')
+				echo ' [ OK ]';
+			else
+			{
+				echo ' [FAIL]';
+				$failed=true;
+			}
+			if(mb_ucfirst("\u{01CA}") === "\u{01CB}")
 				echo ' [ OK ]'.PHP_EOL;
 			else
 			{

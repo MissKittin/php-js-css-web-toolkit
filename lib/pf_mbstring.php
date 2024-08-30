@@ -41,14 +41,53 @@
 		}
 
 		/*
+		 * mb_lcfirst() polyfill
+		 *
+		 * Source: https://github.com/symfony/polyfill-php84/blob/1.x/Php84.php
+		 * License: MIT https://github.com/symfony/polyfill-php84/blob/1.x/LICENSE
+		 */
+
+		if(!function_exists('mb_lcfirst'))
+		{
+			function mb_lcfirst(string $string, ?string $encoding=null)
+			{
+				if($encoding === null)
+					$encoding=mb_internal_encoding();
+
+				try {
+					$valid_encoding=mb_check_encoding('', $encoding);
+				} catch(ValueError $error) {
+					throw new ValueError(sprintf(
+						'mb_lcfirst(): Argument #2 ($encoding) must be a valid encoding, "%s" given',
+						$encoding
+					));
+				}
+
+				// BC for PHP 7.3 and lower
+				if(!$valid_encoding)
+					throw new ValueError(sprintf(
+						'mb_lcfirst(): Argument #2 ($encoding) must be a valid encoding, "%s" given',
+						$encoding
+					));
+
+				return ''
+				.	mb_convert_case(
+						mb_substr($string, 0, 1, $encoding),
+						MB_CASE_LOWER,
+						$encoding
+					)
+				.	mb_substr($string, 1, null, $encoding);
+			}
+		}
+
+		/*
 		 * mb_ord() polyfill
 		 *
 		 * Warning:
 		 *  converts string to UTF-8
 		 *
-		 * Source:
-		 *  https://github.com/symfony/polyfill-mbstring/blob/1.x/Mbstring.php
-		 * License: MIT
+		 * Source: https://github.com/symfony/polyfill-mbstring/blob/1.x/Mbstring.php
+		 * License: MIT https://github.com/symfony/polyfill-mbstring/blob/1.x/LICENSE
 		 */
 
 		if(!function_exists('mb_ord'))
@@ -102,9 +141,8 @@
 		/*
 		 * mb_scrub() polyfill
 		 *
-		 * Source:
-		 *  https://github.com/symfony/polyfill-mbstring/blob/1.x/bootstrap.php
-		 * License: MIT
+		 * Source: https://github.com/symfony/polyfill-mbstring/blob/1.x/bootstrap.php
+		 * License: MIT https://github.com/symfony/polyfill-mbstring/blob/1.x/LICENSE
 		 */
 
 		if(!function_exists('mb_scrub'))
@@ -122,8 +160,7 @@
 		 * mb_str_split() polyfill
 		 * based on symfony/polyfill-mbstring package
 		 *
-		 * Source:
-		 *  https://www.php.net/manual/en/function.mb-str-split.php
+		 * Source: https://www.php.net/manual/en/function.mb-str-split.php
 		 */
 
 		if(!function_exists('mb_str_split'))
@@ -216,9 +253,8 @@
 		/*
 		 * mb_str_pad() polyfill
 		 *
-		 * Source:
-		 *  https://github.com/symfony/polyfill-mbstring/blob/1.x/Mbstring.php
-		 * License: MIT
+		 * Source: https://github.com/symfony/polyfill-mbstring/blob/1.x/Mbstring.php
+		 * License: MIT https://github.com/symfony/polyfill-mbstring/blob/1.x/LICENSE
 		 */
 
 		if(!function_exists('mb_str_pad'))
@@ -291,6 +327,46 @@
 							$encoding
 						);
 				}
+			}
+		}
+
+		/*
+		 * mb_ucfirst() polyfill
+		 *
+		 * Source: https://github.com/symfony/polyfill-php84/blob/1.x/Php84.php
+		 * License: MIT https://github.com/symfony/polyfill-php84/blob/1.x/LICENSE
+		 */
+
+		if(!function_exists('mb_ucfirst'))
+		{
+			function mb_ucfirst(string $string, ?string $encoding=null)
+			{
+				if($encoding === null)
+					$encoding=mb_internal_encoding();
+
+				try {
+					$valid_encoding=mb_check_encoding('', $encoding);
+				} catch(ValueError $error) {
+					throw new ValueError(sprintf(
+						'mb_ucfirst(): Argument #2 ($encoding) must be a valid encoding, "%s" given',
+						$encoding
+					));
+				}
+
+				// BC for PHP 7.3 and lower
+				if(!$valid_encoding)
+					throw new ValueError(sprintf(
+						'mb_ucfirst(): Argument #2 ($encoding) must be a valid encoding, "%s" given',
+						$encoding
+					));
+
+				return ''
+				.	mb_convert_case(
+						mb_substr($string, 0, 1, $encoding),
+						MB_CASE_TITLE,
+						$encoding
+					)
+				.	mb_substr($string, 1, null, $encoding);
 			}
 		}
 	}

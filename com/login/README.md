@@ -7,6 +7,7 @@ Simple login screen middleware
 * `sec_csrf.php`
 * `sec_login.php`
 * `simpleblog_materialized.css` (for materialized template)
+* `rand_str.php` (if `inline_style` was set to `true`)
 
 ## Reserved variables
 * `$_SESSION['_com_login_remember_me']`

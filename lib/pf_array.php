@@ -1,5 +1,81 @@
 <?php
 	/*
+	 * array_all() polyfill
+	 *
+	 * Source: https://github.com/symfony/polyfill-php84/blob/1.x/Php84.php
+	 * License: MIT https://github.com/symfony/polyfill-php84/blob/1.x/LICENSE
+	 */
+
+	if(!function_exists('array_all'))
+	{
+		function array_all(array $array, callable $callback)
+		{
+			foreach($array as $key=>$value)
+				if(!$callback($value, $key))
+					return false;
+
+			return true;
+		}
+	}
+
+	/*
+	 * array_any() polyfill
+	 *
+	 * Source: https://github.com/symfony/polyfill-php84/blob/1.x/Php84.php
+	 * License: MIT https://github.com/symfony/polyfill-php84/blob/1.x/LICENSE
+	 */
+
+	if(!function_exists('array_any'))
+	{
+		function array_any(array $array, callable $callback)
+		{
+			foreach($array as $key=>$value)
+				if($callback($value, $key))
+					return true;
+
+			return false;
+		}
+	}
+
+	/*
+	 * array_find() polyfill
+	 *
+	 * Source: https://github.com/symfony/polyfill-php84/blob/1.x/Php84.php
+	 * License: MIT https://github.com/symfony/polyfill-php84/blob/1.x/LICENSE
+	 */
+
+	if(!function_exists('array_find'))
+	{
+		function array_find(array $array, callable $callback)
+		{
+			foreach($array as $key=>$value)
+				if($callback($value, $key))
+					return $value;
+
+			return null;
+		}
+	}
+
+	/*
+	 * array_find_key() polyfill
+	 *
+	 * Source: https://github.com/symfony/polyfill-php84/blob/1.x/Php84.php
+	 * License: MIT https://github.com/symfony/polyfill-php84/blob/1.x/LICENSE
+	 */
+
+	if(!function_exists('array_find_key'))
+	{
+		function array_find_key(array $array, callable $callback)
+		{
+			foreach($array as $key=>$value)
+				if($callback($value, $key))
+					return $key;
+
+			return $key;
+		}
+	}
+
+	/*
 	 * array_is_list() polyfill
 	 *
 	 * Source: https://www.php.net/manual/en/function.array-is-list.php

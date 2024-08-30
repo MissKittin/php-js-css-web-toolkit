@@ -4,8 +4,11 @@
 		<title><?php echo $this->registry['_title']; ?></title>
 		<meta charset="utf-8">
 		<meta http-equiv="Content-Security-Policy" content="<?php
-			if($this->registry['_inline_assets'])
-				$this->registry['_csp_header']['style-src'][]='\'nonce-mainstyle\'';
+			if($this->registry['_inline_assets'][0])
+			{
+				$this->registry['_inline_assets'][2]=rand_str_secure(32);
+				$this->registry['_csp_header']['style-src'][]='\'nonce-'.$this->registry['_inline_assets'][2].'\'';
+			}
 
 			foreach($this->registry['_csp_header'] as $_csp_param=>$_csp_values)
 			{
@@ -19,9 +22,9 @@
 		?>">
 		<meta name="viewport" content="width=device-width, initial-scale=1">
 		<?php
-			if($this->registry['_inline_assets'])
+			if($this->registry['_inline_assets'][0])
 			{
-				?><style nonce="mainstyle"><?php
+				?><style nonce="<?php echo $this->registry['_inline_assets'][2]; ?>"><?php
 					if(is_file(__DIR__.'/../../lib/simpleblog_materialized.css'))
 						readfile(__DIR__.'/../../lib/simpleblog_materialized.css');
 					else if(is_file(__DIR__.'/../../../../lib/simpleblog_materialized.css'))

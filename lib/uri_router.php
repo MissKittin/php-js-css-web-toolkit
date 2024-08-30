@@ -35,6 +35,13 @@
 		 *  [static] route() [returns bool]
 		 *   jump down the big rabbit hole
 		 *
+		 * Another source of application arguments:
+		 *  if you want application arguments
+		 *  regardless of whether index.php is in a subdirectory or not,
+		 *  you can use the $_SERVER['PATH_INFO'] variable
+		 *  instead of $_SERVER['REQUEST_URI']:
+			uri_router::set_source((isset($_SERVER['PATH_INFO'])) ? $_SERVER['PATH_INFO'] : '/'); // will be /arg1/arg2/argX instead of /basepth/arg1/arg2/argX?getvar=getval
+		 *
 		 * Usage:
 			// example $_SERVER values:
 			// REQUEST_METHOD: GET
@@ -42,38 +49,39 @@
 
 			// general settings
 			uri_router
-				::set_base_path('/basepth') // optional
-				::set_source(strtok($_SERVER['REQUEST_URI'], '?')) // required
-				::set_request_method($_SERVER['REQUEST_METHOD']); // optional
-			//uri_router::set_reverse_mode(true); // will execute routes from last to first, optional, disabled by default
+			::	set_base_path('/basepth') // optional
+			::	set_source(strtok($_SERVER['REQUEST_URI'], '?')) // required
+			::	set_request_method($_SERVER['REQUEST_METHOD']) // optional
 
-			// if route not found, optional
-			uri_router::set_default_route(function(){
-				echo '[EE] Not found';
-			});
+		//	::	set_reverse_mode(true) // will execute routes from last to first, optional, disabled by default
 
-			// simple route
-			uri_router::add(['/arg1/arg2/arg3'], function(){
-				echo '[OK] arg1-arg2-arg3';
-			});
+			::	set_default_route(function(){
+					// if route not found, optional
 
-			// multipath route (a or b)
-			uri_router::add(['/arg1/arg6/arg3', '/arg1/arg7/arg3'], function(){
-				echo '[OK] arg1-arg6||arg7-arg3';
-			});
+					echo '[EE] Not found';
+				})
+			::	add(['/arg1/arg2/arg3'], function(){
+					// simple route
 
-			// route with regex
-			uri_router::add(['/arg1/arg([0-9])/arg3'], function(){
-				echo '[OK] arg1-argX-arg3';
-			}, true);
+					echo '[OK] arg1-arg2-arg3';
+				})
+			::	add(['/arg1/arg6/arg3', '/arg1/arg7/arg3'], function(){
+					// multipath route (a or b)
 
-			// POST-only route (you can write anything instead of POST, false means do not use regex)
-			// note: first rule will be always executed instead of this unless you enable reverse mode
-			uri_router::add(['/arg1/arg2/arg3'], function(){
-				echo '[OK] POST: arg1-arg2-arg3';
-			}, false, 'POST');
+					echo '[OK] arg1-arg6||arg7-arg3';
+				})
+			::	add(['/arg1/arg([0-9])/arg3'], function(){
+					// route with regex
 
-			uri_router::route(); // exec and flush routing table
+					echo '[OK] arg1-argX-arg3';
+				}, true)
+			::	add(['/arg1/arg2/arg3'], function(){
+					// POST-only route (you can write anything instead of POST, false means do not use regex)
+					// note: first rule will be always executed instead of this unless you enable reverse mode
+
+					echo '[OK] POST: arg1-arg2-arg3';
+				}, false, 'POST')
+			::	route(); // exec and flush routing table
 		 *
 		 * run_callback method
 		 *  if you want to define routing function arguments,

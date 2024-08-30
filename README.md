@@ -57,6 +57,7 @@ Supported cache databases: Redis, Memcached, APCu
 * `dotenv.php` - DotEnv proxy implementation
 * `file_http_request.php` - `file_get_contents()` wrapper for http streams
 * `find_php_definitions.php` - look up the definition of functions, classes, interfaces and traits in the source code
+* `generate_csp_hash.php` - generate SHA-256 for a string or file
 * `global_variable_streamer.php` - a helper for functions that only support writing output to a file
 * `has_php_close_tag.php` - check if the PHP file ends with a close tag
 * `http_request_response.php` - OOP overlay for standard request-response handling
@@ -80,16 +81,16 @@ Supported cache databases: Redis, Memcached, APCu
 * `pdo_cheat.php` - use the table as an object
 * `pdo_connect.php` - open preconfigured connection to the database and optionally seed
 * `pdo_crud_builder.php` - OOP SQL builder
-* `pf_array.php` - `array_is_list()`, `array_key_first()` and `array_key_last()` polyfill
+* `pf_array.php` - `array_*()` polyfill (MIT)
 * `pf_get_debug_type.php` - `get_debug_type()` polyfill
 * `pf_getallheaders.php` - `getallheaders()` polyfill
 * `pf_is_countable.php` - `is_countable()` polyfill (MIT)
 * `pf_json_validate.php` - `json_validate()` polyfill (MIT)
-* `pf_mbstring.php` - `mb_chr()`, `mb_ord()`, `mb_scrub()`, `mb_str_split()` and `mb_str_pad()` polyfill (MIT)
+* `pf_mbstring.php` - `mb_*()` polyfill (MIT)
 * `pf_php_float.php` - `PHP_FLOAT_*` polyfill
 * `pf_php_os_family.php` - `PHP_OS_FAMILY` polyfill (MIT)
 * `pf_spl_object_id.php` - `spl_object_id()` polyfill (MIT)
-* `pf_str.php` - `str_contains()`, `str_ends_with()` and `str_starts_with()` polyfill (MIT)
+* `pf_str.php` - `str_*()` polyfill (MIT)
 * `pf_stream_isatty.php` - `stream_isatty()` polyfill (MIT)
 * `pf_Stringable.php` - `Stringable` polyfill
 * `pf_ValueError.php` - `Error` and `ValueError` polyfill
@@ -127,7 +128,7 @@ Supported cache databases: Redis, Memcached, APCu
 * `webdevsh.php` - functions for Toptal minifiers
 * `wp_is_serialized.php` - check if string is serialized data - function from Wordpress (GNU GPL2)
 
-## Javascript libraries
+## JavaScript libraries (ES6)
 * `addDesktopIcon.js` - create box with win98-style icon
 * `beautify.js` - quickly replace certain word (temporary solution)
 * `checkDate.js` - `check_date.php` in Js
@@ -145,7 +146,6 @@ Supported cache databases: Redis, Memcached, APCu
 * `imgRotator.js` - rotate images on selected id
 * `linkify.js` - rooseve's plaintext link to anchor converter
 * `multipage.js` - put several pages in one HTML file / element switcher
-* `pfReplaceAll.js` - `replaceAll()` polyfill
 * `rand.js`
 * `richTextEditor.js` - basic WYSIWYG editor
 * `sendNotification.js` - send notification to the browser
@@ -155,7 +155,7 @@ Supported cache databases: Redis, Memcached, APCu
 * `titleScroller.js` - infinity title scrolling
 * `wicdPhpGuiWindows.js` - CSS window objects wrapped in Js automation
 
-## CSS libraries
+## CSS3 libraries
 * `button.css` - quickly create nice buttons
 * `copyleft.css` - flipped `&copy;`
 * `fakelink.css` - link-styled span

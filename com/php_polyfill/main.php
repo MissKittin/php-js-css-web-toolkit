@@ -1,4 +1,6 @@
 <?php
+	class php_polyfill_exception extends Exception {}
+
 	(function($library_list){
 		$included_files=[];
 
@@ -15,7 +17,7 @@
 						if(file_exists($lib_dir.'/pf_'.$library.'.php'))
 							require $lib_dir.'/pf_'.$library.'.php';
 						else
-							throw new Exception('pf_'.$library.'.php library not found');
+							throw new php_polyfill_exception('pf_'.$library.'.php library not found');
 
 						$included_files[$library]=0;
 					}
