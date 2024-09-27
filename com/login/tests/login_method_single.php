@@ -99,7 +99,7 @@
 	echo ' -> Executing login_com()';
 		ob_start();
 		try {
-			if(login_com() === true)
+			if(@login_com() === true)
 			{
 				echo ' [ OK ]'.PHP_EOL;
 				exit();

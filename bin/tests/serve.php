@@ -105,7 +105,7 @@
 
 	echo ' -> Starting tool';
 		try {
-			$_serve_test_handler=_serve_test('"'.PHP_BINARY.'" "'.$argv[0].'" serve');
+			$_serve_test_handler=_serve_test('"'.PHP_BINARY.'" '.$argv[0].' serve');
 			echo ' [ OK ]'.PHP_EOL;
 		} catch(Exception $error) {
 			echo ' [FAIL]'.PHP_EOL;

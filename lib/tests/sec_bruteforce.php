@@ -220,12 +220,12 @@
 
 		if(isset($pdo_handler))
 		{
-			$pdo_handler->exec('DROP TABLE sec_bruteforce');
-			$pdo_handler->exec('DROP TABLE sec_bruteforce_clean_database');
-			$pdo_handler->exec('DROP TABLE sec_bruteforce_timeout_clean_database');
-			$pdo_handler->exec('DROP TABLE sec_bruteforce_timeout');
-			$pdo_handler->exec('DROP TABLE sec_bruteforce_mixed_temp_ban');
-			$pdo_handler->exec('DROP TABLE sec_bruteforce_mixed_perm_ban');
+			$pdo_handler->exec('DROP TABLE IF EXISTS sec_bruteforce');
+			$pdo_handler->exec('DROP TABLE IF EXISTS sec_bruteforce_clean_database');
+			$pdo_handler->exec('DROP TABLE IF EXISTS sec_bruteforce_timeout_clean_database');
+			$pdo_handler->exec('DROP TABLE IF EXISTS sec_bruteforce_timeout');
+			$pdo_handler->exec('DROP TABLE IF EXISTS sec_bruteforce_mixed_temp_ban');
+			$pdo_handler->exec('DROP TABLE IF EXISTS sec_bruteforce_mixed_perm_ban');
 		}
 	}
 	if(

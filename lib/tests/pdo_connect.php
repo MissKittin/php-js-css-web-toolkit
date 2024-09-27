@@ -72,11 +72,15 @@
 			{
 				echo ' [ OK ]';
 
-				$result="array(0=>array('id'=>'1','a'=>'aa','b'=>'ab',),1=>array('id'=>'2','a'=>'ba','b'=>'bb',),)";
-				if($_db_driver === 'pgsql')
-					$result="array(0=>array('id'=>1,'a'=>'aa','b'=>'ab',),1=>array('id'=>2,'a'=>'ba','b'=>'bb',),)";
+				$result_a="array(0=>array('id'=>'1','a'=>'aa','b'=>'ab',),1=>array('id'=>'2','a'=>'ba','b'=>'bb',),)";
+				$result_b="array(0=>array('id'=>1,'a'=>'aa','b'=>'ab',),1=>array('id'=>2,'a'=>'ba','b'=>'bb',),)"; // id can be (int)1 or (string)"1"
+				$query_result=$query->fetchAll(PDO::FETCH_NAMED);
 
-				if(var_export_contains($query->fetchAll(PDO::FETCH_NAMED), $result))
+				//echo ' ('.var_export_contains($query_result, '', true).')';
+				if(
+					var_export_contains($query_result, $result_a) ||
+					var_export_contains($query_result, $result_b)
+				)
 					echo ' [ OK ]'.PHP_EOL;
 				else
 				{
@@ -286,7 +290,7 @@
 				];
 			?>');
 		file_put_contents(__DIR__.'/tmp/pdo_connect/db_pgsql/seed.php', '<?php
-			$pdo_handler->exec(\'DROP TABLE pdo_connect_test_table\');
+			$pdo_handler->exec(\'DROP TABLE IF EXISTS pdo_connect_test_table\');
 			$pdo_handler->exec(\'
 				CREATE TABLE pdo_connect_test_table(
 					id SERIAL PRIMARY KEY,
@@ -325,7 +329,7 @@
 				];
 			?>');
 		file_put_contents(__DIR__.'/tmp/pdo_connect/db_mysql/seed.php', '<?php
-			$pdo_handler->exec(\'DROP TABLE pdo_connect_test_table\');
+			$pdo_handler->exec(\'DROP TABLE IF EXISTS pdo_connect_test_table\');
 			$pdo_handler->exec(\'
 				CREATE TABLE pdo_connect_test_table(
 					id INTEGER NOT NULL AUTO_INCREMENT,

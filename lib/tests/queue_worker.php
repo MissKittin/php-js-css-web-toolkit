@@ -22,8 +22,32 @@
 	 *  you can also use the Predis package instead of PHPRedis extension:
 	 *   TEST_REDIS_PREDIS=yes (default: no)
 	 *
+	 * Hint:
+	 *  you can setup database credentials by environment variables
+	 *  variables:
+	 *   TEST_DB_TYPE (pgsql, mysql, sqlite) (default: sqlite)
+	 *   TEST_PGSQL_HOST (default: 127.0.0.1)
+	 *   TEST_PGSQL_PORT (default: 5432)
+	 *   TEST_PGSQL_SOCKET (has priority over the HOST)
+	 *    eg. /var/run/postgresql
+	 *    note: path to the directory, not socket
+	 *   TEST_PGSQL_DBNAME (default: php_toolkit_tests)
+	 *   TEST_PGSQL_USER (default: postgres)
+	 *   TEST_PGSQL_PASSWORD (default: postgres)
+	 *   TEST_MYSQL_HOST (default: [::1])
+	 *   TEST_MYSQL_PORT (default: 3306)
+	 *   TEST_MYSQL_SOCKET (has priority over the HOST)
+	 *    eg. /var/run/mysqld/mysqld.sock
+	 *   TEST_MYSQL_DBNAME (default: php_toolkit_tests)
+	 *   TEST_MYSQL_USER (default: root)
+	 *   TEST_MYSQL_PASSWORD
+	 *
 	 * Warning:
 	 *  rmdir_recursive.php library is required
+	 *  PDO extension is recommended
+	 *  pdo_pgsql extension is recommended
+	 *  pdo_mysql extension is recommended
+	 *  pdo_sqlite extension is recommended
 	 */
 
 	$_serve_test_handler_fifo=null;
@@ -40,6 +64,8 @@
 				0=>['pipe', 'r'],
 				1=>['pipe', 'w'],
 				2=>['pipe', 'w']
+				//1=>['file', 'stdout.txt', 'a'],
+				//2=>['file', 'stderr.txt', 'a']
 			],
 			$process_pipes,
 			getcwd(),
@@ -103,6 +129,12 @@
 			echo ' [FAIL]'.PHP_EOL;
 			exit(1);
 		}
+	echo ' [ OK ]'.PHP_EOL;
+
+	echo ' -> Creating worker test directory [1]';
+		@mkdir(__DIR__.'/tmp');
+		@mkdir(__DIR__.'/tmp/queue_worker');
+		@mkdir(__DIR__.'/tmp/queue_worker/pdo');
 	echo ' [ OK ]'.PHP_EOL;
 
 	if(getenv('TEST_REDIS') === 'yes')
@@ -332,6 +364,120 @@
 		}
 	}
 
+	if(getenv('TEST_DB_TYPE') !== false)
+	{
+		if(!class_exists('PDO'))
+		{
+			echo 'PDO extension is not loaded'.PHP_EOL;
+			exit(1);
+		}
+
+		echo ' -> Configuring PDO'.PHP_EOL;
+
+		$_pdo=[
+			'type'=>getenv('TEST_DB_TYPE'),
+			'credentials'=>[
+				'pgsql'=>[
+					'host'=>'127.0.0.1',
+					'port'=>'5432',
+					'dbname'=>'php_toolkit_tests',
+					'user'=>'postgres',
+					'password'=>'postgres'
+				],
+				'mysql'=>[
+					'host'=>'[::1]',
+					'port'=>'3306',
+					'dbname'=>'php_toolkit_tests',
+					'user'=>'root',
+					'password'=>''
+				]
+			]
+		];
+
+		foreach(['pgsql', 'mysql'] as $_pdo['_database'])
+			foreach(['host', 'port', 'socket', 'dbname', 'user', 'password'] as $_pdo['_parameter'])
+			{
+				$_pdo['_variable']='TEST_'.strtoupper($_pdo['_database'].'_'.$_pdo['_parameter']);
+				$_pdo['_value']=getenv($_pdo['_variable']);
+
+				if($_pdo['_value'] !== false)
+				{
+					echo '  -> Using '.$_pdo['_variable'].'="'.$_pdo['_value'].'" as '.$_pdo['_database'].' '.$_pdo['_parameter'].PHP_EOL;
+					$_pdo['credentials'][$_pdo['_database']][$_pdo['_parameter']]=$_pdo['_value'];
+				}
+			}
+
+		try /* some monsters */ {
+			switch($_pdo['type'])
+			{
+				case 'pgsql':
+					echo '  -> Using '.$_pdo['type'].' driver'.PHP_EOL;
+
+					if(!in_array('pgsql', PDO::getAvailableDrivers()))
+						throw new Exception('pdo_pgsql extension is not loaded');
+
+					if(isset($_pdo['credentials'][$_pdo['type']]['socket']))
+						$pdo_handler=new PDO('pgsql:'
+							.'host='.$_pdo['credentials'][$_pdo['type']]['socket'].';'
+							.'dbname='.$_pdo['credentials'][$_pdo['type']]['dbname'].';'
+							.'user='.$_pdo['credentials'][$_pdo['type']]['user'].';'
+							.'password='.$_pdo['credentials'][$_pdo['type']]['password'].''
+						);
+					else
+						$pdo_handler=new PDO('pgsql:'
+							.'host='.$_pdo['credentials'][$_pdo['type']]['host'].';'
+							.'port='.$_pdo['credentials'][$_pdo['type']]['port'].';'
+							.'dbname='.$_pdo['credentials'][$_pdo['type']]['dbname'].';'
+							.'user='.$_pdo['credentials'][$_pdo['type']]['user'].';'
+							.'password='.$_pdo['credentials'][$_pdo['type']]['password'].''
+						);
+				break;
+				case 'mysql':
+					echo '  -> Using '.$_pdo['type'].' driver'.PHP_EOL;
+
+					if(!in_array('mysql', PDO::getAvailableDrivers()))
+						throw new Exception('pdo_mysql extension is not loaded');
+
+					if(isset($_pdo['credentials'][$_pdo['type']]['socket']))
+						$pdo_handler=new PDO('mysql:'
+							.'unix_socket='.$_pdo['credentials'][$_pdo['type']]['socket'].';'
+							.'dbname='.$_pdo['credentials'][$_pdo['type']]['dbname'],
+							$_pdo['credentials'][$_pdo['type']]['user'],
+							$_pdo['credentials'][$_pdo['type']]['password']
+						);
+					else
+						$pdo_handler=new PDO('mysql:'
+							.'host='.$_pdo['credentials'][$_pdo['type']]['host'].';'
+							.'port='.$_pdo['credentials'][$_pdo['type']]['port'].';'
+							.'dbname='.$_pdo['credentials'][$_pdo['type']]['dbname'],
+							$_pdo['credentials'][$_pdo['type']]['user'],
+							$_pdo['credentials'][$_pdo['type']]['password']
+						);
+				break;
+				case 'sqlite':
+					if(!in_array('sqlite', PDO::getAvailableDrivers()))
+						throw new Exception('pdo_sqlite extension is not loaded');
+
+					echo '  -> Using '.$_pdo['type'].' driver'.PHP_EOL;
+				break;
+				default:
+					throw new Exception($_pdo['type'].' driver is not supported');
+			}
+		} catch(Throwable $error) {
+			echo ' Error: '.$error->getMessage().PHP_EOL;
+			exit(1);
+		}
+
+		if(isset($pdo_handler))
+			$pdo_handler->exec('DROP TABLE IF EXISTS queue_worker_test');
+	}
+	if(
+		(!isset($pdo_handler)) &&
+		class_exists('PDO') &&
+		in_array('sqlite', PDO::getAvailableDrivers())
+	)
+		$pdo_handler=new PDO('sqlite:'.__DIR__.'/tmp/queue_worker/pdo/queue_worker.sqlite3');
+
 	if(isset($argv[1]))
 		switch($argv[1])
 		{
@@ -340,9 +486,7 @@
 					rmdir_recursive(__DIR__.'/tmp/queue_worker/fifo');
 				echo ' [ OK ]'.PHP_EOL;
 
-				echo ' -> Creating worker test directory';
-					@mkdir(__DIR__.'/tmp');
-					@mkdir(__DIR__.'/tmp/queue_worker');
+				echo ' -> Creating worker test directory [2]';
 					mkdir(__DIR__.'/tmp/queue_worker/fifo');
 					file_put_contents(__DIR__.'/tmp/queue_worker/fifo/functions.php', ''
 					.	'<?php '
@@ -361,18 +505,67 @@
 				echo ' [ OK ]'.PHP_EOL;
 
 				echo ' -> Starting queue worker fifo...'.PHP_EOL.PHP_EOL;
-				try {
-					queue_worker_fifo::start_worker(
-						__DIR__.'/tmp/queue_worker/fifo/fifo',
-						__DIR__.'/tmp/queue_worker/fifo/functions.php',
-						false,
-						1,
-						false
-					);
-				} catch(Throwable $error) {
-					echo 'Error: '.$error->getMessage().PHP_EOL;
+					try {
+						queue_worker_fifo::start_worker(
+							__DIR__.'/tmp/queue_worker/fifo/fifo',
+							__DIR__.'/tmp/queue_worker/fifo/functions.php',
+							false,
+							1,
+							false
+						);
+					} catch(Throwable $error) {
+						echo 'Error: '.$error->getMessage().PHP_EOL;
+						exit(1);
+					}
+
+				exit();
+			case 'serve-pdo':
+				if(!isset($pdo_handler))
+				{
+					echo 'PDO handler is not configured - set enviroment variables'.PHP_EOL;
 					exit(1);
 				}
+
+				echo ' -> Removing temporary files';
+					@unlink(__DIR__.'/tmp/queue_worker/pdo/functions.php');
+					@unlink(__DIR__.'/tmp/queue_worker/pdo/output');
+					@unlink(__DIR__.'/tmp/queue_worker/pdo/output-raw');
+				echo ' [ OK ]'.PHP_EOL;
+
+				echo ' -> Creating worker test directory [2]';
+					file_put_contents(__DIR__.'/tmp/queue_worker/pdo/functions.php', ''
+					.	'<?php '
+					.		'function queue_worker_main($input_data, $worker_meta)'
+					.		'{'
+					.			'$worker_meta_x["worker_fifo"]=null;'
+					.			'$worker_meta=array_merge($worker_meta_x, $worker_meta);'
+					.			'unset($worker_meta["pdo_handler"]);'
+					.			'unset($worker_meta["table_name"]);'
+					.			'file_put_contents('
+					.				'__DIR__."/output-raw",'
+					.				'var_export($input_data, true).var_export($worker_meta, true));'
+					.			'file_put_contents('
+					.				'__DIR__."/output",'
+					.				'md5(var_export($input_data, true).var_export($worker_meta, true)));'
+					.		'} '
+					.	'?>'
+					);
+				echo ' [ OK ]'.PHP_EOL;
+
+				echo ' -> Starting queue worker PDO...'.PHP_EOL.PHP_EOL;
+					try {
+						queue_worker_pdo::start_worker(
+							$pdo_handler,
+							__DIR__.'/tmp/queue_worker/pdo/functions.php',
+							'queue_worker_test',
+							false,
+							1,
+							false
+						);
+					} catch(Throwable $error) {
+						echo 'Error: '.$error->getMessage().PHP_EOL;
+						exit(1);
+					}
 
 				exit();
 			case 'serve-redis':
@@ -386,9 +579,7 @@
 					rmdir_recursive(__DIR__.'/tmp/queue_worker/redis');
 				echo ' [ OK ]'.PHP_EOL;
 
-				echo ' -> Creating worker test directory';
-					@mkdir(__DIR__.'/tmp');
-					@mkdir(__DIR__.'/tmp/queue_worker');
+				echo ' -> Creating worker test directory [2]';
 					mkdir(__DIR__.'/tmp/queue_worker/redis');
 					file_put_contents(__DIR__.'/tmp/queue_worker/redis/functions.php', ''
 					.	'<?php '
@@ -408,19 +599,19 @@
 				echo ' [ OK ]'.PHP_EOL;
 
 				echo ' -> Starting queue worker redis...'.PHP_EOL.PHP_EOL;
-				try {
-					queue_worker_redis::start_worker(
-						$redis_handler,
-						__DIR__.'/tmp/queue_worker/redis/functions.php',
-						'queue_worker_test__',
-						false,
-						1,
-						false
-					);
-				} catch(Throwable $error) {
-					echo 'Error: '.$error->getMessage().PHP_EOL;
-					exit(1);
-				}
+					try {
+						queue_worker_redis::start_worker(
+							$redis_handler,
+							__DIR__.'/tmp/queue_worker/redis/functions.php',
+							'queue_worker_test__',
+							false,
+							1,
+							false
+						);
+					} catch(Throwable $error) {
+						echo 'Error: '.$error->getMessage().PHP_EOL;
+						exit(1);
+					}
 
 				exit();
 		}
@@ -429,7 +620,13 @@
 	{
 		if(!file_exists(__DIR__.'/tmp/queue_worker'))
 		{
-			echo 'Run tests/'.basename(__FILE__).' serve-fifo'.PHP_EOL;
+			if(strtoupper(substr(PHP_OS, 0, 3)) !== 'WIN')
+			{
+				echo 'Run tests/'.basename(__FILE__).' serve-fifo'.PHP_EOL;
+				echo '!!! AND !!!'.PHP_EOL;
+			}
+
+			echo 'Run tests/'.basename(__FILE__).' serve-pdo'.PHP_EOL;
 			echo '!!! AND !!!'.PHP_EOL;
 			echo 'Run tests/'.basename(__FILE__).' serve-redis'.PHP_EOL;
 			exit(1);
@@ -439,7 +636,25 @@
 	{
 		try {
 			echo ' -> Starting test fifo server';
-			$_serve_test_handler_fifo=_serve_test('"'.PHP_BINARY.'" "'.$argv[0].'" serve-fifo');
+
+			if(strtoupper(substr(PHP_OS, 0, 3)) === 'WIN')
+				echo ' [SKIP]'.PHP_EOL;
+			else
+			{
+				$_serve_test_handler_fifo=_serve_test('"'.PHP_BINARY.'" '.$argv[0].' serve-fifo');
+				echo ' [ OK ]'.PHP_EOL;
+			}
+		} catch(Exception $error) {
+			echo ' [FAIL]'.PHP_EOL;
+			echo 'Error: '.$error->getMessage().PHP_EOL;
+			echo 'Use tests/'.basename(__FILE__).' serve'.PHP_EOL;
+			echo ' and run tests/'.basename(__FILE__).' noautoserve'.PHP_EOL;
+			exit(1);
+		}
+
+		try {
+			echo ' -> Starting test PDO server';
+			$_serve_test_handler_pdo=_serve_test('"'.PHP_BINARY.'" '.$argv[0].' serve-pdo');
 			echo ' [ OK ]'.PHP_EOL;
 		} catch(Exception $error) {
 			echo ' [FAIL]'.PHP_EOL;
@@ -454,7 +669,7 @@
 
 			if(getenv('TEST_REDIS') === 'yes')
 			{
-				$_serve_test_handler_redis=_serve_test('"'.PHP_BINARY.'" "'.$argv[0].'" serve-redis');
+				$_serve_test_handler_redis=_serve_test('"'.PHP_BINARY.'" '.$argv[0].' serve-redis');
 				sleep(2);
 				echo ' [ OK ]'.PHP_EOL;
 			}
@@ -475,37 +690,80 @@
 	$failed=false;
 
 	echo ' -> Testing queue_worker_fifo write';
-		try {
-			(new queue_worker_fifo(__DIR__.'/tmp/queue_worker/fifo/fifo'))->write([
-				'name'=>'John',
-				'file'=>'./tmp/john',
-				'mail'=>'john@example.com'
-			]);
-		} catch(Throwable $error) {
-			echo ' [FAIL]'.PHP_EOL;
-			echo PHP_EOL.'Error: '.$error->getMessage().PHP_EOL;
-			$failed=true;
-		}
-		sleep(2);
-		if(is_file(__DIR__.'/tmp/queue_worker/fifo/output'))
+		if(strtoupper(substr(PHP_OS, 0, 3)) === 'WIN')
+			echo ' [SKIP]'.PHP_EOL;
+		else
 		{
-			echo ' [ OK ]';
+			try {
+				(new queue_worker_fifo(__DIR__.'/tmp/queue_worker/fifo/fifo'))->write([
+					'name'=>'John',
+					'file'=>'./tmp/john',
+					'mail'=>'john@example.com'
+				]);
+			} catch(Throwable $error) {
+				echo ' [FAIL]'.PHP_EOL;
+				echo PHP_EOL.'Error: '.$error->getMessage().PHP_EOL;
+				$failed=true;
+			}
+			sleep(2);
+			if(is_file(__DIR__.'/tmp/queue_worker/fifo/output'))
+			{
+				echo ' [ OK ]';
 
-			if(file_get_contents(__DIR__.'/tmp/queue_worker/fifo/output') === '6e4d191c7a5e070ede846a9d91fd1dfe')
-				echo ' [ OK ]'.PHP_EOL;
+				if(file_get_contents(__DIR__.'/tmp/queue_worker/fifo/output') === '6e4d191c7a5e070ede846a9d91fd1dfe')
+					echo ' [ OK ]'.PHP_EOL;
+				else
+				{
+					echo ' [FAIL]'.PHP_EOL;
+					echo PHP_EOL.'Error: '.__DIR__.'/tmp/queue_worker/output invalid md5 sum'.PHP_EOL;
+					$failed=true;
+				}
+			}
 			else
 			{
 				echo ' [FAIL]'.PHP_EOL;
-				echo PHP_EOL.'Error: '.__DIR__.'/tmp/queue_worker/output invalid md5 sum'.PHP_EOL;
+				echo PHP_EOL.'Error: '.__DIR__.'/tmp/queue_worker/fifo/output does not exists'.PHP_EOL;
+				$failed=true;
+			}
+		}
+
+	echo ' -> Testing queue_worker_pdo write';
+		if(isset($pdo_handler))
+		{
+			try {
+				(new queue_worker_pdo($pdo_handler, 'queue_worker_test'))->write([
+					'name'=>'John',
+					'file'=>'./tmp/john',
+					'mail'=>'john@example.com'
+				]);
+			} catch(Throwable $error) {
+				echo ' [FAIL]'.PHP_EOL;
+				echo PHP_EOL.'Error: '.$error->getMessage().PHP_EOL;
+				$failed=true;
+			}
+			sleep(6);
+			if(is_file(__DIR__.'/tmp/queue_worker/pdo/output'))
+			{
+				echo ' [ OK ]';
+
+				if(file_get_contents(__DIR__.'/tmp/queue_worker/pdo/output') === '6e4d191c7a5e070ede846a9d91fd1dfe')
+					echo ' [ OK ]'.PHP_EOL;
+				else
+				{
+					echo ' [FAIL]'.PHP_EOL;
+					echo PHP_EOL.'Error: '.__DIR__.'/tmp/queue_worker/output invalid md5 sum'.PHP_EOL;
+					$failed=true;
+				}
+			}
+			else
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				echo PHP_EOL.'Error: '.__DIR__.'/tmp/queue_worker/pdo/output does not exists'.PHP_EOL;
 				$failed=true;
 			}
 		}
 		else
-		{
-			echo ' [FAIL]'.PHP_EOL;
-			echo PHP_EOL.'Error: '.__DIR__.'/tmp/queue_worker/fifo/output does not exists'.PHP_EOL;
-			$failed=true;
-		}
+			echo ' [SKIP]'.PHP_EOL;
 
 	echo ' -> Testing queue_worker_redis write';
 		if(getenv('TEST_REDIS') === 'yes')
@@ -545,7 +803,7 @@
 		else
 			echo ' [SKIP]'.PHP_EOL;
 
-	foreach([$_serve_test_handler_fifo, $_serve_test_handler_redis] as $_serve_test_handler_i=>$_serve_test_handler)
+	foreach([$_serve_test_handler_fifo, $_serve_test_handler_pdo, $_serve_test_handler_redis] as $_serve_test_handler_i=>$_serve_test_handler)
 		if(is_resource($_serve_test_handler))
 		{
 			echo ' -> Stopping test server '.$_serve_test_handler_i.PHP_EOL;

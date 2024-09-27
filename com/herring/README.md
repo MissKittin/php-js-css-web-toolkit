@@ -139,20 +139,21 @@ Device for tracking users
 		`uri` TEXT
 
 ## How it works
-Herring works on two tables: visitors and archive.  
-The latest logs are loaded into the visitors table.  
-The archive table contains entries older than n days, processed and ready for dump or report generation.  
-Generating the report may take a while, so it is recommended to generate it outside the main application.
+Herring works on two tables: visitors and archive  
+The latest logs are loaded into the visitors table  
+The archive table contains entries older than n days, processed and ready for dump or report generation  
+Generating the report may take a while, so it is recommended to generate it outside the main application
 
 ## Note
-Throws an `herring_exception` when there is a database connection error or query execution error.  
-The tracking cookie is valid for 2 years, unless a setcookie callback is defined.  
-You have to write the report generating tool/interface/cron job yourself.
+Throws an `herring_exception` when there is a database connection error or query execution error  
+May throw `PDOException` depending on `PDO::ATTR_ERRMODE`  
+The tracking cookie is valid for 2 years, unless a setcookie callback is defined  
+You have to write the report generating tool/interface/cron job yourself
 
 ## Hint
-Calling `move_to_archive(0)` will move all records to the archive.  
-You can add new records directly in the application or through a queue worker.  
-You can use cron for database maintenance and report generation.
+Calling `move_to_archive(0)` will move all records to the archive  
+You can add new records directly in the application or through a queue worker  
+You can use cron for database maintenance and report generation
 
 ## Usage
 Adding a record to the database:
@@ -197,7 +198,7 @@ try {
 ```
 
 ## Crawlers
-Herring does not distinguish between a bot and man.  
+Herring does not distinguish between a bot and man  
 For this purpose, you can use, for example, `preg_match` or composer package:
 ```
 function is_crawler()
@@ -240,8 +241,8 @@ try {
 ```
 
 ## Testing
-The test can be performed in two ways: short (the default, with a small amount of data) and long (with a large amount of data).  
-To run long mode, run the test with the `long` parameter.
+The test can be performed in two ways: short (the default, with a small amount of data) and long (with a large amount of data)  
+To run long mode, run the test with the `long` parameter
 
 ## Portability
 Create a `./lib` directory  

@@ -923,10 +923,11 @@
 			echo '  -> dump [SKIP]'.PHP_EOL;
 			echo '  -> ensure';
 				try {
-					//echo ' ['.var_export_contains(lv_hlp_collect([1, 2, 3])->ensure('int'), '', true).']';
+					//echo ' ['.var_export_contains(lv_hlp_collect([1, 2, 3])->ensure('int'), '', true, function($i){ return str_replace('\lv_hlp_collection', 'lv_hlp_collection', $i); }).']';
 					if(var_export_contains(
 						lv_hlp_collect([1, 2, 3])->ensure('int'),
-						"lv_hlp_collection::__set_state(array('items'=>array(0=>1,1=>2,2=>3,),'escape_when_casting_to_string'=>false,))"
+						"lv_hlp_collection::__set_state(array('items'=>array(0=>1,1=>2,2=>3,),'escape_when_casting_to_string'=>false,))",
+						false, function($i){ return str_replace('\lv_hlp_collection', 'lv_hlp_collection', $i); }
 					))
 						echo ' [ OK ]';
 					else
@@ -967,10 +968,11 @@
 				$chunks=$collection->chunk_while(function(string $value, int $key, lv_hlp_collection $chunk){
 					return ($value === $chunk->last());
 				});
-				//echo ' ['.var_export_contains($chunks->all(), '', true).']';
+				//echo ' ['.var_export_contains($chunks->all(), '', true, function($i){ return str_replace('\lv_hlp_lazy_collection', 'lv_hlp_lazy_collection', $i); }).']';
 				if(var_export_contains(
 					$chunks->all(),
-					"array(0=>lv_hlp_lazy_collection::__set_state(array('source'=>array(0=>'A',1=>'A',),'escape_when_casting_to_string'=>false,)),1=>lv_hlp_lazy_collection::__set_state(array('source'=>array(2=>'B',3=>'B',),'escape_when_casting_to_string'=>false,)),2=>lv_hlp_lazy_collection::__set_state(array('source'=>array(4=>'C',5=>'C',6=>'C',),'escape_when_casting_to_string'=>false,)),3=>lv_hlp_lazy_collection::__set_state(array('source'=>array(7=>'D',),'escape_when_casting_to_string'=>false,)),)"
+					"array(0=>lv_hlp_lazy_collection::__set_state(array('source'=>array(0=>'A',1=>'A',),'escape_when_casting_to_string'=>false,)),1=>lv_hlp_lazy_collection::__set_state(array('source'=>array(2=>'B',3=>'B',),'escape_when_casting_to_string'=>false,)),2=>lv_hlp_lazy_collection::__set_state(array('source'=>array(4=>'C',5=>'C',6=>'C',),'escape_when_casting_to_string'=>false,)),3=>lv_hlp_lazy_collection::__set_state(array('source'=>array(7=>'D',),'escape_when_casting_to_string'=>false,)),)",
+					false, function($i){ return str_replace('\lv_hlp_lazy_collection', 'lv_hlp_lazy_collection', $i); }
 				))
 					echo ' [ OK ]'.PHP_EOL;
 				else

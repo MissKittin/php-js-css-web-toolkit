@@ -10,6 +10,9 @@
 	 * Classes:
 	 *  queue_worker_fifo - use named pipe as information transport
 	 *   warning: only for *nix systems
+	 *  queue_worker_pdo - use relational database as information transport
+	 *   supported databases: PostgreSQL, MySQL, SQLite3
+	 *   note: may throw PDOException depending on PDO::ATTR_ERRMODE
 	 *  queue_worker_redis - use Redis as information transport
 	 *
 	 * Note:
@@ -56,9 +59,16 @@
 			{
 				// This function must be defined
 
-				// redis worker doesn't have this
+				// only queue_worker_fifo
 				if(isset($worker_meta['worker_fifo']))
 					echo 'Worker: Queue worker fifo: '.$worker_meta['worker_fifo'].PHP_EOL;
+
+				// queue_worker_pdo has $worker_meta['pdo_handler']
+				// and $worker_meta['table_name']
+
+				// only queue_worker_redis
+				if(isset($worker_meta['redis_handler']))
+					echo 'Worker: Redis version: '.$worker_meta['redis_handler']->info()['redis_version'].PHP_EOL;
 
 				if($worker_meta['worker_fork'])
 				{
@@ -119,8 +129,12 @@
 		public function write_queue()
 		{
 			if(!empty($this->queue))
+			{
 				foreach($this->queue as $job)
 					$this->write($job);
+
+				$this->queue=[];
+			}
 
 			return $this;
 		}
@@ -375,6 +389,328 @@
 			return $this;
 		}
 	}
+	class queue_worker_pdo extends queue_worker_abstract
+	{
+		/*
+		 * The Worker
+		 * I N  T H E  S E Q U E L
+		 *
+		 * Note:
+		 *  may throw PDOException depending on PDO::ATTR_ERRMODE
+		 *
+		 * Supported databases:
+		 *  PostgreSQL
+		 *  MySQL
+		 *  SQLite3
+		 *
+		 * Table layout:
+		 *  PostgreSQL:
+		 *   `id` SERIAL PRIMARY KEY
+		 *   `payload` TEXT
+		 *  MySQL:
+		 *   `id` INTEGER NOT NULL AUTO_INCREMENT [PRIMARY KEY]
+		 *   `payload` TEXT
+		 *  SQLite3:
+		 *   `id` INTEGER PRIMARY KEY AUTOINCREMENT
+		 *   `payload` TEXT
+		 *
+		 * Queue server start:
+			queue_worker_pdo::start_worker(
+				$pdo_handler, // object
+				'string_path/to/functions.php',
+				'string_table-name', // default: queue_worker
+				false, // bool_fork, enable parallel execution via PCNTL
+				0, // int_children_limit, limit background processes
+				false // bool_debug
+			);
+		 *
+		 * Initialization:
+			$queue_worker=new queue_worker_pdo(
+				$pdo_handler, // required
+				'table_name' // default: queue_worker
+			);
+		 */
+
+		protected $pdo_handler;
+		protected $table_name;
+
+		public static function start_worker(
+			$pdo_handler,
+			string $worker_functions,
+			string $table_name='queue_worker',
+			bool $worker_fork=false,
+			int $children_limit=0,
+			bool $debug=false
+		){
+			if(php_sapi_name() !== 'cli')
+				throw new queue_worker_exception('This method is only for CLI');
+
+			if(!is_object($pdo_handler))
+				throw new queue_worker_exception('The pdo_handler parameter is not an object');
+
+			if(!in_array(
+				$pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME),
+				['pgsql', 'mysql', 'sqlite']
+			))
+				throw new queue_worker_exception($this->pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME).' driver is not supported');
+
+			if($worker_fork && (!function_exists('pcntl_fork')))
+			{
+				if($debug)
+					echo '[D] PCNTL extension not available - forking disabled'.PHP_EOL;
+
+				$worker_fork=false;
+				$children_limit=0;
+			}
+
+			if($children_limit < 0)
+				throw new queue_worker_exception('Child process limit cannot be negative');
+
+			if($worker_functions !== null)
+			{
+				if(!file_exists($worker_functions))
+					throw new queue_worker_exception($worker_functions.' not exist');
+
+				if((include $worker_functions) === false)
+					throw new queue_worker_exception($worker_functions.' inclusion error');
+			}
+
+			if(!function_exists('queue_worker_main'))
+				throw new queue_worker_exception('queue_worker_main function not defined in '.$worker_functions);
+
+			if($debug)
+			{
+				if($worker_functions === null)
+					echo '[D] Functions file disabled'.PHP_EOL;
+				else
+					echo '[D] Functions path: '.$worker_functions.PHP_EOL;
+
+				if($worker_fork)
+				{
+					echo '[D] Forking enabled'.PHP_EOL;
+
+					if($children_limit === 0)
+						echo '[D] Child process limit disabled'.PHP_EOL;
+					else
+						echo '[D] Child process limit enabled: '.$children_limit.PHP_EOL;
+				}
+				else
+					echo '[D] Forking disabled'.PHP_EOL;
+			}
+
+			if($worker_fork)
+			{
+				declare(ticks=1);
+				pcntl_signal(SIGCHLD, function($signal){
+					if($signal === SIGCHLD)
+						foreach(static::$children_pids as $pid)
+							if(pcntl_waitpid($pid, $status, WNOHANG|WUNTRACED) !== 0)
+								unset(static::$children_pids[$pid]);
+				});
+			}
+
+			switch($pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME))
+			{
+				case 'pgsql':
+					if($pdo_handler->exec(''
+					.	'CREATE TABLE IF NOT EXISTS '.$table_name
+					.	'('
+					.		'id SERIAL PRIMARY KEY,'
+					.		'payload TEXT'
+					.	')'
+					) === false)
+						throw new queue_worker_exception('Cannot create '.$table_name.' table');
+				break;
+				case 'mysql':
+					if($pdo_handler->exec(''
+					.	'CREATE TABLE IF NOT EXISTS '.$table_name
+					.	'('
+					.		'id INTEGER NOT NULL AUTO_INCREMENT, PRIMARY KEY(id),'
+					.		'payload TEXT'
+					.	')'
+					) === false)
+						throw new queue_worker_exception('Cannot create '.$table_name.' table');
+				break;
+				case 'sqlite':
+					if($pdo_handler->exec(''
+					.	'CREATE TABLE IF NOT EXISTS '.$table_name
+					.	'('
+					.		'id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,'
+					.		'payload TEXT'
+					.	')'
+					) === false)
+						throw new queue_worker_exception('Cannot create '.$table_name.' table');
+			}
+
+			while(true)
+			{
+				$queue=[];
+				$iterator=null;
+
+				try {
+					$items=$pdo_handler->query('SELECT id,payload FROM '.$table_name);
+				} catch(PDOException $error) {
+					$items=false;
+				}
+
+				if($items === false)
+				{
+					if($debug)
+						echo '[D] PDO SELECT query error'.PHP_EOL;
+
+					usleep(500000); // 0.5s
+
+					continue;
+				}
+
+				try {
+					while($item=$items->fetch(PDO::FETCH_ASSOC))
+					{
+						$queue[]=$item['payload'];
+
+						try {
+							if(
+								($pdo_handler->exec('DELETE FROM '.$table_name.' WHERE id='.$item['id']) === false) &&
+								$debug
+							)
+								echo '[D] PDO DELETE id='.$item['id'].' query error'.PHP_EOL;
+						} catch(PDOException $error) {
+							if($debug)
+								echo '[D] PDO DELETE id='.$item['id'].' query error'.PHP_EOL;
+						}
+					}
+				} catch(PDOException $error) {
+					if($debug)
+						echo '[D] PDO fetch error'.PHP_EOL;
+
+					usleep(500000); // 0.5s
+
+					continue;
+				}
+
+				if(empty($queue))
+				{
+					if($debug)
+						echo '[D] No jobs to do - waiting'.PHP_EOL;
+
+					if(empty(static::$children_pids))
+						sleep(5);
+					else
+					{
+						if($debug)
+							echo '[D]  Background processes are running - not waiting'.PHP_EOL;
+
+						usleep(500000); // 0.5s
+					}
+				}
+				else
+					foreach($queue as $job_id=>$job_content)
+					{
+						if($worker_fork)
+						{
+							$child_pid=pcntl_fork();
+
+							if($child_pid === -1)
+							{
+								if($debug)
+								{
+									echo '[D][E] Fork error, job content: '.$job_content.PHP_EOL;
+									echo '[D] Executing this job sequentially'.PHP_EOL;
+								}
+
+								queue_worker_main(
+									unserialize($job_content),
+									[
+										'pdo_handler'=>$pdo_handler,
+										'table_name'=>$table_name,
+										'worker_fork'=>false,
+										'children_limit'=>$children_limit,
+										'debug'=>$debug
+									]
+								);
+							}
+							else if($child_pid === 0)
+							{
+								if($debug)
+									echo '[D] Processing job '.$job_id.': '.$job_content.PHP_EOL;
+
+								queue_worker_main(
+									unserialize($job_content),
+									[
+										'pdo_handler'=>$pdo_handler,
+										'table_name'=>$table_name,
+										'worker_fork'=>$worker_fork,
+										'children_limit'=>$children_limit,
+										'debug'=>$debug
+									]
+								);
+
+								sleep(1);
+								exit();
+							}
+							else
+								static::$children_pids[$child_pid]=$child_pid;
+
+							if(
+								($child_pid !== -1) &&
+								($children_limit !== 0) &&
+								(count(static::$children_pids) === $children_limit)
+							){
+								if($debug)
+									echo '[D] Child process limit ('.$children_limit.') reached - waiting'.PHP_EOL;
+
+								while(pcntl_waitpid(0, $fork_status) !== -1);
+							}
+						}
+						else
+						{
+							if($debug)
+								echo '[D] Processing job '.$job_id.': '.$job_content.PHP_EOL;
+
+							queue_worker_main(
+								unserialize($job_content),
+								[
+									'pdo_handler'=>$pdo_handler,
+									'table_name'=>$table_name,
+									'worker_fork'=>$worker_fork,
+									'children_limit'=>$children_limit,
+									'debug'=>$debug
+								]
+							);
+						}
+
+						unset($queue[$job_id]);
+					}
+			}
+		}
+
+		public function __construct(
+			$pdo_handler,
+			string $table_name='queue_worker'
+		){
+			if(!is_object($pdo_handler))
+				throw new queue_worker_exception('The pdo_handler parameter is not an object');
+
+			$this->pdo_handler=$pdo_handler;
+			$this->table_name=$table_name;
+		}
+
+		public function write($worker_input)
+		{
+			$query=$this->pdo_handler->prepare(''
+			.	'INSERT INTO '.$this->table_name.'(payload) '
+			.	'VALUES(:payload)'
+			);
+
+			if($query === false)
+				throw new queue_worker_exception('PDO prepare error');
+
+			if(!$query->execute([':payload'=>serialize($worker_input)]))
+				throw new queue_worker_exception('PDO execute error - unable to send data to the queue server');
+
+			return $this;
+		}
+	}
 	class queue_worker_redis extends queue_worker_abstract
 	{
 		/*
@@ -392,7 +728,10 @@
 			);
 		 *
 		 * Initialization:
-		 *  $queue_worker=new queue_worker_redis($redis_handler, 'key_prefix__');
+			$queue_worker=new queue_worker_redis(
+				$redis_handler, // required
+				'key_prefix__' // default: queue_worker__
+			);
 		 */
 
 		protected $redis_handler;
@@ -527,7 +866,7 @@
 								queue_worker_main(
 									unserialize($job_content),
 									[
-										'worker_fifo'=>$worker_fifo,
+										'redis_handler'=>$redis_handler,
 										'worker_fork'=>false,
 										'children_limit'=>$children_limit,
 										'debug'=>$debug
@@ -542,7 +881,7 @@
 								queue_worker_main(
 									unserialize($job_content),
 									[
-										'worker_fifo'=>$worker_fifo,
+										'redis_handler'=>$redis_handler,
 										'worker_fork'=>$worker_fork,
 										'children_limit'=>$children_limit,
 										'debug'=>$debug
@@ -574,6 +913,7 @@
 							queue_worker_main(
 								unserialize($job_content),
 								[
+									'redis_handler'=>$redis_handler,
 									'worker_fork'=>$worker_fork,
 									'children_limit'=>$children_limit,
 									'debug'=>$debug

@@ -31,10 +31,12 @@
 	 *   store data in database via PDO (permban)
 	 *   supported databases: PostgreSQL, MySQL, SQLite3
 	 *   table layout: see class header
+	 *   note: may throw PDOException depending on PDO::ATTR_ERRMODE
 	 *  bruteforce_timeout_pdo
 	 *   store data in database via PDO (timeout ban)
 	 *   supported databases: PostgreSQL, MySQL, SQLite3
 	 *   table layout: see class header
+	 *   note: may throw PDOException depending on PDO::ATTR_ERRMODE
 	 *  bruteforce_json
 	 *   store data in flat file (for debugging purposes) (permban)
 	 *  bruteforce_timeout_json
@@ -734,6 +736,7 @@
 		 *
 		 * Note:
 		 *  throws an bruteforce_exception on error
+		 *  may throw PDOException depending on PDO::ATTR_ERRMODE
 		 *
 		 * Supported databases:
 		 *  PostgreSQL
@@ -851,22 +854,26 @@
 							throw new bruteforce_exception('PDO exec error');
 				}
 
-			switch($this->pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME))
-			{
-				case 'pgsql':
-					$ip_query=$this->pdo_handler->query(''
-					.	'SELECT * '
-					.	'FROM '.$this->table_name.' '
-					.	"WHERE ip='".$this->ip."'"
-					);
-				break;
-				case 'mysql':
-				case 'sqlite':
-					$ip_query=$this->pdo_handler->query(''
-					.	'SELECT * '
-					.	'FROM '.$this->table_name.' '
-					.	'WHERE ip="'.$this->ip.'"'
-					);
+			try {
+				switch($this->pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME))
+				{
+					case 'pgsql':
+						$ip_query=$this->pdo_handler->query(''
+						.	'SELECT * '
+						.	'FROM '.$this->table_name.' '
+						.	"WHERE ip='".$this->ip."'"
+						);
+					break;
+					case 'mysql':
+					case 'sqlite':
+						$ip_query=$this->pdo_handler->query(''
+						.	'SELECT * '
+						.	'FROM '.$this->table_name.' '
+						.	'WHERE ip="'.$this->ip.'"'
+						);
+				}
+			} catch(PDOException $error) {
+				$ip_query=false;
 			}
 
 			if($ip_query !== false)
@@ -1008,6 +1015,7 @@
 		 *
 		 * Note:
 		 *  throws an bruteforce_exception on error
+		 *  may throw PDOException depending on PDO::ATTR_ERRMODE
 		 *
 		 * Supported databases:
 		 *  PostgreSQL
@@ -1138,22 +1146,26 @@
 							throw new bruteforce_exception('PDO exec error');
 				}
 
-			switch($this->pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME))
-			{
-				case 'pgsql':
-					$ip_query=$this->pdo_handler->query(''
-					.	'SELECT * '
-					.	'FROM '.$this->table_name.' '
-					.	"WHERE ip='".$this->ip."'"
-					);
-				break;
-				case 'mysql':
-				case 'sqlite':
-					$ip_query=$this->pdo_handler->query(''
-					.	'SELECT * '
-					.	'FROM '.$this->table_name.' '
-					.	'WHERE ip="'.$this->ip.'"'
-					);
+			try {
+				switch($this->pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME))
+				{
+					case 'pgsql':
+						$ip_query=$this->pdo_handler->query(''
+						.	'SELECT * '
+						.	'FROM '.$this->table_name.' '
+						.	"WHERE ip='".$this->ip."'"
+						);
+					break;
+					case 'mysql':
+					case 'sqlite':
+						$ip_query=$this->pdo_handler->query(''
+						.	'SELECT * '
+						.	'FROM '.$this->table_name.' '
+						.	'WHERE ip="'.$this->ip.'"'
+						);
+				}
+			} catch(PDOException $error) {
+				$ip_query=false;
 			}
 
 			if($ip_query !== false)

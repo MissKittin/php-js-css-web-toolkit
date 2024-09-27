@@ -27,6 +27,7 @@
 				case is_object($value):
 				break;
 				case ($value instanceof __PHP_Incomplete_Class):
+				case (substr(var_export($value, true), 0, 24) === '__PHP_Incomplete_Class::'): // PHP 7.1
 					return '__PHP_Incomplete_Class';
 				default:
 						$type=get_resource_type($value);

@@ -49,7 +49,8 @@
 	?>';
 
 	echo ' -> Testing library';
-		if(str_replace(["\n", "\t"], [' ', ''], strip_php_comments($source)) === '<?php   echo "ok"; ?>')
+		//echo ' ('.str_replace(["\n", "\t", ' '], '', strip_php_comments($source)).')';
+		if(str_replace(["\n", "\t", ' '], '', strip_php_comments($source)) === '<?phpecho"ok";?>')
 			echo ' [ OK ]'.PHP_EOL;
 		else
 		{

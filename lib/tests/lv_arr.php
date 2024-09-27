@@ -2084,10 +2084,11 @@
 			}
 			$collection=$lv_collect_function(['USD', 'EUR', 'GBP']);
 			$currencies=$collection->map_into(currency::class);
-			//echo ' ['.var_export_contains($currencies->all(), '', true).']';
+			//echo ' ['.var_export_contains($currencies->all(), '', true, function($i){ return str_replace('\currency', 'currency', $i); }).']';
 			if(var_export_contains(
 				$currencies->all(),
-				"array(0=>currency::__set_state(array()),1=>currency::__set_state(array()),2=>currency::__set_state(array()),)"
+				"array(0=>currency::__set_state(array()),1=>currency::__set_state(array()),2=>currency::__set_state(array()),)",
+				false, function($i){ return str_replace('\currency', 'currency', $i); }
 			))
 				echo ' [ OK ]'.PHP_EOL;
 			else
@@ -4002,10 +4003,11 @@
 				new where_instance_of_p()
 			]);
 			$filtered=$collection->where_instance_of(where_instance_of_u::class);
-			//echo ' ['.var_export_contains($filtered->all(), '', true).']';
+			//echo ' ['.var_export_contains($filtered->all(), '', true, function($i){ return str_replace('\where_instance_of_', 'where_instance_of_', $i); }).']';
 			if(var_export_contains(
 				$filtered->all(),
-				"array(0=>where_instance_of_u::__set_state(array()),1=>where_instance_of_u::__set_state(array()),)"
+				"array(0=>where_instance_of_u::__set_state(array()),1=>where_instance_of_u::__set_state(array()),)",
+				false, function($i){ return str_replace('\where_instance_of_', 'where_instance_of_', $i); }
 			))
 				echo ' [ OK ]'.PHP_EOL;
 			else
@@ -5182,10 +5184,11 @@
 			}
 			$collection=$lv_lazy_collect_function(['USD', 'EUR', 'GBP']);
 			$currencies=$collection->map_into(lcurrency::class);
-			//echo ' ['.var_export_contains($currencies->all(), '', true).']';
+			//echo ' ['.var_export_contains($currencies->all(), '', true, function($i){ return str_replace('\lcurrency', 'lcurrency', $i); }).']';
 			if(var_export_contains(
 				$currencies->all(),
-				"array(0=>lcurrency::__set_state(array()),1=>lcurrency::__set_state(array()),2=>lcurrency::__set_state(array()),)"
+				"array(0=>lcurrency::__set_state(array()),1=>lcurrency::__set_state(array()),2=>lcurrency::__set_state(array()),)",
+				false, function($i){ return str_replace('\lcurrency', 'lcurrency', $i); }
 			))
 				echo ' [ OK ]'.PHP_EOL;
 			else
@@ -6656,10 +6659,11 @@
 				new lwhere_instance_of_p()
 			]);
 			$filtered=$collection->where_instance_of(lwhere_instance_of_u::class);
-			//echo ' ['.var_export_contains($filtered->all(), '', true).']';
+			//echo ' ['.var_export_contains($filtered->all(), '', true, function($i){ return str_replace('\lwhere_instance_of_', 'lwhere_instance_of_', $i); }).']';
 			if(var_export_contains(
 				$filtered->all(),
-				"array(0=>lwhere_instance_of_u::__set_state(array()),1=>lwhere_instance_of_u::__set_state(array()),)"
+				"array(0=>lwhere_instance_of_u::__set_state(array()),1=>lwhere_instance_of_u::__set_state(array()),)",
+				false, function($i){ return str_replace('\lwhere_instance_of_', 'lwhere_instance_of_', $i); }
 			))
 				echo ' [ OK ]'.PHP_EOL;
 			else

@@ -438,8 +438,10 @@
 	{
 		$_ws_client=socket_accept($_ws_server);
 
-		if(is_resource($_ws_client))
-		{
+		if(
+			is_resource($_ws_client) || // PHP 7
+			($_ws_client instanceof Socket) // PHP 8
+		){
 			if(
 				($_ws_children_limit !== 0) &&
 				(count($GLOBALS['_ws_children_pids']) === $_ws_children_limit)

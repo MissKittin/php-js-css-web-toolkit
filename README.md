@@ -81,19 +81,6 @@ Supported cache databases: Redis, Memcached, APCu
 * `pdo_cheat.php` - use the table as an object
 * `pdo_connect.php` - open preconfigured connection to the database and optionally seed
 * `pdo_crud_builder.php` - OOP SQL builder
-* `pf_array.php` - `array_*()` polyfill (MIT)
-* `pf_get_debug_type.php` - `get_debug_type()` polyfill
-* `pf_getallheaders.php` - `getallheaders()` polyfill
-* `pf_is_countable.php` - `is_countable()` polyfill (MIT)
-* `pf_json_validate.php` - `json_validate()` polyfill (MIT)
-* `pf_mbstring.php` - `mb_*()` polyfill (MIT)
-* `pf_php_float.php` - `PHP_FLOAT_*` polyfill
-* `pf_php_os_family.php` - `PHP_OS_FAMILY` polyfill (MIT)
-* `pf_spl_object_id.php` - `spl_object_id()` polyfill (MIT)
-* `pf_str.php` - `str_*()` polyfill (MIT)
-* `pf_stream_isatty.php` - `stream_isatty()` polyfill (MIT)
-* `pf_Stringable.php` - `Stringable` polyfill
-* `pf_ValueError.php` - `Error` and `ValueError` polyfill
 * `predis_connect.php` - Predis support library
 * `print_file.php` - set HTTP headers and send specified file to the client
 * `queue_worker.php` - execute jobs outside the HTTP server
@@ -103,13 +90,6 @@ Supported cache databases: Redis, Memcached, APCu
 * `relative_path.php` - get relative path between two files/directories
 * `rmdir_recursive.php` - remove non-empty directories
 * `scandir_recursive.php` - scan directory recursively
-* `sec_bruteforce.php` - trivial banning method by IP on n unsuccessful attempts
-* `sec_captcha.php` - CAPTCHA image generator
-* `sec_csrf.php` - CSRF protection helpers
-* `sec_file_sign.php` - easily generate file signatures
-* `sec_http_basic_auth.php` - request and validate basic HTTP authentication
-* `sec_login.php` - login/logout helpers
-* `sec_lv_encrypter.php` - Laravel encrypter class for cookies and sessions (MIT)
 * `sess_array.php` - store the session in an array (mainly for testing purposes)
 * `simple_html_dom.php` - S.C. Chen's HTML DOM parser v1.9.1 (MIT)
 * `simpleblog_db.php` - key-value database that can be edited in notepad
@@ -127,6 +107,30 @@ Supported cache databases: Redis, Memcached, APCu
 * `var_export_contains.php` - check if the content of the variable is correct (mainly for testing purposes)
 * `webdevsh.php` - functions for Toptal minifiers
 * `wp_is_serialized.php` - check if string is serialized data - function from Wordpress (GNU GPL2)
+
+## PHP libraries - polyfills
+* `pf_array.php` - `array_*()` (MIT)
+* `pf_get_debug_type.php`
+* `pf_getallheaders.php`
+* `pf_is_countable.php` (MIT)
+* `pf_json_validate.php` (MIT)
+* `pf_mbstring.php` - `mb_*()` (MIT)
+* `pf_php_float.php` - `PHP_FLOAT_*`
+* `pf_php_os_family.php` (MIT)
+* `pf_spl_object_id.php` (MIT)
+* `pf_str.php` - `str_*()` (MIT)
+* `pf_stream_isatty.php` (MIT)
+* `pf_Stringable.php`
+* `pf_ValueError.php` - `Error` and `ValueError`
+
+## PHP libraries - security
+* `sec_bruteforce.php` - trivial banning method by IP on n unsuccessful attempts
+* `sec_captcha.php` - CAPTCHA image generator
+* `sec_csrf.php` - CSRF protection helpers
+* `sec_file_sign.php` - easily generate file signatures
+* `sec_http_basic_auth.php` - request and validate basic HTTP authentication
+* `sec_login.php` - login/logout helpers
+* `sec_lv_encrypter.php` - Laravel encrypter class for cookies and sessions (MIT)
 
 ## JavaScript libraries (ES6)
 * `addDesktopIcon.js` - create box with win98-style icon

@@ -251,8 +251,11 @@
 	}
 	function login_com_reload()
 	{
+		header('Cache-Control: no-store, no-cache, must-revalidate', true);
+		header('Expires: 0', true);
+
 		if(login_com_reg_config::_()['reload_by_http'] === true)
-			return header('Location: '.$_SERVER['REQUEST_URI'], true, 301);
+			return header('Location: '.$_SERVER['REQUEST_URI'], true, 302);
 
 		if(
 			(login_com_reg_view::_()['favicon'] !== null) &&

@@ -856,10 +856,13 @@
 				['aa', 'ba'],
 				['ba', 'bb']
 			])->exec();
-			if(var_export_contains(
-				$pdo_handler->query('SELECT * FROM exampletable')->fetchAll(PDO::FETCH_NAMED),
-				"array(0=>array('id'=>'1','a'=>'aa','b'=>'ba',),1=>array('id'=>'2','a'=>'ba','b'=>'bb',),)"
-			))
+			$output_string_a="array(0=>array('id'=>'1','a'=>'aa','b'=>'ba',),1=>array('id'=>'2','a'=>'ba','b'=>'bb',),)";
+			$output_string_b="array(0=>array('id'=>1,'a'=>'aa','b'=>'ba',),1=>array('id'=>2,'a'=>'ba','b'=>'bb',),)";
+			$query_result=$pdo_handler->query('SELECT * FROM exampletable')->fetchAll(PDO::FETCH_NAMED);
+			if(
+				var_export_contains($query_result, $output_string_a) ||
+				var_export_contains($query_result, $output_string_b)
+			)
 				echo ' [ OK ]'.PHP_EOL;
 			else
 			{
@@ -871,10 +874,13 @@
 				->select('*')
 				->from('exampletable')
 			->query();
-			if(var_export_contains(
-				$result,
-				"array(0=>array('id'=>'1','a'=>'aa','b'=>'ba',),1=>array('id'=>'2','a'=>'ba','b'=>'bb',),)"
-			))
+			$output_string_a="array(0=>array('id'=>'1','a'=>'aa','b'=>'ba',),1=>array('id'=>'2','a'=>'ba','b'=>'bb',),)";
+			$output_string_b="array(0=>array('id'=>1,'a'=>'aa','b'=>'ba',),1=>array('id'=>2,'a'=>'ba','b'=>'bb',),)";
+			$query_result=$pdo_handler->query('SELECT * FROM exampletable')->fetchAll(PDO::FETCH_NAMED);
+			if(
+				var_export_contains($result, $output_string_a) ||
+				var_export_contains($result, $output_string_b)
+			)
 				echo ' [ OK ]'.PHP_EOL;
 			else
 			{
@@ -886,20 +892,26 @@
 				->select('*')
 				->from('exampletable')
 			->exec(true);
-			if(var_export_contains(
-				$pdo_builder->fetch_row($result),
-				"array('id'=>'1','a'=>'aa','b'=>'ba',)"
-			))
+			$output_string_a="array('id'=>'1','a'=>'aa','b'=>'ba',)";
+			$output_string_b="array('id'=>1,'a'=>'aa','b'=>'ba',)";
+			$query_result=$pdo_builder->fetch_row($result);
+			if(
+				var_export_contains($query_result, $output_string_a) ||
+				var_export_contains($query_result, $output_string_b)
+			)
 				echo ' [ OK ]';
 			else
 			{
 				echo ' [FAIL]';
 				$errors[]='select/from/exec/fetch_row 1';
 			}
-			if(var_export_contains(
-				$pdo_builder->fetch_row($result),
-				"array('id'=>'2','a'=>'ba','b'=>'bb',)"
-			))
+			$output_string_a="array('id'=>'2','a'=>'ba','b'=>'bb',)";
+			$output_string_b="array('id'=>2,'a'=>'ba','b'=>'bb',)";
+			$query_result=$pdo_builder->fetch_row($result);
+			if(
+				var_export_contains($query_result, $output_string_a) ||
+				var_export_contains($query_result, $output_string_b)
+			)
 				echo ' [ OK ]';
 			else
 			{

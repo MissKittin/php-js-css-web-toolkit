@@ -26,6 +26,9 @@
 	 * Modules:
 	 *  captcha_gd2
 	 *   uses GD2 to generate the captcha image
+	 *   warning:
+	 *    gd adds a comment like "CREATOR: gd-jpeg v1.0 (using IJG JPEG v90), default quality" to the file
+	 *    if you don't want this, don't use this module
 	 *  captcha_imagick
 	 *   uses ImageMagick to generate the captcha image
 	 *   Imagick version of captcha_gd2
@@ -88,11 +91,13 @@
 		 *
 		 * Warning:
 		 *  gd extension is required
+		 *  gd adds a comment like "CREATOR: gd-jpeg v1.0 (using IJG JPEG v90), default quality" to the file
 		 *
 		 * Note:
 		 *  throws an sec_captcha_exception on error
 		 *
-		 * Usage: captcha_gd2(string_image_format)
+		 * Usage:
+			[$token_string, $image]=captcha_gd2(string_image_format);
 		 *  where string_image_format is optional and can be bmp (>=7.2), gif, png or jpeg (default)
 		 *
 		 * Source: https://stackoverflow.com/questions/5274563/php-imagecreate-error
@@ -201,7 +206,8 @@
 		 * Note:
 		 *  throws an sec_captcha_exception on error
 		 *
-		 * Usage: captcha_imagick(string_image_format, string_token_font_name, int_token_font_size)
+		 * Usage:
+			[$token_string, $image]=captcha_imagick(string_image_format, string_token_font_name, int_token_font_size);
 		 *  where all args are optional
 		 *  and string_image_format can be bmp gif png or jpeg (default)
 		 */
@@ -271,7 +277,8 @@
 		 * Note:
 		 *  throws an sec_captcha_exception on error
 		 *
-		 * Usage: captcha_imagick(string_image_format, string_token_font_name, int_token_font_size)
+		 * Usage:
+			[$token_string, $image]=captcha_imagick(string_image_format, string_token_font_name, int_token_font_size);
 		 *  where all args are optional
 		 *  and string_image_format can be bmp gif png or jpeg (default)
 		 *

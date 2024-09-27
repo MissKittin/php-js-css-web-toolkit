@@ -170,9 +170,14 @@
 		public function read(string $record_name)
 		{
 			$record_name=str_replace(['/..', '../'], '', $record_name);
+			$scandir=scandir($this->db_path.'/'.$record_name);
+
+			if($scandir === false)
+				return [];
+
 			$record_content=[];
 
-			foreach(array_slice(scandir($this->db_path.'/'.$record_name), 2) as $key)
+			foreach(array_diff($scandir, ['.', '..']) as $key)
 			{
 				if(is_dir($this->db_path.'/'.$record_name.'/'.$key))
 				{

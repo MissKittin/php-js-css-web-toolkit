@@ -15,14 +15,24 @@
 	 *  check_var.php library is required
 	 *  queue_worker.php library is required
 	 *
+	 * Example PDO config:
+		<?php
+			return [
+				new PDO(
+					'sqlite:/path/to/database.sqlite3'
+				), // required
+				'table_name' // optional, default: queue_worker
+			];
+		?>
+	 *
 	 * Example Redis config:
 		<?php
 			return [
 				new Redis([
 					'host'=>'127.0.0.1',
 					'port'=>6379
-				]),
-				'key_prefix__'
+				]), // required
+				'key_prefix__' // optional, default: queue_worker__
 			];
 		?>
 	 *
@@ -35,8 +45,8 @@
 				new predis_phpredis_proxy(new Predis\Client([
 					'host'=>'127.0.0.1',
 					'port'=>6379
-				])),
-				'key_prefix__'
+				])), // required
+				'key_prefix__' // optional, default: queue_worker__
 			];
 		?>
 	 *
@@ -67,6 +77,7 @@
 	}
 
 	$__worker_fifo=check_argv_next_param('--fifo');
+	$__worker_pdo=check_argv_next_param('--pdo');
 	$__worker_redis=check_argv_next_param('--redis');
 	$__worker_functions=check_argv_next_param('--functions');
 	$__worker_fork=false;
@@ -91,6 +102,7 @@
 	){
 		echo 'Usage:'.PHP_EOL;
 		echo ' '.$argv[0].' --fifo ./path/to/fifo --functions ./path/to/functions.php [--fork] [--children-limit=4] [--no-recreate-fifo] [--debug]'.PHP_EOL;
+		echo ' '.$argv[0].' --pdo ./path/to/pdo-config.php --functions ./path/to/functions.php [--fork] [--children-limit=4] [--debug]'.PHP_EOL;
 		echo ' '.$argv[0].' --redis ./path/to/redis-config.php --functions ./path/to/functions.php [--fork] [--children-limit=4] [--debug]'.PHP_EOL;
 		echo PHP_EOL;
 		echo 'Where:'.PHP_EOL;
@@ -116,11 +128,29 @@
 					$__debug
 				);
 			break;
+			case ($__worker_pdo !== null):
+				$__pdo_config=include $__worker_pdo;
+
+				if(!isset($__pdo_config[0]))
+					throw new Exception('PDO handler not defined');
+
+				if(!isset($__pdo_config[1]))
+					$__pdo_config[1]='queue_worker';
+
+				queue_worker_pdo::start_worker(
+					$__pdo_config[0],
+					$__worker_functions,
+					$__pdo_config[1],
+					$__worker_fork,
+					$__children_limit,
+					$__debug
+				);
+			break;
 			case ($__worker_redis !== null):
 				$__redis_config=include $__worker_redis;
 
 				if(!isset($__redis_config[0]))
-					throw new Exception('Redis credentials not defined');
+					throw new Exception('Redis handler not defined');
 
 				if(!isset($__redis_config[1]))
 					$__redis_config[1]='queue_worker__';

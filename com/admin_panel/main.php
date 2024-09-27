@@ -323,17 +323,12 @@
 			$current_module='';
 
 			if($current_url !== false)
-			{
 				$current_module=strtok($current_url, '/');
 
-				if($current_module[-1] === '/')
-					$current_module=substr($current_module, 0, -1);
-
-				$current_module=trim($current_module);
-			}
-
-			if($current_module === '')
-			{
+			if(
+				($current_module === '') || // PHP 7
+				($current_module === false) // PHP 8
+			){
 				$current_module=$this->modules[$this->default_module]['url'];
 				$this->modules[$this->default_module]['_is_default']=true;
 			}

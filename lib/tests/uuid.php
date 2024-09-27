@@ -323,7 +323,8 @@
 		echo ' -> Testing decode_uuid_ordered';
 			if(var_export_contains(
 				decode_uuid_ordered('0564a6553c9fbe-003a-46b0-28db-456107'),
-				"array('microtime'=>'1518040440938430','datetime'=>Test\DateTimeImmutable::__set_state(array('date'=>'2018-02-0721:54:00.000000','timezone_type'=>1,'timezone'=>'+00:00',)),'identifier'=>'','rand'=>'3a46b028db456107',)"
+				"array('microtime'=>'1518040440938430','datetime'=>Test\DateTimeImmutable::__set_state(array('date'=>'2018-02-0721:54:00.000000','timezone_type'=>1,'timezone'=>'+00:00',)),'identifier'=>'','rand'=>'3a46b028db456107',)",
+				false, function($i){ return str_replace('\Test\DateTimeImmutable', 'Test\DateTimeImmutable', $i); }
 			))
 				echo ' [ OK ]'.PHP_EOL;
 			else

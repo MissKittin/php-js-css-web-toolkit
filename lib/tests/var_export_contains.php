@@ -66,6 +66,45 @@
 			}
 	}
 
+	echo ' -> Testing postprocess string array';
+		if(var_export_contains(
+			[
+				'ia'=>'/va',
+				'/ib'=>'vb'
+			],
+			'',
+			true,
+			function($input)
+			{
+				return strtr($input, '/', 'A');
+			}
+		) === "array('ia'=>'Ava','Aib'=>'vb',)")
+			echo ' [ OK ]'.PHP_EOL;
+		else
+		{
+			echo ' [FAIL]'.PHP_EOL;
+			$errors[]='array postprocess string';
+		}
+	echo ' -> Testing postprocess bool array';
+		if(var_export_contains(
+			[
+				'ia'=>'/va',
+				'/ib'=>'vb'
+			],
+			"array('ia'=>'Ava','Aib'=>'vb',)",
+			false,
+			function($input)
+			{
+				return strtr($input, '/', 'A');
+			}
+		))
+			echo ' [ OK ]'.PHP_EOL;
+		else
+		{
+			echo ' [FAIL]'.PHP_EOL;
+			$errors[]='array postprocess bool';
+		}
+
 	if(!empty($errors))
 	{
 		echo PHP_EOL;

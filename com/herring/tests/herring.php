@@ -294,8 +294,8 @@
 
 			if(isset($pdo_handler))
 			{
-				$pdo_handler->exec('DROP TABLE comp_herring_test_visitors');
-				$pdo_handler->exec('DROP TABLE comp_herring_test_archive');
+				$pdo_handler->exec('DROP TABLE IF EXISTS comp_herring_test_visitors');
+				$pdo_handler->exec('DROP TABLE IF EXISTS comp_herring_test_archive');
 			}
 		}
 		if(!isset($pdo_handler))

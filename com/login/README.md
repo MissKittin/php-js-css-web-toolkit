@@ -44,7 +44,7 @@ To set the desired value use `login_com_reg_name::_()['key']='value'` (except `l
 	* `on_logout` [closure]  
 		do before logout
 	* `reload_by_http` [bool]  
-		reload via HTTP 301 redirect  
+		reload via HTTP 302 redirect  
 		default: `true`
 * `login_com_reg_view`
 	* `template` [string]  
@@ -181,7 +181,7 @@ if(is_logged())
 ```
 
 ## Display reload page only
-Reload via HTTP 301 redirect (default):
+Reload via HTTP 302 redirect (default):
 ```
 login_com_reload();
 exit();

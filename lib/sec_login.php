@@ -214,7 +214,7 @@
 			$_SESSION['_sec_login']['state']=false;
 
 			self::run_logout_callbacks();
-			session_regenerate_id(false);
+			session_regenerate_id(true);
 			session_destroy();
 		}
 		public static function is_logged(

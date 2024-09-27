@@ -228,7 +228,7 @@
 		}
 
 		if(isset($pdo_handler))
-			$pdo_handler->exec('DROP TABLE cache_container');
+			$pdo_handler->exec('DROP TABLE IF EXISTS cache_container_test');
 	}
 	if(
 		(!isset($pdo_handler)) &&
@@ -524,7 +524,8 @@
 
 	if(isset($pdo_handler))
 		$cache_drivers['cache_driver_pdo']=[
-			'pdo_handler'=>$pdo_handler
+			'pdo_handler'=>$pdo_handler,
+			'table_name'=>'cache_container_test'
 		];
 	else
 		echo ' -> Skipping cache_driver_pdo'.PHP_EOL;

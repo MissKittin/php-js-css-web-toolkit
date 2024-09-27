@@ -9,6 +9,7 @@
 	 *  you cannot inherit these classes
 	 *   use composition instead
 	 *  throws an pdo_cheat_exception on error
+	 *  may throw PDOException depending on PDO::ATTR_ERRMODE
 	 *
 	 * Supported databases:
 	 *  PostgreSQL
@@ -250,11 +251,15 @@
 				return;
 			}
 
-			$table_schema=$this->query(''
-			.	'SELECT * '
-			.	'FROM '.$this->table_name.' '
-			.	'LIMIT 1'
-			);
+			try {
+				$table_schema=$this->query(''
+				.	'SELECT * '
+				.	'FROM '.$this->table_name.' '
+				.	'LIMIT 1'
+				);
+			} catch(PDOException $error) {
+				$table_schema=false;
+			}
 
 			if(($table_schema === false) || (!isset($table_schema[0])))
 			{
@@ -585,7 +590,11 @@
 			 * 4) transfer data from the old to the new
 			 */
 
-			$table_columns=$this->query('PRAGMA table_info('.$this->table_name.')');
+			try {
+				$table_columns=$this->query('PRAGMA table_info('.$this->table_name.')');
+			} catch(PDOException $error) {
+				$table_columns=false;
+			}
 
 			if($table_columns === false)
 				return false;
@@ -634,12 +643,16 @@
 
 			$rename_table_arg='__'.$this->table_name.'__'.md5(rand());
 
-			return $this->exec(''
-			.	$this->pdo_query.$this->table_name.' RENAME TO '.$rename_table_arg.';'
-			.	'CREATE TABLE '.$this->table_name.'('.$create_table_args.');'
-			.	'INSERT INTO '.$this->table_name.'('.$insert_into_args.') SELECT '.$select_args.' FROM '.$rename_table_arg.';'
-			.	'DROP TABLE '.$rename_table_arg.';'
-			);
+			try {
+				return $this->exec(''
+				.	$this->pdo_query.$this->table_name.' RENAME TO '.$rename_table_arg.';'
+				.	'CREATE TABLE '.$this->table_name.'('.$create_table_args.');'
+				.	'INSERT INTO '.$this->table_name.'('.$insert_into_args.') SELECT '.$select_args.' FROM '.$rename_table_arg.';'
+				.	'DROP TABLE '.$rename_table_arg.';'
+				);
+			} catch(PDOException $error) {
+				return false;
+			}
 		}
 		private function _add_column($column_name, $data_type)
 		{
@@ -673,11 +686,21 @@
 						return false;
 				break;
 				case 'mysql':
-					if($this->exec($this->pdo_query.$this->table_name.' RENAME COLUMN '.$old_name.' TO '.$new_name) === false)
+					try {
+						$query_output=$this->exec($this->pdo_query.$this->table_name.' RENAME COLUMN '.$old_name.' TO '.$new_name);
+					} catch(PDOException $error) {
+						$query_output=false;
+					}
+
+					if($query_output === false)
 					{
 						// for old mysqls
 
-						$column_type=$this->query('DESCRIBE '.$this->table_name.' '.$old_name);
+						try {
+							$column_type=$this->query('DESCRIBE '.$this->table_name.' '.$old_name);
+						} catch(PDOException $error) {
+							return false;
+						}
 
 						if(!isset($column_type[0]['Type']))
 							return false;

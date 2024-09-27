@@ -27,7 +27,9 @@
 	 *   transparently encrypts session content
 	 *  lv_cookie_session_handler
 	 *   session handler that uses an encrypted cookie to store the session
-	 *   note: use lv_cookie_session_handler::session_start() instead of PHP session_start()
+	 *   note:
+	 *    use lv_cookie_session_handler::session_start() instead of PHP session_start()
+	 *    session cookies always have the HttpOnly flag
 	 *  lv_pdo_session_handler
 	 *   session handler that uses a relational database to store an encrypted session
 	 *   supported databases: PostgreSQL, MySQL, SQLite3
@@ -344,6 +346,7 @@
 		 *
 		 * Note:
 		 *  throws an lv_encrypter_exception on error
+		 *  session cookies always have the HttpOnly flag
 		 *
 		 * Hint:
 		 *  if you want to support most browsers
@@ -357,8 +360,11 @@
 		 *  'key'=>'randomstringforlvencrypter' // required
 		 *  'cipher'=>'aes-256-gcm' // optional, default: aes-128-cbc, for lv_encrypter, see lv_encrypter::$supported_ciphers
 		 *  'on_error'=>function($message){} // optional error logger
-		 *  'cookie_id'=>'settings' // optional, cookie name, default: id
+		 *  'cookie_id'=>'settings' // optional, cookie name, default: 'id'
 		 *  'cookie_expire'=>10 // seconds, optional, default: session.cookie_lifetime
+		 *  'cookie_path'=>'/subdir/' // setcookie() path parameter, optional, default: empty string
+		 *  'cookie_domain'=>'example.com' // setcookie() domain parameter, optional, default: empty string
+		 *  'cookie_secure'=>true // refuse to send cookies if the connection is not HTTPS, optional, default: false
 		 */
 
 		private static $initialized=false;
@@ -367,6 +373,9 @@
 		private $on_error;
 		private $cookie_id='id';
 		private $cookie_expire=null;
+		private $cookie_path='';
+		private $cookie_domain='';
+		private $cookie_secure=false;
 		private $session_data_chunks=0; // real: $session_data_chunks-1
 
 		public function __construct(array $params)
@@ -379,7 +388,10 @@
 
 			foreach([
 				'cookie_id'=>'string',
-				'cookie_expire'=>'integer'
+				'cookie_expire'=>'integer',
+				'cookie_path'=>'string',
+				'cookie_domain'=>'string',
+				'cookie_secure'=>'boolean',
 			] as $param=>$param_type)
 				if(isset($params[$param]))
 				{
@@ -466,9 +478,9 @@
 					$this->cookie_id.$i,
 					$data_chunk,
 					$cookie_expire,
-					'',
-					'',
-					false,
+					$this->cookie_path,
+					$this->cookie_domain,
+					$this->cookie_secure,
 					true
 				);
 			}
@@ -478,9 +490,9 @@
 					$this->cookie_id.$i,
 					'',
 					-1,
-					'',
-					'',
-					false,
+					$this->cookie_path,
+					$this->cookie_domain,
+					$this->cookie_secure,
 					true
 				);
 		}
@@ -676,20 +688,38 @@
 
 		private function is_sid_available($session_id) // just for my peace of mind
 		{
-			$data=$this->pdo_handler->prepare(''
-			.	'SELECT id '
-			.	'FROM '.$this->table_name.' '
-			.	'WHERE id=:id'
-			);
+			try {
+				$data=$this->pdo_handler->prepare(''
+				.	'SELECT id '
+				.	'FROM '.$this->table_name.' '
+				.	'WHERE id=:id'
+				);
+			} catch(PDOException $error) {
+				$this->on_error['callback'](__CLASS__.': PDO prepare error (caught PDOException)', $this->pdo_handler);
+				$data=false;
+			}
 
 			if($data === false)
+			{
 				$this->on_error['callback'](__CLASS__.': PDO prepare error', $this->pdo_handler);
+				return false;
+			}
 
-			if(!$data->execute([':id'=>$session_id]))
-				$this->on_error['callback'](__CLASS__.': PDO execute error', $this->pdo_handler);
+			try {
+				if(!$data->execute([':id'=>$session_id]))
+					$this->on_error['callback'](__CLASS__.': PDO execute error', $this->pdo_handler);
+			} catch(PDOException $error) {
+				$this->on_error['callback'](__CLASS__.': PDO execute error (caught PDOException)', $this->pdo_handler);
+				return false;
+			}
 
-			if(empty($data->fetchAll(PDO::FETCH_ASSOC)))
-				return true;
+			try {
+				if(empty($data->fetchAll(PDO::FETCH_ASSOC)))
+					return true;
+			} catch(PDOException $error) {
+				$this->on_error['callback'](__CLASS__.': PDO fetchAll error (caught PDOException)', $this->pdo_handler);
+				return false;
+			}
 
 			$this->on_error['callback'](__CLASS__.' error: session id collision with '.$session_id, $this->pdo_handler);
 
@@ -699,30 +729,35 @@
 		public function open($save_path, $session_name)
 		{
 			if($this->create_table)
-				switch($this->pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME))
-				{
-					case 'mysql':
-						if($this->pdo_handler->exec(''
-						.	'CREATE TABLE IF NOT EXISTS '.$this->table_name
-						.	'('
-						.		'id VARCHAR(30), PRIMARY KEY(id),'
-						.		'payload TEXT,'
-						.		'last_activity INTEGER'
-						.	')'
-						) === false)
-							return false;
-					break;
-					case 'pgsql':
-					case 'sqlite':
-						if($this->pdo_handler->exec(''
-						.	'CREATE TABLE IF NOT EXISTS '.$this->table_name
-						.	'('
-						.		'id VARCHAR(30) PRIMARY KEY,'
-						.		'payload TEXT,'
-						.		'last_activity INTEGER'
-						.	')'
-						) === false)
-							return false;
+				try {
+					switch($this->pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME))
+					{
+						case 'mysql':
+							if($this->pdo_handler->exec(''
+							.	'CREATE TABLE IF NOT EXISTS '.$this->table_name
+							.	'('
+							.		'id VARCHAR(30), PRIMARY KEY(id),'
+							.		'payload TEXT,'
+							.		'last_activity INTEGER'
+							.	')'
+							) === false)
+								return false;
+						break;
+						case 'pgsql':
+						case 'sqlite':
+							if($this->pdo_handler->exec(''
+							.	'CREATE TABLE IF NOT EXISTS '.$this->table_name
+							.	'('
+							.		'id VARCHAR(30) PRIMARY KEY,'
+							.		'payload TEXT,'
+							.		'last_activity INTEGER'
+							.	')'
+							) === false)
+								return false;
+					}
+				} catch(PDOException $error) {
+					$this->on_error['callback'](__CLASS__.': PDO CREATE TABLE query error (caught PDOException)', $this->pdo_handler);
+					return false;
 				}
 
 			return true;
@@ -744,25 +779,40 @@
 		{
 			$session_data='';
 
-			$data=$this->pdo_handler->prepare(''
-			.	'SELECT payload '
-			.	'FROM '.$this->table_name.' '
-			.	'WHERE id=:id'
-			);
+			try {
+				$data=$this->pdo_handler->prepare(''
+				.	'SELECT payload '
+				.	'FROM '.$this->table_name.' '
+				.	'WHERE id=:id'
+				);
+			} catch(PDOException $error) {
+				$this->on_error['callback'](__CLASS__.': PDO prepare error (caught PDOException)', $this->pdo_handler);
+				$data=false;
+			}
 
 			if($data === false)
 				$this->on_error['callback'](__CLASS__.': PDO prepare error', $this->pdo_handler);
 
-			if(!$data->execute([':id'=>$session_id]))
-				$this->on_error['callback'](__CLASS__.': PDO execute error', $this->pdo_handler);
+			try {
+				if(!$data->execute([':id'=>$session_id]))
+					$this->on_error['callback'](__CLASS__.': PDO execute error', $this->pdo_handler);
+			} catch(PDOException $error) {
+				$this->on_error['callback'](__CLASS__.': PDO execute error (caught PDOException)', $this->pdo_handler);
+			}
 
-			$fetch_data=$data->fetch(PDO::FETCH_ASSOC);
+			try {
+				$fetch_data=$data->fetch(PDO::FETCH_ASSOC);
+			} catch(PDOException $error) {
+				$this->on_error['callback'](__CLASS__.': PDO fetch error (caught PDOException)', $this->pdo_handler);
+				$fetch_data=false;
+			}
 
 			if($fetch_data !== false)
 				try {
 					$session_data=$this->lv_encrypter->decrypt($fetch_data['payload'], false);
 				} catch(lv_encrypter_exception $error) {
-					$this->on_error['callback'](__CLASS__.' error: '.$error->getMessage().', new session created', $this->pdo_handler);
+					$this->on_error['callback'](__CLASS__.' error: '.$error->getMessage().', session token regenerated, new session created', $this->pdo_handler);
+					session_regenerate_id(false);
 					$session_data='';
 				}
 
@@ -770,48 +820,58 @@
 		}
 		public function write($session_id, $session_data)
 		{
-			switch($this->pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME))
-			{
-				case 'pgsql':
-					$data=$this->pdo_handler->prepare(''
-					.	'INSERT INTO '.$this->table_name
-					.	'('
-					.		'id,'
-					.		'payload,'
-					.		'last_activity'
-					.	') VALUES ('
-					.		':id,'
-					.		':payload,'
-					.		time()
-					.	')'
-					.	'ON CONFLICT(id) DO UPDATE SET '
-					.		'payload=:payload,'
-					.		'last_activity='.time()
-					);
-				break;
-				case 'mysql':
-				case 'sqlite':
-					$data=$this->pdo_handler->prepare(''
-					.	'REPLACE INTO '.$this->table_name
-					.	'('
-					.		'id,'
-					.		'payload,'
-					.		'last_activity'
-					.	') VALUES ('
-					.		':id,'
-					.		':payload,'
-					.		time()
-					.	')'
-					);
+			try {
+				switch($this->pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME))
+				{
+					case 'pgsql':
+						$data=$this->pdo_handler->prepare(''
+						.	'INSERT INTO '.$this->table_name
+						.	'('
+						.		'id,'
+						.		'payload,'
+						.		'last_activity'
+						.	') VALUES ('
+						.		':id,'
+						.		':payload,'
+						.		time()
+						.	')'
+						.	'ON CONFLICT(id) DO UPDATE SET '
+						.		'payload=:payload,'
+						.		'last_activity='.time()
+						);
+					break;
+					case 'mysql':
+					case 'sqlite':
+						$data=$this->pdo_handler->prepare(''
+						.	'REPLACE INTO '.$this->table_name
+						.	'('
+						.		'id,'
+						.		'payload,'
+						.		'last_activity'
+						.	') VALUES ('
+						.		':id,'
+						.		':payload,'
+						.		time()
+						.	')'
+						);
+				}
+			} catch(PDOException $error) {
+				$this->on_error['callback'](__CLASS__.': PDO prepare error (caught PDOException)', $this->pdo_handler);
+				$data=false;
 			}
 
 			if($data === false)
 				$this->on_error['callback'](__CLASS__.': PDO prepare error', $this->pdo_handler);
 
-			return $data->execute([
-				':id'=>$session_id,
-				':payload'=>$this->lv_encrypter->encrypt($session_data, false)
-			]);
+			try {
+				return $data->execute([
+					':id'=>$session_id,
+					':payload'=>$this->lv_encrypter->encrypt($session_data, false)
+				]);
+			} catch(PDOException $error) {
+				$this->on_error['callback'](__CLASS__.': PDO execute error (caught PDOException)', $this->pdo_handler);
+				return false;
+			}
 		}
 		public function close()
 		{
@@ -820,23 +880,39 @@
 		}
 		public function destroy($session_id)
 		{
-			$data=$this->pdo_handler->prepare(''
-			.	'DELETE FROM '.$this->table_name.' '
-			.	'WHERE id=:id'
-			);
+			try {
+				$data=$this->pdo_handler->prepare(''
+				.	'DELETE FROM '.$this->table_name.' '
+				.	'WHERE id=:id'
+				);
+			} catch(PDOException $error) {
+				$this->on_error['callback'](__CLASS__.': PDO prepare error (caught PDOException)', $this->pdo_handler);
+				$data=false;
+			}
 
 			if($data === false)
 				$this->on_error['callback'](__CLASS__.': PDO prepare error', $this->pdo_handler);
 
-			return $data->execute([':id'=>$session_id]);
+			try {
+				return $data->execute([':id'=>$session_id]);
+			} catch(PDOException $error) {
+				$this->on_error['callback'](__CLASS__.': PDO execute error (caught PDOException)', $this->pdo_handler);
+				return false;
+			}
 		}
 		public function gc($max_lifetime)
 		{
 			$max_lifetime=time()-intval($max_lifetime);
-			$result=$this->pdo_handler->exec(''
-			.	'DELETE FROM '.$this->table_name.' '
-			.	'WHERE last_activity<'.$max_lifetime
-			);
+
+			try {
+				$result=$this->pdo_handler->exec(''
+				.	'DELETE FROM '.$this->table_name.' '
+				.	'WHERE last_activity<'.$max_lifetime
+				);
+			} catch(PDOException $error) {
+				$this->on_error['callback'](__CLASS__.': PDO exec error (caught PDOException)', $this->pdo_handler);
+				$result=false;
+			}
 
 			if($result === false)
 			{
@@ -849,7 +925,7 @@
 			return true;
 		}
 	}
-	final class lv_redis_session_handler implements SessionHandlerInterface
+	final class lv_redis_session_handler implements SessionHandlerInterface, SessionIdInterface
 	{
 		/*
 		 * Lv encrypter
@@ -862,10 +938,6 @@
 		 *  lv_redis_session_handler is a singleton
 		 *
 		 * Note:
-		 *  is_sid_available and create_sid methods were created
-		 *   to make sure that the generated id does not exists in the table.
-		 *   if you do not see the need for such a solution,
-		 *   you can remove it from the class
 		 *  throws an lv_encrypter_exception on error
 		 *
 		 * Usage:
@@ -1017,10 +1089,6 @@
 		 *  lv_memcached_session_handler is a singleton
 		 *
 		 * Note:
-		 *  is_sid_available and create_sid methods were created
-		 *   to make sure that the generated id does not exists in the table.
-		 *   if you do not see the need for such a solution,
-		 *   you can remove it from the class
 		 *  throws an lv_encrypter_exception on error
 		 *
 		 * Usage:

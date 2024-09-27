@@ -229,7 +229,7 @@
 			}
 
 			if(isset($pdo_handler))
-				$pdo_handler->exec('DROP TABLE logger');
+				$pdo_handler->exec('DROP TABLE IF EXISTS logger_test');
 		}
 		if(
 			(!isset($pdo_handler)) &&
@@ -261,7 +261,7 @@
 
 			// pdo
 			'pdo_handler'=>$pdo_handler,
-			'table_name'=>'logger',
+			'table_name'=>'logger_test',
 			//'on_pdo_error'=>function($error){ error_log(__FILE__.' log_to_pdo: '.$error[0].' '.$error[1].' '.$error[2]); },
 
 			// curl
@@ -342,7 +342,7 @@
 							$test_failed=true;
 				break;
 				case 'Test\log_to_pdo':
-					$pdo_fetch=$pdo_handler->query('SELECT * FROM logger')->fetchAll();
+					$pdo_fetch=$pdo_handler->query('SELECT * FROM logger_test')->fetchAll();
 
 					if(
 						$pdo_fetch[0]['id'].$pdo_fetch[0]['date'].$pdo_fetch[0]['app_name'].$pdo_fetch[0]['priority'].$pdo_fetch[0]['message']

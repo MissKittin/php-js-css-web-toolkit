@@ -15,7 +15,7 @@ The logout button action is the current URL via POST
 ## Methods
 * `__construct(array_params)`  
 	params:  
-	* `'base_url'=>'/admin'` - required
+	* `'base_url'=>'/admin'` - required; don't add a slash at the end; if without "subdirectory" leave it empty
 	* `'template'=>'template_name'` - `default` or `materialized`, optional
 	* `'templates_dir'=>'path/to/directory'` - path to the template directory, optional
 	* `'assets_path'=>'/assets'` - optional

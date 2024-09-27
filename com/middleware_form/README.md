@@ -67,7 +67,7 @@ Set config options with the `add_config` method
 * `assets_path` [string]  
 	default: `/assets`
 * `middleware_form_style` [string]  
-	default: `middleware_form_dark.css`
+	default: `middleware_form_default_bright.css`
 * `inline_style` [bool]  
 	compiles the style and adds it to the inline tag  
 	instead of `link rel="stylesheet"` (not recommended)  
@@ -136,7 +136,7 @@ if(!isset($_SESSION['captcha_verified']))
 
 	$_SESSION['captcha_verified']=true;
 
-	// display reload page and exit()
+	// drop POST data (302 redirect) and exit()
 		login_com_reload();
 		exit();
 }

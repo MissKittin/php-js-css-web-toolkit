@@ -121,8 +121,9 @@
 			echo ' [ OK ]'.PHP_EOL;
 		}
 
-		echo ' -> Mocking functions';
+		echo ' -> Mocking classes and functions';
 			interface SessionHandlerInterface extends \SessionHandlerInterface {}
+			interface SessionIdInterface extends \SessionIdInterface {}
 			class Exception extends \Exception {}
 			class SessionHandler extends \SessionHandler {}
 			if(class_exists('Memcached'))
@@ -316,7 +317,7 @@
 		if(isset($pdo_handler))
 		{
 			if(!(isset($argv[1]) && ($argv[1] === '_restart_test_')))
-				$pdo_handler->exec('DROP TABLE sec_lv_encrypter_pdo_session_handler');
+				$pdo_handler->exec('DROP TABLE IF EXISTS sec_lv_encrypter_pdo_session_handler');
 		}
 		else if(
 			(!isset($pdo_handler)) &&

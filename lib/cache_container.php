@@ -7,7 +7,7 @@
 	 *  the timestamp of the variable will be refreshed with each modification
 	 *  for cache_driver_pdo and cache_driver_redis:
 	 *   if the key value is not json, the key will be deleted automatically
-	 *  throws an cache_container_exception on error
+	 *  throws an cache_container_exception on error (also see cache_driver_pdo doc)
 	 *
 	 * Main classes:
 	 *  cache_container - full version of the container with local cache
@@ -18,8 +18,7 @@
 	 *   save to cache
 	 *  put_temp(string_key, string_value, [int_timeout=0])
 	 *   save to local cache only
-	 *   warning:
-	 *    only available in the cache_container class
+	 *   warning: only available in the cache_container class
 	 *  get(string_key, [default_value=null]) [returns string|default_value]
 	 *   read from cache
 	 *   where the default_value is returned when the key is not defined
@@ -36,14 +35,12 @@
 	 *
 	 * Drivers ([] means optional):
 	 *  cache_driver_none -> dummy backend - only use local cache
-	 *   warning:
-	 *    this driver is rejected by cache_container_lite
+	 *   warning: this driver is rejected by cache_container_lite
 	 *  cache_driver_file -> store json-encoded data in a file
 	 *   constructor array parameters:
 	 *    file => string_file_path
 	 *    lock_file => string_lock_file_path
-	 *   note:
-	 *    the database is loaded by the constructor and written by the destructor
+	 *   note: the database is loaded by the constructor and written by the destructor
 	 *   warning:
 	 *    if an uncaught exception occurs, the lockfile will not be removed,
 	 *    a "lockfile still exists" cache_container_exception will be thrown
@@ -56,7 +53,9 @@
 	 *    pdo_handler (object)
 	 *    [table_name] (string, default: cache_container)
 	 *    [create_table] (bool, default: true)
-	 *   note: throws an cache_container_exception if query execution fails
+	 *   note:
+	 *    throws an cache_container_exception if query execution fails
+	 *    may throw PDOException depending on PDO::ATTR_ERRMODE
 	 *   supported databases: PostgreSQL, MySQL, SQLite3
 	 *   table layout:
 	 *    MySQL:
