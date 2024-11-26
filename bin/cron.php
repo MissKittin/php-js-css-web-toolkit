@@ -22,22 +22,31 @@
 		{
 			echo '['.date('Y-m-d H:i:s').'.'.gettimeofday()['usec'].'] '.$message.PHP_EOL;
 		};
-		$debug_callback=function($message)
+		$debug_callback=function($message) use($log_callback)
 		{
-			$GLOBALS['log_callback']('[D] '.$message);
+			$log_callback('[D] '.$message);
 		};
 	 */
 
 	function load_library($libraries, $required=true)
 	{
 		foreach($libraries as $library)
+		{
 			if(file_exists(__DIR__.'/lib/'.$library))
+			{
 				require __DIR__.'/lib/'.$library;
-			else if(file_exists(__DIR__.'/../lib/'.$library))
+				continue;
+			}
+
+			if(file_exists(__DIR__.'/../lib/'.$library))
+			{
 				require __DIR__.'/../lib/'.$library;
-			else
-				if($required)
-					throw new Exception($library.' library not found');
+				continue;
+			}
+
+			if($required)
+				throw new Exception($library.' library not found');
+		}
 	}
 
 	try {
@@ -55,26 +64,34 @@
 	$_cron_functions=check_argv_next_param('--functions');
 
 	$_cron_boot=true;
+	$_cron_once=false;
+	$_debug=false;
+
 	if(check_argv('--no-boot'))
 		$_cron_boot=false;
 
-	$_cron_once=false;
 	if(check_argv('--once'))
 		$_cron_once=true;
 
-	$_debug=false;
 	if(check_argv('--debug'))
 		$_debug=true;
+
+	if(
+		(!$_cron_once) &&
+		(!extension_loaded('pcntl'))
+	){
+		echo 'pcntl extension is not loaded'.PHP_EOL;
+		exit(1);
+	}
 
 	if(
 		(
 			($_cron_tab === null) &&
 			($_cron_timestamps === null)
 		) ||
-		check_argv('--help') ||
-		check_argv('-h')
+		check_argv('--help') || check_argv('-h')
 	){
-		echo 'Usage: --crontab ./path/to/crontab --timestamps ./path/to/tasks [--functions ./path/to/functions.php] [--no-boot] [--once] [--debug]'.PHP_EOL;
+		echo 'Usage: '.$argv[0].' --crontab ./path/to/crontab --timestamps ./path/to/tasks [--functions ./path/to/functions.php] [--no-boot] [--once] [--debug]'.PHP_EOL;
 		echo PHP_EOL;
 		echo 'Where:'.PHP_EOL;
 		echo ' --no-boot -> disable execution of tasks from the boot hash'.PHP_EOL;
@@ -85,12 +102,6 @@
 		echo 'but one of them must be defined'.PHP_EOL;
 		echo PHP_EOL;
 		echo 'For more info see this file and cron.php library'.PHP_EOL;
-		exit(1);
-	}
-
-	if((!$_cron_once) && (!extension_loaded('pcntl')))
-	{
-		echo 'pcntl extension is not loaded'.PHP_EOL;
 		exit(1);
 	}
 
@@ -105,13 +116,22 @@
 		require $_cron_functions;
 	}
 
-	if((!isset($log_callback)) || (!is_callable($log_callback)))
+	if(
+		(!isset($log_callback)) ||
+		(!is_callable($log_callback))
+	)
 		$log_callback=function(){};
 
-	if((!isset($debug_callback)) || (!is_callable($debug_callback)))
+	if(
+		(!isset($debug_callback)) ||
+		(!is_callable($debug_callback))
+	)
 		$debug_callback=function(){};
 
-	if($_cron_boot && ($_cron_tab !== null))
+	if(
+		$_cron_boot &&
+		($_cron_tab !== null)
+	)
 		try {
 			if($_debug)
 				$debug_callback('Executing cron()');
@@ -129,9 +149,8 @@
 		} catch(Throwable $error) {
 			$log_callback('Error: '.$error->getMessage());
 		}
-	else
-		if($_debug)
-			$debug_callback('--no-boot applied or --crontab not specified');
+	else if($_debug)
+		$debug_callback('--no-boot applied or --crontab not specified');
 
 	if($_cron_once)
 	{
@@ -243,15 +262,19 @@
 			$GLOBALS['_children_pids'][$_child_pid]=$_child_pid;
 
 		for($_sleep=60; $_sleep>0; --$_sleep)
+		{
 			if(!empty($GLOBALS['_children_pids']))
 			{
 				if($_debug)
 					$debug_callback('Waiting for children: '.$_sleep);
 
 				sleep(1);
+
+				continue;
 			}
-			else
-				break;
+
+			break;
+		}
 
 		if($_sleep !== 0)
 		{

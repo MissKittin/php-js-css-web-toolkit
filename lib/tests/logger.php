@@ -177,14 +177,14 @@
 							throw new Exception('pdo_pgsql extension is not loaded');
 
 						if(isset($_pdo['credentials'][$_pdo['type']]['socket']))
-							$pdo_handler=new PDO('pgsql:'
+							$pdo_handle=new PDO('pgsql:'
 								.'host='.$_pdo['credentials'][$_pdo['type']]['socket'].';'
 								.'dbname='.$_pdo['credentials'][$_pdo['type']]['dbname'].';'
 								.'user='.$_pdo['credentials'][$_pdo['type']]['user'].';'
 								.'password='.$_pdo['credentials'][$_pdo['type']]['password'].''
 							);
 						else
-							$pdo_handler=new PDO('pgsql:'
+							$pdo_handle=new PDO('pgsql:'
 								.'host='.$_pdo['credentials'][$_pdo['type']]['host'].';'
 								.'port='.$_pdo['credentials'][$_pdo['type']]['port'].';'
 								.'dbname='.$_pdo['credentials'][$_pdo['type']]['dbname'].';'
@@ -199,14 +199,14 @@
 							throw new Exception('pdo_mysql extension is not loaded');
 
 						if(isset($_pdo['credentials'][$_pdo['type']]['socket']))
-							$pdo_handler=new PDO('mysql:'
+							$pdo_handle=new PDO('mysql:'
 								.'unix_socket='.$_pdo['credentials'][$_pdo['type']]['socket'].';'
 								.'dbname='.$_pdo['credentials'][$_pdo['type']]['dbname'],
 								$_pdo['credentials'][$_pdo['type']]['user'],
 								$_pdo['credentials'][$_pdo['type']]['password']
 							);
 						else
-							$pdo_handler=new PDO('mysql:'
+							$pdo_handle=new PDO('mysql:'
 								.'host='.$_pdo['credentials'][$_pdo['type']]['host'].';'
 								.'port='.$_pdo['credentials'][$_pdo['type']]['port'].';'
 								.'dbname='.$_pdo['credentials'][$_pdo['type']]['dbname'],
@@ -228,15 +228,15 @@
 				exit(1);
 			}
 
-			if(isset($pdo_handler))
-				$pdo_handler->exec('DROP TABLE IF EXISTS logger_test');
+			if(isset($pdo_handle))
+				$pdo_handle->exec('DROP TABLE IF EXISTS logger_test');
 		}
 		if(
-			(!isset($pdo_handler)) &&
+			(!isset($pdo_handle)) &&
 			class_exists('PDO') &&
 			in_array('sqlite', PDO::getAvailableDrivers())
 		)
-			$pdo_handler=new PDO('sqlite:'.__DIR__.'/tmp/logger/log.sqlite3');
+			$pdo_handle=new PDO('sqlite:'.__DIR__.'/tmp/logger/log.sqlite3');
 
 		$failed=false;
 
@@ -260,7 +260,7 @@
 			},
 
 			// pdo
-			'pdo_handler'=>$pdo_handler,
+			'pdo_handle'=>$pdo_handle,
 			'table_name'=>'logger_test',
 			//'on_pdo_error'=>function($error){ error_log(__FILE__.' log_to_pdo: '.$error[0].' '.$error[1].' '.$error[2]); },
 
@@ -293,7 +293,7 @@
 					$log_params['file']=__DIR__.'/tmp/logger/log.json';
 				break;
 				case 'Test\log_to_pdo':
-					if(!isset($pdo_handler))
+					if(!isset($pdo_handle))
 					{
 						echo ' [SKIP]'.PHP_EOL;
 						continue 2;
@@ -305,10 +305,10 @@
 					$log_params['file']=__DIR__.'/tmp/logger/log.xml';
 			}
 
-			$log_handler=new $class($log_params);
+			$log_handle=new $class($log_params);
 
 			foreach(['debug', 'info', 'warn', 'error'] as $method)
-				$log_handler->$method($method.' test');
+				$log_handle->$method($method.' test');
 
 			$test_failed=false;
 
@@ -316,7 +316,7 @@
 			{
 				case 'Test\log_to_csv':
 					if(
-						str_replace(PHP_EOL, '', file_get_contents(__DIR__.'/tmp/logger/log.csv'))
+						str_replace("\r\n", '', file_get_contents(__DIR__.'/tmp/logger/log.csv'))
 						!==
 						'0000-00-00 00:00:00,test_app,DEBUG,debug test0000-00-00 00:00:00,test_app,INFO,info test0000-00-00 00:00:00,test_app,WARN,warn test0000-00-00 00:00:00,test_app,ERROR,error test'
 					)
@@ -342,7 +342,7 @@
 							$test_failed=true;
 				break;
 				case 'Test\log_to_pdo':
-					$pdo_fetch=$pdo_handler->query('SELECT * FROM logger_test')->fetchAll();
+					$pdo_fetch=$pdo_handle->query('SELECT * FROM logger_test')->fetchAll();
 
 					if(
 						$pdo_fetch[0]['id'].$pdo_fetch[0]['date'].$pdo_fetch[0]['app_name'].$pdo_fetch[0]['priority'].$pdo_fetch[0]['message']
@@ -371,7 +371,7 @@
 				break;
 				case 'Test\log_to_txt':
 					if(
-						str_replace(PHP_EOL, '', file_get_contents(__DIR__.'/tmp/logger/log.txt'))
+						str_replace("\n", '', file_get_contents(__DIR__.'/tmp/logger/log.txt'))
 						!==
 						'0000-00-00 00:00:00 test_app [DEBUG] debug test0000-00-00 00:00:00 test_app [INFO] info test0000-00-00 00:00:00 test_app [WARN] warn test0000-00-00 00:00:00 test_app [ERROR] error test'
 					)

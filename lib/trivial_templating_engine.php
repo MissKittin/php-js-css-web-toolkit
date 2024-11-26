@@ -5,30 +5,49 @@
 	 *
 	 * Two versions: basic (faster) and full (more advanced)
 	 *
-	 * Usage: *_templating_engine(file_get_contents('./file.html'), $input_array)
+	 * Usage:
+		$rendered_text=basic_templating_engine(
+			file_get_contents('./file.html'),
+			$input_array
+		);
+		$rendered_text=trivial_templating_engine(
+			file_get_contents('./file.html'),
+			$input_array
+		);
 	 */
 
 	function basic_templating_engine(string $source, array $variables=[])
 	{
 		/*
 		 * Basic version of templating engine
-		 * Supports only {{variable}}
 		 *
-		 * Warning: must be {{variable}}, not {{ variable }}
+		 * Warning:
+		 *  must be {{ variable }}, not {{variable}}
+		 *  if any {{ variable }} is not defined and is called in $source
+		 *   raw "{{ variable }}" will be returned
+		 *  the input array only accepts strings and classes that implement __toString
 		 *
 		 * Input array:
 			[
 				'variable_a'=>'value_a',
-				'variable_b'=>'value_b'
+				'variable_b'=>'value_b',
+				'class_a'=>new my_class() // must implement __toString method
 			]
 		 */
 
 		foreach($variables as $variable_name=>$variable_value)
-			$source=str_replace(
-				'{{'.$variable_name.'}}',
-				htmlspecialchars($variable_value, ENT_QUOTES, 'UTF-8'),
-				$source
-			);
+			if(
+				is_string($variable_value) ||
+				(
+					is_object($variable_value) &&
+					method_exists($variable_value , '__toString')
+				)
+			)
+				$source=str_replace(
+					'{{ '.$variable_name.' }}',
+					htmlspecialchars($variable_value, ENT_QUOTES, 'UTF-8'),
+					$source
+				);
 
 		return $source;
 	}
@@ -40,12 +59,15 @@
 		 * Warning:
 		 *  eval() must be allowed
 		 *  for and foreach loops accepts variables with lowerspace letters only
+		 *  if any {{ variable }} is not defined and is called in $source, {{ variable }} will be returned
+		 *  the input array only accepts strings, arrays for foreach and classes that implement __toString
 		 *
 		 * Input array:
 			[
 				'variable_a'=>'value_a',
 				'variable_b'=>'value_b',
-				'fvariable'=>['f_a', 'f_b', 'f_c']
+				'fvariable'=>['f_a', 'f_b', 'f_c'],
+				'cvariable'=>new my_class() // must implement __toString method
 			]
 		 *
 		 * Input file:
@@ -100,7 +122,13 @@
 		);
 
 		foreach($variables as $variable_name=>$variable_value)
-			if(!is_array($variable_value))
+			if(
+				is_string($variable_value) ||
+				(
+					is_object($variable_value) &&
+					method_exists($variable_value , '__toString')
+				)
+			)
 				$source=preg_replace(
 					'/{{\s*'.$variable_name.'\s*}}/i',
 					htmlspecialchars($variable_value, ENT_QUOTES, 'UTF-8'),

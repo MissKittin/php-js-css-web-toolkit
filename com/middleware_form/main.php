@@ -33,15 +33,24 @@
 		protected function load_function($libraries)
 		{
 			foreach($libraries as $library_file=>$library_func)
-				if(!function_exists($library_func))
+			{
+				if(function_exists($library_func))
+					continue;
+
+				if(file_exists(__DIR__.'/lib/'.$library_file))
 				{
-					if(file_exists(__DIR__.'/lib/'.$library_file))
-						require __DIR__.'/lib/'.$library_file;
-					else if(file_exists(__DIR__.'/../../lib/'.$library_file))
-						require __DIR__.'/../../lib/'.$library_file;
-					else
-						throw new middleware_form_exception('Library '.$library_file.' not found');
+					require __DIR__.'/lib/'.$library_file;
+					continue;
 				}
+
+				if(file_exists(__DIR__.'/../../lib/'.$library_file))
+				{
+					require __DIR__.'/../../lib/'.$library_file;
+					continue;
+				}
+
+				throw new middleware_form_exception('Library '.$library_file.' not found');
+			}
 		}
 		protected function parse_fields($view)
 		{
@@ -113,9 +122,12 @@
 		public function add_error_message(?string $message=null)
 		{
 			if($message === null)
+			{
 				unset($this->registry['error_message']);
-			else
-				$this->registry['error_message']=$message;
+				return $this;
+			}
+
+			$this->registry['error_message']=$message;
 
 			return $this;
 		}

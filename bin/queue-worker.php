@@ -58,12 +58,22 @@
 	function load_library($libraries, $required=true)
 	{
 		foreach($libraries as $library)
+		{
 			if(file_exists(__DIR__.'/lib/'.$library))
+			{
 				require __DIR__.'/lib/'.$library;
-			else if(file_exists(__DIR__.'/../lib/'.$library))
+				continue;
+			}
+
+			if(file_exists(__DIR__.'/../lib/'.$library))
+			{
 				require __DIR__.'/../lib/'.$library;
-			else if($required)
+				continue;
+			}
+
+			if($required)
 				throw new Exception($library.' library not found');
+		}
 	}
 
 	try {
@@ -79,31 +89,34 @@
 	$__worker_fifo=check_argv_next_param('--fifo');
 	$__worker_pdo=check_argv_next_param('--pdo');
 	$__worker_redis=check_argv_next_param('--redis');
+	$__worker_file=check_argv_next_param('--workdir');
 	$__worker_functions=check_argv_next_param('--functions');
 	$__worker_fork=false;
 	$__children_limit=check_argv_param('--children-limit');
 	$__recreate_fifo=true;
 	$__debug=false;
 
-
 	if(check_argv('--fork'))
 		$__worker_fork=true;
+
 	if($__children_limit === null)
 		$__children_limit=0;
+
 	if(check_argv('--no-recreate-fifo'))
 		$__recreate_fifo=false;
+
 	if(check_argv('--debug'))
 		$__debug=true;
 
 	if(
 		($__worker_functions === null) ||
-		check_argv('--help') ||
-		check_argv('-h')
+		check_argv('--help') || check_argv('-h')
 	){
 		echo 'Usage:'.PHP_EOL;
 		echo ' '.$argv[0].' --fifo ./path/to/fifo --functions ./path/to/functions.php [--fork] [--children-limit=4] [--no-recreate-fifo] [--debug]'.PHP_EOL;
 		echo ' '.$argv[0].' --pdo ./path/to/pdo-config.php --functions ./path/to/functions.php [--fork] [--children-limit=4] [--debug]'.PHP_EOL;
 		echo ' '.$argv[0].' --redis ./path/to/redis-config.php --functions ./path/to/functions.php [--fork] [--children-limit=4] [--debug]'.PHP_EOL;
+		echo ' '.$argv[0].' --workdir ./path/to/queue-worker-dir --functions ./path/to/functions.php [--fork] [--children-limit=4] [--debug]'.PHP_EOL;
 		echo PHP_EOL;
 		echo 'Where:'.PHP_EOL;
 		echo ' --fork -> enable parallel execution via PCNTL'.PHP_EOL;
@@ -132,7 +145,7 @@
 				$__pdo_config=include $__worker_pdo;
 
 				if(!isset($__pdo_config[0]))
-					throw new Exception('PDO handler not defined');
+					throw new Exception('PDO handle not defined');
 
 				if(!isset($__pdo_config[1]))
 					$__pdo_config[1]='queue_worker';
@@ -150,7 +163,7 @@
 				$__redis_config=include $__worker_redis;
 
 				if(!isset($__redis_config[0]))
-					throw new Exception('Redis handler not defined');
+					throw new Exception('Redis handle not defined');
 
 				if(!isset($__redis_config[1]))
 					$__redis_config[1]='queue_worker__';
@@ -164,8 +177,17 @@
 					$__debug
 				);
 			break;
+			case ($__worker_file !== null):
+				queue_worker_file::start_worker(
+					$__worker_file,
+					$__worker_functions,
+					$__worker_fork,
+					$__children_limit,
+					$__debug
+				);
+			break;
 			default:
-				throw new Exception('You must use --fifo or --redis');
+				throw new Exception('You must use --fifo --pdo --redis or --workdir');
 		}
 	} catch(Throwable $error) {
 		echo '[E] '.$error->getMessage().PHP_EOL;

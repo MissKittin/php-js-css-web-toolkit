@@ -43,7 +43,7 @@ Device for tracking users
 	data from the csv file is loaded into the SQLite3 database in `:memory:`, you have been warned
 
 ## Constructor parameters
-* `pdo_handler` [object]  
+* `pdo_handle` [object]  
 	required
 * `table_name_prefix` [string]  
 	default: `herring_`
@@ -162,7 +162,7 @@ require './com/herring/main.php';
 
 try {
 	(new herring([
-		'pdo_handler'=>new PDO('sqlite:./var/databases/herring.sqlite3'),
+		'pdo_handle'=>new PDO('sqlite:./var/databases/herring.sqlite3'),
 		'cookie_name'=>'herring_id'
 	]))->add();
 } catch(herring_exception $error) {
@@ -177,7 +177,7 @@ require './com/herring/main.php';
 
 try {
 	$herring=new herring([
-		'pdo_handler'=>new PDO('sqlite:./var/databases/herring.sqlite3'),
+		'pdo_handle'=>new PDO('sqlite:./var/databases/herring.sqlite3'),
 		'maintenance_mode'=>true
 	]);
 
@@ -222,7 +222,7 @@ require './com/herring/main.php';
 try {
 	if(!is_crawler())
 		(new herring([
-			'pdo_handler'=>new PDO('sqlite:./var/databases/herring.sqlite3'),
+			'pdo_handle'=>new PDO('sqlite:./var/databases/herring.sqlite3'),
 			'cookie_name'=>'herring_id'
 		]))->add();
 	else
@@ -230,7 +230,7 @@ try {
 		// you can log the request or remove this block
 
 		(new herring([
-			'pdo_handler'=>new PDO('sqlite:./var/databases/herring.sqlite3'),
+			'pdo_handle'=>new PDO('sqlite:./var/databases/herring.sqlite3'),
 			'table_name_prefix'=>'herring_crawlers_'
 		]))->add();
 	}

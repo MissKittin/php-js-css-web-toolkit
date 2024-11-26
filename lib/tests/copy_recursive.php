@@ -67,6 +67,8 @@
 
 	chdir(__DIR__.'/tmp/copy_recursive');
 
+	$test_link2file=true;
+
 	echo ' -> Creating test directory';
 		mkdir('./src');
 		file_put_contents('./src/1', '');
@@ -78,6 +80,11 @@
 		file_put_contents('./src/B/1', '');
 		file_put_contents('./src/B/2', '');
 		file_put_contents('./src/B/3', '');
+
+		if(!@symlink('./src/A', './link2file-dir'))
+			$test_link2file=false;
+		if(!@symlink('./src/1', './link2file-file'))
+			$test_link2file=false;
 	echo ' [ OK ]'.PHP_EOL;
 
 	echo ' -> Copying';
@@ -91,7 +98,7 @@
 
 	$failed=false;
 
-	echo ' -> Checking destination directory';
+	echo ' -> Checking destination directory (copy_recursive)';
 		$result=[];
 		$iterator=new RecursiveIteratorIterator(new RecursiveDirectoryIterator('./dest'));
 		foreach($iterator as $item)
@@ -107,6 +114,38 @@
 				break;
 			}
 			echo PHP_EOL;
+
+	echo ' -> Testing link2file';
+		if($test_link2file)
+		{
+			try {
+				if(link2file('./link2file-dir'))
+					echo ' [ OK ]';
+				else
+				{
+					echo ' [FAIL]';
+					$failed=true;
+				}
+			} catch(Throwable $error) {
+				echo ' [FAIL]';
+				$failed=true;
+			}
+
+			try {
+				if(link2file('./link2file-file'))
+					echo ' [ OK ]'.PHP_EOL;
+				else
+				{
+					echo ' [FAIL]'.PHP_EOL;
+					$failed=true;
+				}
+			} catch(Throwable $error) {
+				echo ' [FAIL]'.PHP_EOL;
+				$failed=true;
+			}
+		}
+		else
+			echo ' [SKIP]'.PHP_EOL;
 
 	if($failed)
 		exit(1);

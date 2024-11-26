@@ -33,21 +33,21 @@
 		$test_options=[
 			'short'=>[
 				'clients'=>32, // 256 records
-				'csv_sum'=>'2c3839f21acbe4c8d2eb0b6a576da527',
+				'csv_sum'=>'9f40c4e96cf813c037985eae47bd23b6',
 				'html_sum'=>'432018e22f7dc68e9a80be9d2dc63aa7',
 				'html_short_sum'=>'06053c90ca3b64f4ac48cf102831d321'
 			],
 			'long'=>[
 				'clients'=>255, // 2040 records
-				'csv_sum'=>'62f60e0a2c03fdc2ad4f35c78a93c526',
+				'csv_sum'=>'964c73f9a107df6707f4efa32bb4aae1',
 				'html_sum'=>'6e679c981f70d32c0eeffb000bb5b114',
 				'html_short_sum'=>'4174540ddcad85f120c680e0c41fb6de'
 			],
 			'longlong'=>[
-				'clients'=>125000, // 1000000 records
-				'csv_sum'=>'0fcd721e26bb28ed7e500e00ce299cea',
-				'html_sum'=>'7ccdd281f46de3590e79ed11db152d9f',
-				'html_short_sum'=>'47a8057d213918ba693941b61b0ae351'
+				'clients'=>125000, // 1000000 records, 136.6MB db
+				'csv_sum'=>'61164aae46935847bc686193a1175b56',
+				'html_sum'=>'dd27c7732571db884397ba50b4f09c08',
+				'html_short_sum'=>'4d2bdf12b49fa063453496b11db16e98'
 			]
 		];
 
@@ -244,14 +244,14 @@
 							throw new Exception('pdo_pgsql extension is not loaded');
 
 						if(isset($_pdo['credentials'][$_pdo['type']]['socket']))
-							$pdo_handler=new PDO('pgsql:'
+							$pdo_handle=new PDO('pgsql:'
 								.'host='.$_pdo['credentials'][$_pdo['type']]['socket'].';'
 								.'dbname='.$_pdo['credentials'][$_pdo['type']]['dbname'].';'
 								.'user='.$_pdo['credentials'][$_pdo['type']]['user'].';'
 								.'password='.$_pdo['credentials'][$_pdo['type']]['password'].''
 							);
 						else
-							$pdo_handler=new PDO('pgsql:'
+							$pdo_handle=new PDO('pgsql:'
 								.'host='.$_pdo['credentials'][$_pdo['type']]['host'].';'
 								.'port='.$_pdo['credentials'][$_pdo['type']]['port'].';'
 								.'dbname='.$_pdo['credentials'][$_pdo['type']]['dbname'].';'
@@ -266,14 +266,14 @@
 							throw new Exception('pdo_mysql extension is not loaded');
 
 						if(isset($_pdo['credentials'][$_pdo['type']]['socket']))
-							$pdo_handler=new PDO('mysql:'
+							$pdo_handle=new PDO('mysql:'
 								.'unix_socket='.$_pdo['credentials'][$_pdo['type']]['socket'].';'
 								.'dbname='.$_pdo['credentials'][$_pdo['type']]['dbname'],
 								$_pdo['credentials'][$_pdo['type']]['user'],
 								$_pdo['credentials'][$_pdo['type']]['password']
 							);
 						else
-							$pdo_handler=new PDO('mysql:'
+							$pdo_handle=new PDO('mysql:'
 								.'host='.$_pdo['credentials'][$_pdo['type']]['host'].';'
 								.'port='.$_pdo['credentials'][$_pdo['type']]['port'].';'
 								.'dbname='.$_pdo['credentials'][$_pdo['type']]['dbname'],
@@ -292,13 +292,13 @@
 				exit(1);
 			}
 
-			if(isset($pdo_handler))
+			if(isset($pdo_handle))
 			{
-				$pdo_handler->exec('DROP TABLE IF EXISTS comp_herring_test_visitors');
-				$pdo_handler->exec('DROP TABLE IF EXISTS comp_herring_test_archive');
+				$pdo_handle->exec('DROP TABLE IF EXISTS comp_herring_test_visitors');
+				$pdo_handle->exec('DROP TABLE IF EXISTS comp_herring_test_archive');
 			}
 		}
-		if(!isset($pdo_handler))
+		if(!isset($pdo_handle))
 		{
 			if(!in_array('sqlite', PDO::getAvailableDrivers()))
 			{
@@ -306,11 +306,11 @@
 				exit(1);
 			}
 
-			$pdo_handler=new PDO('sqlite:'.__DIR__.'/tmp/herring.sqlite3');
+			$pdo_handle=new PDO('sqlite:'.__DIR__.'/tmp/herring.sqlite3');
 		}
 
 		$herring_mock=new herring_mock([
-			'pdo_handler'=>$pdo_handler,
+			'pdo_handle'=>$pdo_handle,
 			'table_name_prefix'=>'comp_herring_test_',
 			'ip'=>'0.0.0.0',
 			'uri'=>'/',
@@ -318,7 +318,7 @@
 			'setcookie_callback'=>function() {}
 		]);
 		$herring_maintenance=new herring_mock([
-			'pdo_handler'=>$pdo_handler,
+			'pdo_handle'=>$pdo_handle,
 			'table_name_prefix'=>'comp_herring_test_',
 			'maintenance_mode'=>true
 		]);
@@ -356,7 +356,7 @@
 				echo ' [FAIL]'.PHP_EOL;
 				$failed=true;
 				$exceptions[]=['add', $error->getMessage()];
-				$pdo_errors['add']=$pdo_handler->errorInfo()[2];
+				$pdo_errors['add']=$pdo_handle->errorInfo()[2];
 			}
 			$benchmarks['add']=$benchmark->get_exec_time();
 		if(!$failed)
@@ -375,7 +375,7 @@
 			$benchmark=new \measure_exec_time_from_here();
 			try {
 				$herring_maintenance->move_to_archive(0);
-				if(empty($pdo_handler->query('SELECT * FROM comp_herring_test_visitors')->fetchAll()))
+				if(empty($pdo_handle->query('SELECT * FROM comp_herring_test_visitors')->fetchAll()))
 					echo ' [ OK ]'.PHP_EOL;
 				else
 				{
@@ -386,7 +386,7 @@
 				echo ' [FAIL]'.PHP_EOL;
 				$failed=true;
 				$exceptions[]=['move_to_archive', $error->getMessage()];
-				$pdo_errors['move_to_archive']=$pdo_handler->errorInfo()[2];
+				$pdo_errors['move_to_archive']=$pdo_handle->errorInfo()[2];
 			}
 			$benchmarks['move_to_archive']=$benchmark->get_exec_time();
 
@@ -407,7 +407,7 @@
 				echo ' [FAIL]'.PHP_EOL;
 				$failed=true;
 				$exceptions[]=['dump_archive_to_csv', $error->getMessage()];
-				$pdo_errors['dump_archive_to_csv']=$pdo_handler->errorInfo()[2];
+				$pdo_errors['dump_archive_to_csv']=$pdo_handle->errorInfo()[2];
 			}
 			$benchmarks['dump_archive_to_csv']=$benchmark->get_exec_time();
 
@@ -428,7 +428,7 @@
 				echo ' [FAIL]'.PHP_EOL;
 				$failed=true;
 				$exceptions[]=['generate_report', $error->getMessage()];
-				$pdo_errors['generate_report']=$pdo_handler->errorInfo()[2];
+				$pdo_errors['generate_report']=$pdo_handle->errorInfo()[2];
 			}
 			$benchmarks['generate_report']=$benchmark->get_exec_time();
 
@@ -449,7 +449,7 @@
 				echo ' [FAIL]'.PHP_EOL;
 				$failed=true;
 				$exceptions[]=['generate_report_short', $error->getMessage()];
-				$pdo_errors['generate_report_short']=$pdo_handler->errorInfo()[2];
+				$pdo_errors['generate_report_short']=$pdo_handle->errorInfo()[2];
 			}
 			$benchmarks['generate_report_short']=$benchmark->get_exec_time();
 
@@ -466,7 +466,7 @@
 			$benchmark=new \measure_exec_time_from_here();
 			try {
 				$herring_maintenance->flush_archive();
-				if(empty($pdo_handler->query('SELECT * FROM comp_herring_test_archive')->fetchAll()))
+				if(empty($pdo_handle->query('SELECT * FROM comp_herring_test_archive')->fetchAll()))
 					echo ' [ OK ]'.PHP_EOL;
 				else
 				{
@@ -477,7 +477,7 @@
 				echo ' [FAIL]'.PHP_EOL;
 				$failed=true;
 				$exceptions[]=['flush_archive', $error->getMessage()];
-				$pdo_errors['flush_archive']=$pdo_handler->errorInfo()[2];
+				$pdo_errors['flush_archive']=$pdo_handle->errorInfo()[2];
 			}
 			$benchmarks['flush_archive']=$benchmark->get_exec_time();
 
@@ -500,7 +500,7 @@
 					echo ' [FAIL]'.PHP_EOL;
 					$failed=true;
 					$exceptions[]=['generate_report_from_csv', $error->getMessage()];
-					$pdo_errors['generate_report_from_csv']=$pdo_handler->errorInfo()[2];
+					$pdo_errors['generate_report_from_csv']=$pdo_handle->errorInfo()[2];
 				}
 				$benchmarks['generate_report_from_csv']=$benchmark->get_exec_time();
 			}
@@ -526,7 +526,7 @@
 					echo ' [FAIL]'.PHP_EOL;
 					$failed=true;
 					$exceptions[]=['generate_report_short_from_csv', $error->getMessage()];
-					$pdo_errors['generate_report_shory_from_csv']=$pdo_handler->errorInfo()[2];
+					$pdo_errors['generate_report_shory_from_csv']=$pdo_handle->errorInfo()[2];
 				}
 				$benchmarks['generate_report_short_from_csv']=$benchmark->get_exec_time();
 			}

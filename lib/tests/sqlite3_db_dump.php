@@ -72,6 +72,9 @@
 					$database->exec('INSERT INTO table'.$table.'(columna, columnb) VALUES("cella'.$row.'", "cellb'.$row.'")');
 			}
 
+		$database->exec('CREATE VIEW testview AS SELECT columna FROM tablea');
+		$database->exec('CREATE TRIGGER testtrigger AFTER INSERT ON tablea BEGIN INSERT INTO tablea(columna, columnb) VALUES("testtrigger", "testtrigger"); END');
+
 		unset($test_db);
 	echo ' [ OK ]'.PHP_EOL;
 
@@ -80,11 +83,12 @@
 	echo ' -> Testing sqlite3_db_dump';
 		if(class_exists('SQLite3'))
 		{
+			//echo PHP_EOL.PHP_EOL.sqlite3_db_dump(new SQLite3(__DIR__.'/tmp/sqlite3_db_dump/sqlite3_db_dump.sqlite3')).PHP_EOL.PHP_EOL;
 			//echo ' ('.md5(sqlite3_db_dump(new SQLite3(__DIR__.'/tmp/sqlite3_db_dump/sqlite3_db_dump.sqlite3'))).')';
 			if(
 				md5(sqlite3_db_dump(new SQLite3(__DIR__.'/tmp/sqlite3_db_dump/sqlite3_db_dump.sqlite3')))
 				===
-				'60071847ffd1fa2efce1fc9a606b15fe'
+				'9d470faff77f16abd46cc4927fc28a41'
 			)
 				echo ' [ OK ]'.PHP_EOL;
 			else
@@ -99,11 +103,12 @@
 	echo ' -> Testing sqlite3_pdo_dump';
 		if(class_exists('PDO') && in_array('sqlite', PDO::getAvailableDrivers()))
 		{
+			//echo PHP_EOL.PHP_EOL.sqlite3_db_dump(new SQLite3(__DIR__.'/tmp/sqlite3_db_dump/sqlite3_db_dump.sqlite3')).PHP_EOL.PHP_EOL;
 			//echo ' ('.md5(sqlite3_pdo_dump(new PDO('sqlite:'.__DIR__.'/tmp/sqlite3_db_dump/sqlite3_db_dump.sqlite3'))).')';
 			if(
 				md5(sqlite3_pdo_dump(new PDO('sqlite:'.__DIR__.'/tmp/sqlite3_db_dump/sqlite3_db_dump.sqlite3')))
 				===
-				'60071847ffd1fa2efce1fc9a606b15fe'
+				'9d470faff77f16abd46cc4927fc28a41'
 			)
 				echo ' [ OK ]'.PHP_EOL;
 			else

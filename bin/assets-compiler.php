@@ -6,13 +6,31 @@
 	 *  assets_compiler.php library is required
 	 */
 
-	if(file_exists(__DIR__.'/lib/assets_compiler.php'))
-		require __DIR__.'/lib/assets_compiler.php';
-	else if(file_exists(__DIR__.'/../lib/assets_compiler.php'))
-		require __DIR__.'/../lib/assets_compiler.php';
-	else
+	function load_library($libraries, $required=true)
 	{
-		echo 'assets_compiler.php library not found'.PHP_EOL;
+		foreach($libraries as $library)
+		{
+			if(file_exists(__DIR__.'/lib/'.$library))
+			{
+				require __DIR__.'/lib/'.$library;
+				continue;
+			}
+
+			if(file_exists(__DIR__.'/../lib/'.$library))
+			{
+				require __DIR__.'/../lib/'.$library;
+				continue;
+			}
+
+			if($required)
+				throw new Exception($library.' library not found');
+		}
+	}
+
+	try {
+		load_library(['assets_compiler.php']);
+	} catch(Exception $error) {
+		echo 'Error: '.$error->getMessage().PHP_EOL;
 		exit(1);
 	}
 
@@ -46,19 +64,22 @@
 
 	foreach(array_diff(scandir($argv[1]), ['.', '..']) as $asset)
 	{
-		if(is_file($argv[1].'/'.$asset.'/main.php'))
-			echo ' -> Processing '.$asset.'/main.php'.PHP_EOL;
-		else if(is_dir($argv[1].'/'.$asset))
+		switch(true)
 		{
-			echo ' -> Processing '.$asset.PHP_EOL;
+			case (is_file($argv[1].'/'.$asset.'/main.php')):
+				echo ' -> Processing '.$asset.'/main.php'.PHP_EOL;
+			break;
+			case (is_dir($argv[1].'/'.$asset)):
+				echo ' -> Processing '.$asset.PHP_EOL;
 
-			foreach(assets_compiler($argv[1].'/'.$asset, $argv[2].'/'.$asset) as $file)
-				echo '  -> '.$file.PHP_EOL;
+				foreach(assets_compiler($argv[1].'/'.$asset, $argv[2].'/'.$asset) as $file)
+					echo '  -> '.$file.PHP_EOL;
 
-			continue;
+				continue;
+			break;
+			default:
+				echo ' -> Copying '.$asset.PHP_EOL;
 		}
-		else
-			echo ' -> Copying '.$asset.PHP_EOL;
 
 		switch(assets_compiler($argv[1].'/'.$asset, $argv[2].'/'.$asset))
 		{

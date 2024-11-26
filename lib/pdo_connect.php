@@ -23,8 +23,10 @@
 			function($error) // optional
 			{
 				// executed on PDOException
-				error_log('pdo_connect: '.$error->getMessage());
-			}
+				my_log_function('pdo_connect: '.$error->getMessage());
+			},
+			true, // optional, enable seeder (default), set to false to disable
+			false // optional, reseed the database
 		)
 
 		// portable version
@@ -37,35 +39,46 @@
 				'db_name'=>'string-database-name',
 				'charset'=>'string-your-db-charset', // for pgsql and mysql only, optional
 				'user'=>'string-username',
-				'password'=>'string-password'
+				'password'=>'string-password',
+				'pdo_options'=>[ // set PDO options via constructor, optional
+					PDO::ATTR_PERSISTENT=>true
+				]
 			],
 			function($error) // optional
 			{
 				// executed on PDOException
-				error_log('pdo_connect_array: '.$error->getMessage());
+				my_log_function(''
+				.	'pdo_connect_array: '
+				.	$error->getMessage()
+				);
 			}
 		)
 	 *
 	 * Note:
 	 *  the socket path varies depending on the database, eg.
-	 *  for pgsql (note: directory path): /var/run/postgresql
+	 *  for pgsql (note: this is the directory path): /var/run/postgresql
 	 *  for mysql: /var/run/mysqld/mysqld.sock
 	 */
 
 	class pdo_connect_exception extends Exception {}
 
-	function pdo_connect(string $db, ?callable $on_error=null)
-	{
+	function pdo_connect(
+		string $db,
+		?callable $on_error=null,
+		bool $enable_seeder=true,
+		bool $reseed=false
+	){
 		/*
 		 * PDO connection helper
 		 * with automatic seeder
 		 *
-		 * Returns the PDO handler
+		 * Returns the PDO handle
 		 *  or false if an error has occurred
 		 * For more info, see pdo_connect_array function
 		 *
 		 * Warning:
 		 *  pdo_connect_array function is required
+		 *  _pdo_connect_sqlite_helper function is required
 		 *
 		 * Note:
 		 *  throws an pdo_connect_exception on error
@@ -84,12 +97,15 @@
 						'charset'=>'string-your-db-charset', // for pgsql and mysql only, optional
 						'user'=>'string-username',
 						'password'=>'string-password',
-						//'seeded_path'=>$db // string, uncomment this to move the database_seeded file to a different location
+						//'seeded_path'=>$db, // string, uncomment this to move the database_seeded file to a different location
+						'pdo_options'=>[ // set PDO options via constructor, optional
+							PDO::ATTR_PERSISTENT=>true
+						]
 					];
 				?>
 		 *  3) optionally you can create a seed.php file which will initialize the database, eg:
 				<?php
-					$pdo_handler->exec(''
+					$pdo_handle->exec(''
 					.	'CREATE TABLE tablename('
 					//.		'id SERIAL PRIMARY KEY,' // pgsql
 					//.		'id INTEGER NOT NULL AUTO_INCREMENT, PRIMARY KEY(id),' // mysql
@@ -106,23 +122,32 @@
 				function($error) // optional
 				{
 					// executed on PDOException
-					error_log('pdo_connect: '.$error->getMessage());
-				}
+					my_log_function(''
+					.	'pdo_connect: '
+					.	$error->getMessage()
+					);
+				},
+				true, // optional, enable seeder (default), set to false to disable
+				false // optional, reseed the database
 			);
 		 *
 		 * Note:
 		 *  the socket path varies depending on the database, eg.
-		 *  for pgsql (note: directory path): /var/run/postgresql
+		 *  for pgsql (note: this is the directory path): /var/run/postgresql
 		 *  for mysql: /var/run/mysqld/mysqld.sock
 		 */
 
 		if(!file_exists($db.'/config.php'))
-			throw new pdo_connect_exception($db.'/config.php not exists');
+			throw new pdo_connect_exception(
+				$db.'/config.php not exists'
+			);
 
 		$db_config=require $db.'/config.php';
 
 		if(!is_array($db_config))
-			throw new pdo_connect_exception($db.'/config.php did not return an array');
+			throw new pdo_connect_exception(
+				$db.'/config.php did not return an array'
+			);
 
 		foreach([
 			'db_type',
@@ -135,79 +160,100 @@
 			'password',
 			'seeded_path'
 		] as $param)
-			if(isset($db_config[$param]) && (!is_string($db_config[$param])))
-				throw new pdo_connect_exception('The '.$param.' parameter is not a string');
+			if(
+				isset($db_config[$param]) &&
+				(!is_string($db_config[$param]))
+			)
+				throw new pdo_connect_exception(
+					'The '.$param.' parameter is not a string'
+				);
 
 		if(!isset($db_config['db_type']))
-			throw new pdo_connect_exception('The db_type parameter was not specified');
+			throw new pdo_connect_exception(
+				'The db_type parameter was not specified'
+			);
 
-		$do_seed=false;
-		$do_seed_sqlite=false; // set true when (seeded_path === null) or (host === ':memory:')
+		if(
+			$enable_seeder &&
+			(!is_file($db.'/seed.php'))
+		)
+			$enable_seeder=false;
 
-		if(is_file($db.'/seed.php'))
+		if($enable_seeder)
 		{
-			$do_seed=true;
+			// true when (seeded_path === null) or (host === ':memory:')
+			$do_seed_sqlite=_pdo_connect_sqlite_helper($db_config);
 
-			if(
-				($db_config['db_type'] === 'sqlite') &&
-				isset($db_config['host'])
-			){
-				if($db_config['host'] === ':memory:')
-					$do_seed_sqlite=true;
-				else if(!file_exists($db_config['host']))
-				{
-					// null is only for sqlite
-					if(!isset($db_config['seeded_path']))
-						$db_config['seeded_path']=null;
-
-					if($db_config['seeded_path'] === null)
-						$do_seed_sqlite=true;
-					else if(
-						(!file_exists($db_config['host'])) &&
-						file_exists($db_config['seeded_path'].'/database_seeded')
-					)
-						unlink($db_config['seeded_path'].'/database_seeded');
-				}
-			}
-			else if(!isset($db_config['seeded_path']))
+			if(!isset($db_config['seeded_path']))
 				$db_config['seeded_path']=$db;
 		}
 
-		$pdo_handler=pdo_connect_array($db_config, $on_error, false);
+		$pdo_handle=pdo_connect_array($db_config, $on_error, false);
 
-		if($pdo_handler === false)
+		if($pdo_handle === false)
 			return false;
 
-		if($do_seed)
+		if($enable_seeder)
 		{
+			if(
+				$reseed &&
+				file_exists(''
+				.	$db_config['seeded_path']
+				.	'/database_seeded'
+				)
+			)
+				unlink(''
+				.	$db_config['seeded_path']
+				.	'/database_seeded'
+				);
+
 			if($do_seed_sqlite)
 			{
 				include $db.'/seed.php';
-				return $pdo_handler;
+				return $pdo_handle;
 			}
 
 			if(
 				isset($db_config['seeded_path']) &&
-				(!file_exists($db_config['seeded_path'].'/database_seeded'))
+				(!file_exists(''
+				.	$db_config['seeded_path']
+				.	'/database_seeded'
+				))
 			){
-				if(file_put_contents($db_config['seeded_path'].'/database_seed_w_test', '') === false)
-					throw new pdo_connect_exception('Could not create database_seed_w_test file in '.$db_config['seeded_path']);
+				if(file_put_contents(''
+				.	$db_config['seeded_path']
+				.	'/database_seed_w_test'
+				, '') === false)
+					throw new pdo_connect_exception(
+						'Could not create database_seed_w_test file in '.$db_config['seeded_path']
+					);
 
-				unlink($db_config['seeded_path'].'/database_seed_w_test');
+				unlink(''
+				.	$db_config['seeded_path']
+				.	'/database_seed_w_test'
+				);
+
 				require $db.'/seed.php';
-				file_put_contents($db_config['seeded_path'].'/database_seeded', '');
+
+				file_put_contents(''
+				.	$db_config['seeded_path']
+				.	'/database_seeded'
+				, '');
 			}
 		}
 
-		return $pdo_handler;
+		return $pdo_handle;
 	}
-	function pdo_connect_array(array $db_config, ?callable $on_error=null, bool $type_hint=true)
-	{
+	function pdo_connect_array(
+		array $db_config,
+		?callable $on_error=null,
+		bool $type_hint=true
+	){
 		/*
 		 * PDO connection helper
 		 * portable version
 		 *
-		 * Returns the PDO handler
+		 * Returns the PDO handle
 		 *  or false if an error has occurred
 		 *
 		 * Warning:
@@ -239,18 +285,24 @@
 					'db_name'=>'string-database-name',
 					'charset'=>'string-your-db-charset', // for pgsql and mysql only, optional
 					'user'=>'string-username',
-					'password'=>'string-password'
+					'password'=>'string-password',
+					'pdo_options'=>[ // set PDO options via constructor, optional
+						PDO::ATTR_PERSISTENT=>true
+					]
 				],
 				function($error) // optional
 				{
 					// executed on PDOException
-					error_log('pdo_connect_array: '.$error->getMessage());
+					my_log_function(''
+					.	'pdo_connect_array: '
+					.	$error->getMessage()
+					);
 				}
 			);
 		 *
 		 * Note:
 		 *  the socket path varies depending on the database, eg.
-		 *  for pgsql (note: directory path): /var/run/postgresql
+		 *  for pgsql (note: this is the directory path): /var/run/postgresql
 		 *  for mysql: /var/run/mysqld/mysqld.sock
 		 */
 
@@ -258,16 +310,22 @@
 		{
 			foreach($params as $db_config_param)
 				if(!isset($db_config[$db_config_param]))
-					throw new pdo_connect_exception('The '.$db_config_param.' parameter was not specified');
+					throw new pdo_connect_exception(
+						'The '.$db_config_param.' parameter was not specified'
+					);
 		};
 
 		if(!class_exists('PDO'))
-			throw new pdo_connect_exception('PDO extension is not loaded');
+			throw new pdo_connect_exception(
+				'PDO extension is not loaded'
+			);
 
 		if($type_hint)
 		{
 			if(!isset($db_config['db_type']))
-				throw new pdo_connect_exception('The db_type parameter was not specified');
+				throw new pdo_connect_exception(
+					'The db_type parameter was not specified'
+				);
 
 			foreach([
 				'db_type',
@@ -279,94 +337,159 @@
 				'user',
 				'password'
 			] as $param)
-				if(isset($db_config[$param]) && (!is_string($db_config[$param])))
-					throw new pdo_connect_exception('The '.$param.' parameter is not a string');
+				if(
+					isset($db_config[$param]) &&
+					(!is_string($db_config[$param]))
+				)
+					throw new pdo_connect_exception(
+						'The '.$param.' parameter is not a string'
+					);
 		}
+
+		if(!isset($db_config['pdo_options']))
+			$db_config['pdo_options']=null;
 
 		try {
 			switch($db_config['db_type'])
 			{
 				case 'pgsql':
-					if(!in_array('pgsql', PDO::getAvailableDrivers()))
-						throw new pdo_connect_exception('pdo_pgsql extension is not loaded');
+					if(!in_array(
+						'pgsql',
+						PDO::getAvailableDrivers()
+					))
+						throw new pdo_connect_exception(
+							'pdo_pgsql extension is not loaded'
+						);
 
-					if(isset($db_config['charset']) && (!empty($db_config['charset'])))
-						$db_config['charset']=';options=\'--client_encoding='.$db_config['charset'].'\'';
-					else
-						$db_config['charset']='';
+					$db_config['charset']='';
+
+					if(
+						isset($db_config['charset']) &&
+						(!empty($db_config['charset']))
+					)
+						$db_config['charset']=';'
+						.	'options='."'"
+						.		'--client_encoding='.$db_config['charset']
+						.	"'";
 
 					if(isset($db_config['socket']))
 					{
-						$_check_params($db_config, ['socket', 'db_name', 'user', 'password']);
+						$_check_params($db_config, [
+							'socket',
+							'db_name',
+							'user',
+							'password']
+						);
 
-						$pdo_handler=new PDO($db_config['db_type'].':'
+						return new PDO($db_config['db_type'].':'
 						.	'host='.$db_config['socket'].';'
 						.	'dbname='.$db_config['db_name'].';'
 						.	'user='.$db_config['user'].';'
 						.	'password='.$db_config['password']
 						.	$db_config['charset']
+						,	null
+						,	null
+						,	$db_config['pdo_options']
 						);
 					}
-					else
-					{
-						$_check_params($db_config, ['host', 'port', 'db_name', 'user', 'password']);
 
-						$pdo_handler=new PDO($db_config['db_type'].':'
-						.	'host='.$db_config['host'].';'
-						.	'port='.$db_config['port'].';'
-						.	'dbname='.$db_config['db_name'].';'
-						.	'user='.$db_config['user'].';'
-						.	'password='.$db_config['password']
-						.	$db_config['charset']
-						);
-					}
+					$_check_params($db_config, [
+						'host',
+						'port',
+						'db_name',
+						'user',
+						'password'
+					]);
+
+					return new PDO($db_config['db_type'].':'
+					.	'host='.$db_config['host'].';'
+					.	'port='.$db_config['port'].';'
+					.	'dbname='.$db_config['db_name'].';'
+					.	'user='.$db_config['user'].';'
+					.	'password='.$db_config['password']
+					.	$db_config['charset']
+					,	null
+					,	null
+					,	$db_config['pdo_options']
+					);
 				break;
 				case 'mysql':
-					if(!in_array('mysql', PDO::getAvailableDrivers()))
-						throw new pdo_connect_exception('pdo_mysql extension is not loaded');
+					if(!in_array(
+						'mysql',
+						PDO::getAvailableDrivers()
+					))
+						throw new pdo_connect_exception(
+							'pdo_mysql extension is not loaded'
+						);
 
-					if(isset($db_config['charset']) && (!empty($db_config['charset'])))
-						$db_config['charset']=';charset='.$db_config['charset'];
-					else
-						$db_config['charset']='';
+					$db_config['charset']='';
+
+					if(
+						isset($db_config['charset']) &&
+						(!empty($db_config['charset']))
+					)
+						$db_config['charset']=';'
+						.	'charset='.$db_config['charset'];
 
 					if(isset($db_config['socket']))
 					{
-						$_check_params($db_config, ['socket', 'db_name', 'user', 'password']);
+						$_check_params($db_config, [
+							'socket',
+							'db_name',
+							'user',
+							'password'
+						]);
 
-						$pdo_handler=new PDO($db_config['db_type'].':'
+						return new PDO($db_config['db_type'].':'
 						.	'unix_socket='.$db_config['socket'].';'
 						.	'dbname='.$db_config['db_name']
 						.	$db_config['charset']
 						,	$db_config['user']
 						,	$db_config['password']
+						,	$db_config['pdo_options']
 						);
 					}
-					else
-					{
-						$_check_params($db_config, ['host', 'port', 'db_name', 'user', 'password']);
 
-						$pdo_handler=new PDO($db_config['db_type'].':'
-						.	'host='.$db_config['host'].';'
-						.	'port='.$db_config['port'].';'
-						.	'dbname='.$db_config['db_name']
-						.	$db_config['charset']
-						,	$db_config['user']
-						,	$db_config['password']
-						);
-					}
+					$_check_params($db_config, [
+						'host',
+						'port',
+						'db_name',
+						'user',
+						'password'
+					]);
+
+					return new PDO($db_config['db_type'].':'
+					.	'host='.$db_config['host'].';'
+					.	'port='.$db_config['port'].';'
+					.	'dbname='.$db_config['db_name']
+					.	$db_config['charset']
+					,	$db_config['user']
+					,	$db_config['password']
+					,	$db_config['pdo_options']
+					);
 				break;
 				case 'sqlite':
-					if(!in_array('sqlite', PDO::getAvailableDrivers()))
-						throw new pdo_connect_exception('pdo_sqlite extension is not loaded');
+					if(!in_array(
+						'sqlite',
+						PDO::getAvailableDrivers()
+					))
+						throw new pdo_connect_exception(
+							'pdo_sqlite extension is not loaded'
+						);
 
-					$_check_params($db_config, ['host']);
-					$pdo_handler=new PDO($db_config['db_type'].':'
+					$_check_params(
+						$db_config,
+						['host']
+					);
+
+					return new PDO($db_config['db_type'].':'
 					.	$db_config['host']
 					);
 				break;
 				default:
-					throw new pdo_connect_exception($db_config['db_type'].' database type is not supported');
+					throw new pdo_connect_exception(
+						$db_config['db_type'].' database type is not supported'
+					);
 			}
 		} catch(PDOException $error) {
 			if($on_error !== null)
@@ -374,7 +497,42 @@
 
 			return false;
 		}
+	}
+	function _pdo_connect_sqlite_helper(&$db_config)
+	{
+		// Seeder helper
 
-		return $pdo_handler;
+		if(
+			($db_config['db_type'] !== 'sqlite') ||
+			(!isset($db_config['host']))
+		)
+			return false;
+
+		if($db_config['host'] === ':memory:')
+			return true;
+
+		if(!file_exists($db_config['host']))
+		{
+			// null is only for sqlite
+			if(!isset($db_config['seeded_path']))
+				$db_config['seeded_path']=null;
+
+			if($db_config['seeded_path'] === null)
+				return true;
+
+			if(
+				(!file_exists($db_config['host'])) &&
+				file_exists(''
+				.	$db_config['seeded_path']
+				.	'/database_seeded'
+				)
+			)
+				unlink(''
+				.	$db_config['seeded_path']
+				.	'/database_seeded'
+				);
+		}
+
+		return false;
 	}
 ?>

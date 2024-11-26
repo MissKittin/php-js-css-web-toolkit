@@ -11,14 +11,14 @@
 	 *  proc_* functions are required
 	 */
 
-	$_serve_test_handler=null;
+	$_serve_test_handle=null;
 	function _serve_test($command)
 	{
 		if(!function_exists('proc_open'))
 			throw new Exception('proc_open function is not available');
 
 		$process_pipes=null;
-		$process_handler=proc_open(
+		$process_handle=proc_open(
 			$command,
 			[
 				0=>['pipe', 'r'],
@@ -32,13 +32,13 @@
 
 		sleep(1);
 
-		if(!is_resource($process_handler))
+		if(!is_resource($process_handle))
 			throw new Exception('Process cannot be started');
 
 		foreach($process_pipes as $pipe)
 			fclose($pipe);
 
-		return $process_handler;
+		return $process_handle;
 	}
 
 	if(isset($argv[1]) && ($argv[1] === 'serve'))
@@ -48,10 +48,11 @@
 		if(isset($argv[2]) && ($argv[2] === 'extended'))
 			$extended=' --extended';
 
-		system('"'.PHP_BINARY.'" "'.__DIR__.'/../'.basename(__FILE__).'" '
+		system('"'.PHP_BINARY.'" '
+		.	'"'.__DIR__.'/../'.basename(__FILE__).'" '
 		.	'"'
-			.	((strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') ? '"""'.PHP_BINARY.'"""' : str_replace(' ', '\ ', PHP_BINARY)).' '
-			.	((strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') ? '"""'.__DIR__.'/tmp/file-watch/process.php'.'"""' : str_replace(' ', '\ ', __DIR__.'/tmp/file-watch/process.php')).' '
+		.		((strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') ? '"""'.PHP_BINARY.'"""' : str_replace(' ', '\ ', PHP_BINARY)).' '
+		.		((strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') ? '"""'.__DIR__.'/tmp/file-watch/process.php'.'"""' : str_replace(' ', '\ ', __DIR__.'/tmp/file-watch/process.php')).' '
 		.	'" '
 		.	'"'.__DIR__.'/tmp/file-watch/src"'
 		.	$extended
@@ -105,7 +106,7 @@
 
 	echo ' -> Starting tool (standard)';
 		try {
-			$_serve_test_handler=_serve_test('"'.PHP_BINARY.'" '.$argv[0].' serve');
+			$_serve_test_handle=_serve_test('"'.PHP_BINARY.'" '.$argv[0].' serve');
 			echo ' [ OK ]'.PHP_EOL;
 		} catch(Exception $error) {
 			echo ' [FAIL]'.PHP_EOL;
@@ -124,6 +125,7 @@
 			echo ' [FAIL]';
 			$failed=true;
 		}
+
 		sleep(1);
 		file_put_contents(__DIR__.'/tmp/file-watch/src/input.txt', 'mcontent');
 		sleep(1);
@@ -134,6 +136,7 @@
 			echo ' [FAIL]';
 			$failed=true;
 		}
+
 		sleep(1);
 		file_put_contents(__DIR__.'/tmp/file-watch/src/input.txt', 'mmcontent');
 		sleep(1);
@@ -145,19 +148,19 @@
 			$failed=true;
 		}
 
-	if(is_resource($_serve_test_handler))
+	if(is_resource($_serve_test_handle))
 	{
 		echo ' -> Stopping tool (standard)'.PHP_EOL;
 
-		$_serve_test_handler_status=@proc_get_status($_serve_test_handler);
+		$_serve_test_handle_status=@proc_get_status($_serve_test_handle);
 
-		if(isset($_serve_test_handler_status['pid']))
+		if(isset($_serve_test_handle_status['pid']))
 		{
 			if(strtoupper(substr(PHP_OS, 0, 3)) === 'WIN')
-				@exec('taskkill.exe /F /T /PID '.$_serve_test_handler_status['pid'].' 2>&1');
+				@exec('taskkill.exe /F /T /PID '.$_serve_test_handle_status['pid'].' 2>&1');
 			else
 			{
-				$_ch_pid=$_serve_test_handler_status['pid'];
+				$_ch_pid=$_serve_test_handle_status['pid'];
 				$_ch_pid_ex=$_ch_pid;
 
 				while(($_ch_pid_ex !== null) && ($_ch_pid_ex !== ''))
@@ -166,19 +169,23 @@
 					$_ch_pid_ex=@shell_exec('pgrep -P '.$_ch_pid);
 				}
 
-				if($_ch_pid === $_serve_test_handler_status['pid'])
-					proc_terminate($_serve_test_handler);
+				if($_ch_pid === $_serve_test_handle_status['pid'])
+					proc_terminate($_serve_test_handle);
 				else
 					@exec('kill '.rtrim($_ch_pid).' 2>&1');
 			}
 		}
 
-		proc_close($_serve_test_handler);
+		proc_close($_serve_test_handle);
 	}
 
 	echo ' -> Starting tool (extended)';
 		try {
-			$_serve_test_handler=_serve_test('"'.PHP_BINARY.'" '.$argv[0].' serve extended');
+			$_serve_test_handle=_serve_test('"'.PHP_BINARY.'" '
+			.	$argv[0].' '
+			.	'serve '
+			.	'extended'
+			);
 			echo ' [ OK ]'.PHP_EOL;
 		} catch(Exception $error) {
 			echo ' [FAIL]'.PHP_EOL;
@@ -197,6 +204,7 @@
 			echo ' [FAIL]';
 			$failed=true;
 		}
+
 		sleep(1);
 		file_put_contents(__DIR__.'/tmp/file-watch/src/input.txt', 'mcontent');
 		sleep(1);
@@ -207,6 +215,7 @@
 			echo ' [FAIL]';
 			$failed=true;
 		}
+
 		sleep(1);
 		file_put_contents(__DIR__.'/tmp/file-watch/src/input2.txt', 'mmcontent');
 		sleep(1);
@@ -218,19 +227,19 @@
 			$failed=true;
 		}
 
-	if(is_resource($_serve_test_handler))
+	if(is_resource($_serve_test_handle))
 	{
 		echo ' -> Stopping tool (extended)'.PHP_EOL;
 
-		$_serve_test_handler_status=@proc_get_status($_serve_test_handler);
+		$_serve_test_handle_status=@proc_get_status($_serve_test_handle);
 
-		if(isset($_serve_test_handler_status['pid']))
+		if(isset($_serve_test_handle_status['pid']))
 		{
 			if(strtoupper(substr(PHP_OS, 0, 3)) === 'WIN')
-				@exec('taskkill.exe /F /T /PID '.$_serve_test_handler_status['pid'].' 2>&1');
+				@exec('taskkill.exe /F /T /PID '.$_serve_test_handle_status['pid'].' 2>&1');
 			else
 			{
-				$_ch_pid=$_serve_test_handler_status['pid'];
+				$_ch_pid=$_serve_test_handle_status['pid'];
 				$_ch_pid_ex=$_ch_pid;
 
 				while(($_ch_pid_ex !== null) && ($_ch_pid_ex !== ''))
@@ -239,14 +248,14 @@
 					$_ch_pid_ex=@shell_exec('pgrep -P '.$_ch_pid);
 				}
 
-				if($_ch_pid === $_serve_test_handler_status['pid'])
-					proc_terminate($_serve_test_handler);
+				if($_ch_pid === $_serve_test_handle_status['pid'])
+					proc_terminate($_serve_test_handle);
 				else
 					@exec('kill '.rtrim($_ch_pid).' 2>&1');
 			}
 		}
 
-		proc_close($_serve_test_handler);
+		proc_close($_serve_test_handle);
 	}
 
 	if($failed)

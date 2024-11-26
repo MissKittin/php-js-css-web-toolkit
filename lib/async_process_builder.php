@@ -23,8 +23,9 @@
 		 *    also escapes the argument
 		 *   chdir(string_directory) [returns this]
 		 *    set working directory
-		 *    note: to use, the process cannot be started
-		 *    note: if not used, the start method will use getcwd
+		 *    note:
+		 *     to use, the process cannot be started
+		 *     if not used, the start method will use getcwd
 		 *   set_env(string_name, string_value)
 		 *   setenv(string_name, string_value)
 		 *    [returns this]
@@ -46,40 +47,42 @@
 		 *  Writing:
 		 *   write(string_input) [returns int|false]
 		 *    write to stdin
-		 *    note: to use, the process must be started
 		 *    returns the number of bytes written, or false on failure
-		 *    throws an async_process_builder_exception if stdin is closed
+		 *    note:
+		 *     to use, the process must be started
+		 *     throws an async_process_builder_exception if stdin is closed
 		 *   send_signal(int_signal) [returns bool]
 		 *    note: this method is only for *nix
 		 *  Reading:
 		 *   close_stdin() [returns bool]
 		 *    use this before calling read_all_out/read_all_err
-		 *    throws an async_process_builder_exception if stdin is already closed
+		 *    note: throws an async_process_builder_exception if stdin is already closed
 		 *   read_char_out() [returns string]
 		 *   read_char_err() [returns string]
 		 *    uses fgetc to read one character from stdout or stderr
-		 *    throws an async_process_builder_exception if process is not running
+		 *    note: throws an async_process_builder_exception if process is not running
 		 *   read_until_char_out(char_char) [returns string]
 		 *   read_until_char_err(char_char) [returns string]
 		 *    uses fgetc in a loop until it encounters a specific character
-		 *    note: char_char must be length === 1
-		 *    throws an async_process_builder_exception if process is not running
+		 *    note:
+		 *     char_char must be length === 1
+		 *     throws an async_process_builder_exception if process is not running
 		 *   read_line_out() [returns string]
 		 *   read_line_err() [returns string]
 		 *    uses fgets with trim to read one line from stdout or stderr
-		 *    note: end char(s) must be PHP_EOL
-		 *     (eg. "\n" for *nix or "\r\n" for windows)
-		 *    throws an async_process_builder_exception if process is not running
+		 *    note:
+		 *     end char(s) must be PHP_EOL (eg. "\n" for *nix or "\r\n" for windows)
+		 *     throws an async_process_builder_exception if process is not running
 		 *   read_bytes_out(int_bytes) [returns string]
 		 *   read_bytes_err(int_bytes) [returns string]
 		 *    uses fread to get n bytes from stdout or stderr
-		 *    throws an async_process_builder_exception if process is not running
+		 *    note: throws an async_process_builder_exception if process is not running
 		 *   read_all_out() [returns string]
 		 *   read_all_err() [returns string]
 		 *    uses stream_get_contents to get full output from stdout or stderr
-		 *    note: waits for EOF - will return the result
-		 *     only after the program ends
-		 *    throws an async_process_builder_exception if stdin is not closed
+		 *    note:
+		 *     waits for EOF - will return the result only after the program ends
+		 *     throws an async_process_builder_exception if stdin is not closed
 		 *  Status checking:
 		 *   get_args() [returns array]
 		 *    dump escaped arguments
@@ -98,7 +101,7 @@
 		 *  Stopping:
 		 *   stop() [returns int|false]
 		 *    uses proc_close
-		 *    throws an async_process_builder_exception if stdin/stdout/stderr cannot be closed
+		 *    note: throws an async_process_builder_exception if stdin/stdout/stderr cannot be closed
 		 *  Misc:
 		 *   [static] get_exit_code(int_code) [returns string]
 		 *    translate exit code to description
@@ -192,7 +195,7 @@
 			2=>['pty']
 		];
 		protected $process_has_pty=false;
-		protected $process_handler=null;
+		protected $process_handle=null;
 		protected $process_pipes=null;
 		protected $_read_until_char_debug=false; // change by inheritance
 
@@ -207,13 +210,19 @@
 		public function __construct(string $command, bool $inherit_env=true)
 		{
 			if(!function_exists('proc_open'))
-				throw new async_process_builder_exception('proc_open function is not available');
+				throw new async_process_builder_exception(
+					'proc_open function is not available'
+				);
 
 			$this->command=escapeshellcmd($command);
 
 			// escapeshellcmd skips spaces
 			if(strtoupper(substr(PHP_OS, 0, 3)) === 'WIN')
-				$this->command=str_replace(' ', '^ ', $this->command);
+				$this->command=str_replace(
+					' ',
+					'^ ',
+					$this->command
+				);
 
 			if($inherit_env)
 				$this->env=getenv();
@@ -225,28 +234,36 @@
 		}
 		public function __clone()
 		{
-			$this->process_handler=null;
+			$this->process_handle=null;
 			$this->process_pipes=null;
 		}
 		public function __wakeup()
 		{
-			throw new async_process_builder_exception(static::class.': unserialization is not allowed');
+			throw new async_process_builder_exception(
+				static::class.': unserialization is not allowed'
+			);
 		}
 
 		protected function read_char(int $descriptor)
 		{
 			if(!$this->process_started())
-				throw new async_process_builder_exception('The process is not running');
+				throw new async_process_builder_exception(
+					'The process is not running'
+				);
 
 			return fgetc($this->process_pipes[$descriptor]);
 		}
 		protected function read_until_char(int $descriptor, string $end_char)
 		{
 			if(!$this->process_started())
-				throw new async_process_builder_exception('The process is not running');
+				throw new async_process_builder_exception(
+					'The process is not running'
+				);
 
 			if((!isset($end_char[0])) || isset($end_char[1])) // (strlen($end_char) !== 1)
-				throw new async_process_builder_exception('The passed string contains more than one character');
+				throw new async_process_builder_exception(
+					'The passed string contains more than one character'
+				);
 
 			$output='';
 
@@ -258,9 +275,12 @@
 				if($this->_read_until_char_debug)
 				{
 					if($input === $end_char)
+					{
 						echo '(['.$input.'])';
-					else
-						echo '('.$input.')';
+						continue;
+					}
+
+					echo '('.$input.')';
 				}
 			}
 			while($input !== $end_char);
@@ -270,14 +290,18 @@
 		protected function read_line(int $descriptor)
 		{
 			if(!$this->process_started())
-				throw new async_process_builder_exception('The process is not running');
+				throw new async_process_builder_exception(
+					'The process is not running'
+				);
 
 			return trim(fgets($this->process_pipes[$descriptor]));
 		}
 		protected function read_bytes(int $descriptor, int $bytes)
 		{
 			if(!$this->process_started())
-				throw new async_process_builder_exception('The process is not running');
+				throw new async_process_builder_exception(
+					'The process is not running'
+				);
 
 			return fread($this->process_pipes[$descriptor], $bytes);
 		}
@@ -287,16 +311,22 @@
 			// if one descriptor is read, the process will terminate and the other cannot be read
 
 			if(!isset($this->process_pipes[$descriptor]))
-				throw new async_process_builder_exception('Descriptor '.$descriptor.' does not exists (process not started?)');
+				throw new async_process_builder_exception(
+					'Descriptor '.$descriptor.' does not exists (process not started?)'
+				);
 
 			if(
 				is_resource($this->process_pipes[$descriptor]) &&
 				(stream_get_meta_data($this->process_pipes[$descriptor]) === false)
 			)
-				throw new async_process_builder_exception('Descriptor '.$descriptor.' is not a stream');
+				throw new async_process_builder_exception(
+					'Descriptor '.$descriptor.' is not a stream'
+				);
 
 			if(!$this->stdin_closed())
-				throw new async_process_builder_exception('Standard input is not closed');
+				throw new async_process_builder_exception(
+					'Standard input is not closed'
+				);
 
 			return stream_get_contents($this->process_pipes[$descriptor]);
 		}
@@ -344,10 +374,14 @@
 		public function write(string $input)
 		{
 			if(!$this->process_started())
-				throw new async_process_builder_exception('The process is not running');
+				throw new async_process_builder_exception(
+					'The process is not running'
+				);
 
 			if($this->stdin_closed())
-				throw new async_process_builder_exception('Standard input is closed');
+				throw new async_process_builder_exception(
+					'Standard input is closed'
+				);
 
 			return fwrite($this->process_pipes[0], $input.PHP_EOL);
 		}
@@ -364,10 +398,14 @@
 		public function chdir(string $directory)
 		{
 			if($this->process_started())
-				throw new async_process_builder_exception('The process is already running');
+				throw new async_process_builder_exception(
+					'The process is already running'
+				);
 
 			if(!is_dir($directory))
-				throw new async_process_builder_exception($directory.' is not a directory');
+				throw new async_process_builder_exception(
+					$directory.' is not a directory'
+				);
 
 			$this->cwd=$directory;
 
@@ -387,7 +425,9 @@
 		public function setenv(string $name, ?string $value=null)
 		{
 			if($this->process_started())
-				throw new async_process_builder_exception('The process is already running');
+				throw new async_process_builder_exception(
+					'The process is already running'
+				);
 
 			if($value === null)
 			{
@@ -411,7 +451,9 @@
 		public function set_pty()
 		{
 			if($this->process_started())
-				throw new async_process_builder_exception('The process is already running');
+				throw new async_process_builder_exception(
+					'The process is already running'
+				);
 
 			$this->process_has_pty=true;
 
@@ -421,16 +463,18 @@
 		public function get_pid()
 		{
 			if(!$this->process_started())
-				throw new async_process_builder_exception('The process is not running');
+				throw new async_process_builder_exception(
+					'The process is not running'
+				);
 
-			return proc_get_status($this->process_handler)['pid'];
+			return proc_get_status($this->process_handle)['pid'];
 		}
 		public function process_started()
 		{
-			if(!is_resource($this->process_handler))
+			if(!is_resource($this->process_handle))
 				return false;
 
-			$process_status=proc_get_status($this->process_handler);
+			$process_status=proc_get_status($this->process_handle);
 
 			if(!isset($process_status['running']))
 				return false;
@@ -443,7 +487,9 @@
 		public function stdin_closed()
 		{
 			if(!isset($this->process_pipes[0]))
-				throw new async_process_builder_exception('Standard input descriptor does not exists (process not started?)');
+				throw new async_process_builder_exception(
+					'Standard input descriptor does not exists (process not started?)'
+				);
 
 			if(!is_resource($this->process_pipes[0]))
 				return true;
@@ -458,7 +504,9 @@
 		public function start()
 		{
 			if($this->process_started())
-				throw new async_process_builder_exception('The process is already running');
+				throw new async_process_builder_exception(
+					'The process is already running'
+				);
 
 			$process_descriptors=$this->process_descriptors_pipe;
 			$command=$this->command;
@@ -472,7 +520,7 @@
 			if(!empty($this->args))
 				$command.=' ';
 
-			$this->process_handler=proc_open(
+			$this->process_handle=proc_open(
 				$command.implode(' ', $this->args),
 				$process_descriptors,
 				$this->process_pipes,
@@ -480,8 +528,10 @@
 				$this->env
 			);
 
-			if(!is_resource($this->process_handler))
-				throw new async_process_builder_exception('Process cannot be started');
+			if(!is_resource($this->process_handle))
+				throw new async_process_builder_exception(
+					'Process cannot be started'
+				);
 
 			foreach($this->process_pipes as $pipe)
 				stream_set_blocking($pipe, false);
@@ -496,14 +546,18 @@
 		public function send_signal(int $signal)
 		{
 			if(!$this->process_started())
-				throw new async_process_builder_exception('The process is not running');
+				throw new async_process_builder_exception(
+					'The process is not running'
+				);
 
-			return proc_terminate($this->process_handler, $signal);
+			return proc_terminate($this->process_handle, $signal);
 		}
 		public function close_stdin()
 		{
 			if($this->stdin_closed())
-				throw new async_process_builder_exception('Standard input is already closed');
+				throw new async_process_builder_exception(
+					'Standard input is already closed'
+				);
 
 			return fclose($this->process_pipes[0]);
 		}
@@ -513,13 +567,17 @@
 				$this->close_stdin();
 
 			if(!fclose($this->process_pipes[1]))
-				throw new async_process_builder_exception('Cannot close standard output');
+				throw new async_process_builder_exception(
+					'Cannot close standard output'
+				);
 
 			if(!fclose($this->process_pipes[2]))
-				throw new async_process_builder_exception('Cannot close standard error output');
+				throw new async_process_builder_exception(
+					'Cannot close standard error output'
+				);
 
 			if($this->process_started())
-				return proc_close($this->process_handler);
+				return proc_close($this->process_handle);
 
 			return false;
 		}

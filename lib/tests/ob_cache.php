@@ -216,11 +216,11 @@
 			echo '  -> Connecting to the redis server (predis)'.PHP_EOL;
 				try {
 					if($_redis['credentials']['socket'] === null)
-						$redis_handler=new predis_phpredis_proxy(new \Predis\Client($_redis['_predis'][0]));
+						$redis_handle=new predis_phpredis_proxy(new \Predis\Client($_redis['_predis'][0]));
 					else
-						$redis_handler=new predis_phpredis_proxy(new \Predis\Client($_redis['_predis'][1]));
+						$redis_handle=new predis_phpredis_proxy(new \Predis\Client($_redis['_predis'][1]));
 
-					$redis_handler->connect();
+					$redis_handle->connect();
 				} catch(Throwable $error) {
 					echo ' Error: '.$error->getMessage().PHP_EOL;
 					exit(1);
@@ -237,9 +237,9 @@
 			echo '  -> Connecting to the redis server (phpredis)'.PHP_EOL;
 
 			try {
-				$redis_handler=new Redis();
+				$redis_handle=new Redis();
 
-				if($redis_handler->connect(
+				if($redis_handle->connect(
 					$_redis['credentials']['host'],
 					$_redis['credentials']['port'],
 					$_redis['connection_options']['timeout'],
@@ -248,24 +248,24 @@
 					$_redis['connection_options']['read_timeout']
 				) === false){
 					echo '  -> Redis connection error'.PHP_EOL;
-					unset($redis_handler);
+					unset($redis_handle);
 				}
 
 				if(
-					(isset($redis_handler)) &&
+					(isset($redis_handle)) &&
 					(isset($_redis['_credentials_auth'])) &&
-					(!$redis_handler->auth($_redis['_credentials_auth']))
+					(!$redis_handle->auth($_redis['_credentials_auth']))
 				){
 					echo '  -> Redis auth error'.PHP_EOL;
-					unset($redis_handler);
+					unset($redis_handle);
 				}
 
 				if(
-					(isset($redis_handler)) &&
-					(!$redis_handler->select($_redis['credentials']['dbindex']))
+					(isset($redis_handle)) &&
+					(!$redis_handle->select($_redis['credentials']['dbindex']))
 				){
 					echo '  -> Redis database select error'.PHP_EOL;
-					unset($redis_handler);
+					unset($redis_handle);
 				}
 			} catch(Throwable $error) {
 				echo ' Error: '.$error->getMessage().PHP_EOL;
@@ -273,10 +273,10 @@
 			}
 		}
 
-		if(isset($redis_handler))
+		if(isset($redis_handle))
 		{
-			$redis_handler->del('ob_cache_test_cache_1');
-			$redis_handler->del('ob_cache_test_cache_2');
+			$redis_handle->del('ob_cache_test_cache_1');
+			$redis_handle->del('ob_cache_test_cache_2');
 		}
 	}
 
@@ -316,20 +316,20 @@
 			$_memcached['credentials']['port']=0;
 		}
 
-		$memcached_handler=new Memcached();
+		$memcached_handle=new Memcached();
 
-		if(!$memcached_handler->addServer(
+		if(!$memcached_handle->addServer(
 			$_memcached['credentials']['host'],
 			$_memcached['credentials']['port']
 		)){
 			echo '  -> Memcached connection error'.PHP_EOL;
-			unset($memcached_handler);
+			unset($memcached_handle);
 		}
 
-		if(isset($memcached_handler))
+		if(isset($memcached_handle))
 		{
-			$memcached_handler->delete('ob_cache_test_cache_1');
-			$memcached_handler->delete('ob_cache_test_cache_2');
+			$memcached_handle->delete('ob_cache_test_cache_1');
+			$memcached_handle->delete('ob_cache_test_cache_2');
 		}
 	}
 
@@ -369,17 +369,17 @@
 			}
 
 	echo ' -> Testing ob_redis_cache'.PHP_EOL;
-		if(isset($redis_handler))
+		if(isset($redis_handle))
 		{
 			try {
 				echo '  -> permanent cache';
 
 				ob_start();
-				ob_redis_cache($redis_handler, 'cache_1', 0, false, 'ob_cache_test_');
+				ob_redis_cache($redis_handle, 'cache_1', 0, false, 'ob_cache_test_');
 				echo 'good value';
 				ob_end_clean();
 
-				if($redis_handler->get('ob_cache_test_cache_1') === 'good value')
+				if($redis_handle->get('ob_cache_test_cache_1') === 'good value')
 					echo ' [ OK ]'.PHP_EOL;
 				else
 				{
@@ -394,18 +394,18 @@
 				echo '  -> temporary cache';
 
 				ob_start();
-				ob_redis_cache($redis_handler, 'cache_2', 1, false, 'ob_cache_test_');
+				ob_redis_cache($redis_handle, 'cache_2', 1, false, 'ob_cache_test_');
 				echo 'good value';
 				ob_end_clean();
 
 				sleep(4);
 
 				ob_start();
-				ob_redis_cache($redis_handler, 'cache_2', 0, false, 'ob_cache_test_');
+				ob_redis_cache($redis_handle, 'cache_2', 0, false, 'ob_cache_test_');
 				echo 'new value';
 				ob_end_clean();
 
-				if($redis_handler->get('ob_cache_test_cache_2') === 'new value')
+				if($redis_handle->get('ob_cache_test_cache_2') === 'new value')
 					echo ' [ OK ]'.PHP_EOL;
 				else
 				{
@@ -421,18 +421,18 @@
 			echo ' <- Testing ob_redis_cache [SKIP]'.PHP_EOL;
 
 	echo ' -> Testing ob_memcached_cache'.PHP_EOL;
-		if(isset($memcached_handler))
+		if(isset($memcached_handle))
 		{
 			try {
 				echo '  -> permanent cache';
 
 				ob_start();
-				ob_memcached_cache($memcached_handler, 'cache_1', 0, false, 'ob_cache_test_');
+				ob_memcached_cache($memcached_handle, 'cache_1', 0, false, 'ob_cache_test_');
 				echo 'good value';
 				ob_end_clean();
 
-				$memcached_handler->get('ob_cache_test_cache_1');
-				if($memcached_handler->get('ob_cache_test_cache_1') === 'good value')
+				$memcached_handle->get('ob_cache_test_cache_1');
+				if($memcached_handle->get('ob_cache_test_cache_1') === 'good value')
 					echo ' [ OK ]'.PHP_EOL;
 				else
 				{
@@ -447,19 +447,19 @@
 				echo '  -> temporary cache';
 
 				ob_start();
-				ob_memcached_cache($memcached_handler, 'cache_2', 1, false, 'ob_cache_test_');
+				ob_memcached_cache($memcached_handle, 'cache_2', 1, false, 'ob_cache_test_');
 				echo 'good value';
 				ob_end_clean();
 
 				sleep(4);
 
 				ob_start();
-				ob_memcached_cache($memcached_handler, 'cache_2', 0, false, 'ob_cache_test_');
+				ob_memcached_cache($memcached_handle, 'cache_2', 0, false, 'ob_cache_test_');
 				echo 'new value';
 				ob_end_clean();
 
-				$memcached_handler->get('ob_cache_test_cache_2');
-				if($memcached_handler->get('ob_cache_test_cache_2') === 'new value')
+				$memcached_handle->get('ob_cache_test_cache_2');
+				if($memcached_handle->get('ob_cache_test_cache_2') === 'new value')
 					echo ' [ OK ]'.PHP_EOL;
 				else
 				{

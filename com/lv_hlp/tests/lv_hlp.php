@@ -918,6 +918,46 @@
 				else
 					echo ' [SKIP]'.PHP_EOL;
 
+		echo ' -> Testing encrypter';
+			if(extension_loaded('openssl'))
+			{
+				echo PHP_EOL;
+				echo '  -> lv_hlp_encrypter_generate_key';
+					$lv_hlp_encrypter_key=lv_hlp_encrypter_generate_key();
+					if(strlen($lv_hlp_encrypter_key) === 44)
+						echo ' [ OK ]'.PHP_EOL;
+					else
+					{
+						echo ' [FAIL]'.PHP_EOL;
+						$failed=true;
+					}
+				echo '  -> lv_hlp_encrypter_key';
+					if(lv_hlp_encrypter_key(false) === null)
+						echo ' [ OK ]';
+					else
+					{
+						echo ' [FAIL]';
+						$failed=true;
+					}
+					if(lv_hlp_encrypter_key($lv_hlp_encrypter_key) === null)
+					{
+						echo ' [FAIL]'.PHP_EOL;
+						$failed=true;
+					}
+					else
+						echo ' [ OK ]'.PHP_EOL;
+				echo '  -> lv_hlp_encrypt/lv_hlp_decrypt';
+					if(lv_hlp_decrypt(lv_hlp_encrypt('TO BE ENCRYPTED')) === 'TO BE ENCRYPTED')
+						echo ' [ OK ]'.PHP_EOL;
+					else
+					{
+						echo ' [FAIL]'.PHP_EOL;
+						$failed=true;
+					}
+			}
+			else
+				echo ' [SKIP]'.PHP_EOL;
+
 		echo ' -> Testing lv_hlp_collection'.PHP_EOL;
 			echo '  -> dd [SKIP]'.PHP_EOL;
 			echo '  -> dump [SKIP]'.PHP_EOL;
@@ -1038,7 +1078,6 @@
 			{
 				return 1;
 			}
-			function lv_arr_shu(&$array) {}
 		echo ' [ OK ]'.PHP_EOL;
 
 		echo ' -> Including main.php';

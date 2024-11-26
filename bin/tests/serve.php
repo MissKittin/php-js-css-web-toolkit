@@ -16,14 +16,14 @@
 	 *  proc_* functions are required
 	 */
 
-	$_serve_test_handler=null;
+	$_serve_test_handle=null;
 	function _serve_test($command)
 	{
 		if(!function_exists('proc_open'))
 			throw new Exception('proc_open function is not available');
 
 		$process_pipes=null;
-		$process_handler=proc_open(
+		$process_handle=proc_open(
 			$command,
 			[
 				0=>['pipe', 'r'],
@@ -37,16 +37,17 @@
 
 		sleep(1);
 
-		if(!is_resource($process_handler))
+		if(!is_resource($process_handle))
 			throw new Exception('Process cannot be started');
 
 		foreach($process_pipes as $pipe)
 			fclose($pipe);
 
-		return $process_handler;
+		return $process_handle;
 	}
 
 	$http_server_port='8080';
+
 	if(getenv('TEST_HTTP_PORT') !== false)
 	{
 		$http_server_port=getenv('TEST_HTTP_PORT');
@@ -55,10 +56,10 @@
 
 	if(isset($argv[1]) && ($argv[1] === 'serve'))
 	{
-		system(
-			'"'.PHP_BINARY.'" "'.__DIR__.'/../'.basename(__FILE__).'" '
-			.'--port '.$http_server_port.' '
-			.'--docroot "'.__DIR__.'/tmp/serve" '
+		system('"'.PHP_BINARY.'" '
+		.	'"'.__DIR__.'/../'.basename(__FILE__).'" '
+		.	'--port '.$http_server_port.' '
+		.	'--docroot "'.__DIR__.'/tmp/serve"'
 		);
 		exit();
 	}
@@ -69,8 +70,10 @@
 		exit(1);
 	}
 
-	foreach(['curl_file_updown.php', 'rmdir_recursive.php'] as $library)
-	{
+	foreach([
+		'curl_file_updown.php',
+		'rmdir_recursive.php'
+	] as $library){
 		echo ' -> Including '.$library;
 			if(is_file(__DIR__.'/../../lib/'.$library))
 			{
@@ -105,7 +108,7 @@
 
 	echo ' -> Starting tool';
 		try {
-			$_serve_test_handler=_serve_test('"'.PHP_BINARY.'" '.$argv[0].' serve');
+			$_serve_test_handle=_serve_test('"'.PHP_BINARY.'" '.$argv[0].' serve');
 			echo ' [ OK ]'.PHP_EOL;
 		} catch(Exception $error) {
 			echo ' [FAIL]'.PHP_EOL;
@@ -129,19 +132,19 @@
 			$failed=true;
 		}
 
-	if(is_resource($_serve_test_handler))
+	if(is_resource($_serve_test_handle))
 	{
 		echo ' -> Stopping tool'.PHP_EOL;
 
-		$_serve_test_handler_status=@proc_get_status($_serve_test_handler);
+		$_serve_test_handle_status=@proc_get_status($_serve_test_handle);
 
-		if(isset($_serve_test_handler_status['pid']))
+		if(isset($_serve_test_handle_status['pid']))
 		{
 			if(strtoupper(substr(PHP_OS, 0, 3)) === 'WIN')
-				@exec('taskkill.exe /F /T /PID '.$_serve_test_handler_status['pid'].' 2>&1');
+				@exec('taskkill.exe /F /T /PID '.$_serve_test_handle_status['pid'].' 2>&1');
 			else
 			{
-				$_ch_pid=$_serve_test_handler_status['pid'];
+				$_ch_pid=$_serve_test_handle_status['pid'];
 				$_ch_pid_ex=$_ch_pid;
 
 				while(($_ch_pid_ex !== null) && ($_ch_pid_ex !== ''))
@@ -150,14 +153,14 @@
 					$_ch_pid_ex=@shell_exec('pgrep -P '.$_ch_pid);
 				}
 
-				if($_ch_pid === $_serve_test_handler_status['pid'])
-					proc_terminate($_serve_test_handler);
+				if($_ch_pid === $_serve_test_handle_status['pid'])
+					proc_terminate($_serve_test_handle);
 				else
 					@exec('kill '.rtrim($_ch_pid).' 2>&1');
 			}
 		}
 
-		proc_close($_serve_test_handler);
+		proc_close($_serve_test_handle);
 	}
 
 	if($failed)

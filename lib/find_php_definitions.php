@@ -7,15 +7,15 @@
 		 * classes, interfaces and traits in the source code
 		 *
 		 * Warning:
-		 *  supports namespaces without open-close braces
 		 *  tokenizer extension is required
 		 *
 		 * Note:
+		 *  supports namespaces without open-close braces
 		 *  throws an find_php_definitions_exception on error
 		 *
 		 * Usage:
-		 *  $tokens=find_php_definitions(file_get_contents('file.php'));
-		 *  $tokens=find_php_definitions(file_get_contents('file.php'), false); // disable "already exists" errors (only the first hit will be qualified)
+			$tokens=find_php_definitions(file_get_contents('file.php'));
+			$tokens=find_php_definitions(file_get_contents('file.php'), false); // disable "already exists" errors (only the first hit will be qualified)
 		 *  returns array('classes'=>array, 'functions'=>array, 'interfaces'=>array, 'traits'=>array)
 		 *
 		 * Source:
@@ -23,7 +23,9 @@
 		 */
 
 		if(!function_exists('token_get_all'))
-			throw new find_php_definitions_exception('tokenizer extension is not loaded');
+			throw new find_php_definitions_exception(
+				'tokenizer extension is not loaded'
+			);
 
 		$return_array=[
 			'classes'=>[],
@@ -40,6 +42,35 @@
 		$is_in_class=false;
 		$braces_count=0;
 		$current_namespace='';
+		$check_return_array=function($token) use($ignore_errors, &$return_array)
+		{
+			if($ignore_errors)
+				return;
+
+			if(in_array(
+				$token,
+				$return_array['classes']
+			))
+				throw new find_php_definitions_exception(
+					$token.' already exists in classes'
+				);
+
+			if(in_array(
+				$token,
+				$return_array['interfaces']
+			))
+				throw new find_php_definitions_exception(
+					$token.' already exists in interfaces'
+				);
+
+			if(in_array(
+				$token,
+				$return_array['traits']
+			))
+				throw new find_php_definitions_exception(
+					$token.' already exists in traits'
+				);
+		};
 
 		foreach(token_get_all($source) as $token)
 			switch($token[0])
@@ -64,92 +95,44 @@
 						$next_string_is_function=true;
 				break;
 				case T_STRING:
-					if($next_string_is_namespace)
+					switch(true)
 					{
-						$current_namespace='\\'.$token[1].'\\';
-						$next_string_is_namespace=false;
-					}
-					else if($next_string_is_interface)
-					{
-						if(in_array($current_namespace.$token[1], $return_array['classes']))
-						{
-							if(!$ignore_errors)
-								throw new find_php_definitions_exception($current_namespace.$token[1].' already exists in classes');
-						}
-						else if(in_array($current_namespace.$token[1], $return_array['interfaces']))
-						{
-							if(!$ignore_errors)
-								throw new find_php_definitions_exception($current_namespace.$token[1].' already exists in interfaces');
-						}
-						else if(in_array($current_namespace.$token[1], $return_array['traits']))
-						{
-							if(!$ignore_errors)
-								throw new find_php_definitions_exception($current_namespace.$token[1].' already exists in traits');
-						}
-						else
-						{
+						case $next_string_is_namespace:
+							$current_namespace='\\'.$token[1].'\\';
+							$next_string_is_namespace=false;
+						break;
+						case $next_string_is_interface:
+							$check_return_array($current_namespace.$token[1]);
+
 							$return_array['interfaces'][]=$current_namespace.$token[1];
 							$next_string_is_interface=false;
-						}
-					}
-					else if($next_string_is_trait)
-					{
-						if(in_array($current_namespace.$token[1], $return_array['classes']))
-						{
-							if(!$ignore_errors)
-								throw new find_php_definitions_exception($current_namespace.$token[1].' already exists in classes');
-						}
-						else if(in_array($current_namespace.$token[1], $return_array['interfaces']))
-						{
-							if(!$ignore_errors)
-								throw new find_php_definitions_exception($current_namespace.$token[1].' already exists in interfaces');
-						}
-						else if(in_array($current_namespace.$token[1], $return_array['traits']))
-						{
-							if(!$ignore_errors)
-								throw new find_php_definitions_exception($current_namespace.$token[1].' already exists in traits');
-						}
-						else
-						{
+						break;
+						case $next_string_is_trait:
+							$check_return_array($current_namespace.$token[1]);
+
 							$return_array['traits'][]=$current_namespace.$token[1];
 							$next_string_is_trait=false;
-						}
-					}
-					else if($next_string_is_class)
-					{
-						if(in_array($current_namespace.$token[1], $return_array['classes']))
-						{
-							if(!$ignore_errors)
-								throw new find_php_definitions_exception($current_namespace.$token[1].' already exists in classes');
-						}
-						else if(in_array($current_namespace.$token[1], $return_array['interfaces']))
-						{
-							if(!$ignore_errors)
-								throw new find_php_definitions_exception($current_namespace.$token[1].' already exists in interfaces');
-						}
-						else if(in_array($current_namespace.$token[1], $return_array['traits']))
-						{
-							if(!$ignore_errors)
-								throw new find_php_definitions_exception($current_namespace.$token[1].' already exists in traits');
-						}
-						else
-						{
+						break;
+						case $next_string_is_class:
+							$check_return_array($current_namespace.$token[1]);
+
 							$return_array['classes'][]=$current_namespace.$token[1];
 							$next_string_is_class=false;
-						}
-					}
-					else if($next_string_is_function)
-					{
-						if(in_array($current_namespace.$token[1], $return_array['functions']))
-						{
-							if(!$ignore_errors)
-								throw new find_php_definitions_exception($current_namespace.$token[1].' already exists in functions');
-						}
-						else
-						{
+						break;
+						case $next_string_is_function:
+							if(
+								in_array(
+									$current_namespace.$token[1],
+									$return_array['functions']
+								) &&
+								(!$ignore_errors)
+							)
+								throw new find_php_definitions_exception(
+									$current_namespace.$token[1].' already exists in functions'
+								);
+
 							$return_array['functions'][]=$current_namespace.$token[1];
 							$next_string_is_function=false;
-						}
 					}
 				break;
 				case '(':

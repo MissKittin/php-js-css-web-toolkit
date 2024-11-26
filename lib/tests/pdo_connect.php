@@ -38,10 +38,10 @@
 	function _test_driver($_db_driver, &$errors, $skip_seeded_file_check)
 	{
 		echo ' -> Testing pdo_connect with '.$_db_driver.PHP_EOL;
-			$pdo_handler=pdo_connect(__DIR__.'/tmp/pdo_connect/db_'.$_db_driver);
+			$pdo_handle=pdo_connect(__DIR__.'/tmp/pdo_connect/db_'.$_db_driver);
 
 		echo '  -> returns PDO instance';
-			if($pdo_handler instanceof PDO)
+			if($pdo_handle instanceof PDO)
 				echo ' [ OK ]'.PHP_EOL;
 			else
 			{
@@ -62,7 +62,7 @@
 					$errors[]=$_db_driver.' database_seeded file not exists';
 				}
 			}
-			$query=$pdo_handler->query('SELECT * FROM pdo_connect_test_table');
+			$query=$pdo_handle->query('SELECT * FROM pdo_connect_test_table');
 			if($query === false)
 			{
 				echo ' [FAIL]';
@@ -209,14 +209,14 @@
 			];
 		?>');
 		file_put_contents(__DIR__.'/tmp/pdo_connect/db_sqlite/seed.php', '<?php
-			$pdo_handler->exec(\'
+			$pdo_handle->exec(\'
 				CREATE TABLE pdo_connect_test_table(
 					id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
 					a TEXT,
 					b TEXT
 				)
 			\');
-			$pdo_handler->exec(\'
+			$pdo_handle->exec(\'
 				INSERT INTO pdo_connect_test_table(a, b) VALUES
 					("aa", "ab"),
 					("ba", "bb")
@@ -230,14 +230,14 @@
 			];
 		?>');
 		file_put_contents(__DIR__.'/tmp/pdo_connect/db_sqlite_memory/seed.php', '<?php
-			$pdo_handler->exec(\'
+			$pdo_handle->exec(\'
 				CREATE TABLE pdo_connect_test_table(
 					id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
 					a TEXT,
 					b TEXT
 				)
 			\');
-			$pdo_handler->exec(\'
+			$pdo_handle->exec(\'
 				INSERT INTO pdo_connect_test_table(a, b) VALUES
 					("aa", "ab"),
 					("ba", "bb")
@@ -252,14 +252,14 @@
 			];
 		?>');
 		file_put_contents(__DIR__.'/tmp/pdo_connect/db_sqlite_seeded_path/seed.php', '<?php
-			$pdo_handler->exec(\'
+			$pdo_handle->exec(\'
 				CREATE TABLE pdo_connect_test_table(
 					id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
 					a TEXT,
 					b TEXT
 				)
 			\');
-			$pdo_handler->exec(\'
+			$pdo_handle->exec(\'
 				INSERT INTO pdo_connect_test_table(a, b) VALUES
 					("aa", "ab"),
 					("ba", "bb")
@@ -290,15 +290,15 @@
 				];
 			?>');
 		file_put_contents(__DIR__.'/tmp/pdo_connect/db_pgsql/seed.php', '<?php
-			$pdo_handler->exec(\'DROP TABLE IF EXISTS pdo_connect_test_table\');
-			$pdo_handler->exec(\'
+			$pdo_handle->exec(\'DROP TABLE IF EXISTS pdo_connect_test_table\');
+			$pdo_handle->exec(\'
 				CREATE TABLE pdo_connect_test_table(
 					id SERIAL PRIMARY KEY,
 					a TEXT,
 					b TEXT
 				)
 			\');
-			$pdo_handler->exec("
+			$pdo_handle->exec("
 				INSERT INTO pdo_connect_test_table(a, b) VALUES
 					(\'aa\', \'ab\'),
 					(\'ba\', \'bb\')
@@ -329,8 +329,8 @@
 				];
 			?>');
 		file_put_contents(__DIR__.'/tmp/pdo_connect/db_mysql/seed.php', '<?php
-			$pdo_handler->exec(\'DROP TABLE IF EXISTS pdo_connect_test_table\');
-			$pdo_handler->exec(\'
+			$pdo_handle->exec(\'DROP TABLE IF EXISTS pdo_connect_test_table\');
+			$pdo_handle->exec(\'
 				CREATE TABLE pdo_connect_test_table(
 					id INTEGER NOT NULL AUTO_INCREMENT,
 					a TEXT,
@@ -338,7 +338,7 @@
 					PRIMARY KEY (id)
 				)
 			\');
-			$pdo_handler->exec(\'
+			$pdo_handle->exec(\'
 				INSERT INTO pdo_connect_test_table(a, b) VALUES
 					("aa", "ab"),
 					("ba", "bb")

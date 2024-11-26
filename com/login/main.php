@@ -1,18 +1,24 @@
 <?php
 	class login_com_exception extends Exception {}
 
+	function login_com_load_library($check_function, $function, $library)
+	{
+		if($check_function($function))
+			return;
+
+		if(file_exists(__DIR__.'/lib/'.$library))
+			return require __DIR__.'/lib/'.$library;
+
+		if(file_exists(__DIR__.'/../../lib/'.$library))
+			return require __DIR__.'/../../lib/'.$library;
+
+		throw new login_com_exception($library.' library not found');
+	}
+
 	(function($libraries){
 		foreach($libraries as $check_function=>$library_meta)
 			foreach($library_meta as $library_file=>$library_function)
-				if(!$check_function($library_function))
-				{
-					if(file_exists(__DIR__.'/lib/'.$library_file))
-						require __DIR__.'/lib/'.$library_file;
-					else if(file_exists(__DIR__.'/../../lib/'.$library_file))
-						require __DIR__.'/../../lib/'.$library_file;
-					else
-						throw new login_com_exception($library_file.' library not found');
-				}
+				login_com_load_library($check_function, $library_function, $library_file);
 	})([
 		'class_exists'=>[
 			'registry.php'=>'static_registry'
@@ -110,15 +116,7 @@
 
 	function login_com()
 	{
-		if(!function_exists('csrf_check_token'))
-		{
-			if(file_exists(__DIR__.'/lib/sec_csrf.php'))
-				require __DIR__.'/lib/sec_csrf.php';
-			else if(file_exists(__DIR__.'/../../lib/sec_csrf.php'))
-				require __DIR__.'/../../lib/sec_csrf.php';
-			else
-				throw new login_com_exception('sec_csrf.php library not found');
-		}
+		login_com_load_library('function_exists', 'csrf_check_token', 'sec_csrf.php');
 
 		if(!is_dir(login_com_reg_view::_()['templates_dir']))
 			throw new login_com_exception(login_com_reg_view::_()['templates_dir'].' is not a directory');
@@ -128,15 +126,7 @@
 
 		if(login_com_reg_view::_()['inline_style'])
 		{
-			if(!function_exists('rand_str_secure'))
-			{
-				if(file_exists(__DIR__.'/lib/rand_str.php'))
-					require __DIR__.'/lib/rand_str.php';
-				else if(file_exists(__DIR__.'/../../lib/rand_str.php'))
-					require __DIR__.'/../../lib/rand_str.php';
-				else
-					throw new login_com_exception('rand_str.php library not found');
-			}
+			login_com_load_library('function_exists', 'rand_str_secure', 'rand_str.php');
 
 			login_com_reg::_()['inline_style_nonce']=rand_str_secure(32);
 			login_com_reg_csp::add('style-src', '\'nonce-'.login_com_reg::_()['inline_style_nonce'].'\'');
@@ -201,7 +191,7 @@
 						login_com_reg::_()['result']=login_callback(
 							$login,
 							$password,
-							login_com_reg::_()['callback'](check_post('login'))
+							login_com_reg::_()['callback']
 						);
 					break;
 					default:
@@ -242,6 +232,7 @@
 		if(check_session('_com_login_remember_me') === true)
 		{
 			session_write_close();
+
 			login_com_reg_config::_()['session_reload'](
 				login_com_reg_config::_()['remember_cookie_lifetime']
 			);
@@ -265,16 +256,7 @@
 
 		if(login_com_reg_view::_()['inline_style'])
 		{
-			if(!function_exists('rand_str_secure'))
-			{
-				if(file_exists(__DIR__.'/lib/rand_str.php'))
-					require __DIR__.'/lib/rand_str.php';
-				else if(file_exists(__DIR__.'/../../lib/rand_str.php'))
-					require __DIR__.'/../../lib/rand_str.php';
-				else
-					throw new login_com_exception('rand_str.php library not found');
-			}
-
+			login_com_load_library('function_exists', 'rand_str_secure', 'rand_str.php');
 			login_com_reg::_()['inline_style_nonce']=rand_str_secure(32);
 		}
 

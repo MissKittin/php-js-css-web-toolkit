@@ -39,7 +39,7 @@
 	 *    'app_name' => 'string_my_app_name' // required
 	 *    'recipient' => 'string-logs@myserv.er' // required
 	 *    'mail_callback' => function($recipient, $app_name, $priority, $message){ return my_mail_function($recipient, '[LOG] '.$app_name.' '.$priority, $message); } // optional
-	 *   hint: add mail.add_x_header=0 to php configuration
+	 *   hint: add mail.add_x_header=0 to php.ini
 	 *   returns mail() or $mail_callback() output
 	 *  log_to_php
 	 *   input array params:
@@ -50,8 +50,9 @@
 	 *   input array params:
 	 *    'app_name' => 'string_my_app_name' // required
 	 *    'logger' => 'string/path/to/bin/logger' // optional, default: logger
-	 *   warning: exec() is required
-	 *   warning: *nix only
+	 *   warning:
+	 *    exec() is required
+	 *    only for *nix systems
 	 *   returns exec() output
 	 *  log_to_csv
 	 *   input array params:
@@ -69,7 +70,7 @@
 	 *  log_to_pdo
 	 *   input array params:
 	 *    'app_name' => 'string_my_app_name' // required
-	 *    'pdo_handler' => new PDO() // required
+	 *    'pdo_handle' => new PDO() // required
 	 *    'table_name' => 'string_my_table' // optional, default: log
 	 *    'create_table' => true // optional, default (safe): true
 	 *    'on_pdo_error' => function($error){ error_log(__FILE__.' logger.php: '.$error[0].' '.$error[1].' '.$error[2]); } // optional, executed on pdo's execute() error
@@ -148,7 +149,7 @@
 		])
 		$log=new log_to_pdo([
 			'app_name'=>'test_app',
-			'pdo_handler'=>new PDO('sqlite:./database.sqlite3')
+			'pdo_handle'=>new PDO('sqlite:./database.sqlite3')
 			//,'table_name'=>'log'
 			//,'create_table'=>true
 			//,'on_pdo_error'=>function($error){ error_log(__FILE__.' log_to_pdo: '.$error[0].' '.$error[1].' '.$error[2]); }
@@ -192,7 +193,7 @@
 			//},
 
 			// pdo
-			'pdo_handler'=>new PDO('sqlite:./database.sqlite3'),
+			'pdo_handle'=>new PDO('sqlite:./database.sqlite3'),
 			'table_name'=>'log',
 			//'create_table'=>false,
 			//'on_pdo_error'=>function($error){ error_log(__FILE__.' log_to_pdo: '.$error[0].' '.$error[1].' '.$error[2]); },
@@ -221,13 +222,17 @@
 		{
 			foreach($this->required_constructor_params as $param)
 				if(!isset($params[$param]))
-					throw new logger_exception('The '.$param.' parameter was not specified for the constructor');
+					throw new logger_exception(
+						'The '.$param.' parameter was not specified for the constructor'
+					);
 
 			foreach($this->constructor_params as $param=>$param_type)
 				if(isset($params[$param]))
 				{
 					if(gettype($params[$param]) !== $param_type)
-						throw new logger_exception('The input array parameter '.$param.' is not a '.$param_type);
+						throw new logger_exception(
+							'The input array parameter '.$param.' is not a '.$param_type
+						);
 
 					$this->$param=$params[$param];
 				}
@@ -267,17 +272,27 @@
 			parent::{__FUNCTION__}($params);
 
 			if(
-				(!file_exists(dirname($this->file))) &&
+				(!file_exists(dirname(
+					$this->file
+				))) &&
 				(!mkdir(dirname($this->file), 0777, true))
 			)
-				throw new logger_exception('Unable to create '.dirname($this->file));
+				throw new logger_exception(
+					'Unable to create '.dirname($this->file)
+				);
 
 			if(
 				($this->lock_file === null) &&
-				(!file_exists(dirname($this->lock_file))) &&
-				(!mkdir(dirname($this->lock_file), 0777, true))
+				(!file_exists(dirname(
+					$this->lock_file
+				))) &&
+				(!mkdir(dirname(
+					$this->lock_file
+				), 0777, true))
 			)
-				throw new logger_exception('Unable to create '.dirname($this->lock_file));
+				throw new logger_exception(
+					'Unable to create '.dirname($this->lock_file)
+				);
 		}
 
 		protected function lock_unlock_file($lock)
@@ -290,10 +305,14 @@
 						sleep(0.01);
 
 					if(file_put_contents($this->lock_file, '') === false)
-						throw new logger_exception('Unable to create lock file');
+						throw new logger_exception(
+							'Unable to create lock file'
+						);
+
+					return true;
 				}
-				else
-					return unlink($this->lock_file);
+
+				return unlink($this->lock_file);
 			}
 
 			return true;
@@ -329,7 +348,9 @@
 		public function __construct(array $params)
 		{
 			if(!function_exists('curl_init'))
-				throw new logger_exception('curl extension is not loaded');
+				throw new logger_exception(
+					'curl extension is not loaded'
+				);
 
 			parent::{__FUNCTION__}($params);
 
@@ -338,7 +359,9 @@
 			if(isset($params['on_curl_error']))
 			{
 				if(!is_callable($params['on_curl_error']))
-					throw new logger_exception('The input array parameter on_curl_error is not callable');
+					throw new logger_exception(
+						'The input array parameter on_curl_error is not callable'
+					);
 
 				$this->on_error['callback']=$params['on_curl_error'];
 			}
@@ -351,7 +374,9 @@
 				CURLOPT_TCP_FASTOPEN=>true,
 				CURLOPT_RETURNTRANSFER=>true
 			] as $curl_opt_name=>$curl_opt_value)
-				if(!isset($this->curl_opts[$curl_opt_name]))
+				if(!isset(
+					$this->curl_opts[$curl_opt_name]
+				))
 					$this->curl_opts[$curl_opt_name]=$curl_opt_value;
 
 			$this->curl_opts[CURLOPT_URL]=$this->url;
@@ -360,21 +385,24 @@
 
 		public function log(string $priority, string $message)
 		{
+			$curl_handle=curl_init();
 			$this->curl_opts[CURLOPT_POSTFIELDS]=http_build_query([
 				'priority'=>$priority,
 				'app_name'=>$this->app_name,
 				'message'=>$message
 			]);
 
-			$curl_handler=curl_init();
 			foreach($this->curl_opts as $option=>$value)
-				curl_setopt($curl_handler, $option, $value);
-			$output=curl_exec($curl_handler);
+				curl_setopt($curl_handle, $option, $value);
 
-			if(curl_errno($curl_handler))
-				$this->on_error['callback'](curl_error($curl_handler));
+			$output=curl_exec($curl_handle);
 
-			curl_close($curl_handler);
+			if(curl_errno($curl_handle))
+				$this->on_error['callback'](
+					curl_error($curl_handle)
+				);
+
+			curl_close($curl_handle);
 
 			return $output;
 		}
@@ -390,7 +418,11 @@
 
 		public function log(string $priority, string $message)
 		{
-			return exec($this->command.' '.$this->app_name.' '.$priority.' "'.$message.'"');
+			return exec($this->command.' '
+			.	$this->app_name.' '
+			.	$priority.' '
+			.	'"'.$message.'"'
+			);
 		}
 	}
 	class log_to_mail extends log_to_generic
@@ -407,8 +439,12 @@
 		{
 			parent::{__FUNCTION__}($params);
 
-			$this->mail_callback['callback']=function($recipient, $app_name, $priority, $message)
-			{
+			$this->mail_callback['callback']=function(
+				$recipient,
+				$app_name,
+				$priority,
+				$message
+			){
 				return mail(
 					$recipient,
 					'[LOG] '.$app_name.' '.$priority,
@@ -419,7 +455,9 @@
 			if(isset($params['mail_callback']))
 			{
 				if(!is_callable($params['mail_callback']))
-					throw new logger_exception('The input array parameter mail_callback is not callable');
+					throw new logger_exception(
+						'The input array parameter mail_callback is not callable'
+					);
 
 				$this->mail_callback['callback']=$params['mail_callback'];
 			}
@@ -434,13 +472,13 @@
 	{
 		protected $constructor_params=[
 			'app_name'=>'string',
-			'pdo_handler'=>'object',
+			'pdo_handle'=>'object',
 			'table_name'=>'string',
 			'create_table'=>'boolean'
 		];
-		protected $required_constructor_params=['app_name', 'pdo_handler'];
+		protected $required_constructor_params=['app_name', 'pdo_handle'];
 
-		protected $pdo_handler;
+		protected $pdo_handle;
 		protected $table_name='log';
 		protected $create_table=true;
 		protected $on_error;
@@ -454,22 +492,26 @@
 			if(isset($params['on_pdo_error']))
 			{
 				if(!is_callable($params['on_pdo_error']))
-					throw new logger_exception('The input array parameter on_pdo_error is not callable');
+					throw new logger_exception(
+						'The input array parameter on_pdo_error is not callable'
+					);
 
 				$this->on_error['callback']=$params['on_pdo_error'];
 			}
 
 			if(!in_array(
-				$this->pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME),
+				$this->pdo_handle->getAttribute(PDO::ATTR_DRIVER_NAME),
 				['pgsql', 'mysql', 'sqlite']
 			))
-				throw new logger_exception($this->pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME).' driver is not supported');
+				throw new logger_exception(
+					$this->pdo_handle->getAttribute(PDO::ATTR_DRIVER_NAME).' driver is not supported'
+				);
 
 			if($this->create_table)
-				switch($this->pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME))
+				switch($this->pdo_handle->getAttribute(PDO::ATTR_DRIVER_NAME))
 				{
 					case 'pgsql':
-						if($this->pdo_handler->exec(''
+						if($this->pdo_handle->exec(''
 						.	'CREATE TABLE IF NOT EXISTS '.$this->table_name
 						.	'('
 						.		'id SERIAL PRIMARY KEY,'
@@ -479,10 +521,12 @@
 						.		'message VARCHAR(255)'
 						.	')'
 						) === false)
-							$this->on_error['callback']($this->pdo_handler->errorInfo());
+							$this->on_error['callback'](
+								$this->pdo_handle->errorInfo()
+							);
 					break;
 					case 'mysql':
-						if($this->pdo_handler->exec(''
+						if($this->pdo_handle->exec(''
 						.	'CREATE TABLE IF NOT EXISTS '.$this->table_name
 						.	'('
 						.		'id INTEGER NOT NULL AUTO_INCREMENT, PRIMARY KEY(id),'
@@ -492,10 +536,12 @@
 						.		'message VARCHAR(255)'
 						.	')'
 						) === false)
-							$this->on_error['callback']($this->pdo_handler->errorInfo());
+							$this->on_error['callback'](
+								$this->pdo_handle->errorInfo()
+							);
 					break;
 					case 'sqlite':
-						if($this->pdo_handler->exec(''
+						if($this->pdo_handle->exec(''
 						.	'CREATE TABLE IF NOT EXISTS '.$this->table_name
 						.	'('
 						.		'id INTEGER PRIMARY KEY AUTOINCREMENT,'
@@ -505,13 +551,15 @@
 						.		'message VARCHAR(255)'
 						.	')'
 						) === false)
-							$this->on_error['callback']($this->pdo_handler->errorInfo());
+							$this->on_error['callback'](
+								$this->pdo_handle->errorInfo()
+							);
 				}
 		}
 
 		public function log(string $priority, string $message)
 		{
-			$query=$this->pdo_handler->prepare(''
+			$query=$this->pdo_handle->prepare(''
 			.	'INSERT INTO '.$this->table_name
 			.	'('
 			.		'date,'
@@ -527,7 +575,9 @@
 			);
 
 			if($query === false)
-				$this->on_error['callback']($this->pdo_handler->errorInfo());
+				$this->on_error['callback'](
+					$this->pdo_handle->errorInfo()
+				);
 
 			if(!$query->execute([
 				':date'=>gmdate('Y-m-d H:i:s'),
@@ -535,14 +585,20 @@
 				':priority'=>$priority,
 				':message'=>$message
 			]))
-				$this->on_error['callback']($this->pdo_handler->errorInfo());
+				$this->on_error['callback'](
+					$this->pdo_handle->errorInfo()
+				);
 		}
 	}
 	class log_to_php extends log_to_generic
 	{
 		public function log(string $priority, string $message)
 		{
-			return error_log($this->app_name.': ['.$priority.'] '.$message);
+			return error_log(''
+			.	$this->app_name.': '
+			.	'['.$priority.'] '
+			.	$message
+			);
 		}
 	}
 	class log_to_syslog extends log_to_generic
@@ -570,10 +626,10 @@
 					return false;
 			}
 
-			return exec($this->logger
-			.	' --priority user.'.$priority
-			.	' --tag '.$this->app_name
-			.	' '.$message
+			return exec($this->logger.' '
+			.	'--priority user.'.$priority.' '
+			.	'--tag '.$this->app_name.' '
+			.	$message
 			);
 		}
 	}
@@ -597,7 +653,9 @@
 				isset($params['delimiter']) &&
 				(isset($params['delimiter'][0]) && (!isset($params['delimiter'][1]))) // (strlen($params['delimiter']) === 1)
 			)
-				throw new logger_exception('The delimiter parameter must have length 1');
+				throw new logger_exception(
+					'The delimiter parameter must have length 1'
+				);
 		}
 
 		protected function do_log($priority, $message)
@@ -611,10 +669,12 @@
 				.	$priority
 				.	$this->delimiter
 				.	$message
-				.	PHP_EOL,
+				.	"\r\n",
 				FILE_APPEND
 			) === false)
-				throw new logger_exception('Unable to create log file');
+				throw new logger_exception(
+					'Unable to create log file'
+				);
 		}
 	}
 	class log_to_json extends log_to_file
@@ -632,40 +692,43 @@
 					.	'"'.str_replace('"', '\"', $message).'"'
 					.']]'
 				) === false)
-					throw new logger_exception('Unable to create log file');
+					throw new logger_exception(
+						'Unable to create log file'
+					);
+
+				return;
 			}
-			else
-			{
-				$file_handler=fopen($this->file, 'r+');
 
-				if($file_handler === false)
-					throw new logger_exception('Unable to edit log file');
+			$file_handle=fopen($this->file, 'r+');
 
-				$new_log_size=fstat($file_handler)['size']-1;
-
-				$array_separator=',';
-
-				if($new_log_size < 0)
-					$array_separator='[';
-				else
-				{
-					ftruncate($file_handler, $new_log_size);
-					fseek($file_handler, $new_log_size);
-				}
-
-				fwrite(
-					$file_handler,
-					$array_separator
-					.'['
-					.	'"'.gmdate('Y-m-d H:i:s').'",'
-					.	'"'.$this->app_name.'",'
-					.	'"'.$priority.'",'
-					.	'"'.str_replace('"', '\"', $message).'"'
-					.']]'
+			if($file_handle === false)
+				throw new logger_exception(
+					'Unable to edit log file'
 				);
 
-				fclose($file_handler);
+			$new_log_size=fstat($file_handle)['size']-1;
+			$array_separator='[';
+
+			if($new_log_size >= 0)
+			{
+				$array_separator=',';
+
+				ftruncate($file_handle, $new_log_size);
+				fseek($file_handle, $new_log_size);
 			}
+
+			fwrite(
+				$file_handle,
+				$array_separator
+				.'['
+				.	'"'.gmdate('Y-m-d H:i:s').'",'
+				.	'"'.$this->app_name.'",'
+				.	'"'.$priority.'",'
+				.	'"'.str_replace('"', '\"', $message).'"'
+				.']]'
+			);
+
+			fclose($file_handle);
 		}
 	}
 	class log_to_txt extends log_to_file
@@ -674,14 +737,16 @@
 		{
 			if(file_put_contents(
 				$this->file,
-				gmdate('Y-m-d H:i:s')
-					.' '.$this->app_name
-					.' ['.$priority.'] '
-					.$message
-					.PHP_EOL,
+				gmdate('Y-m-d H:i:s').' '
+				.	$this->app_name
+				.	' ['.$priority.'] '
+				.	$message
+				.	"\n",
 				FILE_APPEND
 			) === false)
-				throw new logger_exception('Unable to create log file');
+				throw new logger_exception(
+					'Unable to create log file'
+				);
 		}
 	}
 	class log_to_xml extends log_to_file
@@ -700,40 +765,43 @@
 					.	'<message>'.$message.'</message>'
 					.'</entry></journal>'
 				) === false)
-					throw new logger_exception('Unable to create log file');
+					throw new logger_exception(
+						'Unable to create log file'
+					);
+
+				return;
 			}
-			else
-			{
-				$file_handler=fopen($this->file, 'r+');
 
-				if($file_handler === false)
-					throw new logger_exception('Unable to edit log file');
+			$file_handle=fopen($this->file, 'r+');
 
-				$new_log_size=fstat($file_handler)['size']-10;
-
-				$xml_header='';
-
-				if($new_log_size < 0)
-					$xml_header='<?xml version="1.0" encoding="UTF-8" ?><journal>';
-				else
-				{
-					ftruncate($file_handler, $new_log_size);
-					fseek($file_handler, $new_log_size);
-				}
-
-				fwrite(
-					$file_handler,
-					$xml_header
-					.'<entry>'
-					.	'<date>'.gmdate('Y-m-d H:i:s').'</date>'
-					.	'<appname>'.$this->app_name.'</appname>'
-					.	'<priority>'.$priority.'</priority>'
-					.	'<message>'.$message.'</message>'
-					.'</entry></journal>'
+			if($file_handle === false)
+				throw new logger_exception(
+					'Unable to edit log file'
 				);
 
-				fclose($file_handler);
+			$new_log_size=fstat($file_handle)['size']-10;
+			$xml_header='<?xml version="1.0" encoding="UTF-8" ?><journal>';
+
+			if($new_log_size >= 0)
+			{
+				$xml_header='';
+
+				ftruncate($file_handle, $new_log_size);
+				fseek($file_handle, $new_log_size);
 			}
+
+			fwrite(
+				$file_handle,
+				$xml_header
+				.'<entry>'
+				.	'<date>'.gmdate('Y-m-d H:i:s').'</date>'
+				.	'<appname>'.$this->app_name.'</appname>'
+				.	'<priority>'.$priority.'</priority>'
+				.	'<message>'.$message.'</message>'
+				.'</entry></journal>'
+			);
+
+			fclose($file_handle);
 		}
 	}
 ?>

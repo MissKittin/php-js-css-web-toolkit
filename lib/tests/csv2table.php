@@ -44,7 +44,7 @@
 	echo ' -> Creating test directory';
 		file_put_contents(
 			__DIR__.'/tmp/csv2table/data.csv',
-			'"AA","BB","CC","DD","EE","FF","GG","HH","II","JJ"'."\n",
+			'"AA","BB","CC","DD","EE","FF","GG","HH","II","JJ"'."\r\n",
 			FILE_APPEND
 		);
 		$a=0;
@@ -62,7 +62,7 @@
 				++$b;
 			}
 
-			file_put_contents(__DIR__.'/tmp/csv2table/data.csv', "\n", FILE_APPEND);
+			file_put_contents(__DIR__.'/tmp/csv2table/data.csv', "\r\n", FILE_APPEND);
 			++$a;
 		}
 	echo ' [ OK ]'.PHP_EOL;

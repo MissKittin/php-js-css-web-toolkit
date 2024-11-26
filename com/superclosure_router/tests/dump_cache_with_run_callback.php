@@ -80,7 +80,7 @@
 
 	echo ' -> Validating cache';
 		//echo ' ('.md5(file_get_contents(__DIR__.'/tmp/'.basename(__FILE__))).')';
-		if(md5(file_get_contents(__DIR__.'/tmp/'.basename(__FILE__))) === '1e0e30fc21010696612458a1e3e09357')
+		if(md5(file_get_contents(__DIR__.'/tmp/'.basename(__FILE__))) === '0042e1a56878dd4294b950326981e549')
 			echo ' [ OK ]'.PHP_EOL;
 		else
 		{

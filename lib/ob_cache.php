@@ -17,6 +17,8 @@
 	 *  ob_file_cache -> save cache to file
 	 *  ob_redis_cache -> save cache in Redis
 	 *  ob_memcached_cache -> save cache in Memcached
+	 *  ob_redis_cache_invalidate -> remove cached content from Redis
+	 *  ob_memcached_cache_invalidate -> remove cached content from Memcached
 	 *  ob_url2file -> convert $_SERVER['REQUEST_URI'] to filename
 	 *  ob_url2sha1 -> return the sha1 hash of the url
 	 *
@@ -27,8 +29,10 @@
 	 *
 	 * Usage:
 	 *  ob_file_cache(string_path_to_file, int_expire_seconds=3600, bool_gzip=true)
-	 *  ob_redis_cache(redis_handler, string_url, int_expire_seconds=3600, bool_gzip=true, string_record_prefix='ob_redis_cache')
-	 *  ob_memcached_cache(memcached_handler, string_url, int_expire_seconds=3600, bool_gzip=true, string_record_prefix='ob_memcached_cache')
+	 *  ob_redis_cache(redis_handle, string_url, int_expire_seconds=3600, bool_gzip=true, string_record_prefix='ob_redis_cache_')
+	 *  ob_memcached_cache(memcached_handle, string_url, int_expire_seconds=3600, bool_gzip=true, string_record_prefix='ob_memcached_cache_')
+	 *  ob_redis_cache_invalidate(redis_handle, string_url, string_record_prefix='ob_redis_cache_')
+	 *  ob_memcached_cache_invalidate(memcached_handle, string_url, string_record_prefix='ob_memcached_cache_')
 	 *  ob_url2file(bool_ignore_get_params=true)
 	 *  ob_url2sha1(bool_ignore_get_params=true)
 	 *
@@ -39,19 +43,22 @@
 	 *  ob_redis_cache with compression enabled and no timeout:
 			$ob_redis_cache=new Redis();
 			$ob_redis_cache->connect('127.0.0.1', 6379);
-			if(ob_redis_cache($ob_redis_cache, 'cache_'.ob_url2file(), 0, true, 'app_cache') === 0)
+			if(ob_redis_cache($ob_redis_cache, 'cache_'.ob_url2file(), 0, true, 'ob_cache_') === 0)
 				exit();
 	 *  ob_memcached_cache with compression enabled and no timeout:
 			$ob_memcached_cache=new Memcached();
 			$ob_memcached_cache->addServer('127.0.0.1', 11211);
-			if(ob_memcached_cache($ob_memcached_cache, 'cache_'.ob_url2file(), 0, true, 'app_cache') === 0)
+			if(ob_memcached_cache($ob_memcached_cache, 'cache_'.ob_url2file(), 0, true, 'ob_cache_') === 0)
 				exit();
 	 */
 
 	class ob_cache_exception extends Exception {}
 
-	function ob_file_cache(string $output_file, int $expire=3600, bool $gzip=false)
-	{
+	function ob_file_cache(
+		string $output_file,
+		int $expire=3600,
+		bool $gzip=false
+	){
 		$_ob_cache['gzip']=$gzip;
 		$_ob_cache['browser_gzip_support']=false;
 
@@ -67,7 +74,9 @@
 				header('Content-Encoding: gzip');
 
 			if(file_put_contents($_ob_cache['output_file'], '') === false)
-				throw new ob_cache_exception('Cannot write to the '.$_ob_cache['output_file']);
+				throw new ob_cache_exception(
+					'Cannot write to the '.$_ob_cache['output_file']
+				);
 
 			ob_start(function($buffer) use($_ob_cache){
 				if($_ob_cache['gzip'])
@@ -78,8 +87,14 @@
 					$buffer=gzencode($buffer);
 				}
 
-				if(file_put_contents($_ob_cache['output_file'], $buffer, FILE_APPEND) === false)
-					throw new ob_cache_exception('Cannot write to the '.$_ob_cache['output_file']);
+				if(file_put_contents(
+					$_ob_cache['output_file'],
+					$buffer,
+					FILE_APPEND
+				) === false)
+					throw new ob_cache_exception(
+						'Cannot write to the '.$_ob_cache['output_file']
+					);
 
 				if(
 					$_ob_cache['gzip'] &&
@@ -93,11 +108,10 @@
 
 		$output_dir=dirname($output_file);
 
-		if(!file_exists($output_dir))
-			mkdir($output_dir, 0777, true);
-
 		if(!is_dir($output_dir))
-			throw new ob_cache_exception($output_dir.' is not a directory');
+			throw new ob_cache_exception(
+				$output_dir.' is not a directory'
+			);
 
 		if(file_exists($output_file))
 		{
@@ -133,7 +147,9 @@
 		}
 
 		if(file_put_contents($output_file, '') === false)
-			throw new ob_cache_exception('Cannot create '.$output_file);
+			throw new ob_cache_exception(
+				'Cannot create '.$output_file
+			);
 
 		$_ob_cache['output_file']=realpath($output_file);
 		$generate($_ob_cache);
@@ -141,13 +157,18 @@
 		return 1;
 	}
 	function ob_redis_cache(
-		$redis_handler,
+		$redis_handle,
 		string $url,
 		int $expire=3600,
 		bool $gzip=false,
-		string $prefix='ob_redis_cache'
+		string $prefix='ob_redis_cache_'
 	){
-		$_ob_cache['redis_handler']=$redis_handler;
+		if(!is_object($redis_handle))
+			throw new ob_cache_exception(
+				'redis_handle is not an object'
+			);
+
+		$_ob_cache['redis_handle']=$redis_handle;
 		$_ob_cache['url']=$prefix.$url;
 		$_ob_cache['expire']=$expire;
 		$_ob_cache['gzip']=$gzip;
@@ -156,7 +177,8 @@
 		if(isset($_SERVER['HTTP_ACCEPT_ENCODING']))
 			$_ob_cache['browser_gzip_support']=(strpos($_SERVER['HTTP_ACCEPT_ENCODING'], 'gzip') !== false);
 
-		$cache_content=$redis_handler->get($prefix.$url);
+		$cache_content=$redis_handle
+		->	get($prefix.$url);
 
 		if($cache_content === false)
 		{
@@ -169,12 +191,12 @@
 				header('Content-Encoding: gzip');
 
 			if($_ob_cache['expire'] === 0)
-				$_ob_cache['redis_handler']->set(
+				$_ob_cache['redis_handle']->set(
 					$_ob_cache['url'],
 					''
 				);
 			else
-				$_ob_cache['redis_handler']->set(
+				$_ob_cache['redis_handle']->set(
 					$_ob_cache['url'],
 					'',
 					['ex'=>$_ob_cache['expire']]
@@ -189,15 +211,16 @@
 					$buffer=gzencode($buffer);
 				}
 
-				$cache_content=$_ob_cache['redis_handler']->get($_ob_cache['url']);
+				$cache_content=$_ob_cache['redis_handle']
+				->	get($_ob_cache['url']);
 
 				if($_ob_cache['expire'] === 0)
-					$_ob_cache['redis_handler']->set(
+					$_ob_cache['redis_handle']->set(
 						$_ob_cache['url'],
 						$cache_content.$buffer
 					);
 				else
-					$_ob_cache['redis_handler']->set(
+					$_ob_cache['redis_handle']->set(
 						$_ob_cache['url'],
 						$cache_content.$buffer,
 						['ex'=>$_ob_cache['expire']]
@@ -235,13 +258,18 @@
 		return 0;
 	}
 	function ob_memcached_cache(
-		$memcached_handler,
+		$memcached_handle,
 		string $url,
 		int $expire=3600,
 		bool $gzip=false,
-		string $prefix='ob_memcached_cache'
+		string $prefix='ob_memcached_cache_'
 	){
-		$_ob_cache['memcached_handler']=$memcached_handler;
+		if(!is_object($memcached_handle))
+			throw new ob_cache_exception(
+				'memcached_handle is not an object'
+			);
+
+		$_ob_cache['memcached_handle']=$memcached_handle;
 		$_ob_cache['url']=$prefix.$url;
 		$_ob_cache['expire']=$expire;
 		$_ob_cache['gzip']=$gzip;
@@ -250,8 +278,8 @@
 		if(isset($_SERVER['HTTP_ACCEPT_ENCODING']))
 			$_ob_cache['browser_gzip_support']=(strpos($_SERVER['HTTP_ACCEPT_ENCODING'], 'gzip') !== false);
 
-		$memcached_handler->get($prefix.$url); // trigger expiration
-		$cache_content=$memcached_handler->get($prefix.$url);
+		$memcached_handle->get($prefix.$url); // trigger expiration
+		$cache_content=$memcached_handle->get($prefix.$url);
 
 		if($cache_content === false)
 		{
@@ -264,12 +292,12 @@
 				header('Content-Encoding: gzip');
 
 			if($_ob_cache['expire'] === 0)
-				$_ob_cache['memcached_handler']->set(
+				$_ob_cache['memcached_handle']->set(
 					$_ob_cache['url'],
 					''
 				);
 			else
-				$_ob_cache['memcached_handler']->set(
+				$_ob_cache['memcached_handle']->set(
 					$_ob_cache['url'],
 					'',
 					$_ob_cache['expire']
@@ -284,15 +312,16 @@
 					$buffer=gzencode($buffer);
 				}
 
-				$cache_content=$_ob_cache['memcached_handler']->get($_ob_cache['url']);
+				$cache_content=$_ob_cache['memcached_handle']
+				->	get($_ob_cache['url']);
 
 				if($_ob_cache['expire'] === 0)
-					$_ob_cache['memcached_handler']->set(
+					$_ob_cache['memcached_handle']->set(
 						$_ob_cache['url'],
 						$cache_content.$buffer
 					);
 				else
-					$_ob_cache['memcached_handler']->set(
+					$_ob_cache['memcached_handle']->set(
 						$_ob_cache['url'],
 						$cache_content.$buffer,
 						$_ob_cache['expire']
@@ -330,10 +359,37 @@
 		return 0;
 	}
 
+	function ob_redis_cache_invalidate(
+		$redis_handle,
+		string $url,
+		string $prefix='ob_redis_cache_'
+	){
+		if(!is_object($redis_handle))
+			throw new ob_cache_exception(
+				'redis_handle is not an object'
+			);
+
+		return $redis_handle->del($prefix.$url);
+	}
+	function ob_memcached_cache_invalidate(
+		$memcached_handle,
+		string $url,
+		string $prefix='ob_memcached_cache_'
+	){
+		if(!is_object($memcached_handle))
+			throw new ob_cache_exception(
+				'memcached_handle is not an object'
+			);
+
+		return $memcached_handle->delete($prefix.$url);
+	}
+
 	function ob_url2file(bool $ignore_get=true)
 	{
 		if(!isset($_SERVER['REQUEST_URI']))
-			throw new ob_cache_exception('$_SERVER["REQUEST_URI"] is not set');
+			throw new ob_cache_exception(
+				'$_SERVER["REQUEST_URI"] is not set'
+			);
 
 		$result=$_SERVER['REQUEST_URI'];
 
@@ -345,7 +401,9 @@
 	function ob_url2sha1(bool $ignore_get=true)
 	{
 		if(!isset($_SERVER['REQUEST_URI']))
-			throw new ob_cache_exception('$_SERVER["REQUEST_URI"] is not set');
+			throw new ob_cache_exception(
+				'$_SERVER["REQUEST_URI"] is not set'
+			);
 
 		$result=$_SERVER['REQUEST_URI'];
 

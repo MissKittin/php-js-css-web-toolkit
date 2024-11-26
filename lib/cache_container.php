@@ -50,7 +50,7 @@
 	 *   usage is the same as for cache_driver_file
 	 *  cache_driver_pdo -> use a relational database as a cache
 	 *   constructor array parameters:
-	 *    pdo_handler (object)
+	 *    pdo_handle (object)
 	 *    [table_name] (string, default: cache_container)
 	 *    [create_table] (bool, default: true)
 	 *   note:
@@ -70,11 +70,11 @@
 	 *     `timestamp` INTEGER
 	 *  cache_driver_redis -> use Redis
 	 *   constructor array parameters:
-	 *    redis_handler (object)
+	 *    redis_handle (object)
 	 *    [prefix] => string, adds to the name of each key (default: cache_container__)
 	 *  cache_driver_memcached -> use Memcached
 	 *   constructor array parameters:
-	 *    memcached_handler (object)
+	 *    memcached_handle (object)
 	 *    [prefix] => string, adds to the name of each key (default: cache_container__)
 	 *   warning: Memcached does not support the flush method
 	 *  cache_driver_apcu -> use APCu
@@ -84,7 +84,7 @@
 	 *
 	 * Example initialization:
 		$cache=new cache_container(new cache_driver_pdo([
-			'pdo_handler'=>new PDO('sqlite:./var/cache/cache.sqlite3')
+			'pdo_handle'=>new PDO('sqlite:./var/cache/cache.sqlite3')
 		]));
 	 */
 
@@ -109,8 +109,11 @@
 			$this->cache_driver=$cache_driver;
 		}
 
-		protected function validate_cache($key, &$value, &$timeout)
-		{
+		protected function validate_cache(
+			$key,
+			&$value,
+			&$timeout
+		){
 			if(isset($this->local_cache[$key]))
 			{
 				$value=$this->local_cache[$key]['value'];
@@ -136,8 +139,10 @@
 				$this->local_cache[$key]['timestamp']=$timestamp;
 			}
 
-			if(($timeout !== 0) && ((time()-$timestamp) > $timeout))
-			{
+			if(
+				($timeout !== 0) &&
+				((time()-$timestamp) > $timeout)
+			){
 				$this->unset($key);
 
 				$value=null;
@@ -145,8 +150,11 @@
 			}
 		}
 
-		public function put_temp(string $key, $value, int $timeout=0)
-		{
+		public function put_temp(
+			string $key,
+			$value,
+			int $timeout=0
+		){
 			$this->local_cache[$key]['value']=$value;
 			$this->local_cache[$key]['timeout']=$timeout;
 			$this->local_cache[$key]['timestamp']=time();
@@ -157,26 +165,50 @@
 			$value=null;
 			$timeout=0;
 
-			$this->validate_cache($key, $value, $timeout);
+			$this->validate_cache(
+				$key,
+				$value,
+				$timeout
+			);
 
 			if($value === null)
 				return $default_value;
 
 			return $value;
 		}
-		public function put(string $key, $value, int $timeout=0)
-		{
-			$this->put_temp($key, $value, $timeout);
-			$this->cache_driver->put($key, $value, $timeout);
+		public function put(
+			string $key,
+			$value,
+			int $timeout=0
+		){
+			$this->put_temp(
+				$key,
+				$value,
+				$timeout
+			);
+
+			$this->cache_driver->put(
+				$key,
+				$value,
+				$timeout
+			);
 		}
 
-		public function get_put(string $key, $default_value, int $timeout=0)
-		{
+		public function get_put(
+			string $key,
+			$default_value,
+			int $timeout=0
+		){
 			$value=$this->get($key, null);
 
 			if($value === null)
 			{
-				$this->put($key, $default_value, $timeout);
+				$this->put(
+					$key,
+					$default_value,
+					$timeout
+				);
+
 				return $default_value;
 			}
 
@@ -187,14 +219,24 @@
 			$value=null;
 			$timeout=0;
 
-			$this->validate_cache($key, $value, $timeout);
+			$this->validate_cache(
+				$key,
+				$value,
+				$timeout
+			);
 
 			if($value === null)
-				throw new cache_container_exception($key.' is not set');
+				throw new cache_container_exception(
+					$key.' is not set'
+				);
 
 			$value=$value+$amount;
 
-			$this->put($key, $value, $timeout);
+			$this->put(
+				$key,
+				$value,
+				$timeout
+			);
 
 			return $value;
 		}
@@ -203,14 +245,24 @@
 			$value=null;
 			$timeout=0;
 
-			$this->validate_cache($key, $value, $timeout);
+			$this->validate_cache(
+				$key,
+				$value,
+				$timeout
+			);
 
 			if($value === null)
-				throw new cache_container_exception($key.' is not set');
+				throw new cache_container_exception(
+					$key.' is not set'
+				);
 
 			$value=$value-$amount;
 
-			$this->put($key, $value, $timeout);
+			$this->put(
+				$key,
+				$value,
+				$timeout
+			);
 
 			return $value;
 		}
@@ -219,10 +271,16 @@
 			$value=null;
 			$timeout=0;
 
-			$this->validate_cache($key, $value, $timeout);
+			$this->validate_cache(
+				$key,
+				$value,
+				$timeout
+			);
 
 			if($value === null)
-				throw new cache_container_exception($key.' is not set');
+				throw new cache_container_exception(
+					$key.' is not set'
+				);
 
 			$this->unset($key);
 
@@ -255,7 +313,9 @@
 		public function __construct(cache_driver $cache_driver)
 		{
 			if($cache_driver instanceof cache_driver_none)
-				throw new cache_container_exception('Dummy driver cannot be used with '.__CLASS__);
+				throw new cache_container_exception(
+					'Dummy driver cannot be used with '.__CLASS__
+				);
 
 			$this->cache_driver=$cache_driver;
 		}
@@ -267,8 +327,10 @@
 			if(empty($value))
 				return null;
 
-			if(($value['timeout'] !== 0) && ((time()-$value['timestamp']) > $value['timeout']))
-			{
+			if(
+				($value['timeout'] !== 0) &&
+				((time()-$value['timestamp']) > $value['timeout'])
+			){
 				$this->unset($key);
 				return null;
 			}
@@ -285,22 +347,39 @@
 
 			return $value['value'];
 		}
-		public function put(string $key, $value, int $timeout=0)
-		{
-			$this->cache_driver->put($key, $value, $timeout);
+		public function put(
+			string $key,
+			$value,
+			int $timeout=0
+		){
+			$this->cache_driver->put(
+				$key,
+				$value,
+				$timeout
+			);
 		}
 
 		public function put_temp()
 		{
-			throw new cache_container_exception('put_temp() is not available in the '.__CLASS__);
+			throw new cache_container_exception(
+				'put_temp() is not available in the '.__CLASS__
+			);
 		}
-		public function get_put(string $key, $default_value, int $timeout=0)
-		{
+		public function get_put(
+			string $key,
+			$default_value,
+			int $timeout=0
+		){
 			$value=$this->get($key, null);
 
 			if($value === null)
 			{
-				$this->put($key, $default_value, $timeout);
+				$this->put(
+					$key,
+					$default_value,
+					$timeout
+				);
+
 				return $default_value;
 			}
 
@@ -320,11 +399,17 @@
 			$value=$this->validate_cache($key);
 
 			if($value === null)
-				throw new cache_container_exception($key.' is not set');
+				throw new cache_container_exception(
+					$key.' is not set'
+				);
 
 			$value['value']=$value['value']+$amount;
 
-			$this->put($key, $value['value'], $value['timeout']);
+			$this->put(
+				$key,
+				$value['value'],
+				$value['timeout']
+			);
 
 			return $value['value'];
 		}
@@ -333,11 +418,17 @@
 			$value=$this->validate_cache($key);
 
 			if($value === null)
-				throw new cache_container_exception($key.' is not set');
+				throw new cache_container_exception(
+					$key.' is not set'
+				);
 
 			$value['value']=$value['value']-$amount;
 
-			$this->put($key, $value['value'], $value['timeout']);
+			$this->put(
+				$key,
+				$value['value'],
+				$value['timeout']
+			);
 
 			return $value['value'];
 		}
@@ -348,7 +439,9 @@
 			$this->unset($key);
 
 			if($value === null)
-				throw new cache_container_exception($key.' is not set');
+				throw new cache_container_exception(
+					$key.' is not set'
+				);
 
 			return $value;
 		}
@@ -380,29 +473,53 @@
 
 		public function __construct(array $params)
 		{
-			foreach(['file', 'lock_file'] as $param)
+			foreach([
+				'file',
+				'lock_file'
+			] as $param){
 				if(isset($params[$param]))
 				{
-					if((!isset($params['_no_type_hint'])) && (!is_string($params[$param])))
-						throw new cache_container_exception('The input array parameter '.$param.' is not a string');
+					if(
+						(!isset($params['_no_type_hint'])) &&
+						(!is_string($params[$param]))
+					)
+						throw new cache_container_exception(
+							'The input array parameter '.$param.' is not a string'
+						);
 
 					$this->$param=$params[$param];
+
+					continue;
 				}
-				else
-					throw new cache_container_exception('The '.$param.' parameter was not specified for the constructor');
+
+				throw new cache_container_exception(
+					'The '.$param.' parameter was not specified for the constructor'
+				);
+			}
 
 			$this->lock_unlock_file(true);
 
 			if(file_exists($this->file))
-				$this->container=json_decode(file_get_contents($this->file), true);
+				$this->container=json_decode(
+					file_get_contents($this->file),
+					true
+				);
 		}
 		public function __destruct()
 		{
 			$this->lock_unlock_file(false, function(){
-				if(file_put_contents($this->file, json_encode($this->container, JSON_UNESCAPED_UNICODE)) === false)
-				{
+				if(file_put_contents(
+					$this->file,
+					json_encode(
+						$this->container,
+						JSON_UNESCAPED_UNICODE
+					)
+				) === false){
 					unlink($this->lock_file);
-					throw new cache_container_exception('Unable to save the cache file');
+
+					throw new cache_container_exception(
+						'Unable to save the cache file'
+					);
 				}
 			});
 		}
@@ -417,23 +534,30 @@
 				{
 					usleep(10000);
 
-					if($max_wait === 0)
-						throw new cache_container_exception('Lock file still exists');
-
-					--$max_wait;
+					if($max_wait-- === 0)
+						throw new cache_container_exception(
+							'Lock file still exists'
+						);
 				}
 
-				if(file_put_contents($this->lock_file, '') === false)
-					throw new cache_container_exception('Unable to create the lock file');
-			}
-			else
-			{
-				if(!file_exists($this->lock_file))
-					throw new cache_container_exception('Lock file not exists - cache not saved');
+				if(file_put_contents(
+					$this->lock_file,
+					''
+				) === false)
+					throw new cache_container_exception(
+						'Unable to create the lock file'
+					);
 
-				$save_callback();
-				unlink($this->lock_file);
+				return;
 			}
+
+			if(!file_exists($this->lock_file))
+				throw new cache_container_exception(
+					'Lock file not exists - cache not saved'
+				);
+
+			$save_callback();
+			unlink($this->lock_file);
 		}
 
 		public function put($key, $value, $timeout): void
@@ -446,8 +570,10 @@
 		{
 			if(isset($this->container[$key]))
 			{
-				if(($this->container[$key]['timeout'] !== 0) && ((time()-$this->container[$key]['timestamp']) > $this->container[$key]['timeout']))
-				{
+				if(
+					($this->container[$key]['timeout'] !== 0) &&
+					((time()-$this->container[$key]['timestamp']) > $this->container[$key]['timeout'])
+				){
 					unset($this->container[$key]);
 					return [];
 				}
@@ -474,16 +600,26 @@
 
 		public function __construct(array $params)
 		{
-			foreach(['file', 'lock_file'] as $param)
+			foreach([
+				'file',
+				'lock_file'
+			] as $param){
 				if(isset($params[$param]))
 				{
 					if((!is_string($params[$param])))
-						throw new cache_container_exception('The input array parameter '.$param.' is not a string');
+						throw new cache_container_exception(
+							'The input array parameter '.$param.' is not a string'
+						);
 
 					$this->$param=$params[$param];
+
+					continue;
 				}
-				else
-					throw new cache_container_exception('The '.$param.' parameter was not specified for the constructor');
+
+				throw new cache_container_exception(
+					'The '.$param.' parameter was not specified for the constructor'
+				);
+			}
 		}
 
 		protected function open_database()
@@ -497,7 +633,11 @@
 
 		public function put($key, $value, $timeout): void
 		{
-			$this->open_database()->put($key, $value, $timeout);
+			$this->open_database()->put(
+				$key,
+				$value,
+				$timeout
+			);
 		}
 		public function get($key): array
 		{
@@ -514,39 +654,45 @@
 	}
 	class cache_driver_pdo implements cache_driver
 	{
-		protected $pdo_handler;
+		protected $pdo_handle;
 		protected $table_name='cache_container';
 		protected $create_table=true;
 
 		public function __construct(array $params)
 		{
-			if(!isset($params['pdo_handler']))
-				throw new cache_container_exception('No pdo_handler given');
+			if(!isset($params['pdo_handle']))
+				throw new cache_container_exception(
+					'No pdo_handle given'
+				);
 
 			foreach([
-				'pdo_handler'=>'object',
+				'pdo_handle'=>'object',
 				'table_name'=>'string',
 				'create_table'=>'boolean'
 			] as $param=>$param_type)
 				if(isset($params[$param]))
 				{
 					if(gettype($params[$param]) !== $param_type)
-						throw new cache_container_exception('The input array parameter '.$param.' is not a '.$param_type);
+						throw new cache_container_exception(
+							'The input array parameter '.$param.' is not a '.$param_type
+						);
 
 					$this->$param=$params[$param];
 				}
 
 			if(!in_array(
-				$this->pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME),
+				$this->pdo_handle->getAttribute(PDO::ATTR_DRIVER_NAME),
 				['pgsql', 'mysql', 'sqlite']
 			))
-				throw new cache_container_exception($this->pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME).' driver is not supported');
+				throw new cache_container_exception(
+					$this->pdo_handle->getAttribute(PDO::ATTR_DRIVER_NAME).' driver is not supported'
+				);
 
 			if($this->create_table)
-				switch($this->pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME))
+				switch($this->pdo_handle->getAttribute(PDO::ATTR_DRIVER_NAME))
 				{
 					case 'mysql':
-						if($this->pdo_handler->exec(''
+						if($this->pdo_handle->exec(''
 						.	'CREATE TABLE IF NOT EXISTS '.$this->table_name
 						.	'('
 						.		'cachekey VARCHAR(255), PRIMARY KEY(cachekey),'
@@ -555,11 +701,13 @@
 						.		'timestamp INTEGER'
 						.	')'
 						) === false)
-							throw new cache_container_exception('Cannot create '.$this->table_name.' table');
+							throw new cache_container_exception(
+								'Cannot create '.$this->table_name.' table'
+							);
 					break;
 					case 'pgsql':
 					case 'sqlite':
-						if($this->pdo_handler->exec(''
+						if($this->pdo_handle->exec(''
 						.	'CREATE TABLE IF NOT EXISTS '.$this->table_name
 						.	'('
 						.		'cachekey TEXT PRIMARY KEY,'
@@ -568,16 +716,18 @@
 						.		'timestamp INTEGER'
 						.	')'
 						) === false)
-							throw new cache_container_exception('Cannot create '.$this->table_name.' table');
+							throw new cache_container_exception(
+								'Cannot create '.$this->table_name.' table'
+							);
 				}
 		}
 
 		public function put($key, $value, $timeout): void
 		{
-			switch($this->pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME))
+			switch($this->pdo_handle->getAttribute(PDO::ATTR_DRIVER_NAME))
 			{
 				case 'pgsql':
-					$query=$this->pdo_handler->prepare(''
+					$query=$this->pdo_handle->prepare(''
 					.	'INSERT INTO '.$this->table_name
 					.	'('
 					.		'cachekey,'
@@ -598,7 +748,7 @@
 				break;
 				case 'mysql':
 				case 'sqlite':
-					$query=$this->pdo_handler->prepare(''
+					$query=$this->pdo_handle->prepare(''
 					.	'REPLACE INTO '.$this->table_name
 					.	'('
 					.		'cachekey,'
@@ -615,7 +765,9 @@
 			}
 
 			if($query === false)
-				throw new cache_container_exception('PDO prepare error');
+				throw new cache_container_exception(
+					'PDO prepare error'
+				);
 
 			if(!$query->execute([
 				':key'=>$key,
@@ -623,28 +775,39 @@
 				':timeout'=>$timeout,
 				':timestamp'=>time()
 			]))
-				throw new cache_container_exception('PDO execute error');
+				throw new cache_container_exception(
+					'PDO execute error'
+				);
 		}
 		public function get($key): array
 		{
-			$result=$this->pdo_handler->prepare(''
+			$result=$this->pdo_handle->prepare(''
 			.	'SELECT cachevalue, timeout, timestamp '
 			.	'FROM '.$this->table_name.' '
 			.	'WHERE cachekey=:key'
 			);
 
 			if($result === false)
-				throw new cache_container_exception('PDO prepare error');
+				throw new cache_container_exception(
+					'PDO prepare error'
+				);
 
-			if(!$result->execute([':key'=>$key]))
-				throw new cache_container_exception('PDO execute error');
+			if(!$result->execute([
+				':key'=>$key
+			]))
+				throw new cache_container_exception(
+					'PDO execute error'
+				);
 
 			$result=$result->fetch(PDO::FETCH_ASSOC);
 
 			if($result === false)
 				return [];
 
-			$result['cachevalue']=json_decode($result['cachevalue'], true);
+			$result['cachevalue']=json_decode(
+				$result['cachevalue'],
+				true
+			);
 
 			if($result['cachevalue'] === false)
 			{
@@ -660,41 +823,55 @@
 		}
 		public function unset($key): void
 		{
-			$query=$this->pdo_handler->prepare(''
+			$query=$this->pdo_handle->prepare(''
 			.	'DELETE FROM '.$this->table_name.' '
 			.	'WHERE cachekey=:key'
 			);
 
 			if($query === false)
-				throw new cache_container_exception('PDO prepare error');
+				throw new cache_container_exception(
+					'PDO prepare error'
+				);
 
-			if(!$query->execute([':key'=>$key]))
-				throw new cache_container_exception('PDO execute error');
+			if(!$query->execute([
+				':key'=>$key
+			]))
+				throw new cache_container_exception(
+					'PDO execute error'
+				);
 		}
 		public function flush(): void
 		{
-			if($this->pdo_handler->exec('DELETE FROM '.$this->table_name) === false)
-				throw new cache_container_exception('PDO exec error');
+			if($this->pdo_handle->exec(''
+			.	'DELETE FROM '.$this->table_name
+			) === false)
+				throw new cache_container_exception(
+					'PDO exec error'
+				);
 		}
 	}
 	class cache_driver_redis implements cache_driver
 	{
-		protected $redis_handler;
+		protected $redis_handle;
 		protected $prefix='cache_container__';
 
 		public function __construct(array $params)
 		{
-			if(!isset($params['redis_handler']))
-				throw new cache_container_exception('No redis handler given');
+			if(!isset($params['redis_handle']))
+				throw new cache_container_exception(
+					'No redis_handle given'
+				);
 
 			foreach([
-				'redis_handler'=>'object',
+				'redis_handle'=>'object',
 				'prefix'=>'string'
 			] as $param=>$param_type)
 				if(isset($params[$param]))
 				{
 					if(gettype($params[$param]) !== $param_type)
-						throw new cache_container_exception('The input array parameter '.$param.' is not a '.$param_type);
+						throw new cache_container_exception(
+							'The input array parameter '.$param.' is not a '.$param_type
+						);
 
 					$this->$param=$params[$param];
 				}
@@ -702,21 +879,37 @@
 
 		public function put($key, $value, $timeout): void
 		{
-			$value=json_encode([
-				'value'=>$value,
-				'timeout'=>$timeout,
-				'timestamp'=>time()
-			],
-			JSON_UNESCAPED_UNICODE);
+			$value=json_encode(
+				[
+					'value'=>$value,
+					'timeout'=>$timeout,
+					'timestamp'=>time()
+				],
+				JSON_UNESCAPED_UNICODE
+			);
 
 			if($timeout > 0)
-				$this->redis_handler->set($this->prefix.$key, $value, ['ex'=>$timeout]);
-			else
-				$this->redis_handler->set($this->prefix.$key, $value);
+			{
+				$this->redis_handle->set(
+					$this->prefix.$key,
+					$value,
+					['ex'=>$timeout]
+				);
+
+				return;
+			}
+
+			$this->redis_handle->set(
+				$this->prefix.$key,
+				$value
+			);
 		}
 		public function get($key): array
 		{
-			$value=$this->redis_handler->get($this->prefix.$key);
+			$value=$this->redis_handle->get(''
+			.	$this->prefix
+			.	$key
+			);
 
 			if($value === false)
 				return [];
@@ -733,7 +926,10 @@
 		}
 		public function unset($key): void
 		{
-			$this->redis_handler->del($this->prefix.$key);
+			$this->redis_handle->del(''
+			.	$this->prefix
+			.	$key
+			);
 		}
 		public function flush(): void
 		{
@@ -741,35 +937,42 @@
 
 			do
 			{
-				$keys=$this->redis_handler->scan($iterator, $this->prefix.'*');
+				$keys=$this->redis_handle->scan(
+					$iterator,
+					$this->prefix.'*'
+				);
 
 				if($keys === false)
 					break;
 
 				foreach($keys as $key)
-					$this->redis_handler->del($key);
+					$this->redis_handle->del($key);
 			}
 			while($iterator > 0);
 		}
 	}
 	class cache_driver_memcached implements cache_driver
 	{
-		protected $memcached_handler;
+		protected $memcached_handle;
 		protected $prefix='cache_container__';
 
 		public function __construct(array $params)
 		{
-			if(!isset($params['memcached_handler']))
-				throw new cache_container_exception('No memcached handler given');
+			if(!isset($params['memcached_handle']))
+				throw new cache_container_exception(
+					'No memcached_handle given'
+				);
 
 			foreach([
-				'memcached_handler'=>'object',
+				'memcached_handle'=>'object',
 				'prefix'=>'string'
 			] as $param=>$param_type)
 				if(isset($params[$param]))
 				{
 					if(gettype($params[$param]) !== $param_type)
-						throw new cache_container_exception('The input array parameter '.$param.' is not a '.$param_type);
+						throw new cache_container_exception(
+							'The input array parameter '.$param.' is not a '.$param_type
+						);
 
 					$this->$param=$params[$param];
 				}
@@ -777,21 +980,31 @@
 
 		public function put($key, $value, $timeout): void
 		{
-			$this->memcached_handler->set(
+			$this->memcached_handle->set(
 				$this->prefix.$key,
-				json_encode([
-					'value'=>$value,
-					'timeout'=>$timeout,
-					'timestamp'=>time()
-				], JSON_UNESCAPED_UNICODE),
+				json_encode(
+					[
+						'value'=>$value,
+						'timeout'=>$timeout,
+						'timestamp'=>time()
+					],
+					JSON_UNESCAPED_UNICODE
+				),
 				$timeout
 			);
 		}
 		public function get($key): array
 		{
-			$this->memcached_handler->get($this->prefix.$key); // trigger expiration
+			// trigger expiration
+			$this->memcached_handle->get(''
+			.	$this->prefix
+			.	$key
+			);
 
-			$value=$this->memcached_handler->get($this->prefix.$key);
+			$value=$this->memcached_handle->get(''
+			.	$this->prefix
+			.	$key
+			);
 
 			if($value === false)
 				return [];
@@ -808,11 +1021,16 @@
 		}
 		public function unset($key): void
 		{
-			$this->memcached_handler->delete($this->prefix.$key);
+			$this->memcached_handle->delete(''
+			.	$this->prefix
+			.	$key
+			);
 		}
 		public function flush(): void
 		{
-			throw new cache_container_exception('Memcached does not support the flush method');
+			throw new cache_container_exception(
+				'Memcached does not support the flush method'
+			);
 		}
 	}
 	class cache_driver_apcu implements cache_driver
@@ -822,15 +1040,21 @@
 		public function __construct(array $params)
 		{
 			if(!function_exists('apcu_enabled'))
-				throw new pdo_connect_exception('apcu extension is not loaded');
+				throw new pdo_connect_exception(
+					'apcu extension is not loaded'
+				);
 
 			if(!apcu_enabled())
-				throw new cache_container_exception('APCu is disabled');
+				throw new cache_container_exception(
+					'APCu is disabled'
+				);
 
 			if(isset($params['prefix']))
 			{
 				if(!is_string($params['prefix']))
-					throw new cache_container_exception('The input array parameter prefix is not a string');
+					throw new cache_container_exception(
+						'The input array parameter prefix is not a string'
+					);
 
 				$this->prefix=$params['prefix'];
 			}
@@ -838,18 +1062,25 @@
 
 		public function put($key, $value, $timeout): void
 		{
-			apcu_store($this->prefix.$key,
-				json_encode([
-					'value'=>$value,
-					'timeout'=>$timeout,
-					'timestamp'=>time()
-				], JSON_UNESCAPED_UNICODE),
+			apcu_store(
+				$this->prefix.$key,
+				json_encode(
+					[
+						'value'=>$value,
+						'timeout'=>$timeout,
+						'timestamp'=>time()
+					],
+					JSON_UNESCAPED_UNICODE
+				),
 				$timeout
 			);
 		}
 		public function get($key): array
 		{
-			$value=apcu_fetch($this->prefix.$key);
+			$value=apcu_fetch(''
+			.	$this->prefix
+			.	$key
+			);
 
 			if($value === false)
 				return [];
@@ -866,11 +1097,18 @@
 		}
 		public function unset($key): void
 		{
-			apcu_delete($this->prefix.$key);
+			apcu_delete(''
+			.	$this->prefix
+			.	$key
+			);
 		}
 		public function flush(): void
 		{
-			foreach(new APCUIterator('/^'.$this->prefix.'.*/') as $item)
+			foreach(new APCUIterator(''
+			.	'/^'
+			.		$this->prefix
+			.	'.*/'
+			)as $item)
 				apcu_delete($item['key']);
 		}
 	}

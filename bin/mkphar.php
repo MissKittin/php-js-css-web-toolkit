@@ -20,19 +20,36 @@
 		) !== false);
 	}
 
-	if(file_exists(__DIR__.'/lib/check_var.php'))
-		require __DIR__.'/lib/check_var.php';
-	else if(file_exists(__DIR__.'/../lib/check_var.php'))
-		require __DIR__.'/../lib/check_var.php';
-	else
+	function load_library($libraries, $required=true)
 	{
-		echo 'check_var.php library not found'.PHP_EOL;
-		exit(1);
+		foreach($libraries as $library)
+		{
+			if(file_exists(__DIR__.'/lib/'.$library))
+			{
+				require __DIR__.'/lib/'.$library;
+				continue;
+			}
+
+			if(file_exists(__DIR__.'/../lib/'.$library))
+			{
+				require __DIR__.'/../lib/'.$library;
+				continue;
+			}
+
+			if($required)
+				throw new Exception($library.' library not found');
+		}
 	}
+
+	try {
+		load_library(['check_var.php']);
+	} catch(Exception $error) {
+		echo 'Error: '.$error->getMessage().PHP_EOL;
+		exit(
 
 	if(check_argv('-h') || check_argv('--help'))
 	{
-		echo 'Usage: [--compress=gz|bz2] [[--stub=path/to/main.php] [--shebang]] --source=dir1 [--source=dir2] [--ignore=filename] [--ignore=dirname/] [--ignore=dir/file] [--include=/file.ext] --output=path/to/archive.phar'.PHP_EOL;
+		echo 'Usage: '.$argv[0].' [--compress=gz|bz2] [[--stub=path/to/main.php] [--shebang]] --source=dir1 [--source=dir2] [--ignore=filename] [--ignore=dirname/] [--ignore=dir/file] [--include=/file.ext] --output=path/to/archive.phar'.PHP_EOL;
 		echo PHP_EOL;
 		echo 'Where:'.PHP_EOL;
 		echo ' --compress -> if not defined, no compression applied'.PHP_EOL;
@@ -76,6 +93,7 @@
 			}
 
 			echo ' -> Using compression: gz'.PHP_EOL;
+
 			$compress=Phar::GZ;
 		break;
 		case 'bz2':
@@ -86,6 +104,7 @@
 			}
 
 			echo ' -> Using compression: bz2'.PHP_EOL;
+
 			$compress=Phar::BZ2;
 		break;
 		case null:
@@ -99,8 +118,10 @@
 	if(check_argv('--shebang'))
 		$shebang="#!/usr/bin/env php\n";
 
-	if(($stub !== null) && (!is_file($stub)))
-	{
+	if(
+		($stub !== null) &&
+		(!is_file($stub))
+	){
 		echo 'Stub '.$stub.' is not a file'.PHP_EOL;
 		exit(1);
 	}
@@ -191,16 +212,24 @@
 		foreach($sources as &$source)
 			foreach(
 				new RecursiveIteratorIterator(
-					new RecursiveDirectoryIterator($source, RecursiveDirectoryIterator::SKIP_DOTS)
+					new RecursiveDirectoryIterator(
+						$source,
+						RecursiveDirectoryIterator::SKIP_DOTS
+					)
 				)
 				as $file
 			){
 				foreach($ignores as $ignore)
 				{
-					if(get_regex($ignore, $file->getPathname()))
-					{
+					if(get_regex(
+						$ignore,
+						$file->getPathname()
+					)){
 						foreach($includes as $include)
-							if(get_regex($include, $file->getPathname()))
+							if(get_regex(
+								$include,
+								$file->getPathname()
+							))
 								break 2;
 
 						echo '[IGN] '.$file->getPathname().PHP_EOL;
@@ -218,7 +247,13 @@
 			}
 
 		if($stub === null)
-			$phar->setStub('<?php echo \'This Phar has no stub\'.PHP_EOL; exit(1); __HALT_COMPILER(); ?>');
+			$phar->setStub(''
+			.	'<?php '
+			.		'echo \'This Phar has no stub\'.PHP_EOL;'
+			.		'exit(1);'
+			.		'__HALT_COMPILER(); '
+			.	'?>'
+			);
 		else
 		{
 			echo ' -> Adding stub';
@@ -229,8 +264,17 @@
 			echo PHP_EOL;
 			echo '  -> '.$stub.' => __'.basename($stub).PHP_EOL;
 
-			$phar->addFile($stub, '__'.basename($stub));
-			$phar->setStub($shebang.$phar->createDefaultStub(basename($stub)));
+			$phar->addFile(
+				$stub,
+				'__'.basename($stub)
+			);
+
+			$phar->setStub(''
+			.	$shebang
+			.	$phar->createDefaultStub(
+					basename($stub)
+				)
+			);
 		}
 
 		$phar->stopBuffering();

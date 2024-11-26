@@ -68,21 +68,21 @@
 		@unlink(__DIR__.'/tmp/pdo_crud_builder/pdo_crud_builder.sqlite3');
 	echo ' [ OK ]'.PHP_EOL;
 
-	echo ' -> Initializing database handler';
+	echo ' -> Initializing database handle';
 		if(class_exists('PDO') && in_array('sqlite', PDO::getAvailableDrivers()))
-			$pdo_handler=new PDO('sqlite:'.__DIR__.'/tmp/pdo_crud_builder/pdo_crud_builder.sqlite3');
+			$pdo_handle=new PDO('sqlite:'.__DIR__.'/tmp/pdo_crud_builder/pdo_crud_builder.sqlite3');
 		else
-			$pdo_handler=new class{};
+			$pdo_handle=new class {};
 
 		$pdo_builder=new pdo_crud_builder([
-			'pdo_handler'=>$pdo_handler
+			'pdo_handle'=>$pdo_handle
 		]);
 	echo ' [ OK ]'.PHP_EOL;
 
 	echo ' -> Test phase 1 (method/print_exec/print_parameters/flush_all)'.PHP_EOL;
 		echo '  -> create_table';
 			$pdo_builder->create_table('exampletable', [
-				'id'=>pdo_crud_builder::ID_DEFAULT_PARAMS,
+				'id'=>'INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL',
 				'a'=>'TEXT',
 				'b'=>'TEXT',
 				'c'=>'TEXT'
@@ -91,7 +91,7 @@
 				($pdo_builder->print_exec() === 'CREATE TABLE exampletable(id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, a TEXT, b TEXT, c TEXT) ') &&
 				var_export_contains(
 					$pdo_builder->print_parameters(),
-					"array()"
+					'array()'
 				)
 			)
 				echo ' [ OK ]'.PHP_EOL;
@@ -107,7 +107,7 @@
 				($pdo_builder->print_exec() === 'ALTER TABLE exampletable ') &&
 				var_export_contains(
 					$pdo_builder->print_parameters(),
-					"array()"
+					'array()'
 				)
 			)
 				echo ' [ OK ]'.PHP_EOL;
@@ -123,7 +123,7 @@
 				($pdo_builder->print_exec() === 'ALTER TABLE IF EXISTS exampletable ') &&
 				var_export_contains(
 					$pdo_builder->print_parameters(),
-					"array()"
+					'array()'
 				)
 			)
 				echo ' [ OK ]'.PHP_EOL;
@@ -139,7 +139,7 @@
 				($pdo_builder->print_exec() === 'ADD examplecolumn datatype ') &&
 				var_export_contains(
 					$pdo_builder->print_parameters(),
-					"array()"
+					'array()'
 				)
 			)
 				echo ' [ OK ]'.PHP_EOL;
@@ -155,7 +155,7 @@
 				($pdo_builder->print_exec() === 'DROP COLUMN examplecolumn ') &&
 				var_export_contains(
 					$pdo_builder->print_parameters(),
-					"array()"
+					'array()'
 				)
 			)
 				echo ' [ OK ]'.PHP_EOL;
@@ -171,7 +171,7 @@
 				($pdo_builder->print_exec() === 'RENAME COLUMN examplecolumn TO newname ') &&
 				var_export_contains(
 					$pdo_builder->print_parameters(),
-					"array()"
+					'array()'
 				)
 			)
 				echo ' [ OK ]'.PHP_EOL;
@@ -187,7 +187,7 @@
 				($pdo_builder->print_exec() === 'ALTER COLUMN examplecolumn datatype ') &&
 				var_export_contains(
 					$pdo_builder->print_parameters(),
-					"array()"
+					'array()'
 				)
 			)
 				echo ' [ OK ]'.PHP_EOL;
@@ -203,7 +203,7 @@
 				($pdo_builder->print_exec() === 'ALTER COLUMN examplecolumn TYPE datatype ') &&
 				var_export_contains(
 					$pdo_builder->print_parameters(),
-					"array()"
+					'array()'
 				)
 			)
 				echo ' [ OK ]'.PHP_EOL;
@@ -219,7 +219,7 @@
 				($pdo_builder->print_exec() === 'MODIFY COLUMN examplecolumn datatype ') &&
 				var_export_contains(
 					$pdo_builder->print_parameters(),
-					"array()"
+					'array()'
 				)
 			)
 				echo ' [ OK ]'.PHP_EOL;
@@ -235,7 +235,7 @@
 				($pdo_builder->print_exec() === 'MODIFY examplecolumn datatype ') &&
 				var_export_contains(
 					$pdo_builder->print_parameters(),
-					"array()"
+					'array()'
 				)
 			)
 				echo ' [ OK ]'.PHP_EOL;
@@ -251,7 +251,7 @@
 				($pdo_builder->print_exec() === 'RENAME exampletable ') &&
 				var_export_contains(
 					$pdo_builder->print_parameters(),
-					"array()"
+					'array()'
 				)
 			)
 				echo ' [ OK ]'.PHP_EOL;
@@ -267,7 +267,7 @@
 				($pdo_builder->print_exec() === 'RENAME TO exampletable ') &&
 				var_export_contains(
 					$pdo_builder->print_parameters(),
-					"array()"
+					'array()'
 				)
 			)
 				echo ' [ OK ]'.PHP_EOL;
@@ -283,7 +283,7 @@
 				($pdo_builder->print_exec() === 'DROP TABLE IF EXISTS exampletable ') &&
 				var_export_contains(
 					$pdo_builder->print_parameters(),
-					"array()"
+					'array()'
 				)
 			)
 				echo ' [ OK ]'.PHP_EOL;
@@ -299,7 +299,7 @@
 				($pdo_builder->print_exec() === 'TRUNCATE TABLE exampletable ') &&
 				var_export_contains(
 					$pdo_builder->print_parameters(),
-					"array()"
+					'array()'
 				)
 			)
 				echo ' [ OK ]'.PHP_EOL;
@@ -309,13 +309,436 @@
 				$errors[]='truncate_table';
 			}
 			$pdo_builder->flush_all();
+
+		echo '  -> create_view/select/from/with_check_option';
+			$pdo_builder->create_view('exampleview')
+			->	select('asterisk')
+			->	from('exampletable')
+			->	with_check_option();
+			if(
+				($pdo_builder->print_exec() === 'CREATE VIEW IF NOT EXISTS exampleview AS SELECT asterisk FROM exampletable WITH CHECK OPTION ') &&
+				var_export_contains(
+					$pdo_builder->print_parameters(),
+					'array()'
+				)
+			)
+				echo ' [ OK ]'.PHP_EOL;
+			else
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				$errors[]='create_view/select/from/with_check_option';
+			}
+			$pdo_builder->flush_all();
+		echo '  -> create_view (temporary)/select/from/with_local_check_option';
+			$pdo_builder->create_view('exampleview', true)
+			->	select('asterisk')
+			->	from('exampletable')
+			->	with_local_check_option();
+			if(
+				($pdo_builder->print_exec() === 'CREATE TEMPORARY VIEW IF NOT EXISTS exampleview AS SELECT asterisk FROM exampletable WITH LOCAL CHECK OPTION ') &&
+				var_export_contains(
+					$pdo_builder->print_parameters(),
+					'array()'
+				)
+			)
+				echo ' [ OK ]'.PHP_EOL;
+			else
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				$errors[]='create_view (temporary)/select/from/with_local_check_option';
+			}
+			$pdo_builder->flush_all();
+		echo '  -> create_or_replace_view/select/from/with_cascaded_check_option';
+			$pdo_builder->create_or_replace_view('exampleview')
+			->	select('asterisk')
+			->	from('exampletable')
+			->	with_cascaded_check_option();
+			if(
+				($pdo_builder->print_exec() === 'CREATE OR REPLACE VIEW exampleview AS SELECT asterisk FROM exampletable WITH CASCADED CHECK OPTION ') &&
+				var_export_contains(
+					$pdo_builder->print_parameters(),
+					'array()'
+				)
+			)
+				echo ' [ OK ]'.PHP_EOL;
+			else
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				$errors[]='create_or_replace_view/select/from/with_cascaded_check_option';
+			}
+			$pdo_builder->flush_all();
+		echo '  -> create_or_replace_view (temporary)/select/from';
+			$pdo_builder->create_or_replace_view('exampleview', true)
+			->	select('asterisk')
+			->	from('exampletable');
+			if(
+				($pdo_builder->print_exec() === 'CREATE OR REPLACE TEMPORARY VIEW exampleview AS SELECT asterisk FROM exampletable ') &&
+				var_export_contains(
+					$pdo_builder->print_parameters(),
+					'array()'
+				)
+			)
+				echo ' [ OK ]'.PHP_EOL;
+			else
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				$errors[]='create_or_replace_view (temporary)/select/from';
+			}
+			$pdo_builder->flush_all();
+		echo '  -> alter_view/rename_to';
+			$pdo_builder->alter_view('exampleview')
+			->	rename_to('newview');
+			if(
+				($pdo_builder->print_exec() === 'ALTER VIEW IF EXISTS exampleview RENAME TO newview ') &&
+				var_export_contains(
+					$pdo_builder->print_parameters(),
+					'array()'
+				)
+			)
+				echo ' [ OK ]'.PHP_EOL;
+			else
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				$errors[]='alter_view/rename_to';
+			}
+			$pdo_builder->flush_all();
+		echo '  -> alter_view (mysql)/select/from';
+			$pdo_builder->alter_view('exampleview', 'a,b,c')
+			->	select('asterisk')
+			->	from('exampletable');
+			if(
+				($pdo_builder->print_exec() === 'ALTER VIEW IF EXISTS exampleview(a,b,c) AS SELECT asterisk FROM exampletable ') &&
+				var_export_contains(
+					$pdo_builder->print_parameters(),
+					'array()'
+				)
+			)
+				echo ' [ OK ]'.PHP_EOL;
+			else
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				$errors[]='alter_view (mysql)/select/from';
+			}
+			$pdo_builder->flush_all();
+		echo '  -> drop_view';
+			$pdo_builder->drop_view('exampleview');
+			if(
+				($pdo_builder->print_exec() === 'DROP VIEW IF EXISTS exampleview ') &&
+				var_export_contains(
+					$pdo_builder->print_parameters(),
+					'array()'
+				)
+			)
+				echo ' [ OK ]'.PHP_EOL;
+			else
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				$errors[]='drop_view';
+			}
+			$pdo_builder->flush_all();
+		echo '  -> create_insert_trigger/insert_into';
+			$pdo_builder->create_insert_trigger('exampletrigger', 'exampletable')
+			->	create_trigger_begin()
+			->		insert_into('triggertable', 'a,b', [['1', '2']])
+			->	create_trigger_end();
+			if(
+				($pdo_builder->print_exec() === 'CREATE TRIGGER IF NOT EXISTS exampletrigger INSERT ON exampletable BEGIN INSERT INTO triggertable(a,b) VALUES(?,?) ; END ') &&
+				var_export_contains(
+					$pdo_builder->print_parameters(),
+					"array(0=>'1',1=>'2',)"
+				)
+			)
+				echo ' [ OK ]'.PHP_EOL;
+			else
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				$errors[]='create_insert_trigger/insert_into';
+			}
+			$pdo_builder->flush_all();
+		echo '  -> create_insert_trigger_before/insert_into';
+			$pdo_builder->create_insert_trigger_before('exampletrigger', 'exampletable')
+			->	create_trigger_begin()
+			->		insert_into('triggertable', 'a,b', [['1', '2']])
+			->	create_trigger_end();
+			if(
+				($pdo_builder->print_exec() === 'CREATE TRIGGER IF NOT EXISTS exampletrigger BEFORE INSERT ON exampletable BEGIN INSERT INTO triggertable(a,b) VALUES(?,?) ; END ') &&
+				var_export_contains(
+					$pdo_builder->print_parameters(),
+					"array(0=>'1',1=>'2',)"
+				)
+			)
+				echo ' [ OK ]'.PHP_EOL;
+			else
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				$errors[]='create_insert_trigger_before/insert_into';
+			}
+			$pdo_builder->flush_all();
+		echo '  -> create_insert_trigger_after/insert_into';
+			$pdo_builder->create_insert_trigger_after('exampletrigger', 'exampletable')
+			->	create_trigger_begin()
+			->		insert_into('triggertable', 'a,b', [['1', '2']])
+			->	create_trigger_end();
+			if(
+				($pdo_builder->print_exec() === 'CREATE TRIGGER IF NOT EXISTS exampletrigger AFTER INSERT ON exampletable BEGIN INSERT INTO triggertable(a,b) VALUES(?,?) ; END ') &&
+				var_export_contains(
+					$pdo_builder->print_parameters(),
+					"array(0=>'1',1=>'2',)"
+				)
+			)
+				echo ' [ OK ]'.PHP_EOL;
+			else
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				$errors[]='create_insert_trigger_after/insert_into';
+			}
+			$pdo_builder->flush_all();
+		echo '  -> create_insert_trigger_instead_of/insert_into';
+			$pdo_builder->create_insert_trigger_instead_of('exampletrigger', 'exampletable')
+			->	create_trigger_begin()
+			->		insert_into('triggertable', 'a,b', [['1', '2']])
+			->	create_trigger_end();
+			if(
+				($pdo_builder->print_exec() === 'CREATE TRIGGER IF NOT EXISTS exampletrigger INSTEAD OF INSERT ON exampletable BEGIN INSERT INTO triggertable(a,b) VALUES(?,?) ; END ') &&
+				var_export_contains(
+					$pdo_builder->print_parameters(),
+					"array(0=>'1',1=>'2',)"
+				)
+			)
+				echo ' [ OK ]'.PHP_EOL;
+			else
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				$errors[]='create_insert_trigger_instead_of/insert_into';
+			}
+			$pdo_builder->flush_all();
+		echo '  -> create_update_trigger/insert_into';
+			$pdo_builder->create_update_trigger('exampletrigger', 'exampletable')
+			->	create_trigger_begin()
+			->		insert_into('triggertable', 'a,b', [['1', '2']])
+			->	create_trigger_end();
+			if(
+				($pdo_builder->print_exec() === 'CREATE TRIGGER IF NOT EXISTS exampletrigger UPDATE ON exampletable BEGIN INSERT INTO triggertable(a,b) VALUES(?,?) ; END ') &&
+				var_export_contains(
+					$pdo_builder->print_parameters(),
+					"array(0=>'1',1=>'2',)"
+				)
+			)
+				echo ' [ OK ]'.PHP_EOL;
+			else
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				$errors[]='create_update_trigger/insert_into';
+			}
+			$pdo_builder->flush_all();
+		echo '  -> create_update_trigger_before/insert_into';
+			$pdo_builder->create_update_trigger_before('exampletrigger', 'exampletable')
+			->	create_trigger_begin()
+			->		insert_into('triggertable', 'a,b', [['1', '2']])
+			->	create_trigger_end();
+			if(
+				($pdo_builder->print_exec() === 'CREATE TRIGGER IF NOT EXISTS exampletrigger BEFORE UPDATE ON exampletable BEGIN INSERT INTO triggertable(a,b) VALUES(?,?) ; END ') &&
+				var_export_contains(
+					$pdo_builder->print_parameters(),
+					"array(0=>'1',1=>'2',)"
+				)
+			)
+				echo ' [ OK ]'.PHP_EOL;
+			else
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				$errors[]='create_update_trigger_before/insert_into';
+			}
+			$pdo_builder->flush_all();
+		echo '  -> create_update_trigger_after/insert_into';
+			$pdo_builder->create_update_trigger_after('exampletrigger', 'exampletable')
+			->	create_trigger_begin()
+			->		insert_into('triggertable', 'a,b', [['1', '2']])
+			->	create_trigger_end();
+			if(
+				($pdo_builder->print_exec() === 'CREATE TRIGGER IF NOT EXISTS exampletrigger AFTER UPDATE ON exampletable BEGIN INSERT INTO triggertable(a,b) VALUES(?,?) ; END ') &&
+				var_export_contains(
+					$pdo_builder->print_parameters(),
+					"array(0=>'1',1=>'2',)"
+				)
+			)
+				echo ' [ OK ]'.PHP_EOL;
+			else
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				$errors[]='create_update_trigger_after/insert_into';
+			}
+			$pdo_builder->flush_all();
+		echo '  -> create_update_trigger_instead_of/insert_into';
+			$pdo_builder->create_update_trigger_instead_of('exampletrigger', 'exampletable')
+			->	create_trigger_begin()
+			->		insert_into('triggertable', 'a,b', [['1', '2']])
+			->	create_trigger_end();
+			if(
+				($pdo_builder->print_exec() === 'CREATE TRIGGER IF NOT EXISTS exampletrigger INSTEAD OF UPDATE ON exampletable BEGIN INSERT INTO triggertable(a,b) VALUES(?,?) ; END ') &&
+				var_export_contains(
+					$pdo_builder->print_parameters(),
+					"array(0=>'1',1=>'2',)"
+				)
+			)
+				echo ' [ OK ]'.PHP_EOL;
+			else
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				$errors[]='create_update_trigger_instead_of/insert_into';
+			}
+			$pdo_builder->flush_all();
+		echo '  -> create_delete_trigger/insert_into';
+			$pdo_builder->create_delete_trigger('exampletrigger', 'exampletable')
+			->	create_trigger_begin()
+			->		insert_into('triggertable', 'a,b', [['1', '2']])
+			->	create_trigger_end();
+			if(
+				($pdo_builder->print_exec() === 'CREATE TRIGGER IF NOT EXISTS exampletrigger DELETE ON exampletable BEGIN INSERT INTO triggertable(a,b) VALUES(?,?) ; END ') &&
+				var_export_contains(
+					$pdo_builder->print_parameters(),
+					"array(0=>'1',1=>'2',)"
+				)
+			)
+				echo ' [ OK ]'.PHP_EOL;
+			else
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				$errors[]='create_delete_trigger/insert_into';
+			}
+			$pdo_builder->flush_all();
+		echo '  -> create_delete_trigger_before/insert_into';
+			$pdo_builder->create_delete_trigger_before('exampletrigger', 'exampletable')
+			->	create_trigger_begin()
+			->		insert_into('triggertable', 'a,b', [['1', '2']])
+			->	create_trigger_end();
+			if(
+				($pdo_builder->print_exec() === 'CREATE TRIGGER IF NOT EXISTS exampletrigger BEFORE DELETE ON exampletable BEGIN INSERT INTO triggertable(a,b) VALUES(?,?) ; END ') &&
+				var_export_contains(
+					$pdo_builder->print_parameters(),
+					"array(0=>'1',1=>'2',)"
+				)
+			)
+				echo ' [ OK ]'.PHP_EOL;
+			else
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				$errors[]='create_delete_trigger_before/insert_into';
+			}
+			$pdo_builder->flush_all();
+		echo '  -> create_delete_trigger_after/insert_into';
+			$pdo_builder->create_delete_trigger_after('exampletrigger', 'exampletable')
+			->	create_trigger_begin()
+			->		insert_into('triggertable', 'a,b', [['1', '2']])
+			->	create_trigger_end();
+			if(
+				($pdo_builder->print_exec() === 'CREATE TRIGGER IF NOT EXISTS exampletrigger AFTER DELETE ON exampletable BEGIN INSERT INTO triggertable(a,b) VALUES(?,?) ; END ') &&
+				var_export_contains(
+					$pdo_builder->print_parameters(),
+					"array(0=>'1',1=>'2',)"
+				)
+			)
+				echo ' [ OK ]'.PHP_EOL;
+			else
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				$errors[]='create_delete_trigger_after/insert_into';
+			}
+			$pdo_builder->flush_all();
+		echo '  -> create_delete_trigger_instead_of/insert_into';
+			$pdo_builder->create_delete_trigger_instead_of('exampletrigger', 'exampletable')
+			->	create_trigger_begin()
+			->		insert_into('triggertable', 'a,b', [['1', '2']])
+			->	create_trigger_end();
+			if(
+				($pdo_builder->print_exec() === 'CREATE TRIGGER IF NOT EXISTS exampletrigger INSTEAD OF DELETE ON exampletable BEGIN INSERT INTO triggertable(a,b) VALUES(?,?) ; END ') &&
+				var_export_contains(
+					$pdo_builder->print_parameters(),
+					"array(0=>'1',1=>'2',)"
+				)
+			)
+				echo ' [ OK ]'.PHP_EOL;
+			else
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				$errors[]='create_delete_trigger_instead_of/insert_into';
+			}
+			$pdo_builder->flush_all();
+		echo '  -> drop_trigger';
+			$pdo_builder->drop_trigger('exampletrigger');
+			if(
+				($pdo_builder->print_exec() === 'DROP TRIGGER IF EXISTS exampletrigger ') &&
+				var_export_contains(
+					$pdo_builder->print_parameters(),
+					'array()'
+				)
+			)
+				echo ' [ OK ]'.PHP_EOL;
+			else
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				$errors[]='drop_trigger';
+			}
+			$pdo_builder->flush_all();
+		echo '  -> create_type';
+			$pdo_builder->create_type('exampletype', [
+				'a'=>'TEXT',
+				'b'=>'TEXT',
+				'c'=>'TEXT'
+			]);
+			if(
+				($pdo_builder->print_exec() === 'CREATE TYPE exampletype AS(a TEXT, b TEXT, c TEXT) ') &&
+				var_export_contains(
+					$pdo_builder->print_parameters(),
+					'array()'
+				)
+			)
+				echo ' [ OK ]'.PHP_EOL;
+			else
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				$errors[]='drop_trigger';
+			}
+			$pdo_builder->flush_all();
+		echo '  -> create_type_enum';
+			$pdo_builder->create_type_enum('exampletype', ['enum_a', 'enum_b', 'enum_n']);
+			if(
+				($pdo_builder->print_exec() === 'CREATE TYPE exampletype AS ENUM(enum_a,enum_b,enum_n) ') &&
+				var_export_contains(
+					$pdo_builder->print_parameters(),
+					'array()'
+				)
+			)
+				echo ' [ OK ]'.PHP_EOL;
+			else
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				$errors[]='drop_trigger';
+			}
+			$pdo_builder->flush_all();
+		echo '  -> drop_type';
+			$pdo_builder->drop_type('exampletype');
+			if(
+				($pdo_builder->print_exec() === 'DROP TYPE IF EXISTS exampletype ') &&
+				var_export_contains(
+					$pdo_builder->print_parameters(),
+					'array()'
+				)
+			)
+				echo ' [ OK ]'.PHP_EOL;
+			else
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				$errors[]='drop_trigger';
+			}
+			$pdo_builder->flush_all();
 		echo '  -> insert_into';
 			$pdo_builder->insert_into('exampletable', 'a,b', [
 				['aa', 'ba'],
 				['ba', 'bb']
 			]);
 			if(
-				($pdo_builder->print_exec() === 'INSERT INTO exampletable(a,b) VALUES(?, ?), (?, ?) ') &&
+				($pdo_builder->print_exec() === 'INSERT INTO exampletable(a,b) VALUES(?,?), (?,?) ') &&
 				var_export_contains(
 					$pdo_builder->print_parameters(),
 					"array(0=>'aa',1=>'ba',2=>'ba',3=>'bb',)"
@@ -334,7 +757,7 @@
 				($pdo_builder->print_exec() === 'SELECT asterisk ') &&
 				var_export_contains(
 					$pdo_builder->print_parameters(),
-					"array()"
+					'array()'
 				)
 			)
 				echo ' [ OK ]'.PHP_EOL;
@@ -350,7 +773,7 @@
 				($pdo_builder->print_exec() === 'SELECT TOP 20 asterisk ') &&
 				var_export_contains(
 					$pdo_builder->print_parameters(),
-					"array()"
+					'array()'
 				)
 			)
 				echo ' [ OK ]'.PHP_EOL;
@@ -366,7 +789,7 @@
 				($pdo_builder->print_exec() === 'SELECT TOP 20 PERCENT asterisk ') &&
 				var_export_contains(
 					$pdo_builder->print_parameters(),
-					"array()"
+					'array()'
 				)
 			)
 				echo ' [ OK ]'.PHP_EOL;
@@ -382,7 +805,7 @@
 				($pdo_builder->print_exec() === 'AS aaa ') &&
 				var_export_contains(
 					$pdo_builder->print_parameters(),
-					"array()"
+					'array()'
 				)
 			)
 				echo ' [ OK ]'.PHP_EOL;
@@ -398,7 +821,7 @@
 				($pdo_builder->print_exec() === 'GROUP BY parameter ') &&
 				var_export_contains(
 					$pdo_builder->print_parameters(),
-					"array()"
+					'array()'
 				)
 			)
 				echo ' [ OK ]'.PHP_EOL;
@@ -414,7 +837,7 @@
 				($pdo_builder->print_exec() === 'ORDER BY parameter ') &&
 				var_export_contains(
 					$pdo_builder->print_parameters(),
-					"array()"
+					'array()'
 				)
 			)
 				echo ' [ OK ]'.PHP_EOL;
@@ -430,7 +853,7 @@
 				($pdo_builder->print_exec() === 'FULL OUTER JOIN parameter ON onn ') &&
 				var_export_contains(
 					$pdo_builder->print_parameters(),
-					"array()"
+					'array()'
 				)
 			)
 				echo ' [ OK ]'.PHP_EOL;
@@ -446,7 +869,7 @@
 				($pdo_builder->print_exec() === 'UNION ') &&
 				var_export_contains(
 					$pdo_builder->print_parameters(),
-					"array()"
+					'array()'
 				)
 			)
 				echo ' [ OK ]'.PHP_EOL;
@@ -462,7 +885,7 @@
 				($pdo_builder->print_exec() === 'UNION ALL ') &&
 				var_export_contains(
 					$pdo_builder->print_parameters(),
-					"array()"
+					'array()'
 				)
 			)
 				echo ' [ OK ]'.PHP_EOL;
@@ -478,7 +901,7 @@
 				($pdo_builder->print_exec() === 'ASC ') &&
 				var_export_contains(
 					$pdo_builder->print_parameters(),
-					"array()"
+					'array()'
 				)
 			)
 				echo ' [ OK ]'.PHP_EOL;
@@ -494,7 +917,7 @@
 				($pdo_builder->print_exec() === 'DESC ') &&
 				var_export_contains(
 					$pdo_builder->print_parameters(),
-					"array()"
+					'array()'
 				)
 			)
 				echo ' [ OK ]'.PHP_EOL;
@@ -510,7 +933,7 @@
 				($pdo_builder->print_exec() === 'LIMIT 3 OFFSET 2 ') &&
 				var_export_contains(
 					$pdo_builder->print_parameters(),
-					"array()"
+					'array()'
 				)
 			)
 				echo ' [ OK ]'.PHP_EOL;
@@ -526,7 +949,7 @@
 				($pdo_builder->print_exec() === 'OFFSET 2 ROWS FETCH FIRST 3 ROWS ONLY ') &&
 				var_export_contains(
 					$pdo_builder->print_parameters(),
-					"array()"
+					'array()'
 				)
 			)
 				echo ' [ OK ]'.PHP_EOL;
@@ -542,7 +965,7 @@
 				($pdo_builder->print_exec() === 'OFFSET 2 ROWS FETCH FIRST 3 PERCENT ROWS ONLY ') &&
 				var_export_contains(
 					$pdo_builder->print_parameters(),
-					"array()"
+					'array()'
 				)
 			)
 				echo ' [ OK ]'.PHP_EOL;
@@ -558,7 +981,7 @@
 				($pdo_builder->print_exec() === 'OFFSET 2 ROWS FETCH NEXT 3 ROWS ONLY ') &&
 				var_export_contains(
 					$pdo_builder->print_parameters(),
-					"array()"
+					'array()'
 				)
 			)
 				echo ' [ OK ]'.PHP_EOL;
@@ -574,7 +997,7 @@
 				($pdo_builder->print_exec() === 'OFFSET 2 ROWS FETCH NEXT 3 PERCENT ROWS ONLY ') &&
 				var_export_contains(
 					$pdo_builder->print_parameters(),
-					"array()"
+					'array()'
 				)
 			)
 				echo ' [ OK ]'.PHP_EOL;
@@ -590,7 +1013,7 @@
 				['ba', 'bb']
 			]);
 			if(
-				($pdo_builder->print_exec() === 'REPLACE INTO exampletable(a,b) VALUES(?, ?), (?, ?) ') &&
+				($pdo_builder->print_exec() === 'REPLACE INTO exampletable(a,b) VALUES(?,?), (?,?) ') &&
 				var_export_contains(
 					$pdo_builder->print_parameters(),
 					"array(0=>'aa',1=>'ab',2=>'ba',3=>'bb',)"
@@ -609,7 +1032,7 @@
 				($pdo_builder->print_exec() === 'UPDATE exampletable ') &&
 				var_export_contains(
 					$pdo_builder->print_parameters(),
-					"array()"
+					'array()'
 				)
 			)
 				echo ' [ OK ]'.PHP_EOL;
@@ -644,7 +1067,7 @@
 				($pdo_builder->print_exec() === 'DELETE FROM exampletable ') &&
 				var_export_contains(
 					$pdo_builder->print_parameters(),
-					"array()"
+					'array()'
 				)
 			)
 				echo ' [ OK ]'.PHP_EOL;
@@ -660,7 +1083,7 @@
 				($pdo_builder->print_exec() === 'FROM exampletable ') &&
 				var_export_contains(
 					$pdo_builder->print_parameters(),
-					"array()"
+					'array()'
 				)
 			)
 				echo ' [ OK ]'.PHP_EOL;
@@ -756,7 +1179,7 @@
 				($pdo_builder->print_exec() === 'WHERE a IS b ') &&
 				var_export_contains(
 					$pdo_builder->print_parameters(),
-					"array()"
+					'array()'
 				)
 			)
 				echo ' [ OK ]'.PHP_EOL;
@@ -788,7 +1211,39 @@
 				($pdo_builder->print_exec() === 'OUTPUT a INTO b ') &&
 				var_export_contains(
 					$pdo_builder->print_parameters(),
-					"array()"
+					'array()'
+				)
+			)
+				echo ' [ OK ]'.PHP_EOL;
+			else
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				$errors[]='output_into';
+			}
+			$pdo_builder->flush_all();
+		echo '  -> cascade';
+			$pdo_builder->cascade();
+			if(
+				($pdo_builder->print_exec() === 'CASCADE ') &&
+				var_export_contains(
+					$pdo_builder->print_parameters(),
+					'array()'
+				)
+			)
+				echo ' [ OK ]'.PHP_EOL;
+			else
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				$errors[]='output_into';
+			}
+			$pdo_builder->flush_all();
+		echo '  -> restrict';
+			$pdo_builder->restrict();
+			if(
+				($pdo_builder->print_exec() === 'RESTRICT ') &&
+				var_export_contains(
+					$pdo_builder->print_parameters(),
+					'array()'
 				)
 			)
 				echo ' [ OK ]'.PHP_EOL;
@@ -804,7 +1259,7 @@
 				($pdo_builder->print_exec() === 'CUSTOM SQL ') &&
 				var_export_contains(
 					$pdo_builder->print_parameters(),
-					"array()"
+					'array()'
 				)
 			)
 				echo ' [ OK ]'.PHP_EOL;
@@ -834,17 +1289,19 @@
 		echo '  -> table_dump [SKIP]'.PHP_EOL;
 		echo '  -> list_tables [SKIP]'.PHP_EOL;
 
-	if(class_exists('PDO') && in_array('sqlite', PDO::getAvailableDrivers()))
-	{
+	if(
+		class_exists('PDO') &&
+		in_array('sqlite', PDO::getAvailableDrivers())
+	){
 		echo ' -> Test phase 2'.PHP_EOL;
 
 		echo '  -> create_table/exec';
 			$pdo_builder->create_table('exampletable', [
-				'id'=>pdo_crud_builder::ID_DEFAULT_PARAMS,
+				'id'=>'INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL',
 				'a'=>'TEXT',
 				'b'=>'TEXT'
 			])->exec();
-			if($pdo_handler->query('SELECT * FROM exampletable') === false)
+			if($pdo_handle->query('SELECT * FROM exampletable') === false)
 			{
 				echo ' [FAIL]'.PHP_EOL;
 				$errors[]='create_table/exec';
@@ -858,7 +1315,7 @@
 			])->exec();
 			$output_string_a="array(0=>array('id'=>'1','a'=>'aa','b'=>'ba',),1=>array('id'=>'2','a'=>'ba','b'=>'bb',),)";
 			$output_string_b="array(0=>array('id'=>1,'a'=>'aa','b'=>'ba',),1=>array('id'=>2,'a'=>'ba','b'=>'bb',),)";
-			$query_result=$pdo_handler->query('SELECT * FROM exampletable')->fetchAll(PDO::FETCH_NAMED);
+			$query_result=$pdo_handle->query('SELECT * FROM exampletable')->fetchAll(PDO::FETCH_NAMED);
 			if(
 				var_export_contains($query_result, $output_string_a) ||
 				var_export_contains($query_result, $output_string_b)
@@ -871,12 +1328,12 @@
 			}
 		echo '  -> select/from/query';
 			$result=$pdo_builder
-				->select('*')
-				->from('exampletable')
-			->query();
+			->	select('*')
+			->	from('exampletable')
+			->	query();
 			$output_string_a="array(0=>array('id'=>'1','a'=>'aa','b'=>'ba',),1=>array('id'=>'2','a'=>'ba','b'=>'bb',),)";
 			$output_string_b="array(0=>array('id'=>1,'a'=>'aa','b'=>'ba',),1=>array('id'=>2,'a'=>'ba','b'=>'bb',),)";
-			$query_result=$pdo_handler->query('SELECT * FROM exampletable')->fetchAll(PDO::FETCH_NAMED);
+			$query_result=$pdo_handle->query('SELECT * FROM exampletable')->fetchAll(PDO::FETCH_NAMED);
 			if(
 				var_export_contains($result, $output_string_a) ||
 				var_export_contains($result, $output_string_b)
@@ -889,9 +1346,9 @@
 			}
 		echo '  -> select/from/exec/fetch_row';
 			$result=$pdo_builder
-				->select('*')
-				->from('exampletable')
-			->exec(true);
+			->	select('*')
+			->	from('exampletable')
+			->	exec(true);
 			$output_string_a="array('id'=>'1','a'=>'aa','b'=>'ba',)";
 			$output_string_b="array('id'=>1,'a'=>'aa','b'=>'ba',)";
 			$query_result=$pdo_builder->fetch_row($result);

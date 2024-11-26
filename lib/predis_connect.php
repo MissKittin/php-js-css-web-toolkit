@@ -49,14 +49,18 @@
 				?>
 		 *
 		 * Initialization:
-		 *  $redis=predis_connect('./path_to/your_database_config_directory');
+			$redis=predis_connect('./path_to/your_database_config_directory');
 		 */
 
 		if(!class_exists('\Predis\Client'))
-			throw new predis_connect_exception('predis/predis package is not installed');
+			throw new predis_connect_exception(
+				'predis/predis package is not installed'
+			);
 
 		if(!file_exists($db.'/config.php'))
-			throw new predis_connect_exception($db.'/config.php not exists');
+			throw new predis_connect_exception(
+				$db.'/config.php not exists'
+			);
 
 		if(file_exists($db.'/options.php'))
 			return new Predis\Client(
@@ -94,19 +98,21 @@
 			));
 		 */
 
-		protected $predis_handler;
+		protected $predis_handle;
 
-		public function __construct($predis_handler)
+		public function __construct($predis_handle)
 		{
-			$this->predis_handler=$predis_handler;
+			$this->predis_handle=$predis_handle;
 		}
 		public function __call($method, $args)
 		{
 			switch($method)
 			{
 				case 'set':
-					if(isset($args[2]) && is_array($args[2]))
-					{
+					if(
+						isset($args[2]) &&
+						is_array($args[2])
+					){
 						// set($key, $value, ['ex'=>$timeout]) --> set($key, $value, 'ex', $timeout)
 
 						$old_args=$args[2];
@@ -124,12 +130,15 @@
 					$args[1]=['MATCH'=>$args[1]];
 			}
 
-			$output=$this->predis_handler->$method(...$args);
+			$output=$this
+			->	predis_handle
+			->	$method(...$args);
 
 			switch($method)
 			{
 				case 'set':
 					// set(): Predis\Response\Status --> set(): bool
+
 					if(
 						($output->__toString() === 'OK') ||
 						($output->__toString() === 'QUEUED')
@@ -139,12 +148,14 @@
 					return false;
 				case 'scan':
 					// scan(): [[iterator], [matches]] --> scan(): [matches]|false
+
 					if(empty($output[1]))
 						return false;
 
 					return $output[1];
 				default:
 					// get(): null --> get(): false
+
 					if($output === null)
 						return false;
 			}

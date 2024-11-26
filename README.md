@@ -2,7 +2,7 @@
 A set of tools, components and libraries that you can use in your project  
 Minimum PHP version: 7.1  
 Recommended PHP version: 7.4 or newer  
-Supported relational databases: PostgreSQL, MySQL, SQLite3  
+Supported relational databases (PDO): PostgreSQL, MySQL, SQLite3  
 Supported cache databases: Redis, Memcached, APCu
 
 ## Principles
@@ -21,24 +21,20 @@ Supported cache databases: Redis, Memcached, APCu
 * `file-sign.php` - interface for `sec_file_sign.php` library
 * `file-watch.php` - run the command after modifying the file(s)
 * `get-composer.php` - easily add composer to your project
-* `link2file.php` - recursively convert all symbolic links to files
+* `link2file.php` - recursively replace all symbolic links with files
 * `logrotate.php` - interface for `logrotate.php` library
 * `lv-encrypter.php` - interface for `sec_lv_encrypter.php` library
 * `matthiasmullie-minify.php` - interface for the `matthiasmullie/minify` package
 * `mkphar.php` - a tool to quickly build a PHP archive
-* `opcache-preload-generator.php` - opcache preload script generator
 * `pdo-connect.php` - interface for `pdo_connect.php` library - seed databases
 * `queue-worker.php` - interface for `queue_worker.php` server
-* `remove-gpl.php` - remove GPL-licensed libraries
 * `run-php-bin-tests.php` - run PHP tool tests in batch mode
 * `run-php-com-tests.php` - run PHP components tests in batch mode
 * `run-php-lib-tests.php` - run PHP library tests in batch mode
 * `run-phtml-tests.php` - serve phtml tests (for Js and CSS libraries)
 * `serve.php` - start PHP development server
 * `sqlite3-db-dump.php` - interface for `sqlite3_db_dump.php` library
-* `sqlite3-db-vacuum.php` - vacuum database
 * `strip-php-files.php` - a toy that removes comments and whitespace from php files
-* `webdevsh.php` - interface for `webdevsh.php` library
 * `websockets.php` - a simple point-to-point websocket server
 
 ## PHP libraries
@@ -49,8 +45,9 @@ Supported cache databases: Redis, Memcached, APCu
 * `check_date.php` - check if is between DD.MM - DD.MM
 * `check_var.php` - check if variable and eventually return value
 * `cli_prompt.php` - console prompter
+* `cli_server_finish_request.php` - `fastcgi_finish_request` emulation for PHP built-in server
 * `convert_bytes.php` - automatically convert input number to human-readable form
-* `copy_recursive.php` - copy entire directories
+* `copy_recursive.php` - copy entire directories and replace symbolic link with file or directory
 * `cron.php` - task scheduler
 * `csv2table.php` - convert CSV file to HTML table
 * `curl_file_updown.php` - quickly download/upload file
@@ -71,8 +68,8 @@ Supported cache databases: Redis, Memcached, APCu
 * `lv_str.php` - Laravel string helpers (MIT)
 * `maintenance_break.php` - check to send the maintenance break pattern
 * `measure_exec_time.php` - debugging
-* `mem_zip.php` - create zip file in memory (GNU GPL2)
 * `memcached_connect.php` - open preconfigured connection to the Memcached
+* `mk_calendar.php` - HTML calendar widget
 * `ob_cache.php` - cache output buffer
 * `ob_minifier.php` - simple minifier and compressor
 * `ob_sfucator.php` - xor all page content on server and decode on client
@@ -81,6 +78,7 @@ Supported cache databases: Redis, Memcached, APCu
 * `pdo_cheat.php` - use the table as an object
 * `pdo_connect.php` - open preconfigured connection to the database and optionally seed
 * `pdo_crud_builder.php` - OOP SQL builder
+* `pdo_migrate.php` - database migrations
 * `predis_connect.php` - Predis support library
 * `print_file.php` - set HTTP headers and send specified file to the client
 * `queue_worker.php` - execute jobs outside the HTTP server
@@ -105,8 +103,6 @@ Supported cache databases: Redis, Memcached, APCu
 * `uri_router.php` - OOP routing solution
 * `uuid.php` - UUID manipulation (MIT)
 * `var_export_contains.php` - check if the content of the variable is correct (mainly for testing purposes)
-* `webdevsh.php` - functions for Toptal minifiers
-* `wp_is_serialized.php` - check if string is serialized data - function from Wordpress (GNU GPL2)
 
 ## PHP libraries - polyfills
 * `pf_array.php` - `array_*()` (MIT)
@@ -149,6 +145,7 @@ Supported cache databases: Redis, Memcached, APCu
 * `getJson.js` - get/send JSON data
 * `imgRotator.js` - rotate images on selected id
 * `linkify.js` - rooseve's plaintext link to anchor converter
+* `mkCalendar.js` - HTML calendar widget (Js version)
 * `multipage.js` - put several pages in one HTML file / element switcher
 * `rand.js`
 * `richTextEditor.js` - basic WYSIWYG editor

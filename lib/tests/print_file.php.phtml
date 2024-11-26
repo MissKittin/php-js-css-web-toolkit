@@ -27,5 +27,7 @@
 	else if(is_file(__DIR__.'/../'.basename(__FILE__, '.phtml')))
 		require __DIR__.'/../'.basename(__FILE__, '.phtml');
 
-	print_file(__DIR__.'/tmp/print_file.png', 3600);
+	print_file(__DIR__.'/tmp/print_file.png', [
+		'cache'=>3600
+	]);
 ?>

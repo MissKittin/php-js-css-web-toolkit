@@ -188,7 +188,7 @@
 			}
 
 		echo ' -> Testing is_logged (returns false)';
-			if(!is_logged(false))
+			if(!login_validator::is_logged(false)) // bypass cache
 				echo ' [ OK ]'.PHP_EOL;
 			else
 			{

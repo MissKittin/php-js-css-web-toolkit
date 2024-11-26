@@ -34,7 +34,7 @@
 	$failed=false;
 
 	echo ' -> Testing basic_templating_engine';
-		$source='variable_a is {{variable_a}} and variable_b is {{variable_b}}';
+		$source='variable_a is {{ variable_a }} and variable_b is {{ variable_b }}';
 		$variables=[
 			'variable_a'=>'value_a',
 			'variable_b'=>'value_b'

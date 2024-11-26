@@ -183,12 +183,12 @@
 
 	echo ' -> Testing predis_connect';
 		try {
-			$redis_handler=predis_connect(__DIR__.'/tmp/predis_connect');
-			$redis_handler->connect();
+			$redis_handle=predis_connect(__DIR__.'/tmp/predis_connect');
+			$redis_handle->connect();
 
-			$redis_handler->del('predis_connect_test_set');
-			$redis_handler->del('predis_connect_test_set_ex');
-			$redis_handler->del('predis_connect_test_get');
+			$redis_handle->del('predis_connect_test_set');
+			$redis_handle->del('predis_connect_test_set_ex');
+			$redis_handle->del('predis_connect_test_get');
 		} catch(Throwable $error) {
 			echo ' [FAIL]'.PHP_EOL;
 			exit(1);
@@ -196,10 +196,10 @@
 	echo ' [ OK ]'.PHP_EOL;
 
 	echo ' -> Testing predis_phpredis_proxy'.PHP_EOL;
-		$proxy_handler=new predis_phpredis_proxy($redis_handler);
+		$proxy_handle=new predis_phpredis_proxy($redis_handle);
 		echo '  -> set'.PHP_EOL;
 			echo '   -> no expire';
-				if(is_bool($proxy_handler->set('predis_connect_test_set', 'passed')))
+				if(is_bool($proxy_handle->set('predis_connect_test_set', 'passed')))
 					echo ' [ OK ]'.PHP_EOL;
 				else
 				{
@@ -207,7 +207,7 @@
 					$failed=true;
 				}
 			echo '   -> expire';
-				if(is_bool($proxy_handler->set('predis_connect_test_set_ex', 'passed', ['ex'=>60])))
+				if(is_bool($proxy_handle->set('predis_connect_test_set_ex', 'passed', ['ex'=>60])))
 					echo ' [ OK ]'.PHP_EOL;
 				else
 				{
@@ -218,7 +218,7 @@
 			$iterator=null;
 			$scan_failed=false;
 			do {
-				$keys=$proxy_handler->scan($iterator, 'predis_connect_test_*');
+				$keys=$proxy_handle->scan($iterator, 'predis_connect_test_*');
 
 				if($keys === false)
 				{
@@ -240,7 +240,7 @@
 			else
 				echo ' [ OK ]'.PHP_EOL;
 		echo '  -> get';
-			if($proxy_handler->get('predis_connect_test_get') === false)
+			if($proxy_handle->get('predis_connect_test_get') === false)
 				echo ' [ OK ]'.PHP_EOL;
 			else
 			{

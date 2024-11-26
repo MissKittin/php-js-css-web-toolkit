@@ -15,26 +15,36 @@
 	function load_library($libraries, $required=true)
 	{
 		foreach($libraries as $library)
+		{
 			if(file_exists(__DIR__.'/lib/'.$library))
+			{
 				require __DIR__.'/lib/'.$library;
-			else if(file_exists(__DIR__.'/../lib/'.$library))
+				continue;
+			}
+
+			if(file_exists(__DIR__.'/../lib/'.$library))
+			{
 				require __DIR__.'/../lib/'.$library;
-			else
-				if($required)
-					throw new Exception($library.' library not found');
+				continue;
+			}
+
+			if($required)
+				throw new Exception($library.' library not found');
+		}
 	}
 
 	try {
-		load_library(['check_var.php', 'rmdir_recursive.php']);
+		load_library([
+			'check_var.php',
+			'rmdir_recursive.php'
+		]);
 	} catch(Exception $error) {
 		echo 'Error: '.$error->getMessage().PHP_EOL;
 		exit(1);
 	}
 
-	if(
-		check_argv('-h') ||
-		check_argv('--help')
-	){
+	if(check_argv('-h') || check_argv('--help'))
+	{
 		echo 'Usage: '.$argv[0].' path/to/directory [--remove-tests] [--remove-md]'.PHP_EOL;
 		exit();
 	}

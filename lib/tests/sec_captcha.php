@@ -125,7 +125,7 @@
 							echo '  -> Testing '.$format.PHP_EOL;
 
 							echo '   -> captcha_get';
-								$image=captcha_get('Test\captcha_gd2', [$format]);
+								$image=captcha_get(new captcha_gd2($format));
 								file_put_contents(__DIR__.'/tmp/sec_captcha/sec_captcha_gd2-'.$_SESSION['_captcha']['token'].'.'.$format, $image);
 								if(!empty($image))
 									echo ' [ OK ]'.PHP_EOL;
@@ -168,7 +168,7 @@
 						echo '  -> Testing '.$format.PHP_EOL;
 
 						echo '   -> captcha_get';
-							$image=captcha_get('Test\captcha_imagick', [$format]);
+							$image=captcha_get(new captcha_imagick($format));
 							file_put_contents(__DIR__.'/tmp/sec_captcha/sec_captcha_imagick-'.$_SESSION['_captcha']['token'].'.'.$format, $image);
 							if(!empty($image))
 								echo ' [ OK ]'.PHP_EOL;
@@ -213,7 +213,7 @@
 						echo '  -> Testing '.$format.PHP_EOL;
 
 						echo '   -> captcha_get';
-							$image=captcha_get('Test\captcha_imagick2', [$format]);
+							$image=captcha_get(new captcha_imagick2($format));
 							file_put_contents(__DIR__.'/tmp/sec_captcha/sec_captcha_imagick2-'.$_SESSION['_captcha']['token'].'.'.$format, $image);
 							if(!empty($image))
 								echo ' [ OK ]'.PHP_EOL;
@@ -252,6 +252,7 @@
 			exit(1);
 
 		$failed=true;
+
 		foreach($no_extensions as $no_extension)
 			if($no_extension === false)
 			{

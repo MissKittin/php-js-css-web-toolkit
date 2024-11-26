@@ -12,16 +12,34 @@
 		if(!is_dir($directory))
 			return false;
 
+		$result=true;
+
 		foreach(new RecursiveIteratorIterator(
-			new RecursiveDirectoryIterator($directory, RecursiveDirectoryIterator::SKIP_DOTS),
+			new RecursiveDirectoryIterator(
+				$directory,
+				RecursiveDirectoryIterator::SKIP_DOTS
+			),
 			RecursiveIteratorIterator::CHILD_FIRST
 		) as $file_info){
-			$action=($file_info->isDir() ? 'rmdir' : 'unlink');
-			$action($file_info->getRealPath());
+			if($file_info->isDir())
+			{
+				if(!rmdir(
+					$file_info->getRealPath()
+				))
+					$result=false;
+
+				continue;
+			}
+
+			if(!unlink(
+				$file_info->getRealPath()
+			))
+				$result=false;;
 		}
 
-		rmdir($directory);
+		if(!rmdir($directory))
+			return false;
 
-		return true;
+		return $result;
 	}
 ?>

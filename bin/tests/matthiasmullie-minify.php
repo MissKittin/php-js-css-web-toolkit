@@ -34,15 +34,20 @@
 
 	echo ' -> Removing temporary files';
 		@mkdir(__DIR__.'/tmp');
-		@rmdir_recursive(__DIR__.'/tmp/matthiasmullie-minify');
-		mkdir(__DIR__.'/tmp/matthiasmullie-minify');
+		@mkdir(__DIR__.'/tmp/matthiasmullie-minify');
+		@rmdir_recursive(__DIR__.'/tmp/matthiasmullie-minify/assets');
+		@unlink(__DIR__.'/tmp/matthiasmullie-minify/matthiasmullie-minify.php');
 	echo ' [ OK ]'.PHP_EOL;
 
 	echo ' -> Creating test directory';
-		mkdir(__DIR__.'/tmp/matthiasmullie-minify/lib');
-		copy(__DIR__.'/../../lib/check_var.php', __DIR__.'/tmp/matthiasmullie-minify/lib/check_var.php');
-		copy(__DIR__.'/../../lib/curl_file_updown.php', __DIR__.'/tmp/matthiasmullie-minify/lib/curl_file_updown.php');
-		copy(__DIR__.'/../get-composer.php', __DIR__.'/tmp/matthiasmullie-minify/get-composer.php');
+		if(!file_exists(__DIR__.'/tmp/matthiasmullie-minify/lib'))
+		{
+			mkdir(__DIR__.'/tmp/matthiasmullie-minify/lib');
+			copy(__DIR__.'/../../lib/check_var.php', __DIR__.'/tmp/matthiasmullie-minify/lib/check_var.php');
+			copy(__DIR__.'/../../lib/curl_file_updown.php', __DIR__.'/tmp/matthiasmullie-minify/lib/curl_file_updown.php');
+			copy(__DIR__.'/../get-composer.php', __DIR__.'/tmp/matthiasmullie-minify/get-composer.php');
+		}
+
 		copy(__DIR__.'/../matthiasmullie-minify.php', __DIR__.'/tmp/matthiasmullie-minify/matthiasmullie-minify.php');
 
 		mkdir(__DIR__.'/tmp/matthiasmullie-minify/assets');
@@ -64,29 +69,39 @@
 
 	$failed=false;
 
-	echo ' -> Downloading composer'.PHP_EOL.PHP_EOL;
-		system('"'.PHP_BINARY.'" "'.__DIR__.'/tmp/matthiasmullie-minify/get-composer.php"');
+	if(file_exists(__DIR__.'/tmp/matthiasmullie-minify/composer.phar'))
+		echo ' -> Downloading composer [SKIP]'.PHP_EOL;
+	else
+	{
+		echo ' -> Downloading composer'.PHP_EOL.PHP_EOL;
+			system('"'.PHP_BINARY.'" "'.__DIR__.'/tmp/matthiasmullie-minify/get-composer.php"');
 
-		if(!file_exists(__DIR__.'/tmp/matthiasmullie-minify/composer.phar'))
-		{
-			echo PHP_EOL;
-			exit(1);
-		}
-	echo PHP_EOL;
+			if(!file_exists(__DIR__.'/tmp/matthiasmullie-minify/composer.phar'))
+			{
+				echo PHP_EOL;
+				exit(1);
+			}
+		echo PHP_EOL;
+	}
 
-	echo ' -> Downloading matthiasmullie/minify package'.PHP_EOL.PHP_EOL;
-		system('"'.PHP_BINARY.'" "'.__DIR__.'/tmp/matthiasmullie-minify/composer.phar" '
-		.	'--no-cache '
-		.	'"--working-dir='.__DIR__.'/tmp/matthiasmullie-minify" '
-		.	'require matthiasmullie/minify'
-		);
+	if(file_exists(__DIR__.'/tmp/matthiasmullie-minify/composer.json'))
+		echo ' -> Downloading matthiasmullie/minify package [SKIP]'.PHP_EOL;
+	else
+	{
+		echo ' -> Downloading matthiasmullie/minify package'.PHP_EOL.PHP_EOL;
+			system('"'.PHP_BINARY.'" "'.__DIR__.'/tmp/matthiasmullie-minify/composer.phar" '
+			.	'--no-cache '
+			.	'"--working-dir='.__DIR__.'/tmp/matthiasmullie-minify" '
+			.	'require matthiasmullie/minify'
+			);
 
-		if(!file_exists(__DIR__.'/tmp/matthiasmullie-minify/vendor/matthiasmullie/minify'))
-		{
-			echo PHP_EOL;
-			exit(1);
-		}
-	echo PHP_EOL;
+			if(!file_exists(__DIR__.'/tmp/matthiasmullie-minify/vendor/matthiasmullie/minify'))
+			{
+				echo PHP_EOL;
+				exit(1);
+			}
+		echo PHP_EOL;
+	}
 
 	echo ' -> Starting tool'.PHP_EOL.PHP_EOL;
 		system('"'.PHP_BINARY.'" "'.__DIR__.'/tmp/matthiasmullie-minify/matthiasmullie-minify.php" --dir "'.__DIR__.'/tmp/matthiasmullie-minify/assets"');

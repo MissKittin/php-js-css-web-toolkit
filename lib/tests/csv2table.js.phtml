@@ -9,13 +9,13 @@
 
 	function _extract_line($line_number)
 	{
-		$file_handler=fopen(__FILE__, 'r');
+		$file_handle=fopen(__FILE__, 'r');
 
 		for($i=1; $i<$line_number; ++$i)
-			fgets($file_handler);
+			fgets($file_handle);
 
-		$output=fgets($file_handler);
-		fclose($file_handler);
+		$output=fgets($file_handle);
+		fclose($file_handle);
 
 		return $output;
 	}

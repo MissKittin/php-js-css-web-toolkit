@@ -20,13 +20,22 @@
 	function load_library($libraries, $required=true)
 	{
 		foreach($libraries as $library)
+		{
 			if(file_exists(__DIR__.'/lib/'.$library))
+			{
 				require __DIR__.'/lib/'.$library;
-			else if(file_exists(__DIR__.'/../lib/'.$library))
+				continue;
+			}
+
+			if(file_exists(__DIR__.'/../lib/'.$library))
+			{
 				require __DIR__.'/../lib/'.$library;
-			else
-				if($required)
-					throw new Exception($library.' library not found');
+				continue;
+			}
+
+			if($required)
+				throw new Exception($library.' library not found');
+		}
 	}
 	function find_composer_autoloader()
 	{
@@ -55,15 +64,19 @@
 
 	$input_directory=check_argv_next_param('--dir');
 	$minify_styles=true;
+	$minify_scripts=true;
+
 	if(check_argv('--no-css'))
 		$minify_styles=false;
-	$minify_scripts=true;
+
 	if(check_argv('--no-js'))
 		$minify_scripts=false;
 
-	if(($input_directory === null) || check_argv('--help') || check_argv('-h'))
-	{
-		echo 'Usage: --dir ./public/assets [--no-css] [--no-js]'.PHP_EOL;
+	if(
+		($input_directory === null) ||
+		check_argv('--help') || check_argv('-h')
+	){
+		echo 'Usage: '.$argv[0].' --dir ./public/assets [--no-css] [--no-js]'.PHP_EOL;
 		echo 'where ./public/assets is a directory'.PHP_EOL;
 		echo ' --no-css disables CSS minification'.PHP_EOL;
 		echo ' --no-js disables Javascript minification'.PHP_EOL;
@@ -77,32 +90,33 @@
 	}
 
 	foreach(new RecursiveIteratorIterator(
-		new RecursiveDirectoryIterator($input_directory, RecursiveDirectoryIterator::SKIP_DOTS)
+		new RecursiveDirectoryIterator(
+			$input_directory,
+			RecursiveDirectoryIterator::SKIP_DOTS
+		)
 	) as $asset)
-		switch(pathinfo($asset, PATHINFO_EXTENSION))
-		{
-			case 'css':
-				if($minify_styles)
-				{
-					echo 'Processing '.$asset.PHP_EOL;
+		try {
+			switch(pathinfo($asset, PATHINFO_EXTENSION))
+			{
+				case 'css':
+					if($minify_styles)
+					{
+						echo 'Processing '.$asset.PHP_EOL;
 
-					try {
-						(new MatthiasMullie\Minify\CSS($asset))->minify($asset);
-					} catch(Throwable $error) {
-						echo ' failed: '.$error->getMessage().PHP_EOL;
+						(new MatthiasMullie\Minify\CSS($asset))
+						->	minify($asset);
 					}
-				}
-			break;
-			case 'js':
-				if($minify_scripts)
-				{
-					echo 'Processing '.$asset.PHP_EOL;
+				break;
+				case 'js':
+					if($minify_scripts)
+					{
+						echo 'Processing '.$asset.PHP_EOL;
 
-					try {
-						(new MatthiasMullie\Minify\JS($asset))->minify($asset);
-					} catch(Throwable $error) {
-						echo ' failed: '.$error->getMessage().PHP_EOL;
+						(new MatthiasMullie\Minify\JS($asset))
+						->	minify($asset);
 					}
-				}
+			}
+		} catch(Throwable $error) {
+			echo ' failed: '.$error->getMessage().PHP_EOL;
 		}
 ?>

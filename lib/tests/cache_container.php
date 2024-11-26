@@ -176,14 +176,14 @@
 						throw new Exception('pdo_pgsql extension is not loaded');
 
 					if(isset($_pdo['credentials'][$_pdo['type']]['socket']))
-						$pdo_handler=new PDO('pgsql:'
+						$pdo_handle=new PDO('pgsql:'
 							.'host='.$_pdo['credentials'][$_pdo['type']]['socket'].';'
 							.'dbname='.$_pdo['credentials'][$_pdo['type']]['dbname'].';'
 							.'user='.$_pdo['credentials'][$_pdo['type']]['user'].';'
 							.'password='.$_pdo['credentials'][$_pdo['type']]['password'].''
 						);
 					else
-						$pdo_handler=new PDO('pgsql:'
+						$pdo_handle=new PDO('pgsql:'
 							.'host='.$_pdo['credentials'][$_pdo['type']]['host'].';'
 							.'port='.$_pdo['credentials'][$_pdo['type']]['port'].';'
 							.'dbname='.$_pdo['credentials'][$_pdo['type']]['dbname'].';'
@@ -198,14 +198,14 @@
 						throw new Exception('pdo_mysql extension is not loaded');
 
 					if(isset($_pdo['credentials'][$_pdo['type']]['socket']))
-						$pdo_handler=new PDO('mysql:'
+						$pdo_handle=new PDO('mysql:'
 							.'unix_socket='.$_pdo['credentials'][$_pdo['type']]['socket'].';'
 							.'dbname='.$_pdo['credentials'][$_pdo['type']]['dbname'],
 							$_pdo['credentials'][$_pdo['type']]['user'],
 							$_pdo['credentials'][$_pdo['type']]['password']
 						);
 					else
-						$pdo_handler=new PDO('mysql:'
+						$pdo_handle=new PDO('mysql:'
 							.'host='.$_pdo['credentials'][$_pdo['type']]['host'].';'
 							.'port='.$_pdo['credentials'][$_pdo['type']]['port'].';'
 							.'dbname='.$_pdo['credentials'][$_pdo['type']]['dbname'],
@@ -227,15 +227,15 @@
 			exit(1);
 		}
 
-		if(isset($pdo_handler))
-			$pdo_handler->exec('DROP TABLE IF EXISTS cache_container_test');
+		if(isset($pdo_handle))
+			$pdo_handle->exec('DROP TABLE IF EXISTS cache_container_test');
 	}
 	if(
-		(!isset($pdo_handler)) &&
+		(!isset($pdo_handle)) &&
 		class_exists('PDO') &&
 		in_array('sqlite', PDO::getAvailableDrivers())
 	)
-		$pdo_handler=new PDO('sqlite:'.__DIR__.'/tmp/cache_container/cache_container.sqlite3');
+		$pdo_handle=new PDO('sqlite:'.__DIR__.'/tmp/cache_container/cache_container.sqlite3');
 
 	if(getenv('TEST_REDIS') === 'yes')
 	{
@@ -385,11 +385,11 @@
 			echo '  -> Connecting to the redis server (predis)'.PHP_EOL;
 				try {
 					if($_redis['credentials']['socket'] === null)
-						$redis_handler=new predis_phpredis_proxy(new \Predis\Client($_redis['_predis'][0]));
+						$redis_handle=new predis_phpredis_proxy(new \Predis\Client($_redis['_predis'][0]));
 					else
-						$redis_handler=new predis_phpredis_proxy(new \Predis\Client($_redis['_predis'][1]));
+						$redis_handle=new predis_phpredis_proxy(new \Predis\Client($_redis['_predis'][1]));
 
-					$redis_handler->connect();
+					$redis_handle->connect();
 				} catch(Throwable $error) {
 					echo ' Error: '.$error->getMessage().PHP_EOL;
 					exit(1);
@@ -406,9 +406,9 @@
 			echo '  -> Connecting to the redis server (phpredis)'.PHP_EOL;
 
 			try {
-				$redis_handler=new Redis();
+				$redis_handle=new Redis();
 
-				if($redis_handler->connect(
+				if($redis_handle->connect(
 					$_redis['credentials']['host'],
 					$_redis['credentials']['port'],
 					$_redis['connection_options']['timeout'],
@@ -417,24 +417,24 @@
 					$_redis['connection_options']['read_timeout']
 				) === false){
 					echo '  -> Redis connection error'.PHP_EOL;
-					unset($redis_handler);
+					unset($redis_handle);
 				}
 
 				if(
-					(isset($redis_handler)) &&
+					(isset($redis_handle)) &&
 					(isset($_redis['_credentials_auth'])) &&
-					(!$redis_handler->auth($_redis['_credentials_auth']))
+					(!$redis_handle->auth($_redis['_credentials_auth']))
 				){
 					echo '  -> Redis auth error'.PHP_EOL;
-					unset($redis_handler);
+					unset($redis_handle);
 				}
 
 				if(
-					(isset($redis_handler)) &&
-					(!$redis_handler->select($_redis['credentials']['dbindex']))
+					(isset($redis_handle)) &&
+					(!$redis_handle->select($_redis['credentials']['dbindex']))
 				){
 					echo '  -> Redis database select error'.PHP_EOL;
-					unset($redis_handler);
+					unset($redis_handle);
 				}
 			} catch(Throwable $error) {
 				echo ' Error: '.$error->getMessage().PHP_EOL;
@@ -442,7 +442,7 @@
 			}
 		}
 
-		if(isset($redis_handler))
+		if(isset($redis_handle))
 			foreach([
 				'increment_test',
 				'incrementb_test',
@@ -450,7 +450,7 @@
 				'timeout_test',
 				'flush_test'
 			] as $_redis['_key'])
-				$redis_handler->del('cache_container_test__'.$_redis['_key']);
+				$redis_handle->del('cache_container_test__'.$_redis['_key']);
 	}
 
 	if(getenv('TEST_MEMCACHED') === 'yes')
@@ -489,17 +489,17 @@
 			$_memcached['credentials']['port']=0;
 		}
 
-		$memcached_handler=new Memcached();
+		$memcached_handle=new Memcached();
 
-		if(!$memcached_handler->addServer(
+		if(!$memcached_handle->addServer(
 			$_memcached['credentials']['host'],
 			$_memcached['credentials']['port']
 		)){
 			echo '  -> Memcached connection error'.PHP_EOL;
-			unset($memcached_handler);
+			unset($memcached_handle);
 		}
 
-		if(isset($memcached_handler))
+		if(isset($memcached_handle))
 			foreach([
 				'increment_test',
 				'incrementb_test',
@@ -507,7 +507,7 @@
 				'timeout_test',
 				'flush_test'
 			] as $_memcached['_key'])
-				$memcached_handler->delete('cache_container_test__'.$_memcached['_key']);
+				$memcached_handle->delete('cache_container_test__'.$_memcached['_key']);
 	}
 
 	$cache_drivers=[
@@ -522,25 +522,25 @@
 		]
 	];
 
-	if(isset($pdo_handler))
+	if(isset($pdo_handle))
 		$cache_drivers['cache_driver_pdo']=[
-			'pdo_handler'=>$pdo_handler,
+			'pdo_handle'=>$pdo_handle,
 			'table_name'=>'cache_container_test'
 		];
 	else
 		echo ' -> Skipping cache_driver_pdo'.PHP_EOL;
 
-	if(isset($redis_handler))
+	if(isset($redis_handle))
 		$cache_drivers['cache_driver_redis']=[
-			'redis_handler'=>$redis_handler,
+			'redis_handle'=>$redis_handle,
 			'prefix'=>'cache_container_test__'
 		];
 	else
 		echo ' -> Skipping cache_driver_redis'.PHP_EOL;
 
-	if(isset($memcached_handler))
+	if(isset($memcached_handle))
 		$cache_drivers['cache_driver_memcached']=[
-			'memcached_handler'=>$memcached_handler,
+			'memcached_handle'=>$memcached_handle,
 			'prefix'=>'cache_container_test__'
 		];
 	else
@@ -717,7 +717,7 @@
 			} catch(Throwable $error) {
 				echo '  <- Testing driver '.$driver_name.' [FAIL]'.PHP_EOL;
 				$errors[$cache_container.' => '.$driver_name]=$error->getMessage();
-				$pdo_errors[$cache_container.' => '.$driver_name]=$pdo_handler->errorInfo()[2];
+				$pdo_errors[$cache_container.' => '.$driver_name]=$pdo_handle->errorInfo()[2];
 			}
 		}
 	}

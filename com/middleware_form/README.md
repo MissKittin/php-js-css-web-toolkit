@@ -116,7 +116,7 @@ if(!isset($_SESSION['captcha_verified']))
 		->	add_config('submit_button_label', 'Verify')
 		->	add_field([
 				'tag'=>'img',
-				'src'=>'data:image/jpeg;base64,'.base64_encode(captcha_get('captcha_gd2')),
+				'src'=>'data:image/jpeg;base64,'.base64_encode(captcha_get(new captcha_gd2())),
 				'style'=>'width: 100%;'
 			])
 		->	add_field([

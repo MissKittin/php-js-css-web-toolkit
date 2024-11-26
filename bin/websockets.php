@@ -87,13 +87,22 @@
 	function load_library($libraries, $required=true)
 	{
 		foreach($libraries as $library)
+		{
 			if(file_exists(__DIR__.'/lib/'.$library))
+			{
 				require __DIR__.'/lib/'.$library;
-			else if(file_exists(__DIR__.'/../lib/'.$library))
+				continue;
+			}
+
+			if(file_exists(__DIR__.'/../lib/'.$library))
+			{
 				require __DIR__.'/../lib/'.$library;
-			else
-				if($required)
-					throw new Exception($library.' library not found');
+				continue;
+			}
+
+			if($required)
+				throw new Exception($library.' library not found');
+		}
 	}
 
 	final class _client
@@ -105,9 +114,16 @@
 		private $http_headers=[];
 		private $http_cookies=[];
 
-		public function __construct($client, $read_bytes, $http_origin, $debug)
-		{
-			if($this->debug && function_exists('websockets_debug'))
+		public function __construct(
+			$client,
+			$read_bytes,
+			$http_origin,
+			$debug
+		){
+			if(
+				$this->debug &&
+				function_exists('websockets_debug')
+			)
 				websockets_debug('__construct(): connection opened');
 
 			$this->client=$client;
@@ -117,7 +133,10 @@
 
 			// init_client()
 
-			$request=socket_read($this->client, $this->read_bytes);
+			$request=socket_read(
+				$this->client,
+				$this->read_bytes
+			);
 			$request=explode("\n", $request);
 			unset($request[0]);
 
@@ -126,10 +145,21 @@
 				$strpos=strpos($header, ':');
 
 				if($strpos !== false)
-					$this->http_headers[trim(substr($header, 0, $strpos))]=trim(substr($header, $strpos+1));
+					$this->http_headers[trim(substr(
+						$header,
+						0, $strpos
+					))]=trim(substr(
+						$header,
+						$strpos+1
+					));
 			}
 
-			foreach(['Connection', 'Upgrade', 'Sec-WebSocket-Key', 'Origin'] as $header)
+			foreach([
+				'Connection',
+				'Upgrade',
+				'Sec-WebSocket-Key',
+				'Origin'
+			] as $header)
 				if(!isset($this->http_headers[$header]))
 				{
 					if(function_exists('websockets_log'))
@@ -138,7 +168,10 @@
 					$this->exit();
 				}
 
-			foreach(['Connection'=>'upgrade', 'Upgrade'=>'websocket'] as $header=>$value)
+			foreach([
+				'Connection'=>'upgrade',
+				'Upgrade'=>'websocket'
+			] as $header=>$value)
 				if(strtolower($this->http_headers[$header]) !== $value)
 				{
 					if(function_exists('websockets_log'))
@@ -160,12 +193,10 @@
 				$this->exit();
 			}
 
-			$key=base64_encode(
-				pack('H*', sha1(''
-				.	$this->http_headers['Sec-WebSocket-Key']
-				.	'258EAFA5-E914-47DA-95CA-C5AB0DC85B11'
-				))
-			);
+			$key=base64_encode(pack('H*', sha1(''
+			.	$this->http_headers['Sec-WebSocket-Key']
+			.	'258EAFA5-E914-47DA-95CA-C5AB0DC85B11'
+			)));
 			$headers=''
 			.	"HTTP/1.1 101 Switching Protocols\r\n"
 			.	"Upgrade: websocket\r\n"
@@ -174,22 +205,21 @@
 			.	"Sec-WebSocket-Accept: $key\r\n"
 			.	"\r\n";
 
-			if(
-				socket_write(
-					$this->client,
-					$headers,
-					strlen($headers)
-				)
-				===
-				false
-			){
+			if(socket_write(
+				$this->client,
+				$headers,
+				strlen($headers)
+			) === false){
 				if(function_exists('websockets_log'))
 					websockets_log('init_client(): connection lost');
 
 				exit();
 			}
 
-			if($this->debug && function_exists('websockets_debug'))
+			if(
+				$this->debug &&
+				function_exists('websockets_debug')
+			)
 				websockets_debug('init_client(): done');
 		}
 
@@ -222,7 +252,10 @@
 
 		public function read()
 		{
-			$content=socket_read($this->client, $this->read_bytes);
+			$content=socket_read(
+				$this->client,
+				$this->read_bytes
+			);
 
 			if($content === false)
 				return null;
@@ -239,9 +272,10 @@
 		}
 		public function write(string $content)
 		{
-			if(socket_write(
-				$this->client,
-				chr(129).chr(strlen($content)).$content
+			if(socket_write($this->client, ''
+			.	chr(129)
+			.	chr(strlen($content))
+			.	$content
 			) === false){
 				if(function_exists('websockets_log'))
 					websockets_log('write(): connection lost');
@@ -251,7 +285,10 @@
 		}
 		public function exit()
 		{
-			if($this->debug && function_exists('websockets_debug'))
+			if(
+				$this->debug &&
+				function_exists('websockets_debug')
+			)
 				websockets_debug('exit() called');
 
 			socket_close($this->client);
@@ -279,7 +316,7 @@
 				return $default_value;
 			}
 
-			get_all_cookies();
+			$this->get_all_cookies();
 
 			if(isset($this->http_cookies[$name]))
 				return $this->http_cookies[$name];
@@ -288,11 +325,22 @@
 		}
 		public function get_all_cookies()
 		{
-			if(empty($this->http_cookies) && isset($this->http_headers['Cookie']))
-				foreach(explode(';', $this->http_headers['Cookie']) as $cookie)
-				{
+			if(
+				empty($this->http_cookies) &&
+				isset($this->http_headers['Cookie'])
+			)
+				foreach(explode(
+					';',
+					$this->http_headers['Cookie']
+				) as $cookie){
 					$strpos=strpos($cookie, '=');
-					$this->http_cookies[trim(substr($cookie, 0, $strpos))]=substr($cookie, $strpos+1);
+					$this->http_cookies[trim(substr(
+						$cookie,
+						0, $strpos
+					))]=substr(
+						$cookie,
+						$strpos+1
+					);
 				}
 
 			return $this->http_cookies;
@@ -307,16 +355,12 @@
 		}
 	}
 
-	if(!extension_loaded('pcntl'))
-	{
-		echo 'pcntl extension is not loaded'.PHP_EOL;
-		exit(1);
-	}
-	if(!extension_loaded('sockets'))
-	{
-		echo 'sockets extension is not loaded'.PHP_EOL;
-		exit(1);
-	}
+	foreach(['pcntl', 'sockets'] as $_ws_extension)
+		if(!extension_loaded($_ws_extension))
+		{
+			echo $_ws_extension.' extension is not loaded'.PHP_EOL;
+			exit(1);
+		}
 
 	try {
 		load_library(['check_var.php']);
@@ -326,41 +370,39 @@
 	}
 
 	$_ws_functions=check_argv_next_param('--functions');
-
 	$_ws_ip=check_argv_next_param('--ip');
+	$_ws_port=check_argv_next_param('--port');
+	$_ws_uds=check_argv_next_param('--uds');
+	$_ws_read_bytes=check_argv_next_param('--read');
+	$_ws_http_origin=check_argv_next_param_many('--origin');
+	$_ws_children_limit=check_argv_param('--children-limit');
+	$_debug=false;
+
 	if($_ws_ip === null)
 		$_ws_ip='127.0.0.1';
 
-	$_ws_port=check_argv_next_param('--port');
 	if($_ws_port === null)
 		$_ws_port='8081';
 
-	$_ws_uds=check_argv_next_param('--uds');
-
-	$_ws_read_bytes=check_argv_next_param('--read');
 	if($_ws_read_bytes === null)
 		$_ws_read_bytes=5000;
 
-	$_ws_http_origin=check_argv_next_param_many('--origin');
 	if($_ws_http_origin === null)
 		$_ws_http_origin=[];
 
-	$_ws_children_limit=check_argv_param('--children-limit');
 	if($_ws_children_limit === null)
 		$_ws_children_limit=0;
-	else
+	else if(is_numeric($_ws_children_limit))
 		$_ws_children_limit=(int)$_ws_children_limit;
 
-	$_debug=false;
 	if(check_argv('--debug'))
 		$_debug=true;
 
 	if(
 		($_ws_functions === null) ||
-		check_argv('--help') ||
-		check_argv('-h')
+		check_argv('--help') || check_argv('-h')
 	){
-		echo 'Usage: --functions ./path/to/functions.php [--ip 127.0.0.1] [--port 8081] [--uds /path/to/websockets.sock] [--read 5000] [--origin http://example.com:8080] [--origin http://secondwebsite.com] [--children-limit=4] [--debug]'.PHP_EOL;
+		echo 'Usage: '.$argv[0].' --functions ./path/to/functions.php [--ip 127.0.0.1] [--port 8081] [--uds /path/to/websockets.sock] [--read 5000] [--origin http://example.com:8080] [--origin http://secondwebsite.com] [--children-limit=4] [--debug]'.PHP_EOL;
 		echo PHP_EOL;
 		echo 'Where:'.PHP_EOL;
 		echo ' --uds -> use Unix Domain Socket instead of TCP/IP'.PHP_EOL;
@@ -405,9 +447,17 @@
 	});
 
 	if($_ws_uds === null)
-		$_ws_server=socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
+		$_ws_server=socket_create(
+			AF_INET,
+			SOCK_STREAM,
+			SOL_TCP
+		);
 	else
-		$_ws_server=socket_create(AF_UNIX, SOCK_STREAM, 0);
+		$_ws_server=socket_create(
+			AF_UNIX,
+			SOCK_STREAM,
+			0
+		);
 
 	if($_ws_server === false)
 	{
@@ -415,12 +465,24 @@
 		exit(1);
 	}
 
-	socket_set_option($_ws_server, SOL_SOCKET, SO_REUSEADDR, 1);
+	socket_set_option(
+		$_ws_server,
+		SOL_SOCKET,
+		SO_REUSEADDR,
+		1
+	);
 
 	if($_ws_uds === null)
-		$_ws_sb_result=socket_bind($_ws_server, $_ws_ip, $_ws_port);
+		$_ws_sb_result=socket_bind(
+			$_ws_server,
+			$_ws_ip,
+			$_ws_port
+		);
 	else
-		$_ws_sb_result=socket_bind($_ws_server, $_ws_uds);
+		$_ws_sb_result=socket_bind(
+			$_ws_server,
+			$_ws_uds
+		);
 
 	if($_ws_sb_result === false)
 	{
@@ -431,7 +493,10 @@
 	socket_listen($_ws_server);
 	socket_set_block($_ws_server);
 
-	if($_debug && function_exists('websockets_debug'))
+	if(
+		$_debug &&
+		function_exists('websockets_debug')
+	)
 		websockets_debug('websockets.php starting');
 
 	while(true)
@@ -446,7 +511,10 @@
 				($_ws_children_limit !== 0) &&
 				(count($GLOBALS['_ws_children_pids']) === $_ws_children_limit)
 			){
-				if($_debug && function_exists('websockets_debug'))
+				if(
+					$_debug &&
+					function_exists('websockets_debug')
+				)
 					websockets_debug('Child process limit ('.$_ws_children_limit.') reached - connection rejected');
 
 				socket_close($_ws_client);
@@ -466,7 +534,10 @@
 					case 0:
 						websockets_main(new _client($_ws_client, $_ws_read_bytes, $_ws_http_origin, $_debug));
 
-						if($_debug && function_exists('websockets_debug'))
+						if(
+							$_debug &&
+							function_exists('websockets_debug')
+						)
 							websockets_debug('websockets_main ended');
 
 						socket_close($_ws_client);
@@ -483,17 +554,23 @@
 		{
 			socket_set_block($_ws_server);
 
-			if($_debug && function_exists('websockets_debug'))
+			if(
+				$_debug &&
+				function_exists('websockets_debug')
+			)
 				websockets_debug('No clients connected - blocking mode enabled');
-		}
-		else
-		{
-			socket_set_nonblock($_ws_server);
 
-			if($_debug && function_exists('websockets_debug'))
-				websockets_debug('Background processes are running - blocking mode disabled');
-
-			usleep(500000); // 0.5s
+			continue;
 		}
+
+		socket_set_nonblock($_ws_server);
+
+		if(
+			$_debug &&
+			function_exists('websockets_debug')
+		)
+			websockets_debug('Background processes are running - blocking mode disabled');
+
+		usleep(500000); // 0.5s
 	}
 ?>

@@ -2,7 +2,7 @@
 	class herring_exception extends Exception {}
 	class herring
 	{
-		protected $pdo_handler;
+		protected $pdo_handle;
 		protected $table_name_prefix='herring_';
 		protected $create_table=true;
 		protected $timestamp=null;
@@ -10,7 +10,7 @@
 		protected $user_agent=null;
 		protected $cookie_name=null;
 		protected $cookie_value=null;
-		protected $setcookie_callback=['callback'=>null];
+		protected $setcookie_callback=null;
 		protected $referer=null;
 		protected $uri=null;
 		protected $uri_without_get=true;
@@ -34,13 +34,13 @@
 			if(!is_file($input_file))
 				throw new herring_exception($input_file.' is not a file');
 
-			$pdo_handler=new PDO('sqlite::memory:');
-			$csv_handler=fopen($input_file, 'r');
+			$pdo_handle=new PDO('sqlite::memory:');
+			$csv_handle=fopen($input_file, 'r');
 
-			if($csv_handler === false)
+			if($csv_handle === false)
 				throw new herring_exception($input_file.' fopen failed');
 
-			if($pdo_handler->exec(''
+			if($pdo_handle->exec(''
 			.	'CREATE TABLE IF NOT EXISTS herring_archive'
 			.	'('
 			.		'id INTEGER PRIMARY KEY AUTOINCREMENT,'
@@ -55,11 +55,11 @@
 			) === false)
 				throw new herring_exception('PDO exec error (CREATE TABLE)');
 
-			fgets($csv_handler);
+			fgets($csv_handle);
 
-			while(($csv_data=fgetcsv($csv_handler, 1000, ',')) !== false)
+			while(($csv_data=fgetcsv($csv_handle, 1000, ',')) !== false)
 			{
-				$query=$pdo_handler->prepare(''
+				$query=$pdo_handle->prepare(''
 				.	'INSERT INTO herring_archive'
 				.	'('
 				.		'timestamp,'
@@ -95,16 +95,16 @@
 					throw new herring_exception('PDO execute error');
 			}
 
-			fclose($csv_handler);
+			fclose($csv_handle);
 
 			if($full_report)
 				return (new static([
-					'pdo_handler'=>$pdo_handler,
+					'pdo_handle'=>$pdo_handle,
 					'maintenance_mode'=>true
 				]))->generate_report($output_file);
 
 			return (new static([
-				'pdo_handler'=>$pdo_handler,
+				'pdo_handle'=>$pdo_handle,
 				'maintenance_mode'=>true
 			]))->generate_report_short($output_file);
 		}
@@ -121,11 +121,11 @@
 
 		public function __construct(array $params)
 		{
-			if(!isset($params['pdo_handler']))
-				throw new herring_exception('No pdo_handler given');
+			if(!isset($params['pdo_handle']))
+				throw new herring_exception('No pdo_handle given');
 
 			foreach([
-				'pdo_handler'=>'object',
+				'pdo_handle'=>'object',
 				'table_name_prefix'=>'string',
 				'create_table'=>'boolean',
 				'timestamp'=>'integer',
@@ -147,10 +147,10 @@
 				}
 
 			if(!in_array(
-				$this->pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME),
+				$this->pdo_handle->getAttribute(PDO::ATTR_DRIVER_NAME),
 				['pgsql', 'mysql', 'sqlite']
 			))
-				throw new herring_exception($this->pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME).' driver is not supported');
+				throw new herring_exception($this->pdo_handle->getAttribute(PDO::ATTR_DRIVER_NAME).' driver is not supported');
 
 			if($this->maintenance_mode === true)
 				return;
@@ -160,7 +160,7 @@
 				if(!is_callable($params['setcookie_callback']))
 					throw new herring_exception('The input array parameter setcookie_callback is not callable');
 
-				$this->setcookie_callback['callback']=$params['setcookie_callback'];
+				$this->setcookie_callback[0]=$params['setcookie_callback'];
 			}
 
 			if($this->ip === null)
@@ -202,28 +202,29 @@
 			{
 				$load_library=true;
 
-				if($params !== null)
-					switch($params[0])
-					{
-						case 'function':
-							if(function_exists($params[1]))
-								$load_library=false;
-						break;
-						case 'class':
-							if(class_exists($params[1]))
-								$load_library=false;
-					}
+				if(
+					($params !== null) &&
+					$params[0]($params[1]) // class_exists('name') or function_exists('name')
+				)
+					$load_library=false;
 
 				if($load_library)
 				{
 					$load_library=false;
 
-					foreach([__DIR__.'/lib', __DIR__.'/../../lib'] as $location)
+					foreach([
+						__DIR__.'/lib',
+						__DIR__.'/../../lib'
+					] as $location)
 						if(file_exists($location.'/'.$library))
 						{
-							require $location.'/'.$library;
+							if(substr($library, -4) === '.php')
+								require $location.'/'.$library;
+							else
+								readfile($location.'/'.$library);
 
 							$load_library=true;
+
 							break;
 						}
 
@@ -261,7 +262,7 @@
 
 		public function add()
 		{
-			$this->load_library(['rand_str.php'=>['function', 'rand_str']]);
+			$this->load_library(['rand_str.php'=>['function_exists', 'rand_str']]);
 
 			if($this->maintenance_mode === true)
 				throw new herring_exception('You cannot add records in maintenance mode');
@@ -274,14 +275,14 @@
 				if($this->cookie_value === null)
 					$this->cookie_value=rand_str(40);
 
-				if($this->setcookie_callback['callback'] === null)
+				if($this->setcookie_callback === null)
 					setcookie(
 						$this->cookie_name,
 						$this->cookie_value,
 						time()+63113852 // 2 years
 					);
 				else
-					$this->setcookie_callback['callback'](
+					$this->setcookie_callback[0](
 						$this->cookie_name,
 						$this->cookie_value
 					);
@@ -292,10 +293,10 @@
 					$this->$param='null';
 
 			if($this->create_table)
-				switch($this->pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME))
+				switch($this->pdo_handle->getAttribute(PDO::ATTR_DRIVER_NAME))
 				{
 					case 'pgsql':
-						if($this->pdo_handler->exec(''
+						if($this->pdo_handle->exec(''
 						.	'CREATE TABLE IF NOT EXISTS '.$this->table_name_prefix.'visitors'
 						.	'('
 						.		'id SERIAL PRIMARY KEY,'
@@ -311,7 +312,7 @@
 							throw new herring_exception('PDO exec error (CREATE TABLE)');
 					break;
 					case 'mysql':
-						if($this->pdo_handler->exec(''
+						if($this->pdo_handle->exec(''
 						.	'CREATE TABLE IF NOT EXISTS '.$this->table_name_prefix.'visitors'
 						.	'('
 						.		'id INTEGER NOT NULL AUTO_INCREMENT, PRIMARY KEY(id),'
@@ -327,7 +328,7 @@
 							throw new herring_exception('PDO exec error (CREATE TABLE)');
 					break;
 					case 'sqlite':
-						if($this->pdo_handler->exec(''
+						if($this->pdo_handle->exec(''
 						.	'CREATE TABLE IF NOT EXISTS '.$this->table_name_prefix.'visitors'
 						.	'('
 						.		'id INTEGER PRIMARY KEY AUTOINCREMENT,'
@@ -343,7 +344,7 @@
 							throw new herring_exception('PDO exec error (CREATE TABLE)');
 				}
 
-			$query=$this->pdo_handler->prepare(''
+			$query=$this->pdo_handle->prepare(''
 			.	'INSERT INTO '.$this->table_name_prefix.'visitors'
 			.	'('
 			.		'timestamp,'
@@ -390,10 +391,10 @@
 			$days=time()-$days;
 
 			if($this->create_table)
-				switch($this->pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME))
+				switch($this->pdo_handle->getAttribute(PDO::ATTR_DRIVER_NAME))
 				{
 					case 'pgsql':
-						if($this->pdo_handler->exec(''
+						if($this->pdo_handle->exec(''
 						.	'CREATE TABLE IF NOT EXISTS '.$this->table_name_prefix.'archive'
 						.	'('
 						.		'id SERIAL PRIMARY KEY,'
@@ -409,7 +410,7 @@
 							throw new herring_exception('PDO exec error (CREATE TABLE)');
 					break;
 					case 'mysql':
-						if($this->pdo_handler->exec(''
+						if($this->pdo_handle->exec(''
 						.	'CREATE TABLE IF NOT EXISTS '.$this->table_name_prefix.'archive'
 						.	'('
 						.		'id INTEGER NOT NULL AUTO_INCREMENT, PRIMARY KEY(id),'
@@ -425,7 +426,7 @@
 							throw new herring_exception('PDO exec error (CREATE TABLE)');
 					break;
 					case 'sqlite':
-						if($this->pdo_handler->exec(''
+						if($this->pdo_handle->exec(''
 						.	'CREATE TABLE IF NOT EXISTS '.$this->table_name_prefix.'archive'
 						.	'('
 						.		'id INTEGER PRIMARY KEY AUTOINCREMENT,'
@@ -441,7 +442,7 @@
 							throw new herring_exception('PDO exec error (CREATE TABLE)');
 				}
 
-			$affected_rows=$this->pdo_handler->exec(''
+			$affected_rows=$this->pdo_handle->exec(''
 			.	'INSERT INTO '.$this->table_name_prefix.'archive '
 			.		'SELECT id, timestamp, date, ip, user_agent, cookie_id, referer, uri '
 			.		'FROM '.$this->table_name_prefix.'visitors '
@@ -454,7 +455,7 @@
 			if($affected_rows === 0)
 				return 0;
 
-			if($this->pdo_handler->exec(''
+			if($this->pdo_handle->exec(''
 			.	'DELETE FROM '.$this->table_name_prefix.'visitors '
 			.	'WHERE timestamp<'.$days
 			) === false)
@@ -467,7 +468,7 @@
 			if($this->maintenance_mode !== true)
 				throw new herring_exception('You haven\'t turned on maintenance mode');
 
-			if($this->pdo_handler->exec('DELETE FROM '.$this->table_name_prefix.'archive') === false)
+			if($this->pdo_handle->exec('DELETE FROM '.$this->table_name_prefix.'archive') === false)
 				throw new herring_exception('Failed to flush the '.$this->table_name_prefix.'archive');
 		}
 		public function dump_archive_to_csv(?string $output_file=null)
@@ -504,13 +505,34 @@
 				};
 			}
 
-			$query=$this->pdo_handler->query(''
-			.	'SELECT * '
+			$query=$this->pdo_handle->query(''
+			.	'SELECT '
+			.		'id,'
+			.		'timestamp,'
+			.		'date,'
+			.		'ip,'
+			.		'user_agent,'
+			.		'cookie_id,'
+			.		'referer,'
+			.		'uri '
 			.	'FROM '.$this->table_name_prefix.'archive'
 			);
 
 			if($query === false)
-				throw new herring_exception('PDO query error (SELECT * FROM '.$this->table_name_prefix.'archive)');
+				throw new herring_exception(''
+				.	'PDO query error ('
+				.		'SELECT '
+				.			'id,'
+				.			'timestamp,'
+				.			'date,'
+				.			'ip,'
+				.			'user_agent,'
+				.			'cookie_id,'
+				.			'referer,'
+				.			'uri '
+				.		'FROM '.$this->table_name_prefix.'archive'
+				.	')'
+				);
 
 			$save_report($output, ''
 			.	'"id",'
@@ -521,7 +543,7 @@
 			.	'"cookie_id",'
 			.	'"referer",'
 			.	'"uri"'
-			."\n");
+			."\r\n");
 
 			while($row=$query->fetch(PDO::FETCH_ASSOC))
 			{
@@ -530,7 +552,7 @@
 				foreach($row as $cell)
 					$row_output.='"'.str_replace('"', '""', $cell).'",';
 
-				$save_report($output, substr($row_output, 0, -1)."\n");
+				$save_report($output, substr($row_output, 0, -1)."\r\n");
 			}
 
 			if($output_file === null)
@@ -544,7 +566,7 @@
 				throw new herring_exception('You haven\'t turned on maintenance mode');
 
 			$this->load_library([
-				'measure_exec_time.php'=>['class', 'measure_exec_time_from_here']
+				'measure_exec_time.php'=>['class_exists', 'measure_exec_time_from_here']
 			]);
 
 			if($output_file === null)
@@ -587,7 +609,7 @@
 			// first table: date - hits - unique hits
 				$hits=[];
 
-				$query=$this->pdo_handler->query(''
+				$query=$this->pdo_handle->query(''
 				.	'SELECT date, COUNT(date) AS hits '
 				.	'FROM '.$this->table_name_prefix.'archive '
 				.	'GROUP BY date'
@@ -602,10 +624,10 @@
 					$hits[$row['date']]['unique_hits']=0;
 				}
 
-				switch($this->pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME))
+				switch($this->pdo_handle->getAttribute(PDO::ATTR_DRIVER_NAME))
 				{
 					case 'pgsql':
-						$query=$this->pdo_handler->query(''
+						$query=$this->pdo_handle->query(''
 						.	'SELECT date, MAX(ip), MAX(user_agent), MAX(cookie_id) '
 						.	'FROM '.$this->table_name_prefix.'archive '
 						.	'GROUP BY cookie_id, date'
@@ -613,7 +635,7 @@
 					break;
 					case 'mysql':
 					case 'sqlite':
-						$query=$this->pdo_handler->query(''
+						$query=$this->pdo_handle->query(''
 						.	'SELECT date, ip, user_agent, cookie_id '
 						.	'FROM '.$this->table_name_prefix.'archive '
 						.	'GROUP BY cookie_id, date'
@@ -632,7 +654,7 @@
 				);
 
 				// I AM AN ENGINEER!!!
-				if($this->pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME) === 'pgsql')
+				if($this->pdo_handle->getAttribute(PDO::ATTR_DRIVER_NAME) === 'pgsql')
 					ksort($hits);
 
 				foreach($hits as $hit_date=>$hit_count)
@@ -651,7 +673,7 @@
 				);
 
 			// second table left: date - page - hits
-				$query=$this->pdo_handler->query(''
+				$query=$this->pdo_handle->query(''
 				.	'SELECT date, uri '
 				.	'FROM '.$this->table_name_prefix.'archive'
 				);
@@ -685,9 +707,12 @@
 					}
 
 					if(isset($hits[$row['date']][$row['uri']]))
+					{
 						++$hits[$row['date']][$row['uri']];
-					else
-						$hits[$row['date']][$row['uri']]=1;
+						continue;
+					}
+
+					$hits[$row['date']][$row['uri']]=1;
 				}
 
 				foreach($hits as $hit_date=>$hit_page_array)
@@ -703,10 +728,10 @@
 				$save_report($output, '</td><td class="grid_td">');
 
 			// second table right: date - page - unique hits
-				switch($this->pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME))
+				switch($this->pdo_handle->getAttribute(PDO::ATTR_DRIVER_NAME))
 				{
 					case 'pgsql':
-						$query=$this->pdo_handler->query(''
+						$query=$this->pdo_handle->query(''
 						.	'SELECT DISTINCT ON (date, uri, cookie_id) date, uri, ip, user_agent, cookie_id '
 						.	'FROM '.$this->table_name_prefix.'archive '
 						.	'ORDER BY date, uri, cookie_id'
@@ -714,7 +739,7 @@
 					break;
 					case 'mysql':
 					case 'sqlite':
-						$query=$this->pdo_handler->query(''
+						$query=$this->pdo_handle->query(''
 						.	'SELECT date, uri, ip, user_agent, cookie_id '
 						.	'FROM '.$this->table_name_prefix.'archive '
 						.	'GROUP BY date, uri, cookie_id'
@@ -750,9 +775,12 @@
 					}
 
 					if(isset($hits[$row['date']][$row['uri']]))
+					{
 						++$hits[$row['date']][$row['uri']];
-					else
-						$hits[$row['date']][$row['uri']]=1;
+						continue;
+					}
+
+					$hits[$row['date']][$row['uri']]=1;
 				}
 
 				foreach($hits as $hit_date=>$hit_page_array)
@@ -770,7 +798,7 @@
 			if($full_report)
 			{
 				// third table: date - hour - hits
-					$query=$this->pdo_handler->query(''
+					$query=$this->pdo_handle->query(''
 					.	'SELECT date, timestamp '
 					.	'FROM '.$this->table_name_prefix.'archive'
 					);
@@ -806,9 +834,12 @@
 						$current_hit_hour=gmdate('H', $row['timestamp']);
 
 						if(isset($hits[$row['date']][$current_hit_hour]))
+						{
 							++$hits[$row['date']][$current_hit_hour];
-						else
-							$hits[$row['date']][$current_hit_hour]=1;
+							continue;
+						}
+
+						$hits[$row['date']][$current_hit_hour]=1;
 					}
 
 					foreach($hits as $hit_date=>$hit_hours)
@@ -821,7 +852,7 @@
 					$save_report($output, $this->generate_html_table('end', null));
 
 				// fourth table: ip - date - hour - hits - page - referer - cookie_id - user agent
-					$query=$this->pdo_handler->query(''
+					$query=$this->pdo_handle->query(''
 					.	'SELECT ip, date, timestamp, cookie_id, user_agent, referer, uri '
 					.	'FROM '.$this->table_name_prefix.'archive '
 					.	'ORDER BY timestamp ASC'
@@ -878,34 +909,46 @@
 						.	$row['uri'];
 
 						if(isset($hits[$hit_id]))
+						{
 							++$hits[$hit_id]['hits'];
-						else
-							$hits[$hit_id]=[
-								'ip'=>$row['ip'],
-								'date'=>$row['date'],
-								'timestamp'=>$row['timestamp'],
-								'cookie_id'=>$row['cookie_id'],
-								'user_agent'=>$row['user_agent'],
-								'referer'=>$row['referer'],
-								'page'=>$row['uri'],
-								'hits'=>1
-							];
+							continue;
+						}
+
+						$hits[$hit_id]=[
+							'ip'=>$row['ip'],
+							'date'=>$row['date'],
+							'timestamp'=>$row['timestamp'],
+							'cookie_id'=>$row['cookie_id'],
+							'user_agent'=>$row['user_agent'],
+							'referer'=>$row['referer'],
+							'page'=>$row['uri'],
+							'hits'=>1
+						];
 					}
 
 					// last day in the database
 					foreach($hits as $hit)
-						$save_report($output, $this->generate_html_table('data', [
-							$hit['ip'],
-							$hit['date'],
-							gmdate('H:i:s', $hit['timestamp']),
-							$hit['hits'],
-							$hit['page'],
-							$hit['referer'],
-							$hit['cookie_id'],
-							$hit['user_agent']
-						]));
+						$save_report(
+							$output,
+							$this->generate_html_table(
+								'data',
+								[
+									$hit['ip'],
+									$hit['date'],
+									gmdate('H:i:s', $hit['timestamp']),
+									$hit['hits'],
+									$hit['page'],
+									$hit['referer'],
+									$hit['cookie_id'],
+									$hit['user_agent']
+								]
+							)
+						);
 
-					$save_report($output, $this->generate_html_table('end', null));
+					$save_report(
+						$output,
+						$this->generate_html_table('end', null)
+					);
 			}
 
 			$save_report($output, 'Generated in '.$generator_time->get_exec_time().' seconds');

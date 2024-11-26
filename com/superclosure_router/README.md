@@ -20,7 +20,7 @@ Throws an `superclosure_router_exception` on error
 	cache operation result
 * **[static]** `read_from_cache(string_variable)` [returns string]  
 	read the result of the operation from the cache
-* **[static]** `dump_cache(string_output_file_path)`  
+* **[static]** `dump_cache(string_output_file_path)` [returns self]  
 	dump defined rules and cached operations
 For more info, see `uri_router.php` library
 

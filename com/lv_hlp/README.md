@@ -6,18 +6,19 @@ The rest of the documentation is located in the `lv_arr.php` and `lv_str.php` li
 **This component is licensed under the MIT License, see [LICENSE.md](https://github.com/laravel/framework/blob/11.x/LICENSE.md)**
 
 ## Required libraries
-* `ascii.php`
+* `ascii.php` (loaded on demand)
 * `lv_arr.php`
 * `lv_macroable.php`
 * `lv_str.php`
-* `ocw_slugify.php`
-* `ulid.php`
-* `uuid.php`
-* `pf_json_validate.php` (for PHP older than 8.3)
-* `pf_get_debug_type.php` (for PHP older than 8.0)
-* `pf_ValueError.php` (for PHP older than 8.0)
-* `pf_mbstring.php` (for PHP older than 7.4)
-* `pf_is_countable.php` (for PHP older than 7.3)
+* `ocw_slugify.php` (loaded on demand)
+* `sec_lv_encrypter.php` (loaded on demand)
+* `ulid.php` (loaded on demand)
+* `uuid.php` (loaded on demand)
+* `pf_json_validate.php` (loaded on demand, for PHP older than 8.3)
+* `pf_get_debug_type.php` (loaded on demand, for PHP older than 8.0)
+* `pf_ValueError.php` (loaded on demand, dep `pf_json_validate.php`, for PHP older than 8.0)
+* `pf_mbstring.php` (loaded on demand, for PHP older than 7.4)
+* `pf_is_countable.php` (loaded on demand, for PHP older than 7.3)
 * `has_php_close_tag.php` (for tests)
 * `include_into_namespace.php` (for tests)
 * `var_export_contains.php` (for tests)
@@ -597,6 +598,33 @@ The component extends the `lv_str_ingable` class to `lv_hlp_ingable`
 		**Warning:**  
 		`is_uuid` method is required  
 		`when` method is required
+
+## Encrypter
+Encrypter uses `aes-256-gcm` cipher by default.  
+**Warning:** the following functions require the `lv_hlp_encrypter` class.
+* `lv_hlp_encrypter_generate_key`  
+	Generate the key required for encryption and decryption:
+
+		// for more info see sec_lv_encrypter.php library
+		$key=lv_hlp_encrypter_generate_key(); // aes-256-gcm
+		$key=lv_hlp_encrypter_generate_key('aes-128-cbc'); // custom cipher
+
+* `lv_hlp_encrypter_key`  
+	Set the key required for encryption and decryption:
+
+		lv_hlp_encrypter_key($key);
+		lv_hlp_encrypter_key(getenv('ENCRYPT_KEY')); // will not set if getenv returns false
+
+* `lv_hlp_encrypt`  
+	Encrypt data (will be serialized):
+
+		$data=['a', 'b', 'c'];
+		$encrypted_data=lv_hlp_encrypt($data);
+
+* `lv_hlp_decrypt`  
+
+		$decrypted_data=lv_hlp_encrypt($encrypted_data);
+
 
 ## Collections
 Component extends collection classes:  

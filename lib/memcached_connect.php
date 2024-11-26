@@ -37,7 +37,7 @@
 		/*
 		 * Memcached connection helper
 		 *
-		 * Returns the Memcached handler
+		 * Returns the Memcached handle
 		 * For more info, see memcached_connect_array function
 		 *
 		 * Warning:
@@ -68,41 +68,61 @@
 				?>
 		 *
 		 * Initialization:
-		 *  $db=memcached_connect('./path_to/your_database_config_directory');
+			$db=memcached_connect('./path_to/your_database_config_directory');
 		 */
 
 		if(!file_exists($db.'/config.php'))
-			throw new memcached_connect_exception($db.'/config.php not exists');
+			throw new memcached_connect_exception(
+				$db.'/config.php not exists'
+			);
 
 		$db_config=require $db.'/config.php';
 
 		if(!is_array($db_config))
-			throw new memcached_connect_exception($db.'/config.php did not return an array');
+			throw new memcached_connect_exception(
+				$db.'/config.php did not return an array'
+			);
 
 		foreach($db_config as $key=>$value)
+		{
 			if($key === 'options')
 			{
 				if(
 					isset($value['persistent_id']) &&
-					((!is_string($value['persistent_id'])) && (!is_null($value['persistent_id'])))
+					(
+						(!is_string($value['persistent_id'])) &&
+						(!is_null($value['persistent_id']))
+					)
 				)
-					throw new memcached_connect_exception('The persistent_id parameter is not a string nor null');
+					throw new memcached_connect_exception(
+						'The persistent_id parameter is not a string nor null'
+					);
 
 				if(
 					isset($value['ignore_failed_servers']) &&
 					(!is_bool($value['ignore_failed_servers']))
 				)
-					throw new memcached_connect_exception('The ignore_failed_servers parameter is not a boolean');
+					throw new memcached_connect_exception(
+						'The ignore_failed_servers parameter is not a boolean'
+					);
+
+				continue;
 			}
-			else
-				foreach([
-					'host'=>'string',
-					'port'=>'integer',
-					'socket'=>'string',
-					'weight'=>'integer'
-				] as $param=>$param_type)
-					if(isset($db_config[$key][$param]) && (gettype($db_config[$key][$param]) !== $param_type))
-						throw new memcached_connect_exception('The '.$param.' parameter is not a '.$param_type);
+
+			foreach([
+				'host'=>'string',
+				'port'=>'integer',
+				'socket'=>'string',
+				'weight'=>'integer'
+			] as $param=>$param_type)
+				if(
+					isset($db_config[$key][$param]) &&
+					(gettype($db_config[$key][$param]) !== $param_type)
+				)
+					throw new memcached_connect_exception(
+						'The '.$param.' parameter is not a '.$param_type
+					);
+		}
 
 		return memcached_connect_array($db_config, false);
 	}
@@ -112,7 +132,7 @@
 		 * Memcached connection helper
 		 * portable version
 		 *
-		 * Returns the Memcached handler
+		 * Returns the Memcached handle
 		 *
 		 * Warning:
 		 *  memcached extension is required
@@ -124,7 +144,7 @@
 			$db=memcached_connect_array([
 				'options'=>[ // optional
 					'persistent_id'=>null, // string or null, all instances created with the same persistent_id will share the same connection
-					'ignore_failed_servers'=>true // do not throw an exception on addServer fail
+					'ignore_failed_servers'=>true // do not throw an exception on addServer fail (default: false)
 				],
 				[ // server #1
 					'host'=>'127.0.0.1', // or socket required
@@ -139,46 +159,72 @@
 		 */
 
 		if(!class_exists('Memcached'))
-			throw new memcached_connect_exception('memcached extension is not loaded');
+			throw new memcached_connect_exception(
+				'memcached extension is not loaded'
+			);
 
 		if($type_hint)
 			foreach($servers as $key=>$value)
+			{
 				if($key === 'options')
 				{
 					if(
 						isset($value['persistent_id']) &&
-						((!is_string($value['persistent_id'])) && (!is_null($value['persistent_id'])))
+						(
+							(!is_string($value['persistent_id'])) &&
+							(!is_null($value['persistent_id']))
+						)
 					)
-						throw new memcached_connect_exception('The persistent_id parameter is not a string nor null');
+						throw new memcached_connect_exception(
+							'The persistent_id parameter is not a string nor null'
+						);
 
 					if(
 						isset($value['ignore_failed_servers']) &&
 						(!is_bool($value['ignore_failed_servers']))
 					)
-						throw new memcached_connect_exception('The ignore_failed_servers parameter is not a boolean');
+						throw new memcached_connect_exception(
+							'The ignore_failed_servers parameter is not a boolean'
+						);
+
+					continue;
 				}
-				else
-					foreach([
-						'host'=>'string',
-						'port'=>'integer',
-						'socket'=>'string',
-						'weight'=>'integer'
-					] as $param=>$param_type)
-						if(isset($db_config[$key][$param]) && (gettype($db_config[$key][$param]) !== $param_type))
-							throw new memcached_connect_exception('The '.$param.' parameter is not a '.$param_type);
+
+				foreach([
+					'host'=>'string',
+					'port'=>'integer',
+					'socket'=>'string',
+					'weight'=>'integer'
+				] as $param=>$param_type)
+					if(
+						isset($db_config[$key][$param]) &&
+						(gettype($db_config[$key][$param]) !== $param_type)
+					)
+						throw new memcached_connect_exception(
+							'The '.$param.' parameter is not a '.$param_type
+						);
+			}
 
 		if(!isset($servers['options']['persistent_id']))
 			$servers['options']['persistent_id']=null;
 
-		$memcached_handler=new Memcached($servers['options']['persistent_id']);
+		if(!isset($servers['options']['ignore_failed_servers']))
+			$servers['options']['ignore_failed_servers']=false;
+
+		$memcached_handle=new Memcached($servers['options']['persistent_id']);
 
 		foreach($servers as $server_index=>$server)
 		{
 			if($server_index === 'options')
 				continue;
 
-			if((!isset($server['host'])) && (!isset($server['socket'])))
-				throw new memcached_connect_exception('Server #'.$server_index.': host or socket is not specified');
+			if(
+				(!isset($server['host'])) &&
+				(!isset($server['socket']))
+			)
+				throw new memcached_connect_exception(
+					'Server #'.$server_index.': host or socket is not specified'
+				);
 
 			if(!isset($server['port']))
 				$server['port']=11211;
@@ -193,16 +239,18 @@
 			}
 
 			if(
-				(!$memcached_handler->addServer(
+				(!$memcached_handle->addServer(
 					$server['host'],
 					$server['port'],
 					$server['weight']
 				)) &&
 				($servers['options']['ignore_failed_servers'] !== true)
 			)
-				throw new memcached_connect_exception('Server '.$server['host'].':'.$server['port'].': connection failed');
+				throw new memcached_connect_exception(
+					'Server '.$server['host'].':'.$server['port'].': connection failed'
+				);
 		}
 
-		return $memcached_handler;
+		return $memcached_handle;
 	}
 ?>

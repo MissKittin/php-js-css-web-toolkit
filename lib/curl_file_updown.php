@@ -26,7 +26,10 @@
 			 *  throws an curl_file_exception on error
 			 *
 			 * Error handling: add to parameters (3rd arg array)
-			 *  'on_error'=>function($error){ error_log(__FILE__.' curl_file_upload: '.$error); }
+				'on_error'=>function($error)
+				{
+					my_log_function(__FILE__.' curl_file_upload: '.$error);
+				}
 			 *
 			 * Usage:
 				curl_file_upload(
@@ -78,11 +81,11 @@
 			{
 				case 'ftp':
 				case 'ftps':
-					$file_handler=fopen($source, 'r');
+					$file_handle=fopen($source, 'r');
 
 					$curl_opts[CURLOPT_URL].='/'.basename($source);
 					$curl_opts[CURLOPT_UPLOAD]=true;
-					$curl_opts[CURLOPT_INFILE]=$file_handler;
+					$curl_opts[CURLOPT_INFILE]=$file_handle;
 					$curl_opts[CURLOPT_INFILESIZE]=filesize($source);
 				break;
 				case 'http':
@@ -109,25 +112,30 @@
 					if(isset($params['public_key']))
 						$curl_opts[CURLOPT_SSH_PUBLIC_KEYFILE]=$params['public_key'];
 
-					$file_handler=fopen($source, 'r');
+					$file_handle=fopen($source, 'r');
 
 					$curl_opts[CURLOPT_URL].='/'.basename($source);
 					$curl_opts[CURLOPT_UPLOAD]=true;
-					$curl_opts[CURLOPT_INFILE]=$file_handler;
+					$curl_opts[CURLOPT_INFILE]=$file_handle;
 					$curl_opts[CURLOPT_INFILESIZE]=filesize($source);
 			}
 
-			$curl_handler=curl_init();
+			$curl_handle=curl_init();
 
 			foreach($curl_opts as $option=>$value)
-				curl_setopt($curl_handler, $option, $value);
+				curl_setopt($curl_handle, $option, $value);
 
-			$response=curl_exec($curl_handler);
+			$response=curl_exec($curl_handle);
 
-			if(isset($params['on_error']) && curl_errno($curl_handler))
-				$params['on_error'](curl_error($curl_handler));
+			if(
+				isset($params['on_error']) &&
+				curl_errno($curl_handle)
+			)
+				$params['on_error'](
+					curl_error($curl_handle)
+				);
 
-			curl_close($curl_handler);
+			curl_close($curl_handle);
 
 			return $response;
 		}
@@ -144,7 +152,10 @@
 			 *  throws an curl_file_exception on error
 			 *
 			 * Error handling: add to parameters (3rd arg array)
-			 *  'on_error'=>function($error){ error_log(__FILE__.' curl_file_download: '.$error); }
+				'on_error'=>function($error)
+				{
+					my_log_function(__FILE__.' curl_file_download: '.$error);
+				}
 			 *
 			 * Usage:
 				curl_file_download(
@@ -201,36 +212,39 @@
 
 			if($destination !== null)
 			{
-				$file_handler=fopen($destination, 'w');
-				$curl_opts[CURLOPT_FILE]=$file_handler;
+				$file_handle=fopen($destination, 'w');
+				$curl_opts[CURLOPT_FILE]=$file_handle;
 			}
 
-			$curl_handler=curl_init();
+			$curl_handle=curl_init();
 
 			foreach($curl_opts as $option=>$value)
-				curl_setopt($curl_handler, $option, $value);
+				curl_setopt($curl_handle, $option, $value);
 
 			if($destination === null)
-				$response=curl_exec($curl_handler);
+				$response=curl_exec($curl_handle);
 			else
-				curl_exec($curl_handler);
+				curl_exec($curl_handle);
 
-			if(isset($params['on_error']) && curl_errno($curl_handler))
-				$params['on_error'](curl_error($curl_handler));
+			if(
+				isset($params['on_error']) &&
+				curl_errno($curl_handle)
+			)
+				$params['on_error'](
+					curl_error($curl_handle)
+				);
 
-			curl_close($curl_handler);
+			curl_close($curl_handle);
 
 			if($destination === null)
 				return $response;
-			else
-			{
-				fclose($file_handler);
 
-				if(file_exists($destination))
-					return true;
+			fclose($file_handle);
 
-				return false;
-			}
+			if(file_exists($destination))
+				return true;
+
+			return false;
 		}
 		function curl_json_upload(
 			string $url,
@@ -248,7 +262,10 @@
 			 *  throws an curl_file_exception on error
 			 *
 			 * Error handling: add to parameters (3rd arg array)
-			 *  'on_error'=>function($error){ error_log(__FILE__.' curl_file_upload: '.$error); }
+				'on_error'=>function($error)
+				{
+					my_log_function(__FILE__.' curl_file_upload: '.$error);
+				}
 			 *
 			 * Usage:
 				// get data from api
@@ -315,19 +332,24 @@
 					if(!isset($curl_opts[$curl_opt_name]))
 						$curl_opts[$curl_opt_name]=$curl_opt_value;
 
-			$curl_handler=curl_init();
+			$curl_handle=curl_init();
 
 			foreach($curl_opts as $option=>$value)
-				curl_setopt($curl_handler, $option, $value);
+				curl_setopt($curl_handle, $option, $value);
 
-			$response=curl_exec($curl_handler);
+			$response=curl_exec($curl_handle);
 
-			if(isset($params['on_error']) && curl_errno($curl_handler))
-				$params['on_error'](curl_error($curl_handler));
+			if(
+				isset($params['on_error']) &&
+				curl_errno($curl_handle)
+			)
+				$params['on_error'](
+					curl_error($curl_handle)
+				);
 
-			$header_size=curl_getinfo($curl_handler, CURLINFO_HEADER_SIZE);
+			$header_size=curl_getinfo($curl_handle, CURLINFO_HEADER_SIZE);
 
-			curl_close($curl_handler);
+			curl_close($curl_handle);
 
 			return [
 				substr($response, 0, $header_size),
@@ -339,15 +361,21 @@
 	{
 		function curl_file_upload()
 		{
-			throw new curl_file_exception('curl extension is not loaded');
+			throw new curl_file_exception(
+				'curl extension is not loaded'
+			);
 		}
 		function curl_file_download()
 		{
-			throw new curl_file_exception('curl extension is not loaded');
+			throw new curl_file_exception(
+				'curl extension is not loaded'
+			);
 		}
 		function curl_json_upload()
 		{
-			throw new curl_file_exception('curl extension is not loaded');
+			throw new curl_file_exception(
+				'curl extension is not loaded'
+			);
 		}
 	}
 ?>

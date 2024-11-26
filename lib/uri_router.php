@@ -32,6 +32,8 @@
 		 *   if true, will execute routes from last to first
 		 *  [static] add(string_source, callback_function, bool_use_regex=false, string_request_method=null) [returns self]
 		 *   add routing rule
+		 *  [static] add_file(string_source, string_file, bool_use_regex=false, string_request_method=null) [returns self]
+		 *   add routing rule - shortcut to require statement
 		 *  [static] route() [returns bool]
 		 *   jump down the big rabbit hole
 		 *
@@ -70,10 +72,10 @@
 
 					echo '[OK] arg1-arg6||arg7-arg3';
 				})
-			::	add(['/arg1/arg([0-9])/arg3'], function(){
+			::	add(['/arg1/arg([0-9])/arg3'], function($matches){
 					// route with regex
 
-					echo '[OK] arg1-argX-arg3';
+					echo '[OK] arg1-arg'.$matches[1].'-arg3';
 				}, true)
 			::	add(['/arg1/arg2/arg3'], function(){
 					// POST-only route (you can write anything instead of POST, false means do not use regex)
@@ -81,6 +83,7 @@
 
 					echo '[OK] POST: arg1-arg2-arg3';
 				}, false, 'POST')
+			::	add_file(['/arg1/arg2/arg3'], './routes/my_route.php') // require './routes/my_route.php';
 			::	route(); // exec and flush routing table
 		 *
 		 * run_callback method
@@ -88,9 +91,13 @@
 		 *  you can override the run_callback method with extension, eg:
 			class custom_router extends uri_router
 			{
-				protected static function run_callback(callable $callback)
+				protected static function run_callback(callable $callback, $matches)
 				{
-					$callback('example-arg-1', 'example-arg-2');
+					$callback(
+						$matches,
+						'example-arg-1',
+						'example-arg-2'
+					);
 				}
 			}
 		 */
@@ -102,9 +109,9 @@
 		protected static $default_route=null;
 		protected static $reverse_mode=false;
 
-		protected static function run_callback(callable $callback)
+		protected static function run_callback(callable $callback, $matches=null)
 		{
-			$callback();
+			$callback($matches);
 		}
 
 		public static function set_base_path(string $path)
@@ -140,28 +147,52 @@
 			$request_method=null
 		){
 			if(static::$reverse_mode)
+			{
 				array_unshift(static::$routing_table, [
 					$source,
 					$callback,
 					$use_regex,
 					$request_method
 				]);
-			else
-				static::$routing_table[]=[
-					$source,
-					$callback,
-					$use_regex,
-					$request_method
-				];
+
+				return static::class;
+			}
+
+			static::$routing_table[]=[
+				$source,
+				$callback,
+				$use_regex,
+				$request_method
+			];
 
 			return static::class;
 		}
+		public static function add_file(
+			array $source,
+			string $file,
+			bool $use_regex=false,
+			$request_method=null
+		){
+			return static::add(
+				$source,
+				function() use($file)
+				{
+					require $file;
+				},
+				$use_regex,
+				$request_method
+			);
+		}
+
 		public static function route()
 		{
 			if(static::$source === null)
-				throw new uri_router_exception('Source undefined');
+				throw new uri_router_exception(
+					'Source undefined'
+				);
 
 			$path_matches=false;
+			$matches=null;
 
 			foreach(static::$routing_table as $routing_element)
 				if(
@@ -173,19 +204,22 @@
 						if($routing_element[2])
 						{
 							if(preg_match(
-								'#^'.static::$base_path.$routing_path.'$#',
-								static::$source
+								'#^'
+								.	static::$base_path
+								.	$routing_path
+								.'$#',
+								static::$source,
+								$matches
 							))
 								$path_matches=true;
 						}
-						else
-							if(static::$base_path.$routing_path === static::$source)
-								$path_matches=true;
+						else if(static::$base_path.$routing_path === static::$source)
+							$path_matches=true;
 
 						if($path_matches)
 						{
 							static::$routing_table=[];
-							static::run_callback($routing_element[1]);
+							static::run_callback($routing_element[1], $matches);
 
 							return true;
 						}

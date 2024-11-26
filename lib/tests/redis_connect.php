@@ -127,10 +127,10 @@
 	echo ' [ OK ]'.PHP_EOL;
 
 	try {
-		$redis_handler=redis_connect(__DIR__.'/tmp/redis_connect');
+		$redis_handle=redis_connect(__DIR__.'/tmp/redis_connect');
 
 		echo ' -> Testing redis_connect';
-			if($redis_handler instanceof Redis)
+			if($redis_handle instanceof Redis)
 				echo ' [ OK ]'.PHP_EOL;
 			else
 			{

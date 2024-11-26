@@ -3,7 +3,6 @@
 	 * A toy that scans PHP files and generates an autoloader script
 	 *
 	 * Warning:
-	 *  use at your own risk
 	 *  check_var.php library is required
 	 *  find_php_definitions.php library is required
 	 *  relative_path.php library is required
@@ -13,41 +12,47 @@
 	 *  __DIR__/../lib
 	 */
 
-	function generate_autoloader($classes, $functions, $debug)
-	{
-		$a='';
+	function generate_autoloader(
+		$classes,
+		$functions,
+		$debug,
+		$namespace
+	){
+		$output.='<?php ';
 
 		if(
 			(!empty($classes)) ||
 			(!empty($functions))
 		){
-			$a.='<?php ';
+			if($namespace !== null)
+				$output.='namespace '.$namespace.'{';
 
 			if(!empty($classes))
 			{
-				$a.=''
+				$output.=''
 				.'spl_autoload_register(function($c){'
 				.	'switch(strtolower($c))'
 				.	'{';
 
 						foreach($classes as $class=>$file)
 						{
-							$a.='case \''.strtolower($class).'\':';
+							$output.='case \''.strtolower($class).'\':';
 
 								if($debug)
-									$a.='error_log(__FILE__.\' autoloader: loading \'.__DIR__.\'/'.$file.'\');';
+									$output.='error_log(__FILE__.\' autoloader: loading \'.__DIR__.\'/'.$file.'\');';
 
-								$a.='require __DIR__.\'/'.$file.'\'';
-							$a.=';break;';
+								$output.='require __DIR__.\'/'.$file.'\'';
+
+							$output.=';break;';
 						}
 
-					$a.='}'
+					$output.='}'
 				.'});';
 			}
 
 			if(!empty($functions))
 			{
-				$a.=''
+				$output.=''
 				.'function load_function(string $f)'
 				.'{'
 				.	'if(!function_exists($f))'
@@ -55,40 +60,51 @@
 				.		'{';
 							foreach($functions as $function=>$file)
 							{
-								$a.='case \''.strtolower($function).'\':';
+								$output.='case \''.strtolower($function).'\':';
 
 									if($debug)
-										$a.='error_log(__FILE__.\' load_function: loading \'.__DIR__.\'/'.$file.'\');';
+										$output.='error_log(__FILE__.\' load_function: loading \'.__DIR__.\'/'.$file.'\');';
 
-									$a.='require __DIR__.\'/'.$file.'\'';
-								$a.=';break;';
+									$output.='require __DIR__.\'/'.$file.'\'';
+
+								$output.=';break;';
 							}
 
-							$a.='default:';
+							$output.='default:';
 								if($debug)
-									$a.='error_log(__FILE__.\' load_function: function \'.$f.\' not found\');';
+									$output.='error_log(__FILE__.\' load_function: function \'.$f.\' not found\');';
 
-								$a.='return false;'
+								$output.='return false;'
 				.		'}'
 				.	'return true;'
 				.'}';
 			}
 
-			$a.=' ?>';
+			if($namespace !== null)
+				$output.='}';
 		}
 
-		return $a;
+		return $output.' ?>';
 	}
 	function load_library($libraries, $required=true)
 	{
 		foreach($libraries as $library)
+		{
 			if(file_exists(__DIR__.'/lib/'.$library))
+			{
 				require __DIR__.'/lib/'.$library;
-			else if(file_exists(__DIR__.'/../lib/'.$library))
+				continue;
+			}
+
+			if(file_exists(__DIR__.'/../lib/'.$library))
+			{
 				require __DIR__.'/../lib/'.$library;
-			else
-				if($required)
-					throw new Exception($library.' library not found');
+				continue;
+			}
+
+			if($required)
+				throw new Exception($library.' library not found');
+		}
 	}
 
 	try {
@@ -105,17 +121,17 @@
 	$input_dirs=check_argv_next_param_many('--in');
 	$output_file=check_argv_next_param('--out');
 	$ignores=check_argv_next_param_many('--ignore');
+	$namespace=check_argv_next_param('--namespace');
 	$debug=check_argv('--debug');
 	$output_file_dir=dirname($output_file);
 
 	if(
 		($input_dirs === null) ||
 		($output_file === null) ||
-		check_argv('--help') ||
-		check_argv('-h')
+		check_argv('--help') || check_argv('-h')
 	){
 		echo 'Usage:'.PHP_EOL;
-		echo ' --in path/to/dir_a --in path/to/dir_b [--ignore filename] [--ignore dirname/] [--ignore dir/file] --out path/to/your_autoloader.php [--debug]'.PHP_EOL;
+		echo ' '.$argv[0].' --in path/to/dir_a --in path/to/dir_b [--ignore filename] [--ignore dirname/] [--ignore dir/file] [--namespace MyNamespace] --out path/to/your_autoloader.php [--debug]'.PHP_EOL;
 		echo 'Where:'.PHP_EOL;
 		echo ' --debug adds the ability to track loaded files to the autoloader via error_log()'.PHP_EOL;
 		echo PHP_EOL;
@@ -125,6 +141,8 @@
 		echo PHP_EOL;
 		echo 'Loading functions:'.PHP_EOL;
 		echo '  load_function(\'function_name\')'.PHP_EOL;
+		echo ' or if a namespace is defined'.PHP_EOL;
+		echo '  MyNamespace\load_function(\'function_name\')'.PHP_EOL;
 		echo '  returns bool'.PHP_EOL;
 		exit(1);
 	}
@@ -236,8 +254,12 @@
 				}
 			}
 
-	if(@file_put_contents($output_file, generate_autoloader($classes, $functions, $debug)) === false)
-	{
+	if(@file_put_contents($output_file, generate_autoloader(
+		$classes,
+		$functions,
+		$debug,
+		$namespace
+	)) === false){
 		echo 'Cannot create '.$output_file.PHP_EOL;
 		exit(1);
 	}

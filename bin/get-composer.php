@@ -15,11 +15,32 @@
 	 *  __DIR__/../lib
 	 */
 
+	function load_library($libraries, $required=true)
+	{
+		foreach($libraries as $library)
+		{
+			if(file_exists(__DIR__.'/lib/'.$library))
+			{
+				require __DIR__.'/lib/'.$library;
+				continue;
+			}
+
+			if(file_exists(__DIR__.'/../lib/'.$library))
+			{
+				require __DIR__.'/../lib/'.$library;
+				continue;
+			}
+
+			if($required)
+				throw new Exception($library.' library not found');
+		}
+	}
+
 	if(
 		isset($argv[1]) &&
 		(($argv[1] === '-h') || ($argv[1] === '--help'))
 	){
-		echo 'get-composer.php [path/to/directory]'.PHP_EOL;
+		echo $argv[0].' [path/to/directory]'.PHP_EOL;
 		exit();
 	}
 
@@ -31,26 +52,17 @@
 		'composer_phar'=>'./composer.phar'
 	];
 
-	function load_library($libraries, $required=true)
-	{
-		foreach($libraries as $library)
-			if(file_exists(__DIR__.'/lib/'.$library))
-				require __DIR__.'/lib/'.$library;
-			else if(file_exists(__DIR__.'/../lib/'.$library))
-				require __DIR__.'/../lib/'.$library;
-			else
-				if($required)
-					throw new Exception($library.' library not found');
-	}
+	$force_copy=false;
 
-	$GLOBALS['force_copy']=false;
 	if(extension_loaded('curl'))
 		try {
 			load_library(['curl_file_updown.php']);
 		} catch(Exception $error) {
 			echo $error->getMessage().', using copy'.PHP_EOL;
-			$GLOBALS['force_copy']=true;
+			$force_copy=true;
 		}
+
+	chdir(__DIR__);
 
 	if(isset($argv[1]))
 	{
@@ -62,8 +74,6 @@
 
 		chdir($argv[1]);
 	}
-	else
-		chdir(__DIR__);
 
 	foreach(['signature', 'installer'] as $file)
 		if(file_exists($composer_meta[$file.'_file']))
@@ -80,9 +90,12 @@
 
 	echo 'Composer will be installed in '.getcwd().DIRECTORY_SEPARATOR.$composer_meta['composer_phar'].PHP_EOL;
 
-	if(extension_loaded('curl') && (!$GLOBALS['force_copy']))
-		foreach(['signature', 'installer'] as $file)
-		{
+	foreach(['signature', 'installer'] as $file)
+	{
+		if(
+			extension_loaded('curl') &&
+			(!$force_copy)
+		){
 			echo 'Downloading '.$file.' via curl'.PHP_EOL;
 
 			curl_file_download(
@@ -101,13 +114,14 @@
 				]
 			);
 		}
-	else
-		foreach(['signature', 'installer'] as $file)
+		else
 		{
 			echo 'Downloading '.$file.' via copy'.PHP_EOL;
 
-			if(!copy($composer_meta[$file.'_url'], $composer_meta[$file.'_file']))
-			{
+			if(!copy(
+				$composer_meta[$file.'_url'],
+				$composer_meta[$file.'_file'])
+			){
 				echo 'Failed to download '.$file.PHP_EOL;
 
 				@unlink($composer_meta['signature_file']);
@@ -117,12 +131,12 @@
 			}
 		}
 
-	foreach(['signature', 'installer'] as $file)
 		if(!file_exists($composer_meta[$file.'_file']))
 		{
 			echo 'Failed to download '.$file.PHP_EOL;
 			exit(1);
 		}
+	}
 
 	echo 'Verifying installer';
 		if(
@@ -158,7 +172,9 @@
 		}
 
 	echo 'Starting installer'.PHP_EOL;
-		system('"'.PHP_BINARY.'" '.$composer_meta['installer_file']);
+		system('"'.PHP_BINARY.'" '
+		.	$composer_meta['installer_file']
+		);
 
 	echo 'Removing installer'.PHP_EOL;
 	{

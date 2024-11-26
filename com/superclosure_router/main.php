@@ -3,15 +3,24 @@
 
 	(function($libraries){
 		foreach($libraries as $library)
-			if(!class_exists($library))
+		{
+			if(class_exists($library))
+				continue;
+
+			if(file_exists(__DIR__.'/lib/'.$library.'.php'))
 			{
-				if(file_exists(__DIR__.'/lib/'.$library.'.php'))
-					require __DIR__.'/lib/'.$library.'.php';
-				else if(file_exists(__DIR__.'/../../lib/'.$library.'.php'))
-					require __DIR__.'/../../lib/'.$library.'.php';
-				else
-					throw new superclosure_router_exception($library.'.php library not found');
+				require __DIR__.'/lib/'.$library.'.php';
+				continue;
 			}
+
+			if(file_exists(__DIR__.'/../../lib/'.$library.'.php'))
+			{
+				require __DIR__.'/../../lib/'.$library.'.php';
+				continue;
+			}
+
+			throw new superclosure_router_exception($library.'.php library not found');
+		}
 	})(['superclosure', 'uri_router']);
 
 	abstract class superclosure_router extends uri_router
@@ -21,12 +30,15 @@
 		protected static $cache_registry=[];
 		protected static $run_callback=[null];
 
-		protected static function run_callback(callable $callback)
+		protected static function run_callback(callable $callback, $matches=null)
 		{
 			if(static::$run_callback[0] === null)
-				$callback();
-			else
-				static::$run_callback[0]($callback);
+			{
+				$callback($matches);
+				return;
+			}
+
+			static::$run_callback[0]($callback, $matches);
 		}
 
 		public static function set_source_variable(string $variable)
@@ -83,10 +95,12 @@
 			return static::class;
 		}
 
-		public static function dump_cache(string $cache_file)
+		public static /* monster */ function dump_cache(string $cache_file)
 		{
 			if(static::$source_variable === null)
-				throw new superclosure_router_exception('Source variable is not defined');
+				throw new superclosure_router_exception(
+					'Source variable is not defined'
+				);
 
 			$output_file=fopen($cache_file, 'w');
 			$first_if=true;
@@ -96,36 +110,46 @@
 			if(static::$run_callback[0] !== null)
 			{
 				fwrite($output_file, ''
-				.	'$__superclosure_router_rc=function($c){'
+				.	'$__superclosure_router_rc=function($c,$m){' // $c -> closure, $m -> matches
 				.		'$w='.static::$run_callback[0]->get_closure_body().';'
-				.		'$w($c);'
+				.		'$w($c,$m);'
 				.	'};'
 				);
+
 				static::$run_callback[0]->flush();
 			}
 
-			if(!empty(static::$cache_registry))
-			{
-				$first_cache_element=true;
-
+			$first_cache_element=true;
 				fwrite($output_file, '$__superclosure_router_cache=[');
+
+				if(!empty(static::$cache_registry))
+				{
 					foreach(static::$cache_registry as $cache_key=>$cache_value)
 					{
 						if(!$first_cache_element)
 							fwrite($output_file, ',');
 
-						fwrite($output_file, '\''.$cache_key.'\'=>'.$cache_value);
+						fwrite(
+							$output_file,
+							'\''.$cache_key.'\'=>'.$cache_value
+						);
+
 						$first_cache_element=false;
 					}
-				fwrite($output_file, '];');
-			}
+				}
+
+				if(!$first_cache_element)
+					fwrite($output_file, ',');
+
+				fwrite($output_file, '\'__MATCHES__\'=>null'); // for preg_match
+			fwrite($output_file, '];');
 
 			foreach(static::$routing_table as $routing_element)
 			{
 				$first_condition=true;
 
 				if(!$first_if)
-					fwrite($output_file, 'else ');
+					fwrite($output_file, 'else');
 
 				fwrite($output_file, 'if((');
 					foreach($routing_element[0] as $routing_path)
@@ -136,16 +160,39 @@
 						$first_condition=false;
 
 						if($routing_element[2])
-							fwrite($output_file, 'preg_match(\'#^'.static::$base_path.$routing_path.'$#\','.static::$source_variable.')');
-						else
-							fwrite($output_file, '(\''.static::$base_path.$routing_path.'\'==='.static::$source_variable.')');
+						{
+							fwrite($output_file, ''
+							.	'preg_match('
+							.		'\'#^'
+							.			static::$base_path
+							.			$routing_path
+							.		'$#\''
+							.	','.static::$source_variable
+							.	', $__superclosure_router_cache[\'__MATCHES__\']'
+							.	')'
+							);
+
+							continue;
+						}
+
+						fwrite(
+							$output_file,
+							/* if || */'(\''.static::$base_path.$routing_path.'\'==='.static::$source_variable.')'
+						);
 					}
 
-					fwrite($output_file, ')');
+					fwrite($output_file, ')'); // endif regex
 
-					if((static::$request_method_variable) && ($routing_element[3] !== null))
-						fwrite($output_file, '&&(\''.$routing_element[3].'\'==='.static::$request_method_variable.')');
-				fwrite($output_file, '){');
+					if(
+						(static::$request_method_variable) &&
+						($routing_element[3] !== null)
+					)
+						fwrite(
+							$output_file,
+							'&&(\''.$routing_element[3].'\'==='.static::$request_method_variable.')' // request method
+						);
+
+				fwrite($output_file, '){'); // endif -> procedure
 					if(!empty($routing_element[1]->get_closure_vars()))
 						fwrite($output_file, ''
 						.	'extract('
@@ -163,16 +210,16 @@
 					if(static::$run_callback[0] === null)
 						fwrite($output_file, ''
 						.	'$__c='.$routing_element[1]->get_closure_body().';'
-						.	'$__c();'
+						.	'$__c($__superclosure_router_cache[\'__MATCHES__\']);'
 						.	'unset($__c);'
 						);
 					else
 						fwrite($output_file, ''
 						.	'$__c='.$routing_element[1]->get_closure_body().';'
-						.	'$__superclosure_router_rc($__c);'
+						.	'$__superclosure_router_rc($__c, $__superclosure_router_cache[\'__MATCHES__\']);'
 						.	'unset($__c);'
 						);
-				fwrite($output_file, '}');
+				fwrite($output_file, '}'); // endif
 
 				$routing_element[1]->flush();
 				$first_condition=true;
@@ -206,8 +253,8 @@
 				static::$default_route[0]->flush();
 			}
 
-			if(!empty(static::$cache_registry))
-				fwrite($output_file, 'unset($__superclosure_router_cache);');
+			fwrite($output_file, 'unset($__superclosure_router_cache);');
+
 			if(static::$run_callback[0] !== null)
 				fwrite($output_file, 'unset($__superclosure_router_rc);');
 
@@ -215,6 +262,8 @@
 			fclose($output_file);
 
 			file_put_contents($cache_file, php_strip_whitespace($cache_file));
+
+			return static::class;
 		}
 	}
 ?>

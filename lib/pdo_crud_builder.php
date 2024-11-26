@@ -13,33 +13,57 @@
 		 * Initializing:
 		 *  $query_builder_object=new pdo_crud_builder(params_array)
 		 *   where params_array has:
-				'pdo_handler'=>$pdo_object // required
+				'pdo_handle'=>$pdo_object // required
 				'fetch_mode'=>PDO::FETCH_NAMED // optional
 				'auto_flush'=>true // flush query after exec(), optional
 				'on_error'=>function($message){ error_log($message); } // error logging, optional (see examples)
 		 *  note: this class does not creates connection to the database
-		 *   you have to manually open connection and then pass pdo handler to the builder
+		 *   you have to manually open connection and then pass pdo handle to the builder
 		 *
 		 * PDO fetch method
 		 *  current fetch method is used in query() exec method
 		 *  can be changed via set_fetch_method(PDO::FETCH_METHOD)
 		 *  if query() is not used, this value can be passed to PDO method via get_fetch_method(), eg.
-		 *    $pdo_crud_builder=new pdo_crud_builder(new PDO('sqlite:./database.sqlite3'));
-		 *    $result=$pdo_crud_builder->select('*')->from('log')->where_not_like('date', '%-%-% 17:30:00')->exec(true); // true tells the exec() method this is a query
-		 *    while($row=$pdo_crud_builder->fetch_row($result))
-		 *     echo '0: '.$row[0].', 1: '.$row[1].', 2: '.$row[2].', 3: '.$row[3].', 4: '.$row[4].PHP_EOL;
+			$pdo_crud_builder=new pdo_crud_builder(new PDO(
+				'sqlite:./database.sqlite3'
+			));
+
+			$result=$pdo_crud_builder
+			->	select('*')
+			->	from('log')
+			->	where_not_like('date', '%-%-% 17:30:00')
+			->	exec(true); // true tells the exec() method this is a query
+
+			while($row=$pdo_crud_builder->fetch_row($result))
+				echo ''
+				.	'0: '.$row[0].', '
+				.	'1: '.$row[1].', '
+				.	'2: '.$row[2].', '
+				.	'3: '.$row[3].', '
+				.	'4: '.$row[4]
+				.	PHP_EOL;
 		 *
 		 * Usage:
-		 *  $query_builder_object->first_statement()->second_statement()->n_statement()->execution_method()
+			$query_builder_object
+			->	first_statement()
+			->	second_statement()
+			->	n_statement()
+			->	execution_method()
 		 *
 		 *  Operations on tables:
 		 *   Creating table ([] means array):
 				create_table('table_name', [
-					'id'=>pdo_crud_builder::ID_DEFAULT_PARAMS,
+					'id'=>'INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL', // varies depending on database type
 					'first_column_name'=>'first column type',
 					'second_column_name'=>'second column type',
 					'n_column_name'=>'n column type'
 				])
+				create_table('table_name', [
+					'id'=>'INTEGER NOT NULL AUTO_INCREMENT',
+					'first_column_name'=>'first column type',
+					'second_column_name'=>'second column type',
+					'n_column_name'=>'n column type'
+				], 'id') // for MySQL - the last argument is equivalent to 'PRIMARY KEY'=>'(id)'
 		 *   Altering table:
 				alter_table('table_name')
 				alter_table_if_exists('table_name')
@@ -56,6 +80,83 @@
 				drop_table('table_name')
 		 *   Truncating table:
 				truncate_table('table_name')
+		 *
+		 *  Creating/altering/dropping views:
+				create_view('view_name')->methods...
+				create_view('view_name', true)->methods... // temporary view
+				create_or_replace_view('view_name')->methods...
+				create_or_replace_view('view_name', true)->methods... // temporary view
+				alter_view('view_name')->methods...
+				alter_view('view_name', 'column_a,column_b,column_n')->methods... // MySQL
+				with_check_option()
+				with_local_check_option()
+				with_cascaded_check_option()
+				drop_view('view_name')
+		 *
+		 *  Operation on triggers (SQLite3, WHEN operator is not supported):
+		 *   Creating trigger:
+		 *    insert:
+				create_insert_trigger('trigger_name', 'table_name')
+				->	create_trigger_begin()
+				->	methods...
+				->	create_trigger_end()
+				create_insert_trigger_before('trigger_name', 'table_name')
+				->	create_trigger_begin()
+				->	methods...
+				->	create_trigger_end()
+				create_insert_trigger_after('trigger_name', 'table_name')
+				->	create_trigger_begin()
+				->	methods...
+				->	create_trigger_end()
+				create_insert_trigger_instead_of('trigger_name', 'table_name')
+				->	create_trigger_begin()
+				->	methods...
+				->	create_trigger_end()
+		 *    update:
+				create_update_trigger('trigger_name', 'table_name')
+				->	create_trigger_begin()
+				->	methods...
+				->	create_trigger_end()
+				create_update_trigger_before('trigger_name', 'table_name')
+				->	create_trigger_begin()
+				->	methods...
+				->	create_trigger_end()
+				create_update_trigger_after('trigger_name', 'table_name')
+				->	create_trigger_begin()
+				->	methods...
+				->	create_trigger_end()
+				create_update_trigger_instead_of('trigger_name', 'table_name')
+				->	create_trigger_begin()
+				->	methods...
+				->	create_trigger_end()
+		 *    delete:
+				create_delete_trigger('trigger_name', 'table_name')
+				->	create_trigger_begin()
+				->	methods...
+				->	create_trigger_end()
+				create_delete_trigger_before('trigger_name', 'table_name')
+				->	create_trigger_begin()
+				->	methods...
+				->	create_trigger_end()
+				create_delete_trigger_after('trigger_name', 'table_name')
+				->	create_trigger_begin()
+				->	methods...
+				->	create_trigger_end()
+				create_delete_trigger_instead_of('trigger_name', 'table_name')
+				->	create_trigger_begin()
+				->	methods...
+				->	create_trigger_end()
+		 *   Dropping trigger:
+				drop_trigger('trigger_name')
+		 *
+		 *  Creating/altering/dropping types (PostgreSQL):
+				create_type('type_name', [
+					'first_column_name'=>'first column type',
+					'second_column_name'=>'second column type',
+					'n_column_name'=>'n column type'
+				])
+				create_type_enum('type_name', ['enum_a', 'enum_b', 'enum_n'])
+				drop_type('type_name')
 		 *
 		 *  Creating ([] means array):
 				insert_into(
@@ -112,6 +213,8 @@
 		 *  Miscellaneous statements:
 				output_into(string_parameters, string_into_where)
 				from(string)
+				cascade()
+				restrict()
 		 *   where statements:
 				where(string_a, string_operator, string_b)
 					and(string_a, string_operator, string_b)
@@ -162,17 +265,19 @@
 		 *    supported drivers: mysql pgsql sqlite oci dblib(SQL Server 2000)
 		 *
 		 * Closing connection:
+		 *  $pdo_handle=$query_builder_object->pdo_disconnect()
+		 *   unset PDO handle in object (returns null)
 		 *  unset($query_builder_object)
 		 *
 		 * Examples:
 		 *  initialization with SQLite3 database:
 				$pdo_crud_builder=new pdo_crud_builder([
-					'pdo_handler'=>new PDO('sqlite:./database.sqlite3'),
+					'pdo_handle'=>new PDO('sqlite:./database.sqlite3'),
 					'on_error'=>function($error) { error_log('pdo_crud_builder'.$error); }
 				])
 		 *  initialization with pdo_connect library:
 				$pdo_crud_builder=new pdo_crud_builder([
-					'pdo_handler'=>pdo_connect('pathTo/yourDatabaseConfigDirectory'),
+					'pdo_handle'=>pdo_connect('pathTo/yourDatabaseConfigDirectory'),
 					'on_error'=>function($error) { error_log('pdo_crud_builder'.$error); }
 				])
 		 *  dump all rows from the table:
@@ -183,9 +288,7 @@
 				while($row=$result->fetch($pdo_crud_builder->get_fetch_method()))
 		 */
 
-		public const ID_DEFAULT_PARAMS='INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL';
-
-		protected $pdo_handler;
+		protected $pdo_handle;
 		protected $fetch_mode;
 		protected $on_error;
 		protected $auto_flush=true;
@@ -194,21 +297,23 @@
 
 		public function __construct(array $params)
 		{
-			if(!isset($params['pdo_handler']))
-				throw new pdo_crud_builder_exception('No PDO handler given');
+			if(!isset($params['pdo_handle']))
+				throw new pdo_crud_builder_exception('No PDO handle given');
 
 			$this->fetch_mode=PDO::FETCH_NAMED;
-			$this->on_error['callback']=function(){};
+			$this->on_error[0]=function(){};
 
 			foreach([
-				'pdo_handler'=>'object',
+				'pdo_handle'=>'object',
 				'fetch_mode'=>'integer',
 				'auto_flush'=>'boolean'
 			] as $param=>$param_type)
 				if(isset($params[$param]))
 				{
 					if(gettype($params[$param]) !== $param_type)
-						throw new pdo_crud_builder_exception('The input array parameter '.$param.' is not a '.$param_type);
+						throw new pdo_crud_builder_exception(
+							'The input array parameter '.$param.' is not a '.$param_type
+						);
 
 					$this->$param=$params[$param];
 				}
@@ -216,9 +321,11 @@
 			if(isset($params['on_error']))
 			{
 				if(!is_callable($params['on_error']))
-					throw new pdo_crud_builder_exception('The input array parameter on_error is not callable');
+					throw new pdo_crud_builder_exception(
+						'The input array parameter on_error is not callable'
+					);
 
-				$this->on_error['callback']=$on_error;
+				$this->on_error[0]=$on_error;
 			}
 		}
 
@@ -236,8 +343,11 @@
 			$this->sql_query.='FROM '.$from.' ';
 			return $this;
 		}
-		public function where(string $name, string $operator, string $value)
-		{
+		public function where(
+			string $name,
+			string $operator,
+			string $value
+		){
 			$this->sql_query.='WHERE '.$name.$operator.'? ';
 			$this->sql_parameters[]=$value;
 
@@ -245,39 +355,57 @@
 		}
 		public function where_is(string $name, string $what)
 		{
-			$this->sql_query.='WHERE '.$name.' IS '.$what.' ';
+			$this->sql_query.=''
+			.	'WHERE '.$name.' '
+			.	'IS '.$what.' ';
+
 			return $this;
 		}
 		public function where_like(string $name, string $string)
 		{
-			$this->sql_query.='WHERE '.$name.' LIKE ? ';
+			$this->sql_query.=''
+			.	'WHERE '.$name.' '
+			.	'LIKE ? ';
+
 			$this->sql_parameters[]=$string;
 
 			return $this;
 		}
 		public function where_not_like(string $name, string $string)
 		{
-			$this->sql_query.='WHERE '.$name.' NOT LIKE ? ';
+			$this->sql_query.=''
+			.	'WHERE '.$name.' '
+			.	'NOT LIKE ? ';
+
 			$this->sql_parameters[]=$string;
 
 			return $this;
 		}
-		public function where_not(string $name, string $operator, string $value)
-		{
+		public function where_not(
+			string $name,
+			string $operator,
+			string $value
+		){
 			$this->sql_query.='WHERE NOT '.$name.$operator.'? ';
 			$this->sql_parameters[]=$value;
 
 			return $this;
 		}
-		public function and(string $name, string $operator, string $value)
-		{
+		public function and(
+			string $name,
+			string $operator,
+			string $value
+		){
 			$this->sql_query.='AND '.$name.$operator.'? ';
 			$this->sql_parameters[]=$value;
 
 			return $this;
 		}
-		public function or(string $name, string $operator, string $value)
-		{
+		public function or(
+			string $name,
+			string $operator,
+			string $value
+		){
 			$this->sql_query.='OR '.$name.$operator.'? ';
 			$this->sql_parameters[]=$value;
 
@@ -285,11 +413,281 @@
 		}
 		public function output_into(string $parameters, string $into)
 		{
-			$this->sql_query.='OUTPUT '.$parameters.' INTO '.$into.' ';
+			$this->sql_query.=''
+			.	'OUTPUT '.$parameters.' '
+			.	'INTO '.$into.' ';
+
+			return $this;
+		}
+		public function cascade()
+		{
+			$this->sql_query.='CASCADE ';
+			return $this;
+		}
+		public function restrict()
+		{
+			$this->sql_query.='RESTRICT ';
 			return $this;
 		}
 
-		public function create_table(string $table_name, array $columns)
+		public function create_table(
+			string $table_name,
+			array $columns,
+			?string $mysql_primary_key=null
+		){
+			$sql_columns='';
+
+			foreach($columns as $column_name=>$column_type)
+			{
+				if(!is_string($column_type))
+					throw new pdo_crud_builder_exception('Array value must be a string');
+
+				$sql_columns.=$column_name.' '.$column_type.', ';
+			}
+
+			if($mysql_primary_key !== null)
+				$sql_columns.='PRIMARY KEY('.$mysql_primary_key.')';
+			else
+				$sql_columns=substr($sql_columns, 0, -2);
+
+			$this->sql_query.=''
+			.	'CREATE TABLE '.$table_name
+			.	'('.$sql_columns.') ';
+
+			return $this;
+		}
+		public function drop_table(string $table_name)
+		{
+			$this->sql_query.=''
+			.	'DROP TABLE '
+			.	'IF EXISTS '
+			.	$table_name.' ';
+
+			return $this;
+		}
+		public function truncate_table(string $table_name)
+		{
+			$this->sql_query.='TRUNCATE TABLE '.$table_name.' ';
+			return $this;
+		}
+
+		public function create_view(
+			string $view_name,
+			bool $temporary=false
+		){
+			$temporary_view_query='';
+
+			if($temporary)
+				$temporary_view_query='TEMPORARY ';
+
+			$this->sql_query.=''
+			.	'CREATE '.$temporary_view_query
+			.	'VIEW IF NOT EXISTS '.$view_name.' AS ';
+
+			return $this;
+		}
+		public function create_or_replace_view(
+			string $view_name,
+			bool $temporary=false
+		){
+			$temporary_view_query='';
+
+			if($temporary)
+				$temporary_view_query='TEMPORARY ';
+
+			$this->sql_query.=''
+			.	'CREATE OR REPLACE '.$temporary_view_query
+			.	'VIEW '.$view_name.' AS ';
+
+			return $this;
+		}
+		public function alter_view(
+			string $view_name,
+			?string $columns=null
+		){
+			$alter_columns='';
+
+			if($columns !== null)
+				$alter_columns='('.$columns.') AS';
+
+			$this->sql_query.=''
+			.	'ALTER VIEW IF EXISTS '.$view_name
+			.	$alter_columns.' ';
+
+			return $this;
+		}
+		public function with_check_option()
+		{
+			$this->sql_query.='WITH CHECK OPTION ';
+			return $this;
+		}
+		public function with_local_check_option()
+		{
+			$this->sql_query.='WITH LOCAL CHECK OPTION ';
+			return $this;
+		}
+		public function with_cascaded_check_option()
+		{
+			$this->sql_query.='WITH CASCADED CHECK OPTION ';
+			return $this;
+		}
+		public function drop_view(string $view_name)
+		{
+			$this->sql_query.=''
+			.	'DROP VIEW '
+			.	'IF EXISTS '
+			.	$view_name.' ';
+
+			return $this;
+		}
+
+		public function create_insert_trigger(
+			string $trigger_name,
+			string $table_name
+		){
+			$this->sql_query.=''
+			.	'CREATE TRIGGER IF NOT EXISTS '.$trigger_name.' '
+			.	'INSERT ON '.$table_name.' ';
+
+			return $this;
+		}
+		public function create_insert_trigger_before(
+			string $trigger_name,
+			string $table_name
+		){
+			$this->sql_query.=''
+			.	'CREATE TRIGGER IF NOT EXISTS '.$trigger_name.' '
+			.	'BEFORE '
+			.	'INSERT ON '.$table_name.' ';
+
+			return $this;
+		}
+		public function create_insert_trigger_after(
+			string $trigger_name,
+			string $table_name
+		){
+			$this->sql_query.='CREATE TRIGGER IF NOT EXISTS '.$trigger_name.' '
+			.	'AFTER '
+			.	'INSERT ON '.$table_name.' ';
+
+			return $this;
+		}
+		public function create_insert_trigger_instead_of(
+			string $trigger_name,
+			string $table_name
+		){
+			$this->sql_query.=''
+			.	'CREATE TRIGGER IF NOT EXISTS '.$trigger_name.' '
+			.	'INSTEAD OF '
+			.	'INSERT ON '.$table_name.' ';
+
+			return $this;
+		}
+		public function create_update_trigger(
+			string $trigger_name,
+			string $table_name
+		){
+			$this->sql_query.=''
+			.	'CREATE TRIGGER IF NOT EXISTS '.$trigger_name.' '
+			.	'UPDATE ON '.$table_name.' ';
+
+			return $this;
+		}
+		public function create_update_trigger_before(
+			string $trigger_name,
+			string $table_name
+		){
+			$this->sql_query.=''
+			.	'CREATE TRIGGER IF NOT EXISTS '.$trigger_name.' '
+			.	'BEFORE '
+			.	'UPDATE ON '.$table_name.' ';
+
+			return $this;
+		}
+		public function create_update_trigger_after(
+			string $trigger_name,
+			string $table_name
+		){
+			$this->sql_query.='CREATE TRIGGER IF NOT EXISTS '.$trigger_name.' '
+			.	'AFTER '
+			.	'UPDATE ON '.$table_name.' ';
+
+			return $this;
+		}
+		public function create_update_trigger_instead_of(
+			string $trigger_name,
+			string $table_name
+		){
+			$this->sql_query.=''
+			.	'CREATE TRIGGER IF NOT EXISTS '.$trigger_name.' '
+			.	'INSTEAD OF '
+			.	'UPDATE ON '.$table_name.' ';
+
+			return $this;
+		}
+		public function create_delete_trigger(
+			string $trigger_name,
+			string $table_name
+		){
+			$this->sql_query.=''
+			.	'CREATE TRIGGER IF NOT EXISTS '.$trigger_name.' '
+			.	'DELETE ON '.$table_name.' ';
+
+			return $this;
+		}
+		public function create_delete_trigger_before(
+			string $trigger_name,
+			string $table_name
+		){
+			$this->sql_query.=''
+			.	'CREATE TRIGGER IF NOT EXISTS '.$trigger_name.' '
+			.	'BEFORE '
+			.	'DELETE ON '.$table_name.' ';
+
+			return $this;
+		}
+		public function create_delete_trigger_after(
+			string $trigger_name,
+			string $table_name
+		){
+			$this->sql_query.='CREATE TRIGGER IF NOT EXISTS '.$trigger_name.' '
+			.	'AFTER '
+			.	'DELETE ON '.$table_name.' ';
+
+			return $this;
+		}
+		public function create_delete_trigger_instead_of(
+			string $trigger_name,
+			string $table_name
+		){
+			$this->sql_query.=''
+			.	'CREATE TRIGGER IF NOT EXISTS '.$trigger_name.' '
+			.	'INSTEAD OF '
+			.	'DELETE ON '.$table_name.' ';
+
+			return $this;
+		}
+		public function create_trigger_begin()
+		{
+			$this->sql_query.='BEGIN ';
+			return $this;
+		}
+		public function create_trigger_end()
+		{
+			$this->sql_query.='; END ';
+			return $this;
+		}
+		public function drop_trigger(string $trigger_name)
+		{
+			$this->sql_query.=''
+			.	'DROP TRIGGER '
+			.	'IF EXISTS '
+			.	$trigger_name.' ';
+
+			return $this;
+		}
+
+		public function create_type(string $type_name, array $columns)
 		{
 			$sql_columns='';
 
@@ -303,23 +701,36 @@
 
 			$sql_columns=substr($sql_columns, 0, -2);
 
-			$this->sql_query.='CREATE TABLE '.$table_name.'('.$sql_columns.') ';
+			$this->sql_query.=''
+			.	'CREATE TYPE '.$type_name.' AS'
+			.	'('.$sql_columns.') ';
 
 			return $this;
 		}
-		public function drop_table(string $table_name)
+		public function create_type_enum(string $type_name, array $elements)
 		{
-			$this->sql_query.='DROP TABLE IF EXISTS '.$table_name.' ';
+			$this->sql_query.=''
+			.	'CREATE TYPE '.$type_name.' '
+			.	'AS ENUM'
+			.	'('.implode(',', $elements).') ';
+
 			return $this;
 		}
-		public function truncate_table(string $table_name)
+		public function drop_type(string $type_name)
 		{
-			$this->sql_query.='TRUNCATE TABLE '.$table_name.' ';
+			$this->sql_query.=''
+			.	'DROP TYPE '
+			.	'IF EXISTS '
+			.	$type_name.' ';
+
 			return $this;
 		}
 
-		public function insert_into(string $where, string $columns, array $what)
-		{
+		public function insert_into(
+			string $where,
+			string $columns,
+			array $what
+		){
 			$sql_what='';
 
 			foreach($what as $what_data_set)
@@ -331,17 +742,20 @@
 
 				foreach($what_data_set as $what_value)
 				{
-					$sql_what.='?, ';
+					$sql_what.='?,';
 					$this->sql_parameters[]=$what_value;
 				}
 
-				$sql_what=substr($sql_what, 0, -2);
+				$sql_what=substr($sql_what, 0, -1);
 				$sql_what.='), ';
 			}
 
 			$sql_what=substr($sql_what, 0, -2);
 
-			$this->sql_query.='INSERT INTO '.$where.'('.$columns.') VALUES'.$sql_what.' ';
+			$this->sql_query.=''
+			.	'INSERT INTO '.$where
+			.	'('.$columns.') '
+			.	'VALUES'.$sql_what.' ';
 
 			return $this;
 		}
@@ -353,7 +767,11 @@
 		}
 		public function alter_table_if_exists(string $table_name)
 		{
-			$this->sql_query.='ALTER TABLE IF EXISTS '.$table_name.' ';
+			$this->sql_query.=''
+			.	'ALTER TABLE '
+			.	'IF EXISTS '
+			.	$table_name.' ';
+
 			return $this;
 		}
 		public function add_column(string $column_name, string $data_type)
@@ -368,7 +786,10 @@
 		}
 		public function rename_column(string $old_name, string $new_name)
 		{
-			$this->sql_query.='RENAME COLUMN '.$old_name.' TO '.$new_name.' ';
+			$this->sql_query.=''
+			.	'RENAME COLUMN '.$old_name.' '
+			.	'TO '.$new_name.' ';
+
 			return $this;
 		}
 		public function alter_column(string $column_name, string $data_type)
@@ -378,7 +799,10 @@
 		}
 		public function alter_column_type(string $column_name, string $data_type)
 		{
-			$this->sql_query.='ALTER COLUMN '.$column_name.' TYPE '.$data_type.' ';
+			$this->sql_query.=''
+			.	'ALTER COLUMN '.$column_name.' '
+			.	'TYPE '.$data_type.' ';
+
 			return $this;
 		}
 		public function modify_column(string $column_name, string $data_type)
@@ -414,7 +838,10 @@
 		}
 		public function select_top_percent(int $param, string $what)
 		{
-			$this->sql_query.='SELECT TOP '.$param.' PERCENT '.$what.' ';
+			$this->sql_query.=''
+			.	'SELECT TOP '.$param.' '
+			.	'PERCENT '.$what.' ';
+
 			return $this;
 		}
 		public function as(string $what)
@@ -432,8 +859,11 @@
 			$this->sql_query.='ORDER BY '.$what.' ';
 			return $this;
 		}
-		public function join(string $method, string $what, ?string $on=null)
-		{
+		public function join(
+			string $method,
+			string $what,
+			?string $on=null
+		){
 			switch($method)
 			{
 				case 'inner':
@@ -449,7 +879,10 @@
 					$this->sql_query.='FULL OUTER JOIN '.$what.' ';
 				break;
 				default:
-					$this->on_error['callback']('::join(): inner/left/right/full $method not specified');
+					$this->on_error[0](
+						'::join(): inner/left/right/full $method not specified'
+					);
+
 					return false;
 			}
 
@@ -486,61 +919,98 @@
 				return $this;
 			}
 
-			$this->sql_query.='LIMIT '.$param.' OFFSET '.$offset.' ';
+			$this->sql_query.=''
+			.	'LIMIT '.$param.' '
+			.	'OFFSET '.$offset.' ';
 
 			return $this;
 		}
-		public function fetch_first(int $param, string $rows_param='ROWS ONLY', ?int $offset=null, string $offset_param='ROWS')
-		{
+		public function fetch_first(
+			int $param,
+			string $rows_param='ROWS ONLY',
+			?int $offset=null,
+			string $offset_param='ROWS'
+		){
 			if($offset === null)
 			{
 				$this->sql_query.='FETCH FIRST '.$param.' '.$rows_param.' ';
 				return $this;
 			}
 
-			$this->sql_query.='OFFSET '.$offset.' '.$offset_param.' FETCH FIRST '.$param.' '.$rows_param.' ';
+			$this->sql_query.=''
+			.	'OFFSET '.$offset.' '.$offset_param.' '
+			.	'FETCH FIRST '.$param.' '.$rows_param.' ';
 
 			return $this;
 		}
-		public function fetch_first_percent(int $param, string $rows_param='ROWS ONLY', ?int $offset=null, string $offset_param='ROWS')
-		{
+		public function fetch_first_percent(
+			int $param,
+			string $rows_param='ROWS ONLY',
+			?int $offset=null,
+			string $offset_param='ROWS'
+		){
 			if($offset === null)
 			{
-				$this->sql_query.='FETCH FIRST '.$param.' PERCENT '.$rows_param.' ';
+				$this->sql_query.=''
+				.	'FETCH FIRST '.$param.' '
+				.	'PERCENT '.$rows_param.' ';
+
 				return $this;
 			}
 
-			$this->sql_query.='OFFSET '.$offset.' '.$offset_param.' FETCH FIRST '.$param.' PERCENT '.$rows_param.' ';
+			$this->sql_query.=''
+			.	'OFFSET '.$offset.' '.$offset_param.' '
+			.	'FETCH FIRST '.$param.' '
+			.	'PERCENT '.$rows_param.' ';
 
 			return $this;
 		}
-		public function fetch_next(int $param, string $rows_param='ROWS ONLY', ?int $offset=null, string $offset_param='ROWS')
-		{
+		public function fetch_next(
+			int $param,
+			string $rows_param='ROWS ONLY',
+			?int $offset=null,
+			string $offset_param='ROWS'
+		){
 			if($offset === null)
 			{
 				$this->sql_query.='FETCH NEXT '.$param.' '.$rows_param.' ';
 				return $this;
 			}
 
-			$this->sql_query.='OFFSET '.$offset.' '.$offset_param.' FETCH NEXT '.$param.' '.$rows_param.' ';
+			$this->sql_query.=''
+			.	'OFFSET '.$offset.' '.$offset_param.' '
+			.	'FETCH NEXT '.$param.' '.$rows_param.' ';
 
 			return $this;
 		}
-		public function fetch_next_percent(int $param, string $rows_param='ROWS ONLY', ?int $offset=null, string $offset_param='ROWS')
-		{
+		public function fetch_next_percent(
+			int $param,
+			string $rows_param='ROWS ONLY',
+			?int $offset=null,
+			string $offset_param='ROWS'
+		){
 			if($offset === null)
 			{
-				$this->sql_query.='FETCH NEXT '.$param.' PERCENT '.$rows_param.' ';
+				$this->sql_query.=''
+				.	'FETCH NEXT '.$param.' '
+				.	'PERCENT '.$rows_param.' ';
+
 				return $this;
 			}
 
-			$this->sql_query.='OFFSET '.$offset.' '.$offset_param.' FETCH NEXT '.$param.' PERCENT '.$rows_param.' ';
+			$this->sql_query.=''
+			.	'OFFSET '.$offset.' '.$offset_param.' '
+			.	'FETCH NEXT '.$param.' '
+			.	'PERCENT '.$rows_param.' ';
 
 			return $this;
 		}
 
-		public function replace_into(string $where, string $columns, array $what)
-		{
+		public function replace_into(
+			string $where,
+			string $columns,
+			array $what
+		){
 			$sql_what='';
 
 			foreach($what as $what_data_set)
@@ -552,17 +1022,20 @@
 
 				foreach($what_data_set as $what_value)
 				{
-					$sql_what.='?, ';
+					$sql_what.='?,';
 					$this->sql_parameters[]=$what_value;
 				}
 
-				$sql_what=substr($sql_what, 0, -2);
+				$sql_what=substr($sql_what, 0, -1);
 				$sql_what.='), ';
 			}
 
 			$sql_what=substr($sql_what, 0, -2);
 
-			$this->sql_query.='REPLACE INTO '.$where.'('.$columns.') VALUES'.$sql_what.' ';
+			$this->sql_query.=''
+			.	'REPLACE INTO '.$where
+			.	'('.$columns.') '
+			.	'VALUES'.$sql_what.' ';
 
 			return $this;
 		}
@@ -619,17 +1092,14 @@
 
 		public function exec(bool $query=false)
 		{
-			$result=$this->pdo_handler->prepare($this->sql_query);
+			$result=$this->pdo_handle->prepare($this->sql_query);
 
 			if($result === false)
-				$this->on_error['callback']('::exec(): error on query preparation');
+				$this->on_error[0]('::exec(): error on query preparation');
+			else if($query)
+				$result->execute($this->sql_parameters);
 			else
-			{
-				if($query)
-					$result->execute($this->sql_parameters);
-				else
-					$result=$result->execute($this->sql_parameters);
-			}
+				$result=$result->execute($this->sql_parameters);
 
 			if($this->auto_flush)
 				$this->flush_all();
@@ -647,14 +1117,19 @@
 			if($exec_output !== false)
 				return $exec_output->fetchAll($this->fetch_mode);
 
-			$this->on_error['callback'](' ::query(): exec() returned false');
+			$this->on_error[0]('::query(): exec() returned false');
 
 			return false;
 		}
 
+		public function pdo_disconnect()
+		{
+			$this->pdo_handle=null;
+			return null;
+		}
 		public function error_info()
 		{
-			return $this->pdo_handler->errorInfo();
+			return $this->pdo_handle->errorInfo();
 		}
 		public function flush_all()
 		{
@@ -696,39 +1171,58 @@
 
 			return $stmt;
 		}
-		public function table_dump(string $table_name, ?int $limit=null, ?int $limit_offset=null)
-		{
+		public function table_dump(
+			string $table_name,
+			?int $limit=null,
+			?int $limit_offset=null
+		){
 			$this->flush_all();
 
 			if($limit === null)
-				return $this->select('*')->from($table_name)->query();
+				return $this
+				->	select('*')
+				->	from($table_name)
+				->	query();
 
-			return $this->select('*')->from($table_name)->limit($limit, $limit_offset)->query();
+			return $this
+			->	select('*')
+			->	from($table_name)
+			->	limit($limit, $limit_offset)
+			->	query();
 		}
 		public function list_tables()
 		{
-			switch($this->pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME))
+			switch($this->pdo_handle->getAttribute(PDO::ATTR_DRIVER_NAME))
 			{
 				case 'mysql':
 					$sql='SHOW TABLES';
 				break;
 				case 'pgsql':
-					$sql='SELECT tablename FROM pg_catalog.pg_tables';
+					$sql=''
+					.	'SELECT tablename '
+					.	'FROM pg_catalog.pg_tables';
 				break;
 				case 'sqlite':
-					$sql='SELECT name FROM sqlite_master WHERE type="table"';
+					$sql=''
+					.	'SELECT name '
+					.	'FROM sqlite_master '
+					.	'WHERE type="table"';
 				break;
 				case 'oci':
-					$sql='SELECT table_name FROM user_tables';
+					$sql=''
+					.	'SELECT table_name '
+					.	'FROM user_tables';
 				break;
 				case 'dblib':
-					$sql='SELECT name FROM SYSOBJECTS';
+					$sql=''
+					.	'SELECT name '
+					.	'FROM SYSOBJECTS';
 				break;
 				default:
 					return false;
 			}
 
-			$query=$this->pdo_handler->query($sql);
+			$query=$this->pdo_handle->query($sql);
 
 			return $query->fetchAll(PDO::FETCH_COLUMN);
 		}

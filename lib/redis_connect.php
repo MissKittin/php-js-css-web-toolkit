@@ -15,7 +15,7 @@
 			function($error) // optional
 			{
 				// executed on RedisException
-				error_log('redis_connect: '.$error->getMessage());
+				my_log_function('redis_connect: '.$error->getMessage());
 			}
 		)
 
@@ -42,7 +42,7 @@
 			function($error) // optional
 			{
 				// executed on RedisException
-				error_log('redis_connect_array: '.$error->getMessage());
+				my_log_function('redis_connect_array: '.$error->getMessage());
 			}
 		)
 	 */
@@ -54,7 +54,7 @@
 		/*
 		 * Redis connection helper
 		 *
-		 * Returns the Redis handler
+		 * Returns the Redis handle
 		 *  or false if an error has occurred
 		 * For more info, see redis_connect_array function
 		 *
@@ -94,18 +94,22 @@
 				function($error) // optional
 				{
 					// executed on RedisException
-					error_log('redis_connect: '.$error->getMessage());
+					my_log_function('redis_connect: '.$error->getMessage());
 				}
 			);
 		 */
 
 		if(!file_exists($db.'/config.php'))
-			throw new redis_connect_exception($db.'/config.php not exists');
+			throw new redis_connect_exception(
+				$db.'/config.php does not exist'
+			);
 
 		$db_config=require $db.'/config.php';
 
 		if(!is_array($db_config))
-			throw new redis_connect_exception($db.'/config.php did not return an array');
+			throw new redis_connect_exception(
+				$db.'/config.php did not return an array'
+			);
 
 		foreach([
 			'host'=>'string',
@@ -118,18 +122,30 @@
 			'read_timeout'=>'double',
 			'options'=>'array'
 		] as $param=>$param_type)
-			if(isset($db_config[$param]) && (gettype($db_config[$param]) !== $param_type))
-				throw new redis_connect_exception('The '.$param.' parameter is not a '.$param_type);
+			if(
+				isset($db_config[$param]) &&
+				(gettype($db_config[$param]) !== $param_type)
+			)
+				throw new redis_connect_exception(
+					'The '.$param.' parameter is not a '.$param_type
+				);
 
-		return redis_connect_array($db_config, $on_error, false);
+		return redis_connect_array(
+			$db_config,
+			$on_error,
+			false
+		);
 	}
-	function redis_connect_array(array $db_config, ?callable $on_error=null, bool $type_hint=true)
-	{
+	function redis_connect_array(
+		array $db_config,
+		?callable $on_error=null,
+		bool $type_hint=true
+	){
 		/*
 		 * Redis connection helper
 		 * portable version
 		 *
-		 * Returns the Redis handler
+		 * Returns the Redis handle
 		 *  or false if an error has occurred
 		 *
 		 * Warning:
@@ -161,13 +177,15 @@
 				function($error) // optional
 				{
 					// executed on RedisException
-					error_log('redis_connect_array: '.$error->getMessage());
+					my_log_function('redis_connect_array: '.$error->getMessage());
 				}
 			);
 		 */
 
 		if(!class_exists('Redis'))
-			throw new redis_connect_exception('redis extension is not loaded');
+			throw new redis_connect_exception(
+				'redis extension is not loaded'
+			);
 
 		if($type_hint)
 			foreach([
@@ -181,8 +199,13 @@
 				'read_timeout'=>'double',
 				'options'=>'array'
 			] as $param=>$param_type)
-				if(isset($db_config[$param]) && (gettype($db_config[$param]) !== $param_type))
-					throw new redis_connect_exception('The '.$param.' parameter is not a '.$param_type);
+				if(
+					isset($db_config[$param]) &&
+					(gettype($db_config[$param]) !== $param_type)
+				)
+					throw new redis_connect_exception(
+						'The '.$param.' parameter is not a '.$param_type
+					);
 
 		if(isset($db_config['socket']))
 		{
@@ -190,7 +213,9 @@
 			$db_config['port']=0;
 		}
 		else if(!isset($db_config['host']))
-			throw new redis_connect_exception('The host parameter was not specified');
+			throw new redis_connect_exception(
+				'The host parameter was not specified'
+			);
 
 		foreach([
 			'port'=>6379,
@@ -205,14 +230,16 @@
 				$db_config[$default_config]=$default_value;
 
 		try {
-			$redis_handler=new Redis();
+			$redis_handle=new Redis();
 
 			if($db_config['options'] !== null)
 				foreach($db_config['options'] as $option_name=>$option_value)
-					if(!$redis_handler->setOption($option_name, $option_value))
-						throw new redis_connect_exception('setOption returned false');
+					if(!$redis_handle->setOption($option_name, $option_value))
+						throw new redis_connect_exception(
+							'setOption returned false'
+						);
 
-			if(!$redis_handler->connect(
+			if(!$redis_handle->connect(
 				$db_config['host'],
 				$db_config['port'],
 				$db_config['timeout'],
@@ -224,11 +251,15 @@
 
 			if(
 				($db_config['auth'] !== null) &&
-				(!$redis_handler->auth($db_config['auth']))
+				(!$redis_handle->auth(
+					$db_config['auth']
+				))
 			)
 				return false;
 
-			if(!$redis_handler->select($db_config['dbindex']))
+			if(!$redis_handle->select(
+				$db_config['dbindex']
+			))
 				return false;
 		} catch(RedisException $error) {
 			if($on_error !== null)
@@ -237,6 +268,6 @@
 			return false;
 		}
 
-		return $redis_handler;
+		return $redis_handle;
 	}
 ?>

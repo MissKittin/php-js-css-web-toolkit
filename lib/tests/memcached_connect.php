@@ -111,26 +111,26 @@
 	echo ' [ OK ]'.PHP_EOL;
 
 	try {
-		$memcached_handler=memcached_connect(__DIR__.'/tmp/memcached_connect');
+		$memcached_handle=memcached_connect(__DIR__.'/tmp/memcached_connect');
 
 		echo ' -> Testing memcached_connect';
-			if($memcached_handler instanceof Memcached)
+			if($memcached_handle instanceof Memcached)
 			{
 				echo ' [ OK ]'.PHP_EOL;
 
 				echo ' -> Testing connection to memcached server';
-					$memcached_handler->set(
+					$memcached_handle->set(
 						'memcached_connect_test_key',
 						'memcached_connect_test_value'
 					);
-					if($memcached_handler->get('memcached_connect_test_key') === 'memcached_connect_test_value')
+					if($memcached_handle->get('memcached_connect_test_key') === 'memcached_connect_test_value')
 						echo ' [ OK ]'.PHP_EOL;
 					else
 					{
 						echo ' [FAIL]'.PHP_EOL;
 						$failed=true;
 					}
-					$memcached_handler->delete('memcached_connect_test_key');
+					$memcached_handle->delete('memcached_connect_test_key');
 			}
 			else
 			{

@@ -72,14 +72,14 @@
 		 *
 		 * Checking ip status:
 			$bruteforce_tempban=new bruteforce_timeout_pdo([
-				'pdo_handler'=>new PDO('sqlite:'.'./tmp/sec_bruteforce.sqlite3'),
+				'pdo_handle'=>new PDO('sqlite:'.'./tmp/sec_bruteforce.sqlite3'),
 				'table_name'=>'temp_ban',
 				'auto_clean'=>false
 			]);
 			if(bruteforce_mixed(
 				$bruteforce_tempban,
 				new bruteforce_pdo([
-					'pdo_handler'=>new PDO('sqlite:'.'./tmp/sec_bruteforce.sqlite3'),
+					'pdo_handle'=>new PDO('sqlite:'.'./tmp/sec_bruteforce.sqlite3'),
 					'table_name'=>'perm_ban'
 				])
 			)){
@@ -142,7 +142,9 @@
 
 			foreach($this->required_constructor_params as $param)
 				if(!isset($params[$param]))
-					throw new bruteforce_exception('The '.$param.' parameter was not specified for the constructor');
+					throw new bruteforce_exception(
+						'The '.$param.' parameter was not specified for the constructor'
+					);
 
 			if(isset($_SERVER['REMOTE_ADDR']))
 				$this->ip=$_SERVER['REMOTE_ADDR'];
@@ -151,7 +153,9 @@
 				if(isset($params[$param]))
 				{
 					if(gettype($params[$param]) !== $param_type)
-						throw new bruteforce_exception('The input array parameter '.$param.' is not a '.$param_type);
+						throw new bruteforce_exception(
+							'The input array parameter '.$param.' is not a '.$param_type
+						);
 
 					$this->$param=$params[$param];
 				}
@@ -159,13 +163,17 @@
 			if(isset($params['on_ban']))
 			{
 				if(!is_callable($params['on_ban']))
-					throw new bruteforce_exception('The input array parameter on_ban is not callable');
+					throw new bruteforce_exception(
+						'The input array parameter on_ban is not callable'
+					);
 
 				$this->on_ban['callback']=$params['on_ban'];
 			}
 
 			if($this->ip === null)
-				throw new bruteforce_exception('$_SERVER["REMOTE_ADDR"] is not set and no ip was given');
+				throw new bruteforce_exception(
+					'$_SERVER["REMOTE_ADDR"] is not set and no ip was given'
+				);
 		}
 
 		protected function lock_unlock_database($action, $check=false)
@@ -187,19 +195,19 @@
 						sleep(0.01);
 
 					file_put_contents($this->lock_file, '');
+
+					return true;
 				}
-				else
+
+				if($check)
 				{
-					if($check)
-					{
-						if(file_exists($this->lock_file))
-							return true;
+					if(file_exists($this->lock_file))
+						return true;
 
-						return false;
-					}
-
-					unlink($this->lock_file);
+					return false;
 				}
+
+				unlink($this->lock_file);
 			}
 
 			return true;
@@ -219,7 +227,7 @@
 		 * rewritten to Redis OOP
 		 *
 		 * Constructor parameters:
-		 *  redis_handler [object]
+		 *  redis_handle [object]
 		 *   required
 		 *  prefix [string]
 		 *   adds to the name of each key (default: bruteforce_redis__)
@@ -234,7 +242,7 @@
 		 *
 		 * Opening database:
 			$bruteforce=new bruteforce_redis([
-				'redis_handler'=>new Redis([
+				'redis_handle'=>new Redis([
 					'host'=>'127.0.0.1',
 					'port'=>6379
 				])
@@ -253,15 +261,15 @@
 		 */
 
 		protected $constructor_params=[
-			'redis_handler'=>'object',
+			'redis_handle'=>'object',
 			'prefix'=>'string',
 			'max_attempts'=>'integer',
 			'ip'=>'string',
 			'expire'=>'integer'
 		];
-		protected $required_constructor_params=['redis_handler'];
+		protected $required_constructor_params=['redis_handle'];
 
-		protected $redis_handler;
+		protected $redis_handle;
 		protected $prefix='bruteforce_redis__';
 		protected $expire=2592000;
 
@@ -269,7 +277,10 @@
 		{
 			parent::{__FUNCTION__}($params);
 
-			$current_attempts=$this->redis_handler->get($this->prefix.$this->ip);
+			$current_attempts=$this->redis_handle->get(''
+			.	$this->prefix
+			.	$this->ip
+			);
 
 			if($current_attempts !== false)
 				$this->current_attempts=(int)$current_attempts;
@@ -288,22 +299,19 @@
 
 			if($this->expire > 0)
 			{
-				$this->redis_handler->set(
+				$this->redis_handle->set(
 					$this->prefix.$this->ip,
 					$this->current_attempts,
 					['ex'=>$this->expire]
 				);
 			}
+			else if($this->current_attempts === 1)
+				$this->redis_handle->set(
+					$this->prefix.$this->ip,
+					$this->current_attempts
+				);
 			else
-			{
-				if($this->current_attempts === 1)
-					$this->redis_handler->set(
-						$this->prefix.$this->ip,
-						$this->current_attempts
-					);
-				else
-					$this->redis_handler->incr($this->prefix.$this->ip);
-			}
+				$this->redis_handle->incr($this->prefix.$this->ip);
 
 			if($this->current_attempts === $this->max_attempts)
 				$this->on_ban['callback']();
@@ -312,7 +320,11 @@
 		{
 			if($this->current_attempts !== 0)
 			{
-				$this->redis_handler->del($this->prefix.$this->ip);
+				$this->redis_handle->del(''
+				.	$this->prefix
+				.	$this->ip
+				);
+
 				$this->current_attempts=0;
 			}
 		}
@@ -322,14 +334,17 @@
 
 			do
 			{
-				$keys=$this->redis_handler->scan($iterator, $this->prefix.'*');
+				$keys=$this->redis_handle->scan(
+					$iterator,
+					$this->prefix.'*'
+				);
 
 				if($keys === false)
 					break;
 
 				foreach($keys as $key)
-					if($this->redis_handler->ttl($key) === -1)
-						$this->redis_handler->del($key);
+					if($this->redis_handle->ttl($key) === -1)
+						$this->redis_handle->del($key);
 			}
 			while($iterator > 0);
 		}
@@ -349,7 +364,7 @@
 		 *  you can disable this functionality by setting the ban_time value to 0
 		 *
 		 * Constructor parameters:
-		 *  redis_handler [object]
+		 *  redis_handle [object]
 		 *   required
 		 *  prefix [string]
 		 *   adds to the name of each key (default: bruteforce_redis__)
@@ -368,7 +383,7 @@
 		 *
 		 * Opening database:
 			$bruteforce=new bruteforce_redis([
-				'redis_handler'=>new Redis([
+				'redis_handle'=>new Redis([
 					'host'=>'127.0.0.1',
 					'port'=>6379
 				])
@@ -389,16 +404,16 @@
 		 */
 
 		protected $constructor_params=[
-			'redis_handler'=>'object',
+			'redis_handle'=>'object',
 			'prefix'=>'string',
 			'max_attempts'=>'integer',
 			'ban_time'=>'integer',
 			'ip'=>'string',
 			'expire'=>'integer'
 		];
-		protected $required_constructor_params=['redis_handler'];
+		protected $required_constructor_params=['redis_handle'];
 
-		protected $redis_handler;
+		protected $redis_handle;
 		protected $prefix='bruteforce_redis__';
 		protected $expire=2592000;
 
@@ -406,7 +421,10 @@
 		{
 			parent::{__FUNCTION__}($params);
 
-			$current_attempts=$this->redis_handler->get($this->prefix.$this->ip);
+			$current_attempts=$this->redis_handle->get(''
+			.	$this->prefix
+			.	$this->ip
+			);
 
 			if($current_attempts !== false)
 				$this->current_attempts=(int)$current_attempts;
@@ -421,12 +439,13 @@
 			if($this->current_attempts < $this->max_attempts)
 				return false;
 
-			if($this->current_timestamp !== null)
-				if($this->current_timestamp+$this->ban_time < time())
-				{
-					$this->del();
-					return false;
-				}
+			if(
+				($this->current_timestamp !== null) &&
+				($this->current_timestamp+$this->ban_time < time())
+			){
+				$this->del();
+				return false;
+			}
 
 			return true;
 		}
@@ -438,19 +457,19 @@
 			if($this->ban_time < 1)
 			{
 				if($this->expire > 0)
-					$this->redis_handler->set(
+					$this->redis_handle->set(
 						$this->prefix.$this->ip,
 						$this->current_attempts,
 						['ex'=>$this->expire]
 					);
 				else
-					$this->redis_handler->set(
+					$this->redis_handle->set(
 						$this->prefix.$this->ip,
 						$this->current_attempts
 					);
 			}
 			else
-				$this->redis_handler->set(
+				$this->redis_handle->set(
 					$this->prefix.$this->ip,
 					$this->current_attempts,
 					['ex'=>$this->ban_time]
@@ -463,7 +482,10 @@
 		{
 			if($this->current_attempts !== 0)
 			{
-				$this->redis_handler->del($this->prefix.$this->ip);
+				$this->redis_handle->del(''
+				.	$this->prefix
+				.	$this->ip
+				);
 
 				$this->current_attempts=0;
 				$this->current_timestamp=null;
@@ -475,14 +497,17 @@
 
 			do
 			{
-				$keys=$this->redis_handler->scan($iterator, $this->prefix.'*');
+				$keys=$this->redis_handle->scan(
+					$iterator,
+					$this->prefix.'*'
+				);
 
 				if($keys === false)
 					break;
 
 				foreach($keys as $key)
-					if($this->redis_handler->ttl($key) === -1)
-						$this->redis_handler->del($key);
+					if($this->redis_handle->ttl($key) === -1)
+						$this->redis_handle->del($key);
 			}
 			while($iterator > 0);
 		}
@@ -495,7 +520,7 @@
 		 * rewritten to Memcached OOP
 		 *
 		 * Constructor parameters:
-		 *  memcached_handler [object]
+		 *  memcached_handle [object]
 		 *   required
 		 *  prefix [string]
 		 *   adds to the name of each key (default: bruteforce_memcached__)
@@ -509,10 +534,10 @@
 		 *   the add method runs the specified callback if a ban occurs
 		 *
 		 * Opening database:
-			$memcached_handler=new Memcached();
-			$memcached_handler->addServer('127.0.0.1', 11211);
+			$memcached_handle=new Memcached();
+			$memcached_handle->addServer('127.0.0.1', 11211);
 			$bruteforce=new bruteforce_memcached([
-				'memcached_handler'=>$memcached_handler
+				'memcached_handle'=>$memcached_handle
 			]);
 		 * Checking: $bruteforce->check()
 		 *  returns bool
@@ -526,15 +551,15 @@
 		 */
 
 		protected $constructor_params=[
-			'memcached_handler'=>'object',
+			'memcached_handle'=>'object',
 			'prefix'=>'string',
 			'max_attempts'=>'integer',
 			'ip'=>'string',
 			'expire'=>'integer'
 		];
-		protected $required_constructor_params=['memcached_handler'];
+		protected $required_constructor_params=['memcached_handle'];
 
-		protected $memcached_handler;
+		protected $memcached_handle;
 		protected $prefix='bruteforce_memcached__';
 		protected $expire=2592000;
 
@@ -542,8 +567,16 @@
 		{
 			parent::{__FUNCTION__}($params);
 
-			$this->memcached_handler->get($this->prefix.$this->ip); // trigger expiration
-			$current_attempts=$this->memcached_handler->get($this->prefix.$this->ip);
+			// trigger expiration
+			$this->memcached_handle->get(''
+			.	$this->prefix
+			.	$this->ip
+			);
+
+			$current_attempts=$this->memcached_handle->get(''
+			.	$this->prefix
+			.	$this->ip
+			);
 
 			if($current_attempts !== false)
 				$this->current_attempts=(int)$current_attempts;
@@ -562,22 +595,19 @@
 
 			if($this->expire > 0)
 			{
-				$this->memcached_handler->set(
+				$this->memcached_handle->set(
 					$this->prefix.$this->ip,
 					$this->current_attempts,
 					$this->expire
 				);
 			}
+			else if($this->current_attempts === 1)
+				$this->memcached_handle->set(
+					$this->prefix.$this->ip,
+					$this->current_attempts
+				);
 			else
-			{
-				if($this->current_attempts === 1)
-					$this->memcached_handler->set(
-						$this->prefix.$this->ip,
-						$this->current_attempts
-					);
-				else
-					$this->memcached_handler->increment($this->prefix.$this->ip);
-			}
+				$this->memcached_handle->increment($this->prefix.$this->ip);
 
 			if($this->current_attempts === $this->max_attempts)
 				$this->on_ban['callback']();
@@ -586,7 +616,7 @@
 		{
 			if($this->current_attempts !== 0)
 			{
-				$this->memcached_handler->delete($this->prefix.$this->ip);
+				$this->memcached_handle->delete($this->prefix.$this->ip);
 				$this->current_attempts=0;
 			}
 		}
@@ -607,7 +637,7 @@
 		 *  you can disable this functionality by setting the ban_time value to 0
 		 *
 		 * Constructor parameters:
-		 *  memcached_handler [object]
+		 *  memcached_handle [object]
 		 *   required
 		 *  prefix [string]
 		 *   adds to the name of each key (default: bruteforce_memcached__)
@@ -625,10 +655,10 @@
 		 *   the add method runs the specified callback if a ban occurs
 		 *
 		 * Opening database:
-			$memcached_handler=new Memcached();
-			$memcached_handler->addServer('127.0.0.1', 11211);
+			$memcached_handle=new Memcached();
+			$memcached_handle->addServer('127.0.0.1', 11211);
 			$bruteforce=new bruteforce_memcached([
-				'memcached_handler'=>$memcached_handler
+				'memcached_handle'=>$memcached_handle
 			]);
 		 * Checking: $bruteforce->check()
 		 *  returns bool
@@ -644,16 +674,16 @@
 		 */
 
 		protected $constructor_params=[
-			'memcached_handler'=>'object',
+			'memcached_handle'=>'object',
 			'prefix'=>'string',
 			'max_attempts'=>'integer',
 			'ban_time'=>'integer',
 			'ip'=>'string',
 			'expire'=>'integer'
 		];
-		protected $required_constructor_params=['memcached_handler'];
+		protected $required_constructor_params=['memcached_handle'];
 
-		protected $memcached_handler;
+		protected $memcached_handle;
 		protected $prefix='bruteforce_memcached__';
 		protected $expire=2592000;
 
@@ -661,8 +691,16 @@
 		{
 			parent::{__FUNCTION__}($params);
 
-			$this->memcached_handler->get($this->prefix.$this->ip); // trigger expiration
-			$current_attempts=$this->memcached_handler->get($this->prefix.$this->ip);
+			// trigger expiration
+			$this->memcached_handle->get(''
+			.	$this->prefix
+			.	$this->ip
+			);
+
+			$current_attempts=$this->memcached_handle->get(''
+			.	$this->prefix
+			.	$this->ip
+			);
 
 			if($current_attempts !== false)
 				$this->current_attempts=(int)$current_attempts;
@@ -677,12 +715,13 @@
 			if($this->current_attempts < $this->max_attempts)
 				return false;
 
-			if($this->current_timestamp !== null)
-				if($this->current_timestamp+$this->ban_time < time())
-				{
-					$this->del();
-					return false;
-				}
+			if(
+				($this->current_timestamp !== null) &&
+				($this->current_timestamp+$this->ban_time < time())
+			){
+				$this->del();
+				return false;
+			}
 
 			return true;
 		}
@@ -694,19 +733,19 @@
 			if($this->ban_time < 1)
 			{
 				if($this->expire > 0)
-					$this->memcached_handler->set(
+					$this->memcached_handle->set(
 						$this->prefix.$this->ip,
 						$this->current_attempts,
 						$this->expire
 					);
 				else
-					$this->memcached_handler->set(
+					$this->memcached_handle->set(
 						$this->prefix.$this->ip,
 						$this->current_attempts
 					);
 			}
 			else
-				$this->memcached_handler->set(
+				$this->memcached_handle->set(
 					$this->prefix.$this->ip,
 					$this->current_attempts,
 					$this->ban_time
@@ -719,7 +758,7 @@
 		{
 			if($this->current_attempts !== 0)
 			{
-				$this->memcached_handler->delete($this->prefix.$this->ip);
+				$this->memcached_handle->delete($this->prefix.$this->ip);
 
 				$this->current_attempts=0;
 				$this->current_timestamp=null;
@@ -761,7 +800,7 @@
 		 *   `timestamp` INTEGER
 		 *
 		 * Constructor parameters:
-		 *  pdo_handler [object]
+		 *  pdo_handle [object]
 		 *   required
 		 *  table_name [string]
 		 *   selected table for data (default sec_bruteforce)
@@ -776,7 +815,7 @@
 		 *
 		 * Opening database:
 			$bruteforce=new bruteforce_pdo([
-				'pdo_handler'=>new PDO('sqlite:./tmp/sec_bruteforce.sqlite3')
+				'pdo_handle'=>new PDO('sqlite:./tmp/sec_bruteforce.sqlite3')
 			])
 		 * Checking: $bruteforce->check()
 		 *  returns bool
@@ -792,15 +831,15 @@
 		 */
 
 		protected $constructor_params=[
-			'pdo_handler'=>'object',
+			'pdo_handle'=>'object',
 			'table_name'=>'string',
 			'create_table'=>'boolean',
 			'max_attempts'=>'integer',
 			'ip'=>'string'
 		];
-		protected $required_constructor_params=['pdo_handler'];
+		protected $required_constructor_params=['pdo_handle'];
 
-		protected $pdo_handler;
+		protected $pdo_handle;
 		protected $table_name='sec_bruteforce';
 		protected $create_table=true;
 
@@ -809,16 +848,18 @@
 			parent::{__FUNCTION__}($params);
 
 			if(!in_array(
-				$this->pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME),
+				$this->pdo_handle->getAttribute(PDO::ATTR_DRIVER_NAME),
 				['pgsql', 'mysql', 'sqlite']
 			))
-				throw new bruteforce_exception($this->pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME).' driver is not supported');
+				throw new bruteforce_exception(
+					$this->pdo_handle->getAttribute(PDO::ATTR_DRIVER_NAME).' driver is not supported'
+				);
 
 			if($this->create_table)
-				switch($this->pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME))
+				switch($this->pdo_handle->getAttribute(PDO::ATTR_DRIVER_NAME))
 				{
 					case 'pgsql':
-						if($this->pdo_handler->exec(''
+						if($this->pdo_handle->exec(''
 						.	'CREATE TABLE IF NOT EXISTS '.$this->table_name
 						.	'('
 						.		'id SERIAL PRIMARY KEY,'
@@ -830,7 +871,7 @@
 							throw new bruteforce_exception('PDO exec error');
 					break;
 					case 'mysql':
-						if($this->pdo_handler->exec(''
+						if($this->pdo_handle->exec(''
 						.	'CREATE TABLE IF NOT EXISTS '.$this->table_name
 						.	'('
 						.		'id INTEGER NOT NULL AUTO_INCREMENT, PRIMARY KEY(id),'
@@ -842,7 +883,7 @@
 							throw new bruteforce_exception('PDO exec error');
 					break;
 					case 'sqlite':
-						if($this->pdo_handler->exec(''
+						if($this->pdo_handle->exec(''
 						.	'CREATE TABLE IF NOT EXISTS '.$this->table_name
 						.	'('
 						.		'id INTEGER PRIMARY KEY AUTOINCREMENT,'
@@ -855,19 +896,27 @@
 				}
 
 			try {
-				switch($this->pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME))
+				switch($this->pdo_handle->getAttribute(PDO::ATTR_DRIVER_NAME))
 				{
 					case 'pgsql':
-						$ip_query=$this->pdo_handler->query(''
-						.	'SELECT * '
+						$ip_query=$this->pdo_handle->query(''
+						.	'SELECT '
+						.		'id,'
+						.		'ip,'
+						.		'attempts,'
+						.		'timestamp '
 						.	'FROM '.$this->table_name.' '
 						.	"WHERE ip='".$this->ip."'"
 						);
 					break;
 					case 'mysql':
 					case 'sqlite':
-						$ip_query=$this->pdo_handler->query(''
-						.	'SELECT * '
+						$ip_query=$this->pdo_handle->query(''
+						.	'SELECT '
+						.		'id,'
+						.		'ip,'
+						.		'attempts,'
+						.		'timestamp '
 						.	'FROM '.$this->table_name.' '
 						.	'WHERE ip="'.$this->ip.'"'
 						);
@@ -876,13 +925,15 @@
 				$ip_query=false;
 			}
 
-			if($ip_query !== false)
-			{
-				$ip_query=$ip_query->fetch(PDO::FETCH_NAMED);
+			if($ip_query === false)
+				return;
 
-				if($ip_query !== false)
-					$this->current_attempts=$ip_query['attempts'];
-			}
+			$ip_query=$ip_query->fetch(PDO::FETCH_ASSOC);
+
+			if($ip_query === false)
+				return;
+
+			$this->current_attempts=$ip_query['attempts'];
 		}
 
 		public function check()
@@ -897,10 +948,10 @@
 			++$this->current_attempts;
 
 			if($this->current_attempts === 1)
-				switch($this->pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME))
+				switch($this->pdo_handle->getAttribute(PDO::ATTR_DRIVER_NAME))
 				{
 					case 'pgsql':
-						if($this->pdo_handler->exec(''
+						if($this->pdo_handle->exec(''
 						.	'INSERT INTO '.$this->table_name
 						.	'('
 						.		'ip,'
@@ -916,7 +967,7 @@
 					break;
 					case 'mysql':
 					case 'sqlite':
-						if($this->pdo_handler->exec(''
+						if($this->pdo_handle->exec(''
 						.	'INSERT INTO '.$this->table_name
 						.	'('
 						.		'ip,'
@@ -931,10 +982,10 @@
 							throw new bruteforce_exception('PDO exec error');
 				}
 			else
-				switch($this->pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME))
+				switch($this->pdo_handle->getAttribute(PDO::ATTR_DRIVER_NAME))
 				{
 					case 'pgsql':
-						if($this->pdo_handler->exec(''
+						if($this->pdo_handle->exec(''
 						.	'UPDATE '.$this->table_name.' '
 						.	'SET '
 						.		'attempts='.$this->current_attempts.', '
@@ -945,7 +996,7 @@
 					break;
 					case 'mysql':
 					case 'sqlite':
-						if($this->pdo_handler->exec(''
+						if($this->pdo_handle->exec(''
 						.	'UPDATE '.$this->table_name.' '
 						.	'SET '
 						.		'attempts='.$this->current_attempts.', '
@@ -962,10 +1013,10 @@
 		{
 			if($this->current_attempts !== 0)
 			{
-				switch($this->pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME))
+				switch($this->pdo_handle->getAttribute(PDO::ATTR_DRIVER_NAME))
 				{
 					case 'pgsql':
-						if($this->pdo_handler->exec(''
+						if($this->pdo_handle->exec(''
 						.	'DELETE FROM '.$this->table_name.' '
 						.	"WHERE ip='".$this->ip."'"
 						) === false)
@@ -973,7 +1024,7 @@
 					break;
 					case 'mysql':
 					case 'sqlite':
-						if($this->pdo_handler->exec(''
+						if($this->pdo_handle->exec(''
 						.	'DELETE FROM '.$this->table_name.' '
 						.	'WHERE ip="'.$this->ip.'"'
 						) === false)
@@ -987,10 +1038,10 @@
 		{
 			$timestamp=time()-$seconds;
 
-			switch($this->pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME))
+			switch($this->pdo_handle->getAttribute(PDO::ATTR_DRIVER_NAME))
 			{
 				case 'pgsql':
-					if($this->pdo_handler->exec(''
+					if($this->pdo_handle->exec(''
 					.	'DELETE FROM '.$this->table_name.' '
 					.	'WHERE timestamp<'.$timestamp
 					) === false)
@@ -998,7 +1049,7 @@
 				break;
 				case 'mysql':
 				case 'sqlite':
-					if($this->pdo_handler->exec(''
+					if($this->pdo_handle->exec(''
 					.	'DELETE FROM '.$this->table_name.' '
 					.	'WHERE timestamp<"'.$timestamp.'"'
 					) === false)
@@ -1040,7 +1091,7 @@
 		 *   `timestamp` INTEGER
 		 *
 		 * Constructor parameters:
-		 *  pdo_handler [object]
+		 *  pdo_handle [object]
 		 *   required
 		 *  table_name [string]
 		 *   selected table for data (default sec_bruteforce)
@@ -1062,7 +1113,7 @@
 		 *
 		 * Opening database:
 			$bruteforce=new bruteforce_pdo([
-				'pdo_handler'=>new PDO('sqlite:./tmp/sec_bruteforce.sqlite3')
+				'pdo_handle'=>new PDO('sqlite:./tmp/sec_bruteforce.sqlite3')
 			])
 		 * Checking: $bruteforce->check()
 		 *  returns bool
@@ -1082,7 +1133,7 @@
 		 */
 
 		protected $constructor_params=[
-			'pdo_handler'=>'object',
+			'pdo_handle'=>'object',
 			'table_name'=>'string',
 			'create_table'=>'boolean',
 			'max_attempts'=>'integer',
@@ -1090,9 +1141,9 @@
 			'ip'=>'string',
 			'auto_clean'=>'boolean'
 		];
-		protected $required_constructor_params=['pdo_handler'];
+		protected $required_constructor_params=['pdo_handle'];
 
-		protected $pdo_handler;
+		protected $pdo_handle;
 		protected $table_name='sec_bruteforce';
 		protected $create_table=true;
 
@@ -1101,16 +1152,18 @@
 			parent::{__FUNCTION__}($params);
 
 			if(!in_array(
-				$this->pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME),
+				$this->pdo_handle->getAttribute(PDO::ATTR_DRIVER_NAME),
 				['pgsql', 'mysql', 'sqlite']
 			))
-				throw new bruteforce_exception($this->pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME).' driver is not supported');
+				throw new bruteforce_exception(
+					$this->pdo_handle->getAttribute(PDO::ATTR_DRIVER_NAME).' driver is not supported'
+				);
 
 			if($this->create_table)
-				switch($this->pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME))
+				switch($this->pdo_handle->getAttribute(PDO::ATTR_DRIVER_NAME))
 				{
 					case 'pgsql':
-						if($this->pdo_handler->exec(''
+						if($this->pdo_handle->exec(''
 						.	'CREATE TABLE IF NOT EXISTS '.$this->table_name
 						.	'('
 						.		'id SERIAL PRIMARY KEY,'
@@ -1122,7 +1175,7 @@
 							throw new bruteforce_exception('PDO exec error');
 					break;
 					case 'mysql':
-						if($this->pdo_handler->exec(''
+						if($this->pdo_handle->exec(''
 						.	'CREATE TABLE IF NOT EXISTS '.$this->table_name
 						.	'('
 						.		'id INTEGER NOT NULL AUTO_INCREMENT, PRIMARY KEY(id),'
@@ -1134,7 +1187,7 @@
 							throw new bruteforce_exception('PDO exec error');
 					break;
 					case 'sqlite':
-						if($this->pdo_handler->exec(''
+						if($this->pdo_handle->exec(''
 						.	'CREATE TABLE IF NOT EXISTS '.$this->table_name
 						.	'('
 						.		'id INTEGER PRIMARY KEY AUTOINCREMENT,'
@@ -1147,19 +1200,27 @@
 				}
 
 			try {
-				switch($this->pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME))
+				switch($this->pdo_handle->getAttribute(PDO::ATTR_DRIVER_NAME))
 				{
 					case 'pgsql':
-						$ip_query=$this->pdo_handler->query(''
-						.	'SELECT * '
+						$ip_query=$this->pdo_handle->query(''
+						.	'SELECT '
+						.		'id,'
+						.		'ip,'
+						.		'attempts,'
+						.		'timestamp '
 						.	'FROM '.$this->table_name.' '
 						.	"WHERE ip='".$this->ip."'"
 						);
 					break;
 					case 'mysql':
 					case 'sqlite':
-						$ip_query=$this->pdo_handler->query(''
-						.	'SELECT * '
+						$ip_query=$this->pdo_handle->query(''
+						.	'SELECT '
+						.		'id,'
+						.		'ip,'
+						.		'attempts,'
+						.		'timestamp '
 						.	'FROM '.$this->table_name.' '
 						.	'WHERE ip="'.$this->ip.'"'
 						);
@@ -1168,16 +1229,16 @@
 				$ip_query=false;
 			}
 
-			if($ip_query !== false)
-			{
-				$ip_query=$ip_query->fetch(PDO::FETCH_NAMED);
+			if($ip_query === false)
+				return;
 
-				if($ip_query !== false)
-				{
-					$this->current_attempts=$ip_query['attempts'];
-					$this->current_timestamp=$ip_query['timestamp'];
-				}
-			}
+			$ip_query=$ip_query->fetch(PDO::FETCH_ASSOC);
+
+			if($ip_query === false)
+				return;
+
+			$this->current_attempts=$ip_query['attempts'];
+			$this->current_timestamp=$ip_query['timestamp'];
 		}
 
 		public function get_timestamp()
@@ -1213,10 +1274,10 @@
 			$this->current_timestamp=$timestamp;
 
 			if($this->current_attempts === 1)
-				switch($this->pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME))
+				switch($this->pdo_handle->getAttribute(PDO::ATTR_DRIVER_NAME))
 				{
 					case 'pgsql':
-						if($this->pdo_handler->exec(''
+						if($this->pdo_handle->exec(''
 						.	'INSERT INTO '.$this->table_name
 						.	'('
 						.		'ip,'
@@ -1232,7 +1293,7 @@
 					break;
 					case 'mysql':
 					case 'sqlite':
-						if($this->pdo_handler->exec(''
+						if($this->pdo_handle->exec(''
 						.	'INSERT INTO '.$this->table_name
 						.	'('
 						.		'ip,'
@@ -1247,10 +1308,10 @@
 							throw new bruteforce_exception('PDO exec error');
 				}
 			else
-				switch($this->pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME))
+				switch($this->pdo_handle->getAttribute(PDO::ATTR_DRIVER_NAME))
 				{
 					case 'pgsql':
-						if($this->pdo_handler->exec(''
+						if($this->pdo_handle->exec(''
 						.	'UPDATE '.$this->table_name.' '
 						.	'SET '
 						.		'attempts='.$this->current_attempts.','
@@ -1261,7 +1322,7 @@
 					break;
 					case 'mysql':
 					case 'sqlite':
-						if($this->pdo_handler->exec(''
+						if($this->pdo_handle->exec(''
 						.	'UPDATE '.$this->table_name.' '
 						.	'SET '
 						.		'attempts='.$this->current_attempts.','
@@ -1278,10 +1339,10 @@
 		{
 			if($this->current_attempts !== 0)
 			{
-				switch($this->pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME))
+				switch($this->pdo_handle->getAttribute(PDO::ATTR_DRIVER_NAME))
 				{
 					case 'pgsql':
-						if($this->pdo_handler->exec(''
+						if($this->pdo_handle->exec(''
 						.	'DELETE FROM '.$this->table_name.' '
 						.	"WHERE ip='".$this->ip."'"
 						) === false)
@@ -1289,7 +1350,7 @@
 					break;
 					case 'mysql':
 					case 'sqlite':
-						if($this->pdo_handler->exec(''
+						if($this->pdo_handle->exec(''
 						.	'DELETE FROM '.$this->table_name.' '
 						.	'WHERE ip="'.$this->ip.'"'
 						) === false)
@@ -1304,10 +1365,10 @@
 		{
 			$timestamp=time()-$seconds;
 
-			switch($this->pdo_handler->getAttribute(PDO::ATTR_DRIVER_NAME))
+			switch($this->pdo_handle->getAttribute(PDO::ATTR_DRIVER_NAME))
 			{
 				case 'pgsql':
-					if($this->pdo_handler->exec(''
+					if($this->pdo_handle->exec(''
 					.	'DELETE FROM '.$this->table_name.' '
 					.	'WHERE timestamp<'.$timestamp
 					) === false)
@@ -1315,7 +1376,7 @@
 				break;
 				case 'mysql':
 				case 'sqlite':
-					if($this->pdo_handler->exec(''
+					if($this->pdo_handle->exec(''
 					.	'DELETE FROM '.$this->table_name.' '
 					.	'WHERE timestamp<"'.$timestamp.'"'
 					) === false)
@@ -1383,7 +1444,10 @@
 			$this->lock_unlock_database(true);
 
 			if(file_exists($this->file))
-				$this->database=json_decode(file_get_contents($this->file), true);
+				$this->database=json_decode(
+					file_get_contents($this->file),
+					true
+				);
 
 			if(isset($this->database[$this->ip]))
 				$this->current_attempts=$this->database[$this->ip][0];
@@ -1392,7 +1456,11 @@
 		{
 			if($this->lock_unlock_database(false, true))
 			{
-				file_put_contents($this->file, json_encode($this->database));
+				file_put_contents(
+					$this->file,
+					json_encode($this->database)
+				);
+
 				$this->lock_unlock_database(false);
 			}
 		}
@@ -1415,11 +1483,11 @@
 		}
 		public function del()
 		{
-			if($this->current_attempts !== 0)
-			{
-				unset($this->database[$this->ip]);
-				$this->current_attempts=0;
-			}
+			if($this->current_attempts === 0)
+				return;
+
+			unset($this->database[$this->ip]);
+			$this->current_attempts=0;
 		}
 		public function clean_database(int $seconds=2592000)
 		{
@@ -1500,7 +1568,10 @@
 			$this->lock_unlock_database(true);
 
 			if(file_exists($this->file))
-				$this->database=json_decode(file_get_contents($this->file), true);
+				$this->database=json_decode(
+					file_get_contents($this->file),
+					true
+				);
 
 			if(isset($this->database[$this->ip]))
 			{
@@ -1512,7 +1583,11 @@
 		{
 			if($this->lock_unlock_database(false, true))
 			{
-				file_put_contents($this->file, json_encode($this->database));
+				file_put_contents(
+					$this->file,
+					json_encode($this->database)
+				);
+
 				$this->lock_unlock_database(false);
 			}
 		}
@@ -1555,12 +1630,12 @@
 		}
 		public function del()
 		{
-			if($this->current_attempts !== 0)
-			{
-				unset($this->database[$this->ip]);
-				$this->current_attempts=0;
-				$this->current_timestamp=null;
-			}
+			if($this->current_attempts === 0)
+				return;
+
+			unset($this->database[$this->ip]);
+			$this->current_attempts=0;
+			$this->current_timestamp=null;
 		}
 		public function clean_database(int $seconds=2592000)
 		{
@@ -1593,13 +1668,9 @@
 			$bruteforce=new $this->class_name($this->params);
 
 			if(isset($args[0]))
-				$output=$bruteforce->$method($args[0]);
-			else
-				$output=$bruteforce->$method();
+				return $bruteforce->$method($args[0]);
 
-			unset($bruteforce);
-
-			return $output;
+			return $bruteforce->$method();
 		}
 	}
 	class bruteforce_timeout_json_ondemand extends bruteforce_json_ondemand

@@ -18,7 +18,7 @@
 		echo ' -> Starting automatic test'.PHP_EOL;
 
 		$process_pipes=null;
-		$process_handler=proc_open(
+		$process_handle=proc_open(
 			'"'.PHP_BINARY.'" "'.$argv[0].'" force',
 			[
 				0=>['pty'],
@@ -32,7 +32,7 @@
 
 		sleep(1);
 
-		if(!is_resource($process_handler))
+		if(!is_resource($process_handle))
 		{
 			echo 'Error: Process cannot be started'.PHP_EOL;
 			echo ' Run this test with a force argument'.PHP_EOL;
@@ -94,8 +94,8 @@
 		echo ' -> Stopping test server'.PHP_EOL;
 			fclose($process_pipes[1]);
 			fclose($process_pipes[2]);
-			proc_terminate($process_handler);
-			proc_close($process_handler);
+			proc_terminate($process_handle);
+			proc_close($process_handle);
 
 		if($failed)
 			exit(1);

@@ -6,7 +6,6 @@
 	 * Warning:
 	 *  the larger the zip file for the simpleblog_db_zip, the longer it takes to load
 	 *  simpleblog_db_zip requires the zip extension
-	 *  this is alpha version - use at your own risk
 	 *
 	 * Classes:
 	 *  simpleblog_db
@@ -31,16 +30,16 @@
 	 *  throws an simpleblog_db_exception on error
 	 *
 	 * Usage/Examples:
-	 *  creating a database handler (basic version):
+	 *  creating a database handle (basic version):
 			$db=new simpleblog_db([
 				'db_path'=>'./simpleblog_db'
 			]);
-	 *  creating a database handler (cache-enabled version):
+	 *  creating a database handle (cache-enabled version):
 			$db=new simpleblog_db_cache([
 				'db_path'=>'./simpleblog_db'
 				'cache_path'=>'./simpleblog_db_cache'
 			]);
-	 *  creating a database handler (zip version):
+	 *  creating a database handle (zip version):
 			$db=new simpleblog_db_zip([
 				'db_path'=>'./simpleblog_db.zip',
 				'db_compression'=>true // optional
@@ -91,16 +90,22 @@
 			foreach($this->constructor_params as $param)
 			{
 				if(!isset($params[$param]))
-					throw new simpleblog_db_exception('The '.$param.' parameter was not specified for the constructor');
+					throw new simpleblog_db_exception(
+						'The '.$param.' parameter was not specified for the constructor'
+					);
 
 				if(!is_string($params[$param]))
-					throw new simpleblog_db_exception('The input array parameter '.$param.' is not a string');
+					throw new simpleblog_db_exception(
+						'The input array parameter '.$param.' is not a string'
+					);
 
 				$this->$param=$params[$param];
 			}
 
 			if(!is_dir($this->db_path))
-				throw new simpleblog_db_exception('Wrong db_path or pointing to file');
+				throw new simpleblog_db_exception(
+					'Wrong db_path or pointing to file'
+				);
 
 			$this->db_path=realpath($this->db_path);
 		}
@@ -109,7 +114,9 @@
 		{
 			$result=[];
 
-			foreach(new DirectoryIterator($this->db_path) as $file)
+			foreach(new DirectoryIterator(
+				$this->db_path
+			) as $file)
 				if(!$file->isDot())
 					$result[]=$file->getFilename();
 
@@ -120,13 +127,17 @@
 			$record_name=str_replace(['/..', '../'], '', $record_name);
 
 			if($record_name === '')
-				throw new simpleblog_db_exception('Record name cannot be empty');
+				throw new simpleblog_db_exception(
+					'Record name cannot be empty'
+				);
 
 			if(
 				(!file_exists($this->db_path.'/'.$record_name)) &&
 				(!mkdir($this->db_path.'/'.$record_name))
 			)
-				throw new simpleblog_db_exception('The database could not be saved');
+				throw new simpleblog_db_exception(
+					'The database could not be saved'
+				);
 
 			foreach($content as $key=>$value)
 			{
@@ -142,8 +153,13 @@
 					continue;
 				}
 
-				if(file_put_contents($this->db_path.'/'.$record_name.'/'.$key, $value) === false)
-					throw new simpleblog_db_exception('The database could not be saved');
+				if(file_put_contents(
+					$this->db_path.'/'.$record_name.'/'.$key,
+					$value
+				) === false)
+					throw new simpleblog_db_exception(
+						'The database could not be saved'
+					);
 			}
 
 			return null;
@@ -153,17 +169,27 @@
 			$old_name=str_replace(['/..', '../'], '', $old_name);
 			$new_name=str_replace(['/..', '../'], '', $new_name);
 
-			if(($old_name === '') || ($new_name === ''))
-				throw new simpleblog_db_exception('Record name cannot be empty');
+			if(
+				($old_name === '') ||
+				($new_name === '')
+			)
+				throw new simpleblog_db_exception(
+					'Record name cannot be empty'
+				);
 
 			$old_name=$this->db_path.'/'.$old_name;
 			$new_name=$this->db_path.'/'.$new_name;
 
-			if((!file_exists($old_name)) || file_exists($new_name))
+			if(
+				(!file_exists($old_name)) ||
+				file_exists($new_name)
+			)
 				return false;
 
 			if(!rename($old_name, $new_name))
-				throw new simpleblog_db_exception('The database could not be saved');
+				throw new simpleblog_db_exception(
+					'The database could not be saved'
+				);
 
 			return true;
 		}
@@ -181,14 +207,21 @@
 			{
 				if(is_dir($this->db_path.'/'.$record_name.'/'.$key))
 				{
-					$record_content[$key]=(__METHOD__)($record_name.'/'.$key);
+					$record_content[$key]=(__METHOD__)(
+						$record_name.'/'.$key
+					);
+
 					continue;
 				}
 
-				$record_content[$key]=file_get_contents($this->db_path.'/'.$record_name.'/'.$key);
+				$record_content[$key]=file_get_contents(
+					$this->db_path.'/'.$record_name.'/'.$key
+				);
 
 				if($record_content[$key] === false)
-					throw new simpleblog_db_exception('Database could not be read');
+					throw new simpleblog_db_exception(
+						'Database could not be read'
+					);
 			}
 
 			return $record_content;
@@ -198,25 +231,32 @@
 			$record_name=str_replace(['/..', '../'], '', $record_name);
 
 			if($record_name === '')
-				throw new simpleblog_db_exception('Record name cannot be empty');
+				throw new simpleblog_db_exception(
+					'Record name cannot be empty'
+				);
 
 			if(is_file($this->db_path.'/'.$record_name))
 			{
 				if(!unlink($this->db_path.'/'.$record_name))
-					throw new simpleblog_db_exception('The database could not be saved');
+					throw new simpleblog_db_exception(
+						'The database could not be saved'
+					);
 
 				return null;
 			}
 
-			foreach(new DirectoryIterator($this->db_path.'/'.$record_name) as $file)
-			{
+			foreach(new DirectoryIterator(
+				$this->db_path.'/'.$record_name
+			) as $file){
 				if($file->isDot())
 					continue;
 
 				if($file->isFile())
 				{
 					if(!unlink($file->getPathname()))
-						throw new simpleblog_db_exception('The database could not be saved');
+						throw new simpleblog_db_exception(
+							'The database could not be saved'
+						);
 
 					continue;
 				}
@@ -231,22 +271,25 @@
 			}
 
 			if(!rmdir($this->db_path.'/'.$record_name))
-				throw new simpleblog_db_exception('The database could not be saved');
+				throw new simpleblog_db_exception(
+					'The database could not be saved'
+				);
 		}
 		public function find(string $path)
 		{
 			$found=[];
 
-			foreach(
-				new RecursiveIteratorIterator(
-					new RecursiveDirectoryIterator(
-						$this->db_path,
-						RecursiveDirectoryIterator::SKIP_DOTS+
-						RecursiveDirectoryIterator::UNIX_PATHS
-					)
+			foreach(new RecursiveIteratorIterator(
+				new RecursiveDirectoryIterator(
+					$this->db_path,
+					RecursiveDirectoryIterator::SKIP_DOTS+
+					RecursiveDirectoryIterator::UNIX_PATHS
 				)
-			as $file){
-				$path_b=substr($file->getPathname(), strlen($this->db_path)+1);
+			) as $file){
+				$path_b=substr(
+					$file->getPathname(),
+					strlen($this->db_path)+1
+				);
 
 				if(strpos($path_b, $path) !== false)
 					$found[]=$path_b;
@@ -263,7 +306,10 @@
 	}
 	class simpleblog_db_cache extends simpleblog_db
 	{
-		protected $constructor_params=['db_path', 'cache_path'];
+		protected $constructor_params=[
+			'db_path',
+			'cache_path'
+		];
 		protected $cache_path;
 
 		public function __construct(array $params)
@@ -274,7 +320,9 @@
 				(!file_exists($this->cache_path)) &&
 				(!mkdir($this->cache_path))
 			)
-				throw new simpleblog_db_exception('Unable to create cache store');
+				throw new simpleblog_db_exception(
+					'Unable to create cache store'
+				);
 
 			$this->cache_path=realpath($this->cache_path);
 		}
@@ -290,9 +338,14 @@
 				if($content === false)
 				{
 					if(!unlink($file))
-						throw new simpleblog_db_exception('Fatal error: unable to repair the cache');
+						throw new simpleblog_db_exception(
+							'Fatal error: unable to repair the cache'
+						);
 
-					return call_user_func_array([$this, $method], $method_params);
+					return call_user_func_array(
+						[$this, $method],
+						$method_params
+					);
 				}
 
 				return $content;
@@ -301,10 +354,19 @@
 		protected function read_from_db($file, $method, $method_params)
 		{
 			$file=str_replace(['/..', '../'], '', $file);
-			$content=call_user_func_array(['parent', $method], $method_params);
+			$content=call_user_func_array(
+				['parent', $method],
+				$method_params
+			);
 
-			if(($content !== null) && (!empty($content)))
-				file_put_contents($file, serialize($content));
+			if(
+				($content !== null) &&
+				(!empty($content))
+			)
+				file_put_contents(
+					$file,
+					serialize($content)
+				);
 
 			return $content;
 		}
@@ -314,21 +376,35 @@
 				file_exists($this->cache_path.'/__list_records__') &&
 				(!unlink($this->cache_path.'/__list_records__'))
 			)
-				throw new simpleblog_db_exception('Fatal error: unable to write cache');
+				throw new simpleblog_db_exception(
+					'Fatal error: unable to write cache'
+				);
 
-			foreach(glob($this->cache_path.'/__find_cache_*__') as $file)
+			foreach(glob(
+				$this->cache_path.'/__find_cache_*__'
+			) as $file)
 				if(!unlink($file))
-					throw new simpleblog_db_exception('Fatal error: unable to write cache');
+					throw new simpleblog_db_exception(
+						'Fatal error: unable to write cache'
+					);
 		}
 
 		public function list()
 		{
-			$content=$this->read_from_cache($this->cache_path.'/__list_records__', __FUNCTION__, []);
+			$content=$this->read_from_cache(
+				$this->cache_path.'/__list_records__',
+				__FUNCTION__,
+				[]
+			);
 
 			if($content !== null)
 				return $content;
 
-			return $this->read_from_db($this->cache_path.'/__list_records__', __FUNCTION__, []);
+			return $this->read_from_db(
+				$this->cache_path.'/__list_records__',
+				__FUNCTION__,
+				[]
+			);
 		}
 		public function add(string $record_name, array $content)
 		{
@@ -336,9 +412,18 @@
 				file_exists($this->cache_path.'/'.$record_name) &&
 				(!unlink($this->cache_path.'/'.$record_name))
 			)
-				throw new simpleblog_db_exception('Fatal error: unable to write cache');
+				throw new simpleblog_db_exception(
+					'Fatal error: unable to write cache'
+				);
 
-			$this->read_from_db($this->cache_path.'/'.$record_name, __FUNCTION__, [$record_name, $content]);
+			$this->read_from_db(
+				$this->cache_path.'/'.$record_name,
+				__FUNCTION__,
+				[
+					$record_name,
+					$content
+				]
+			);
 			$this->remove_list_find_cache();
 		}
 		public function rename(string $old_name, string $new_name)
@@ -349,20 +434,33 @@
 				file_exists($this->cache_path.'/'.$old_name) &&
 				(!unlink($this->cache_path.'/'.$old_name))
 			)
-				throw new simpleblog_db_exception('Fatal error: unable to write cache');
+				throw new simpleblog_db_exception(
+					'Fatal error: unable to write cache'
+				);
 
 			$this->remove_list_find_cache();
 
-			return parent::{__FUNCTION__}($old_name, $new_name);
+			return parent::{__FUNCTION__}(
+				$old_name,
+				$new_name
+			);
 		}
 		public function read(string $record_name)
 		{
-			$content=$this->read_from_cache($this->cache_path.'/'.$record_name, __FUNCTION__, [$record_name]);
+			$content=$this->read_from_cache(
+				$this->cache_path.'/'.$record_name,
+				__FUNCTION__,
+				[$record_name]
+			);
 
 			if($content !== null)
 				return $content;
 
-			return $this->read_from_db($this->cache_path.'/'.$record_name, __FUNCTION__, [$record_name]);
+			return $this->read_from_db(
+				$this->cache_path.'/'.$record_name,
+				__FUNCTION__,
+				[$record_name]
+			);
 		}
 		public function delete(string $record_name)
 		{
@@ -374,35 +472,49 @@
 				file_exists($this->cache_path.'/'.$record_name) &&
 				(!unlink($this->cache_path.'/'.$record_name))
 			)
-				throw new simpleblog_db_exception('Fatal error: unable to delete record from cache');
+				throw new simpleblog_db_exception(
+					'Fatal error: unable to delete record from cache'
+				);
 
 			$this->remove_list_find_cache();
 		}
 		public function find(string $path)
 		{
 			$cache_file=strtr($path, '/', '__-__');
-			$content=$this->read_from_cache($this->cache_path.'/__find_cache_'.$cache_file.'__', __FUNCTION__, [$path]);
+			$content=$this->read_from_cache(
+				$this->cache_path.'/__find_cache_'.$cache_file.'__',
+				__FUNCTION__,
+				[$path]
+			);
 
 			if($content !== null)
 				return $content;
 
-			return $this->read_from_db($this->cache_path.'/__find_cache_'.$cache_file.'__', __FUNCTION__, [$path]);
+			return $this->read_from_db(
+				$this->cache_path.'/__find_cache_'.$cache_file.'__',
+				__FUNCTION__,
+				[$path]
+			);
 		}
 	}
 	class simpleblog_db_zip
 	{
 		protected $db_path;
 		protected $db_compression=false;
-		protected $db_handler;
+		protected $db_handle;
 		protected $db_opened=false;
 
 		public function __construct(array $params)
 		{
 			if(!class_exists('ZipArchive'))
-				throw new simpleblog_db_exception('Zip extension is not loaded');
+				throw new simpleblog_db_exception(
+					'Zip extension is not loaded'
+				);
 
 			if(!isset($params['db_path']))
-				throw new simpleblog_db_exception('The db_path parameter was not specified for the constructor');
+				throw new simpleblog_db_exception(
+					'The db_path parameter was not specified for the constructor'
+				);
 
 			foreach([
 				'db_path'=>'string',
@@ -411,7 +523,9 @@
 				if(isset($params[$param]))
 				{
 					if(gettype($params[$param]) !== $param_type)
-						throw new Exception('The input array parameter '.$param.' is not a '.$param_type);
+						throw new simpleblog_db_exception(
+							'The input array parameter '.$param.' is not a '.$param_type
+						);
 
 					$this->$param=$params[$param];
 				}
@@ -421,17 +535,21 @@
 			if($this->db_path === false)
 			{
 				if(file_put_contents($params['db_path'], '') === false)
-					throw new simpleblog_db_exception('Unable to create database');
+					throw new simpleblog_db_exception(
+						'Unable to create database'
+					);
 
 				$this->db_path=realpath($params['db_path']);
 
 				if($this->db_path === false)
-					throw new simpleblog_db_exception('realpath(db_path) failed');
+					throw new simpleblog_db_exception(
+						'realpath(db_path) failed'
+					);
 
 				unlink($this->db_path);
 			}
 
-			$this->db_handler=new ZipArchive();
+			$this->db_handle=new ZipArchive();
 		}
 		public function __destruct()
 		{
@@ -442,8 +560,10 @@
 		{
 			if(!$this->db_opened)
 			{
-				if(!$this->db_handler->open($this->db_path, ZipArchive::CREATE))
-					throw new simpleblog_db_exception('Unable to open/create database');
+				if(!$this->db_handle->open($this->db_path, ZipArchive::CREATE))
+					throw new simpleblog_db_exception(
+						'Unable to open/create database'
+					);
 
 				$this->db_opened=true;
 			}
@@ -451,7 +571,7 @@
 		protected function close_db()
 		{
 			if($this->db_opened)
-				$this->db_handler->close();
+				$this->db_handle->close();
 
 			$this->db_opened=false;
 		}
@@ -475,7 +595,11 @@
 
 				if(is_array($value))
 				{
-					$result=array_merge($result, (__METHOD__)($value, $new_key));
+					$result=array_merge(
+						$result,
+						(__METHOD__)($value, $new_key)
+					);
+
 					continue;
 				}
 
@@ -513,7 +637,9 @@
 			$record_name=str_replace(['/..', '../'], '', $record_name);
 
 			if($record_name === '')
-				throw new simpleblog_db_exception('Record name cannot be empty');
+				throw new simpleblog_db_exception(
+					'Record name cannot be empty'
+				);
 
 			$this->open_db();
 
@@ -525,11 +651,19 @@
 					continue;
 				}
 
-				if(!$this->db_handler->addFromString($record_name.'/'.$key, $value))
-					throw new simpleblog_db_exception('The database could not be saved');
+				if(!$this->db_handle->addFromString(
+					$record_name.'/'.$key,
+					$value
+				))
+					throw new simpleblog_db_exception(
+						'The database could not be saved'
+					);
 
 				if($this->db_compression)
-					$this->db_handler->setCompressionName($record_name.'/'.$key, ZipArchive::CM_DEFLATE);
+					$this->db_handle->setCompressionName(
+						$record_name.'/'.$key,
+						ZipArchive::CM_DEFLATE
+					);
 			}
 		}
 
@@ -538,9 +672,9 @@
 			$this->open_db();
 			$result=[];
 
-			for($i=0; $i<$this->db_handler->numFiles; ++$i)
+			for($i=0; $i<$this->db_handle->numFiles; ++$i)
 			{
-				$i_stats=$this->db_handler->statIndex($i);
+				$i_stats=$this->db_handle->statIndex($i);
 
 				if($i_stats !== false)
 				{
@@ -569,10 +703,20 @@
 		{
 			foreach($this->find($old_name) as $file)
 			{
-				$new_file=substr_replace($file, $new_name, strpos($file, $old_name), strlen($old_name));
+				$new_file=substr_replace(
+					$file,
+					$new_name,
+					strpos($file, $old_name),
+					strlen($old_name)
+				);
 
-				if(!$this->db_handler->renameName($file, $new_file))
-					throw new simpleblog_db_exception('The database could not be saved');
+				if(!$this->db_handle->renameName(
+					$file,
+					$new_file
+				))
+					throw new simpleblog_db_exception(
+						'The database could not be saved'
+					);
 			}
 
 			return true;
@@ -582,22 +726,33 @@
 			$record_name=str_replace(['/..', '../'], '', $record_name);
 
 			if($record_name === '')
-				throw new simpleblog_db_exception('Record name cannot be empty');
+				throw new simpleblog_db_exception(
+					'Record name cannot be empty'
+				);
 
 			$record_name_length=strlen($record_name);
 			$result=[];
 
 			$this->open_db();
 
-			for($i=0; $i<$this->db_handler->numFiles; ++$i)
+			for($i=0; $i<$this->db_handle->numFiles; ++$i)
 			{
-				$i_stats=$this->db_handler->statIndex($i);
+				$i_stats=$this->db_handle->statIndex($i);
 
 				if(
 					($i_stats !== false) &&
-					(substr($i_stats['name'], 0, $record_name_length) === $record_name)
+					(substr(
+						$i_stats['name'],
+						0,
+						$record_name_length
+					) === $record_name)
 				)
-					$result[substr($i_stats['name'], $record_name_length+1)]=$this->db_handler->getFromName($i_stats['name']);
+					$result[substr(
+						$i_stats['name'],
+						$record_name_length+1
+					)]=$this->db_handle->getFromName(
+						$i_stats['name']
+					);
 			}
 
 			return $this->unflatten($result);
@@ -607,20 +762,29 @@
 			$path=str_replace(['/..', '../'], '', $path);
 
 			if($path === '')
-				throw new simpleblog_db_exception('Record name cannot be empty');
+				throw new simpleblog_db_exception(
+					'Record name cannot be empty'
+				);
 
 			$this->open_db();
 
-			for($i=0; $i<$this->db_handler->numFiles; ++$i)
+			for($i=0; $i<$this->db_handle->numFiles; ++$i)
 			{
-				$i_stats=$this->db_handler->statIndex($i);
+				$i_stats=$this->db_handle->statIndex($i);
 
 				if(
 					($i_stats !== false) &&
-					(stripos($i_stats['name'], $path) === 0) &&
-					(!$this->db_handler->deleteName($i_stats['name']))
+					(stripos(
+						$i_stats['name'],
+						$path
+					) === 0) &&
+					(!$this->db_handle->deleteName(
+						$i_stats['name']
+					))
 				)
-					throw new simpleblog_db_exception('The database could not be saved');
+					throw new simpleblog_db_exception(
+						'The database could not be saved'
+					);
 			}
 		}
 		public function find(string $path)
@@ -630,9 +794,9 @@
 			$found=[];
 			$strlen=strlen($path);
 
-			for($i=0; $i<$this->db_handler->numFiles; ++$i)
+			for($i=0; $i<$this->db_handle->numFiles; ++$i)
 			{
-				$i_stats=$this->db_handler->statIndex($i);
+				$i_stats=$this->db_handle->statIndex($i);
 
 				if($i_stats !== false)
 				{
@@ -641,8 +805,16 @@
 					if(
 						($strpos !== false) &&
 						(
-							(substr($i_stats['name'], $strpos-1, $strlen+1) === '/'.$path) ||
-							(substr($i_stats['name'], $strpos, $strlen+1) === $path.'/')
+							(substr(
+								$i_stats['name'],
+								$strpos-1,
+								$strlen+1
+							) === '/'.$path) ||
+							(substr(
+								$i_stats['name'],
+								$strpos,
+								$strlen+1
+							) === $path.'/')
 						)
 					)
 						$found[]=$i_stats['name'];

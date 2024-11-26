@@ -1,0 +1,245 @@
+<?php
+	/*
+	 * mkCalendar.js library test
+	 *
+	 * Note:
+	 *  looks for a library at ../lib
+	 *  looks for a library at ..
+	 *
+	 * Warning:
+	 *  mk_calendar.php library is recommended
+	 */
+
+	if(
+		(!is_file(__DIR__.'/../lib/'.basename(__FILE__, '.phtml'))) &&
+		(!is_file(__DIR__.'/../'.basename(__FILE__, '.phtml')))
+	){
+		echo __DIR__.'/../lib/'.basename(__FILE__, '.phtml').' is not a file'.PHP_EOL;
+		echo __DIR__.'/../'.basename(__FILE__, '.phtml').' is not a file'.PHP_EOL;
+		exit();
+	}
+?>
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<style>
+			.calendar {
+				font-family: monospace;
+			}
+			.calendar,
+			.calendar th,
+			.calendar td {
+				border: 1px solid #000000;
+				border-collapse: collapse;
+				text-align: center;
+			}
+			.calendar .calendar_event {
+				background-color: #009900;
+			}
+			.calendar .calendar_event a,
+			.calendar .calendar_event a:hover,
+			.calendar .calendar_event a:visited {
+				color: #ffff00;
+				text-decoration: none;
+			}
+		</style>
+		<script>
+			document.addEventListener('DOMContentLoaded', function(){
+				<?php
+					if(is_file(__DIR__.'/../lib/'.basename(__FILE__, '.phtml')))
+						require __DIR__.'/../lib/'.basename(__FILE__, '.phtml');
+					else if(is_file(__DIR__.'/../'.basename(__FILE__, '.phtml')))
+						require __DIR__.'/../'.basename(__FILE__, '.phtml');
+				?>
+
+				if(JSON.stringify(mkCalendarM2W(10, 2024)) === '[null,2,3,4,5,6,0,1,2,3,4,5,6,0,1,2,3,4,5,6,0,1,2,3,4,5,6,0,1,2,3,4]')
+					document.getElementById('mkCalendarM2W_test').innerHTML='[ OK ]';
+
+				document.getElementById('calendar_js').innerHTML+=mkCalendarTable(mkCalendarM2W(10, 2024), {
+					4: {
+						'params': 'class="calendar_event"',
+						'link': 'href="/events/2024/10/04"'
+					},
+					12: {
+						'params': 'class="calendar_event"',
+						'link': 'href="/events/2024/10/12"'
+					}
+				});
+
+				document.getElementById('calendar_js_b').innerHTML+=mkCalendarTable(mkCalendarM2W(10, 2024, 2), {
+					4: {
+						'params': 'class="calendar_event"',
+						'link': 'href="/events/2024/10/04"'
+					},
+					12: {
+						'params': 'class="calendar_event"',
+						'link': 'href="/events/2024/10/12"'
+					}
+				});
+			}, false);
+		</script>
+	</head>
+	<body>
+		Test mkCalendarM2W <span id="mkCalendarM2W_test">[FAIL]</span>
+
+		<hr>
+		Tested month: 10.2024<br>
+		First day: Tuesday<br>
+		Last day: Thursday<br>
+		Days: 31<br>
+		Highlight:
+		<ul>
+			<li>4 =&gt; /events/2024/10/04</li>
+			<li>12 =&gt; /events/2024/10/12</li>
+		</ul>
+
+		<h1>Sunday</h1>
+
+		<h3>JavaScript rendered:</h3>
+		<table id="calendar_js" class="calendar">
+			<tr>
+				<th>Su</th>
+				<th>Mo</th>
+				<th>Tu</th>
+				<th>We</th>
+				<th>Th</th>
+				<th>Fr</th>
+				<th>Sa</th>
+			</tr>
+		</table>
+
+		<h3>PHP rendered:</h3>
+		<?php
+			function test_mkcalendar_php()
+			{ ?>
+				<table class="calendar">
+					<tr>
+						<th>Su</th>
+						<th>Mo</th>
+						<th>Tu</th>
+						<th>We</th>
+						<th>Th</th>
+						<th>Fr</th>
+						<th>Sa</th>
+					</tr>
+					<?php
+						echo mk_calendar_table(mk_calendar_m2w(10, 2024), [
+							// this parameter is optional
+							4=>[ // 04.10.2024 is a special day
+								'params'=>'class="calendar_event"', // add HTML parameters to <td>, optional
+								'link'=>'href="/events/2024/10/04"' // insert day number as link, optional
+							],
+							12=>[ // 12.10.2024 is a special day
+								'params'=>'class="calendar_event"', // add HTML parameters to <td>, optional
+								'link'=>'href="/events/2024/10/12"' // insert day number as link, optional
+							]
+						]);
+					?>
+				</table>
+			<?php }
+
+			if(is_file(__DIR__.'/../lib/mk_calendar.php'))
+			{
+				require __DIR__.'/../lib/mk_calendar.php';
+				test_mkcalendar_php();
+			}
+			else if(is_file(__DIR__.'/../mk_calendar.php'))
+			{
+				require __DIR__.'/../mk_calendar.php';
+				test_mkcalendar_php();
+			}
+			else
+				echo 'Error: mk_calendar.php library not found';
+		?>
+
+		<h3>Pre-rendered:</h3>
+		<table class="calendar">
+			<tr>
+				<th>Su</th>
+				<th>Mo</th>
+				<th>Tu</th>
+				<th>We</th>
+				<th>Th</th>
+				<th>Fr</th>
+				<th>Sa</th>
+			</tr>
+			<tr><td></td><td></td><td>1</td><td>2</td><td>3</td><td class="calendar_event"><a href="/events/2024/10/04">4</a></td><td>5</td></tr>
+			<tr><td>6</td><td>7</td><td>8</td><td>9</td><td>10</td><td>11</td><td class="calendar_event"><a href="/events/2024/10/12">12</a></td></tr>
+			<tr><td>13</td><td>14</td><td>15</td><td>16</td><td>17</td><td>18</td><td>19</td></tr>
+			<tr><td>20</td><td>21</td><td>22</td><td>23</td><td>24</td><td>25</td><td>26</td></tr>
+			<tr><td>27</td><td>28</td><td>29</td><td>30</td><td>31</td><td></td><td></td></tr>
+		</table>
+
+		<h1>Monday</h1>
+
+		<h3>JavaScript rendered:</h3>
+		<table id="calendar_js_b" class="calendar">
+			<tr>
+				<th>Mo</th>
+				<th>Tu</th>
+				<th>We</th>
+				<th>Th</th>
+				<th>Fr</th>
+				<th>Sa</th>
+				<th>Su</th>
+			</tr>
+		</table>
+
+		<h3>PHP rendered:</h3>
+		<?php
+			function test_mkcalendar_php_b()
+			{ ?>
+				<table class="calendar">
+					<tr>
+						<th>Mo</th>
+						<th>Tu</th>
+						<th>We</th>
+						<th>Th</th>
+						<th>Fr</th>
+						<th>Sa</th>
+						<th>Su</th>
+					</tr>
+					<?php
+						echo mk_calendar_table(mk_calendar_m2w(10, 2024, 2), [
+							// this parameter is optional
+							4=>[ // 04.10.2024 is a special day
+								'params'=>'class="calendar_event"', // add HTML parameters to <td>, optional
+								'link'=>'href="/events/2024/10/04"' // insert day number as link, optional
+							],
+							12=>[ // 12.10.2024 is a special day
+								'params'=>'class="calendar_event"', // add HTML parameters to <td>, optional
+								'link'=>'href="/events/2024/10/12"' // insert day number as link, optional
+							]
+						]);
+					?>
+				</table>
+			<?php }
+
+			if(is_file(__DIR__.'/../lib/mk_calendar.php'))
+				test_mkcalendar_php_b();
+			else if(is_file(__DIR__.'/../mk_calendar.php'))
+				test_mkcalendar_php_b();
+			else
+				echo 'Error: mk_calendar.php library not found';
+		?>
+
+		<h3>Pre-rendered:</h3>
+		<table class="calendar">
+			<tr>
+				<th>Mo</th>
+				<th>Tu</th>
+				<th>We</th>
+				<th>Th</th>
+				<th>Fr</th>
+				<th>Sa</th>
+				<th>Su</th>
+			</tr>
+			<tr><td></td><td>1</td><td>2</td><td>3</td><td class="calendar_event"><a href="/events/2024/10/04">4</a></td><td>5</td><td>6</td></tr>
+			<tr><td>7</td><td>8</td><td>9</td><td>10</td><td>11</td><td class="calendar_event"><a href="/events/2024/10/12">12</a></td><td>13</td></tr>
+			<tr><td>14</td><td>15</td><td>16</td><td>17</td><td>18</td><td>19</td><td>20</td></tr>
+			<tr><td>21</td><td>22</td><td>23</td><td>24</td><td>25</td><td>26</td><td>27</td></tr>
+			<tr><td>28</td><td>29</td><td>30</td><td>31</td><td></td><td></td><td></td></tr>
+		</table>
+	</body>
+</html>

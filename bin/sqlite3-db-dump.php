@@ -18,13 +18,22 @@
 	function load_library($libraries, $required=true)
 	{
 		foreach($libraries as $library)
+		{
 			if(file_exists(__DIR__.'/lib/'.$library))
+			{
 				require __DIR__.'/lib/'.$library;
-			else if(file_exists(__DIR__.'/../lib/'.$library))
+				continue;
+			}
+
+			if(file_exists(__DIR__.'/../lib/'.$library))
+			{
 				require __DIR__.'/../lib/'.$library;
-			else
-				if($required)
-					throw new Exception($library.' library not found');
+				continue;
+			}
+
+			if($required)
+				throw new Exception($library.' library not found');
+		}
 	}
 
 	try {
@@ -36,8 +45,8 @@
 
 	if($argc < 2)
 	{
-		echo 'Usage: database.file [output-file.sql]'.PHP_EOL;
-		echo ' if output-file.sql is not specified, prints to stdout'.PHP_EOL;
+		echo 'Usage: '.$argv[0].' path/to/database.file [path/to/output-file.sql]'.PHP_EOL;
+		echo ' if path/to/output-file.sql is not specified, prints to stdout'.PHP_EOL;
 		exit(1);
 	}
 
@@ -49,11 +58,18 @@
 
 	try {
 		if(class_exists('SQLite3'))
-			$output=sqlite3_db_dump(new SQLite3($argv[1]));
-		else if(class_exists('PDO') && in_array('sqlite', PDO::getAvailableDrivers()))
-			$output=sqlite3_pdo_dump(new PDO('sqlite:'.$argv[1]));
+			$output=sqlite3_db_dump(
+				new SQLite3($argv[1])
+			);
+		else if(
+			class_exists('PDO') &&
+			in_array('sqlite', PDO::getAvailableDrivers())
+		)
+			$output=sqlite3_pdo_dump(
+				new PDO('sqlite:'.$argv[1])
+			);
 		else
-			throw new Exception('pdo_sqlite extension is not loaded');
+			throw new Exception('PDO and pdo_sqlite nor sqlite3 extensions are not loaded');
 	} catch(Throwable $error) {
 		$function_used='sqlite3_pdo_dump';
 
@@ -61,22 +77,25 @@
 			$function_used='sqlite3_db_dump';
 
 		echo 'Error ('.$function_used.'): '.$error->getMessage().PHP_EOL;
+
 		exit(1);
 	}
 
 	if($output === '')
-		echo 'Database dump is empty';
-	else
 	{
-		if(isset($argv[2]))
-		{
-			if(file_put_contents($argv[2], $output) === false)
-			{
-				echo 'Unable to save output file'.PHP_EOL;
-				exit(1);
-			}
-		}
-		else
-			echo $output;
+		echo 'Database dump is empty'."\n";
+		exit();
+	}
+
+	if(!isset($argv[2]))
+	{
+		echo $output;
+		exit();
+	}
+
+	if(file_put_contents($argv[2], $output) === false)
+	{
+		echo 'Unable to save output file'.PHP_EOL;
+		exit(1);
 	}
 ?>
