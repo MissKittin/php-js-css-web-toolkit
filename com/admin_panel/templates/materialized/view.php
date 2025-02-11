@@ -4,6 +4,9 @@
 		<title><?php echo $this->registry['_title']; ?></title>
 		<meta charset="utf-8">
 		<meta http-equiv="Content-Security-Policy" content="<?php
+			foreach($this->view_plugins_csp as $view_plugin)
+				$view_plugin($this);
+
 			if($this->registry['_inline_assets'][0])
 			{
 				$this->registry['_inline_assets'][2]=rand_str_secure(32);
@@ -41,13 +44,11 @@
 				<link rel="stylesheet" href="<?php echo $this->registry['_assets_path']; ?>/admin_panel_materialized.css">
 				<link rel="stylesheet" href="<?php echo $this->registry['_assets_path']; ?>/simpleblog_materialized.css">
 			<?php }
-		?>
-		<?php
+
 			if(isset($this->registry['_styles']))
 				foreach($this->registry['_styles'] as $_style)
 					{ ?><link rel="stylesheet" href="<?php echo $_style; ?>"><?php }
-		?>
-		<?php
+
 			if(isset($this->registry['_scripts']))
 				foreach($this->registry['_scripts'] as $_script)
 					{ ?><script src="<?php echo $_script; ?>"></script><?php }
@@ -59,6 +60,9 @@
 
 			if(isset($this->registry['_favicon']))
 				readfile($this->registry['_favicon']);
+
+			foreach($this->view_plugins_head as $view_plugin)
+				$view_plugin($this);
 		?>
 	</head>
 	<body>
@@ -92,5 +96,9 @@
 					require $_module['path'].'/'.$_module['script'];
 			?>
 		</div>
+		<?php
+			foreach($this->view_plugins_body as $view_plugin)
+				$view_plugin($this);
+		?>
 	</body>
 </html>

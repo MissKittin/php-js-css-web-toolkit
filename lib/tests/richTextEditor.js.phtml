@@ -20,7 +20,8 @@
 <html>
 	<head>
 		<meta charset="utf-8">
-		<style>
+		<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'self' 'nonce-stylemain'; script-src 'self' 'nonce-scriptmain'; img-src 'self'">
+		<style nonce="stylemain">
 			#richTextEditorBox,
 			#richTextEditorBoxWithoutCallbacks {
 				border: 1px solid black;
@@ -34,7 +35,7 @@
 				outline: none;
 			}
 		</style>
-		<script>
+		<script nonce="scriptmain">
 			document.addEventListener('DOMContentLoaded', function(){
 				<?php
 					if(is_file(__DIR__.'/../lib/'.basename(__FILE__, '.phtml')))

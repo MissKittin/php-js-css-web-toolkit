@@ -60,11 +60,14 @@
 		'private_key'=>__DIR__.'/tmp/sec_file_sign/sec_file_sign-private.pem',
 		'public_key'=>__DIR__.'/tmp/sec_file_sign/sec_file_sign-public.pem'
 	]);
+	$filesign_verify=new file_sign([
+		'public_key'=>__DIR__.'/tmp/sec_file_sign/sec_file_sign-public.pem'
+	]);
 
 	echo ' -> Testing input'.PHP_EOL;
 		echo '  -> return true';
 			$signature=$filesign->generate_input_signature('Message');
-			if($filesign->verify_input_signature('Message', $signature))
+			if($filesign_verify->verify_input_signature('Message', $signature))
 				echo ' [ OK ]'.PHP_EOL;
 			else
 			{
@@ -73,7 +76,7 @@
 			}
 		echo '  -> return false';
 			$signature.='bad';
-			if(!$filesign->verify_input_signature('Message', $signature))
+			if(!$filesign_verify->verify_input_signature('Message', $signature))
 				echo ' [ OK ]'.PHP_EOL;
 			else
 			{
@@ -84,7 +87,7 @@
 	echo ' -> Testing file'.PHP_EOL;
 		echo '  -> return true';
 			$signature=$filesign->generate_file_signature(__FILE__);
-			if($filesign->verify_file_signature(__FILE__, $signature))
+			if($filesign_verify->verify_file_signature(__FILE__, $signature))
 				echo ' [ OK ]'.PHP_EOL;
 			else
 			{
@@ -93,7 +96,7 @@
 			}
 		echo '  -> return false';
 			$signature.='bad';
-			if(!$filesign->verify_file_signature(__FILE__, $signature))
+			if(!$filesign_verify->verify_file_signature(__FILE__, $signature))
 				echo ' [ OK ]'.PHP_EOL;
 			else
 			{
@@ -104,7 +107,7 @@
 	echo ' -> Testing encrypt/decrypt'.PHP_EOL;
 		echo '  -> return true';
 			$encrypted=$filesign->encrypt_data('Message');
-			if($filesign->decrypt_data($encrypted) === 'Message')
+			if($filesign_verify->decrypt_data($encrypted) === 'Message')
 				echo ' [ OK ]'.PHP_EOL;
 			else
 			{
@@ -113,13 +116,41 @@
 			}
 		echo '  -> return false';
 			$encrypted.='bad';
-			if($filesign->decrypt_data($encrypted) === false)
+			if($filesign_verify->decrypt_data($encrypted) === false)
 				echo ' [ OK ]'.PHP_EOL;
 			else
 			{
 				echo ' [FAIL]'.PHP_EOL;
 				$failed=true;
 			}
+
+	echo ' -> Testing verify-only exception';
+		try {
+			$filesign_verify->generate_file_signature(__FILE__);
+			$exception_caught=false;
+		} catch(file_sign_exception $error) {
+			$exception_caught=true;
+		}
+		if($exception_caught === true)
+			echo ' [ OK ]';
+		else
+		{
+			echo ' [FAIL]';
+			$failed=true;
+		}
+		try {
+			$filesign_verify->encrypt_data('Message');
+			$exception_caught=false;
+		} catch(file_sign_exception $error) {
+			$exception_caught=true;
+		}
+		if($exception_caught === true)
+			echo ' [ OK ]'.PHP_EOL;
+		else
+		{
+			echo ' [FAIL]'.PHP_EOL;
+			$failed=true;
+		}
 
 	if($failed)
 		exit(1);

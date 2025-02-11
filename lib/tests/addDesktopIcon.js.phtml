@@ -15,12 +15,37 @@
 		echo __DIR__.'/../'.basename(__FILE__, '.phtml').' is not a file'.PHP_EOL;
 		exit();
 	}
+
+	if(extension_loaded('gd'))
+	{
+		@mkdir(__DIR__.'/tmp/addDesktopIcon');
+
+		if(!file_exists(__DIR__.'/tmp/addDesktopIcon/adddesktopicon.png'))
+		{
+			$image=imagecreate(32, 32);
+			imagecolorallocate($image, 0,0,0);
+			imagefilledarc($image, 16,16, 32,32, 0,360, imagecolorallocate($image, 255,255,255), IMG_ARC_PIE);
+			imagepng($image, __DIR__.'/tmp/addDesktopIcon/adddesktopicon.png');
+			imagedestroy($image);
+		}
+
+		if(!file_exists(__DIR__.'/tmp/addDesktopIcon/adddesktopiconsprite.png'))
+		{
+			$image=imagecreate(64, 32);
+			imagecolorallocate($image, 0,0,0);
+			imagefilledarc($image, 16,16, 32,32, 0,360, imagecolorallocate($image, 255,255,255), IMG_ARC_PIE);
+			imagefilledarc($image, 49,16, 32,32, 0,360, imagecolorallocate($image, 255,0,0), IMG_ARC_PIE);
+			imagepng($image, __DIR__.'/tmp/addDesktopIcon/adddesktopiconsprite.png');
+			imagedestroy($image);
+		}
+	}
 ?>
 <!DOCTYPE html>
 <html>
 	<head>
 		<meta charset="utf-8">
-		<style>
+		<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'self' 'nonce-stylemain'; script-src 'self' 'nonce-scriptmain'; img-src 'self'">
+		<style nonce="stylemain">
 			#horizontal .addDesktopIconBox
 			{
 				float: left;
@@ -30,7 +55,7 @@
 				float: left;
 			}
 		</style>
-		<script>
+		<script nonce="scriptmain">
 			document.addEventListener('DOMContentLoaded', function(){
 				<?php
 					if(is_file(__DIR__.'/../lib/'.basename(__FILE__, '.phtml')))
@@ -41,35 +66,35 @@
 
 				addDesktopIcon(
 					document.getElementById('horizontal'),
-					'/tmp/adddesktopicon.png',
+					'/tmp/addDesktopIcon/adddesktopicon.png',
 					'/desktop.html',
 					'Icon label',
 					'#000'
 				);
 				addDesktopIcon(
 					document.getElementById('horizontal'),
-					'/tmp/adddesktopicon.png',
+					'/tmp/addDesktopIcon/adddesktopicon.png',
 					null,
 					'Icon label',
 					'#000'
 				);
 				addDesktopIcon(
 					document.getElementById('vertical'),
-					'/tmp/adddesktopicon.png',
+					'/tmp/addDesktopIcon/adddesktopicon.png',
 					'/desktop.html',
 					'Icon label',
 					'#000'
 				);
 				addDesktopIcon(
 					document.getElementById('vertical'),
-					'/tmp/adddesktopicon.png',
+					'/tmp/addDesktopIcon/adddesktopicon.png',
 					null,
 					'Icon label',
 					'#000'
 				);
 				addDesktopSpriteIcon(
 					document.getElementById('sprite_horizontal'),
-					'/tmp/adddesktopiconsprite.png',
+					'/tmp/addDesktopIcon/adddesktopiconsprite.png',
 					'33px',
 					'/desktop.html',
 					'Icon label',
@@ -77,7 +102,7 @@
 				);
 				addDesktopSpriteIcon(
 					document.getElementById('sprite_horizontal'),
-					'/tmp/adddesktopiconsprite.png',
+					'/tmp/addDesktopIcon/adddesktopiconsprite.png',
 					'66px',
 					null,
 					'Icon label',
@@ -85,7 +110,7 @@
 				);
 				addDesktopSpriteIcon(
 					document.getElementById('sprite_vertical'),
-					'/tmp/adddesktopiconsprite.png',
+					'/tmp/addDesktopIcon/adddesktopiconsprite.png',
 					'33px',
 					'/desktop.html',
 					'Icon label',
@@ -93,7 +118,7 @@
 				);
 				addDesktopSpriteIcon(
 					document.getElementById('sprite_vertical'),
-					'/tmp/adddesktopiconsprite.png',
+					'/tmp/addDesktopIcon/adddesktopiconsprite.png',
 					'66px',
 					null,
 					'Icon label',

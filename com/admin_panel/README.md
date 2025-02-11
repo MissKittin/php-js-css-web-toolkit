@@ -102,6 +102,28 @@ The logout button action is the current URL via POST
 * `set_inline_assets(bool_option)` [returns self]  
 	compiles styles and scripts and adds them to the inline tag instead of `link rel="stylesheet"` and `script src=""` (not recommended)  
 	default: `false`
+* `add_view_plugin_csp(callable_function)` [returns self]  
+	add CSP rules for view plugin (they will be applied for each page)
+
+		->	add_view_plugin_csp(function($admin_panel){
+				$admin_panel->add_csp_header('script-src', '\'nonce-myscript\'');
+			})
+
+* `add_view_plugin_head(callable_function)` [returns self]  
+	add HTML headers of the view plugin (they will be applied for each page)
+
+		->	add_view_plugin_head(function($admin_panel){
+				echo '<myheadertag>';
+				//$admin_panel->method(args);
+			})
+
+* `add_view_plugin_body(callable_function)` [returns self]  
+	add the HTML code of the view plugin (they will be applied for each page before the `</body>` tag)
+
+		->	add_view_plugin_body(function($admin_panel){
+				echo '<div>My bottom content</div>';
+				//$admin_panel->method(args);
+			})
 
 ## Templates
 There are two templates available:
@@ -224,7 +246,7 @@ Admin router:
 ?>
 ```
 
-app/admin/dashboard/config.php:
+`app/admin/dashboard/config.php`:
 ```
 <?php
 	$this
@@ -233,7 +255,7 @@ app/admin/dashboard/config.php:
 ?>
 ```
 
-app/admin/dashboard/main.php:
+`app/admin/dashboard/main.php`:
 ```
 <pre><?php echo '$_module: '; var_dump($_module); ?></pre>
 <pre><?php echo '$this->registry: '; var_dump($this->registry); ?></pre>
@@ -248,7 +270,7 @@ app/admin/posts/config.php:
 ?>
 ```
 
-app/admin/posts/main.php:
+`app/admin/posts/main.php`:
 ```
 <?php if(isset($_module['_is_default'])) { ?>
 	<h3>The module was called as default</h3>
@@ -286,6 +308,47 @@ app/admin/posts/main.php:
 		}
 	?>
 </div>
+```
+
+## Integrating PHP DebugBar
+To achieve this, you need to use the view plugin system.  
+The given example uses the `maximebf_debugbar.php` library to make bar installation easier:
+```
+<?php
+	require './vendor/autoload.php';
+	require './app/lib/stdlib.php';
+	require './app/lib/maximebf_debugbar.php';
+
+	if(php_debugbar
+	::	enable((getenv('APP_ENV') === 'dev'))
+	::	collectors([
+			'pdo'=>(class_exists('\DebugBar\DataCollector\PDO\PDOCollector'))? new DebugBar\DataCollector\PDO\PDOCollector() : new php_debugbar_dummy()
+		])
+	::	route(strtok($_SERVER['REQUEST_URI'], '?')))
+		exit();
+
+	$admin_panel=new admin_panel([
+		//etc...
+	]);
+
+	$admin_panel
+	//etc...
+	->	add_view_plugin_csp(function($admin_panel){
+			if(!php_debugbar::is_enabled())
+				return;
+
+			foreach(php_debugbar::get_csp_headers() as $section=>$values)
+				foreach($values as $value)
+					$admin_panel->add_csp_header($section, $value);
+		})
+	->	add_view_plugin_head(function(){
+			echo php_debugbar::get_html_headers();
+		})
+	->	add_view_plugin_body(function(){
+			php_debugbar::get_page_content();
+		})
+	//etc...
+?>
 ```
 
 ## Assets

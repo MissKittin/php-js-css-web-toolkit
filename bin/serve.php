@@ -27,7 +27,13 @@
 			)
 				return false;
 
-			require $_SERVER['DOCUMENT_ROOT'].'/index.php';
+			if(
+				(getenv('_SERVE_ROUTER') === false) &&
+				file_exists($_SERVER['DOCUMENT_ROOT'].'/index.php')
+			)
+				require $_SERVER['DOCUMENT_ROOT'].'/index.php';
+			else if(file_exists(getenv('_SERVE_ROUTER')))
+				require getenv('_SERVE_ROUTER');
 		break;
 		case 'cli':
 			function load_library($libraries, $required=true)

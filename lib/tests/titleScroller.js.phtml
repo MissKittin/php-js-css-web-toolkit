@@ -20,8 +20,9 @@
 <html>
 	<head>
 		<meta charset="utf-8">
+		<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'nonce-scriptmain'">
 		<title>titleScroller.js library test |</title>
-		<script>
+		<script nonce="scriptmain">
 			<?php
 				if(is_file(__DIR__.'/../lib/'.basename(__FILE__, '.phtml')))
 					require __DIR__.'/../lib/'.basename(__FILE__, '.phtml');
@@ -34,5 +35,7 @@
 			}, false)
 		</script>
 	</head>
-	<body></body>
+	<body>
+		<h1>See the page title</h1>
+	</body>
 </html>

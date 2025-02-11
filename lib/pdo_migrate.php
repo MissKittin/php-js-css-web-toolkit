@@ -1,9 +1,7 @@
 <?php
 	class pdo_migrate_exception extends Exception {}
-	function pdo_migrate(
-		array $params,
-		?string $selected_migration_script=null
-	){
+	function pdo_migrate(array $params)
+	{
 		/*
 		 * Database migration helper
 		 *
@@ -93,13 +91,14 @@
 				'mode'=>'apply'
 			]);
 
-			// apply certain migration (BE CAREFUL!!!)
+			// apply 3 first migrations
 			pdo_migrate([
 				'pdo_handle'=>new PDO('sqlite:./my-database.sqlite3'),
 				'table_name'=>'migrations', // optional, default: pdo_migrate
 				'directory'=>'path/to/directory/with/migrations-scripts',
-				'mode'=>'apply'
-			], 'migration_script_name.php');
+				'mode'=>'apply',
+				'count'=>3
+			]);
 
 			// rollback all migrations
 			pdo_migrate([
@@ -109,13 +108,14 @@
 				'mode'=>'rollback'
 			]);
 
-			// rollback certain migration (BE CAREFUL!!!)
+			// rollback last 3 migrations
 			pdo_migrate([
 				'pdo_handle'=>new PDO('sqlite:./my-database.sqlite3'),
 				'table_name'=>'migrations', // optional, default: pdo_migrate
 				'directory'=>'path/to/directory/with/migrations-scripts',
-				'mode'=>'rollback'
-			], 'migration_script_name.php');
+				'mode'=>'rollback',
+				'count'=>3
+			]);
 		 *
 		 * Callbacks:
 		 *  define them in an array (must be callable) e.g.:
@@ -144,15 +144,15 @@
 					// show rollback migration name on error
 					echo ' <- '.$migration;
 				},
-				'on_end'=>function($migration)
+				'on_end'=>function($migration, $skipped)
 				{
-					// migration completed successfully
-					echo ' [ OK ]'.PHP_EOL;
+					// if not used $params['count'] option
+					if(!$skipped)
+						// migration completed successfully
+						echo ' [ OK ]'.PHP_EOL;
 				}
 			]);
 		 */
-
-		static $create_table=true;
 
 		foreach([
 			'pdo_handle',
@@ -168,7 +168,8 @@
 			'pdo_handle'=>'object',
 			'table_name'=>'string',
 			'directory'=>'string',
-			'mode'=>'string'
+			'mode'=>'string',
+			'count'=>'integer'
 		] as $param=>$param_type)
 			if(
 				isset($params[$param]) &&
@@ -210,16 +211,6 @@
 				$params['directory'].' is not a directory'
 			);
 
-		if(
-			($selected_migration_script !== null) &&
-			(!is_file(
-				$params['directory'].'/'.$selected_migration_script
-			))
-		)
-			throw new pdo_migrate_exception(
-				$params['directory'].'/'.$selected_migration_script.' is not a file'
-			);
-
 		if(!isset($params['table_name']))
 			$params['table_name']='pdo_migrate';
 
@@ -231,60 +222,71 @@
 				$params['pdo_handle']->getAttribute(PDO::ATTR_DRIVER_NAME).' driver is not supported'
 			);
 
-		if($create_table)
-		{
-			switch($params['pdo_handle']->getAttribute(PDO::ATTR_DRIVER_NAME))
-			{
-				case 'pgsql':
-					$create_table_result=$params['pdo_handle']->exec(''
-					.	'CREATE TABLE IF NOT EXISTS '.$params['table_name']
-					.	'('
-					.		'id SERIAL PRIMARY KEY,'
-					.		'migration VARCHAR(255),'
-					.		'failed INTEGER'
-					.	')'
-					);
-				break;
-				case 'mysql':
-					$create_table_result=$params['pdo_handle']->exec(''
-					.	'CREATE TABLE IF NOT EXISTS '.$params['table_name']
-					.	'('
-					.		'id INTEGER NOT NULL, PRIMARY KEY(id),'
-					.		'migration VARCHAR(255),'
-					.		'failed INTEGER'
-					.	')'
-					);
-				break;
-				case 'sqlite':
-					$create_table_result=$params['pdo_handle']->exec(''
-					.	'CREATE TABLE IF NOT EXISTS '.$params['table_name']
-					.	'('
-					.		'id INTEGER PRIMARY KEY,'
-					.		'migration VARCHAR(255),'
-					.		'failed INTEGER'
-					.	')'
-					);
-			}
-
-			if($create_table_result === false)
-				throw new pdo_migrate_exception(
-					'PDO exec error (CREATE TABLE)'
-				);
-
-			$create_table=false;
-		}
-
 		$migrations=array_diff(
 			scandir($params['directory']),
 			['.', '..']
 		);
 		$migration_id=0;
+		$i=1; // foreach
+
+		if(isset($params['count']))
+		{
+			$migrations_len=count($migrations);
+
+			if($params['count'] < 1)
+				throw new app_db_migrate_exception(
+					'count parameter must be greater than 0'
+				);
+
+			if($params['count'] > $migrations_len)
+				throw new app_db_migrate_exception(
+					'Too many migrations were given to be rolled back - there are '.$migrations_len.' of them'
+				);
+		}
 
 		if($params['mode'] === 'rollback')
 		{
 			$migrations=array_reverse($migrations);
 			$migration_id=count($migrations);
 		}
+
+		switch($params['pdo_handle']->getAttribute(PDO::ATTR_DRIVER_NAME))
+		{
+			case 'pgsql':
+				$create_table_result=$params['pdo_handle']->exec(''
+				.	'CREATE TABLE IF NOT EXISTS '.$params['table_name']
+				.	'('
+				.		'id SERIAL PRIMARY KEY,'
+				.		'migration VARCHAR(255),'
+				.		'failed INTEGER'
+				.	')'
+				);
+			break;
+			case 'mysql':
+				$create_table_result=$params['pdo_handle']->exec(''
+				.	'CREATE TABLE IF NOT EXISTS '.$params['table_name']
+				.	'('
+				.		'id INTEGER NOT NULL, PRIMARY KEY(id),'
+				.		'migration VARCHAR(255),'
+				.		'failed INTEGER'
+				.	')'
+				);
+			break;
+			case 'sqlite':
+				$create_table_result=$params['pdo_handle']->exec(''
+				.	'CREATE TABLE IF NOT EXISTS '.$params['table_name']
+				.	'('
+				.		'id INTEGER PRIMARY KEY,'
+				.		'migration VARCHAR(255),'
+				.		'failed INTEGER'
+				.	')'
+				);
+		}
+
+		if($create_table_result === false)
+			throw new pdo_migrate_exception(
+				'PDO exec error (CREATE TABLE)'
+			);
 
 		foreach($migrations as $migration_script)
 		{
@@ -293,20 +295,13 @@
 			$params['on_begin']($migration);
 
 			if(
-				($selected_migration_script !== null) &&
-				($migration_script !== $selected_migration_script)
+				isset($params['count']) &&
+				($i++ > $params['count'])
 			){
 				$params['on_skip']($migration);
+				$params['on_end']($migration, true);
 
-				if($params['mode'] === 'rollback')
-				{
-					--$migration_id;
-					continue;
-				}
-
-				++$migration_id;
-
-				continue;
+				break;
 			}
 
 			switch($params['pdo_handle']->getAttribute(PDO::ATTR_DRIVER_NAME))
@@ -340,7 +335,6 @@
 			else if(empty($migration_status))
 			{
 				$params['on_skip']($migration);
-
 				--$migration_id;
 
 				continue;
@@ -352,7 +346,6 @@
 				($migration_status[0]['failed'] == 0)
 			){
 				$params['on_skip']($migration);
-
 				++$migration_id;
 
 				continue;
@@ -414,7 +407,7 @@
 						);
 				}
 
-				$params['on_end']($migration);
+				$params['on_end']($migration, false);
 
 				throw new pdo_migrate_exception(
 					'Migration failed ('.$migration.')'
@@ -482,7 +475,7 @@
 				.	'(INSERT INTO '.$params['table_name'].')'
 				);
 
-			$params['on_end']($migration);
+			$params['on_end']($migration, false);
 		}
 	}
 ?>

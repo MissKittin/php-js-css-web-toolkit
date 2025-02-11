@@ -33,18 +33,25 @@
 
 	$source='<tag>
 		<meta http-equiv="Content-Security-Policy" content="default-src \'self\'; style-src \'self\'">
-		<script type="text/javascript"></script>
+		<script type="text/javascript" nonce="noncevalue"></script>
 		<script type=\'text/javascript\'></script>
 		<style type="text/css">
 			box {
 				property: value; /* comment */
 			}
 		</style>
+		<style type="text/css" nonce="noncevalue2">
+			box {
+				property2: value2; /* comment2 */
+			}
+		</style>
 		<!-- comment -->
 	</tag>';
 
 	echo ' -> Testing library';
-		if(ob_minifier($source) === '<tag><meta http-equiv="Content-Security-Policy" content="default-src \'self\'; style-src \'self\'"><script ></script><script ></script><style>box {property: value; }</style></tag>')
+		//echo ' ('.ob_minifier($source).')';
+		//echo ' ['.md5(ob_minifier($source)).']';
+		if(md5(ob_minifier($source)) === 'b7e4c9c20868adb03c993536a315d164')
 			echo ' [ OK ]'.PHP_EOL;
 		else
 		{

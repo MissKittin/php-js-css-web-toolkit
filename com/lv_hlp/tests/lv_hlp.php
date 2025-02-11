@@ -5,8 +5,10 @@
 
 	namespace
 	{
-		foreach(['var_export_contains.php'] as $library)
-		{
+		foreach([
+			'rmdir_recursive.php',
+			'var_export_contains.php'
+		] as $library){
 			echo ' -> Including '.$library;
 				if(file_exists(__DIR__.'/../lib/'.$library))
 				{
@@ -31,23 +33,6 @@
 				}
 			echo ' [ OK ]'.PHP_EOL;
 		}
-
-		echo ' -> Including main.php';
-			try {
-				if(@(include __DIR__.'/../main.php') === false)
-				{
-					echo ' [FAIL]'.PHP_EOL;
-					exit(1);
-				}
-			} catch(Throwable $error) {
-				echo ' [FAIL]'
-					.PHP_EOL.PHP_EOL
-					.'Caught: '.$error->getMessage()
-					.PHP_EOL;
-
-				exit(1);
-			}
-		echo ' [ OK ]'.PHP_EOL;
 
 		if(
 			isset($argv[1]) &&
@@ -94,8 +79,12 @@
 				exit(1);
 			}
 
-			foreach(['doctrine/inflector', 'league/commonmark', 'nesbot/carbon'] as $_composer_package)
-			{
+			foreach([
+				'doctrine/inflector',
+				'illuminate/view',
+				'league/commonmark',
+				'nesbot/carbon'
+			] as $_composer_package){
 				echo ' -> Installing '.$_composer_package.PHP_EOL;
 				system('"'.PHP_BINARY.'" "'.$_composer_binary.'" '
 				.	'--no-cache '
@@ -117,6 +106,45 @@
 		}
 		else
 			echo ' -> Including composer autoloader [SKIP]'.PHP_EOL;
+
+		echo ' -> Creating test directory';
+			if(class_exists('\Illuminate\View\View'))
+			{
+				rmdir_recursive(__DIR__.'/tmp/lv_hlp');
+				@mkdir(__DIR__.'/tmp');
+				mkdir(__DIR__.'/tmp/lv_hlp');
+				mkdir(__DIR__.'/tmp/lv_hlp/views');
+				mkdir(__DIR__.'/tmp/lv_hlp/views/headers');
+				mkdir(__DIR__.'/tmp/lv_hlp/views_cache');
+				file_put_contents(__DIR__.'/tmp/lv_hlp/views/headers/headerb.blade.php', 'HEADERB-');
+				file_put_contents(__DIR__.'/tmp/lv_hlp/views/header.blade.php', 'HEADER-');
+				file_put_contents(__DIR__.'/tmp/lv_hlp/views/main.blade.php',
+					'@include(\'headers.headerb\')'."\n"
+					.'@include(\'header\')'."\n"
+					.'MAINSTART {{ $my_variable }} MAINEND'
+				);
+
+				echo ' [ OK ]'.PHP_EOL;
+			}
+			else
+				echo ' [SKIP]'.PHP_EOL;
+
+		echo ' -> Including main.php';
+			try {
+				if(@(include __DIR__.'/../main.php') === false)
+				{
+					echo ' [FAIL]'.PHP_EOL;
+					exit(1);
+				}
+			} catch(Throwable $error) {
+				echo ' [FAIL]'
+					.PHP_EOL.PHP_EOL
+					.'Caught: '.$error->getMessage()
+					.PHP_EOL;
+
+				exit(1);
+			}
+		echo ' [ OK ]'.PHP_EOL;
 
 		$failed=false;
 
@@ -918,46 +946,6 @@
 				else
 					echo ' [SKIP]'.PHP_EOL;
 
-		echo ' -> Testing encrypter';
-			if(extension_loaded('openssl'))
-			{
-				echo PHP_EOL;
-				echo '  -> lv_hlp_encrypter_generate_key';
-					$lv_hlp_encrypter_key=lv_hlp_encrypter_generate_key();
-					if(strlen($lv_hlp_encrypter_key) === 44)
-						echo ' [ OK ]'.PHP_EOL;
-					else
-					{
-						echo ' [FAIL]'.PHP_EOL;
-						$failed=true;
-					}
-				echo '  -> lv_hlp_encrypter_key';
-					if(lv_hlp_encrypter_key(false) === null)
-						echo ' [ OK ]';
-					else
-					{
-						echo ' [FAIL]';
-						$failed=true;
-					}
-					if(lv_hlp_encrypter_key($lv_hlp_encrypter_key) === null)
-					{
-						echo ' [FAIL]'.PHP_EOL;
-						$failed=true;
-					}
-					else
-						echo ' [ OK ]'.PHP_EOL;
-				echo '  -> lv_hlp_encrypt/lv_hlp_decrypt';
-					if(lv_hlp_decrypt(lv_hlp_encrypt('TO BE ENCRYPTED')) === 'TO BE ENCRYPTED')
-						echo ' [ OK ]'.PHP_EOL;
-					else
-					{
-						echo ' [FAIL]'.PHP_EOL;
-						$failed=true;
-					}
-			}
-			else
-				echo ' [SKIP]'.PHP_EOL;
-
 		echo ' -> Testing lv_hlp_collection'.PHP_EOL;
 			echo '  -> dd [SKIP]'.PHP_EOL;
 			echo '  -> dump [SKIP]'.PHP_EOL;
@@ -1020,6 +1008,97 @@
 					echo ' [FAIL]'.PHP_EOL;
 					$failed=true;
 				}
+
+		echo ' -> Testing encrypter';
+			if(extension_loaded('openssl'))
+			{
+				echo PHP_EOL;
+				echo '  -> lv_hlp_encrypter_generate_key';
+					$lv_hlp_encrypter_key=lv_hlp_encrypter_generate_key();
+					if(strlen($lv_hlp_encrypter_key) === 44)
+						echo ' [ OK ]'.PHP_EOL;
+					else
+					{
+						echo ' [FAIL]'.PHP_EOL;
+						$failed=true;
+					}
+				echo '  -> lv_hlp_encrypter_key';
+					if(lv_hlp_encrypter_key(false) === null)
+						echo ' [ OK ]';
+					else
+					{
+						echo ' [FAIL]';
+						$failed=true;
+					}
+					if(lv_hlp_encrypter_key($lv_hlp_encrypter_key) === null)
+					{
+						echo ' [FAIL]'.PHP_EOL;
+						$failed=true;
+					}
+					else
+						echo ' [ OK ]'.PHP_EOL;
+				echo '  -> lv_hlp_encrypt/lv_hlp_decrypt';
+					if(lv_hlp_decrypt(lv_hlp_encrypt('TO BE ENCRYPTED')) === 'TO BE ENCRYPTED')
+						echo ' [ OK ]'.PHP_EOL;
+					else
+					{
+						echo ' [FAIL]'.PHP_EOL;
+						$failed=true;
+					}
+			}
+			else
+				echo ' [SKIP]'.PHP_EOL;
+
+		echo ' -> Testing view';
+			if(class_exists('\Illuminate\View\View'))
+			{
+				$view_output='HEADERB-HEADER-MAINSTART Hello world MAINEND';
+				try {
+					$rendered_view=lv_hlp_view
+					::	set_cache_path(__DIR__.'/tmp/lv_hlp/views_cache')
+					::	set_view_path(__DIR__.'/tmp/lv_hlp/views')
+					::	view('main', [
+						'my_variable'=>'Hello world'
+					]);
+					//echo ' ('.$rendered_view.')';
+					if($rendered_view === $view_output)
+						echo ' [ OK ]';
+					else
+					{
+						echo ' [FAIL]';
+						$failed=true;
+					}
+
+					$rendered_view=lv_hlp_view
+					::	register_resolver('blade', function(){
+							return new Illuminate\View\Engines\CompilerEngine(
+								new Illuminate\View\Compilers\BladeCompiler(
+									new Illuminate\Filesystem\Filesystem(),
+									__DIR__.'/tmp/lv_hlp/views_cache'
+								)
+							);
+					})
+					::	set_cache_path(__DIR__.'/tmp/lv_hlp/views_cache')
+					::	set_view_path(__DIR__.'/tmp/lv_hlp/views')
+					::	view('main', [
+						'my_variable'=>'Hello world'
+					]);
+					//echo ' ('.$rendered_view.')';
+					if($rendered_view === $view_output)
+						echo ' [ OK ]'.PHP_EOL;
+					else
+					{
+						echo ' [FAIL]'.PHP_EOL;
+						$failed=true;
+					}
+				} catch(Throwable $error) {
+					echo ' [FAIL]'.PHP_EOL;
+					echo $error->getMessage().PHP_EOL;
+					$failed=true;
+				}
+			}
+			else
+				echo ' [SKIP]'.PHP_EOL;
 	}
 	namespace Test
 	{

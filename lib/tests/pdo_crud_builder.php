@@ -310,6 +310,71 @@
 			}
 			$pdo_builder->flush_all();
 
+		echo '  -> create_index';
+			$pdo_builder->create_index('exampleindex', 'exampletable', ['column_a', 'column_b']);
+			if(
+				($pdo_builder->print_exec() === 'CREATE INDEX IF NOT EXISTS exampleindex ON exampletable(column_a,column_b) ') &&
+				var_export_contains(
+					$pdo_builder->print_parameters(),
+					'array()'
+				)
+			)
+				echo ' [ OK ]'.PHP_EOL;
+			else
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				$errors[]='create_index';
+			}
+			$pdo_builder->flush_all();
+		echo '  -> create_unique_index';
+			$pdo_builder->create_unique_index('exampleindex', 'exampletable', ['column_a', 'column_b']);
+			if(
+				($pdo_builder->print_exec() === 'CREATE UNIQUE INDEX IF NOT EXISTS exampleindex ON exampletable(column_a,column_b) ') &&
+				var_export_contains(
+					$pdo_builder->print_parameters(),
+					'array()'
+				)
+			)
+				echo ' [ OK ]'.PHP_EOL;
+			else
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				$errors[]='create_unique_index';
+			}
+			$pdo_builder->flush_all();
+		echo '  -> drop_index';
+			$pdo_builder->drop_index('exampleindex');
+			if(
+				($pdo_builder->print_exec() === 'DROP INDEX IF EXISTS exampleindex ') &&
+				var_export_contains(
+					$pdo_builder->print_parameters(),
+					'array()'
+				)
+			)
+				echo ' [ OK ]'.PHP_EOL;
+			else
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				$errors[]='drop_index';
+			}
+			$pdo_builder->flush_all();
+		echo '  -> drop_index (mysql)';
+			$pdo_builder->drop_index('exampleindex', 'exampletable');
+			if(
+				($pdo_builder->print_exec() === 'ALTER TABLE exampletable DROP INDEX exampleindex ') &&
+				var_export_contains(
+					$pdo_builder->print_parameters(),
+					'array()'
+				)
+			)
+				echo ' [ OK ]'.PHP_EOL;
+			else
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				$errors[]='drop_index (mysql)';
+			}
+			$pdo_builder->flush_all();
+
 		echo '  -> create_view/select/from/with_check_option';
 			$pdo_builder->create_view('exampleview')
 			->	select('asterisk')

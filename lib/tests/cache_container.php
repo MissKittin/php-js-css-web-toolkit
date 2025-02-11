@@ -71,16 +71,21 @@
 		(getenv('TEST_APCU') === 'yes') &&
 		(!apcu_enabled())
 	){
-		if(isset($argv[1]) && ($argv[1] !== 'apcu-force'))
-		{
+		if(
+			isset($argv[1]) &&
+			($argv[1] !== 'apcu-force')
+		)
 			echo ' -> Force APCu apc.enable_cli=1 [FAIL]'.PHP_EOL;
-		}
 		else
 		{
 			echo ' -> Force APCu apc.enable_cli=1'.PHP_EOL;
-			system(
-				'"'.PHP_BINARY.'" -d apc.enable_cli=1 "'.$argv[0].'" apcu-force',
-				$test_result
+
+			system(''
+			.	'"'.PHP_BINARY.'" '
+			.	'-d apc.enable_cli=1 '
+			.	'"'.$argv[0].'" '
+			.	'apcu-force'
+			,	$test_result
 			);
 			exit($test_result);
 		}

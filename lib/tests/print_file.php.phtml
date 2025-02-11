@@ -16,10 +16,23 @@
 		exit();
 	}
 
-	if(!is_file(__DIR__.'/tmp/print_file.png'))
+	if(!is_file(__DIR__.'/tmp/print_file/print_file.png'))
 	{
-		echo 'Put file in '.__DIR__.'/tmp/print_file.png';
-		exit();
+		if(extension_loaded('gd'))
+		{
+			@mkdir(__DIR__.'/tmp/print_file');
+
+			$image=imagecreate(32, 32);
+			imagecolorallocate($image, 0,0,0);
+			imagefilledarc($image, 16,16, 32,32, 0,360, imagecolorallocate($image, 0,255,0), IMG_ARC_PIE);
+			imagepng($image, __DIR__.'/tmp/print_file/print_file.png');
+			imagedestroy($image);
+		}
+		else
+		{
+			echo 'Put file in '.__DIR__.'/tmp/print_file/print_file.png';
+			exit();
+		}
 	}
 
 	if(is_file(__DIR__.'/../lib/'.basename(__FILE__, '.phtml')))
@@ -27,7 +40,7 @@
 	else if(is_file(__DIR__.'/../'.basename(__FILE__, '.phtml')))
 		require __DIR__.'/../'.basename(__FILE__, '.phtml');
 
-	print_file(__DIR__.'/tmp/print_file.png', [
+	print_file(__DIR__.'/tmp/print_file/print_file.png', [
 		'cache'=>3600
 	]);
 ?>

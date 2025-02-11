@@ -45,16 +45,18 @@
 		load_library(['check_var.php']);
 	} catch(Exception $error) {
 		echo 'Error: '.$error->getMessage().PHP_EOL;
-		exit(
+		exit(1);
+	}
 
 	if(check_argv('-h') || check_argv('--help'))
 	{
-		echo 'Usage: '.$argv[0].' [--compress=gz|bz2] [[--stub=path/to/main.php] [--shebang]] --source=dir1 [--source=dir2] [--ignore=filename] [--ignore=dirname/] [--ignore=dir/file] [--include=/file.ext] --output=path/to/archive.phar'.PHP_EOL;
+		echo 'Usage: '.$argv[0].' [--compress=gz|bz2] [[--stub=path/to/main.php] [--shebang[=#!/path/to/env php-bin-name]]] --source=dir1 [--source=dir2] [--ignore=filename] [--ignore=dirname/] [--ignore=dir/file] [--include=/file.ext] --output=path/to/archive.phar'.PHP_EOL;
 		echo PHP_EOL;
 		echo 'Where:'.PHP_EOL;
 		echo ' --compress -> if not defined, no compression applied'.PHP_EOL;
 		echo ' --stub -> app entrypoint (will be added to the root directory)'.PHP_EOL;
 		echo ' --shebang -> add #!/usr/bin/env php (stub must be defined)'.PHP_EOL;
+		echo '  you can also use: "--shebang=#!/path/to/env php-bin-name"'.PHP_EOL;
 		echo ' --source -> path for addFile()'.PHP_EOL;
 		echo ' --ignore -> do not add file/directory with name'.PHP_EOL;
 		echo ' --include -> force add file that ends with name (has priority over --ignore)'.PHP_EOL;
@@ -69,6 +71,7 @@
 
 	$compress=check_argv_param('--compress', '=');
 	$shebang='';
+	$custom_shebang=check_argv_param('--shebang', '=');
 	$stub=check_argv_param('--stub', '=');
 	$sources=check_argv_param_many('--source', '=');
 	$ignores=check_argv_param_many('--ignore-regex', '=');
@@ -115,7 +118,9 @@
 			exit(1);
 	}
 
-	if(check_argv('--shebang'))
+	if($custom_shebang !== null)
+		$shebang=$custom_shebang."\n";
+	else if(check_argv('--shebang'))
 		$shebang="#!/usr/bin/env php\n";
 
 	if(
@@ -259,7 +264,7 @@
 			echo ' -> Adding stub';
 
 			if($shebang !== '')
-				echo ' with shebang'.PHP_EOL;
+				echo ' with shebang ('.trim($shebang).')';
 
 			echo PHP_EOL;
 			echo '  -> '.$stub.' => __'.basename($stub).PHP_EOL;
@@ -272,7 +277,7 @@
 			$phar->setStub(''
 			.	$shebang
 			.	$phar->createDefaultStub(
-					basename($stub)
+					'__'.basename($stub)
 				)
 			);
 		}

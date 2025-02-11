@@ -44,6 +44,7 @@ Supported cache databases: Redis, Memcached, APCu
 * `cache_container.php` - cache manager
 * `check_date.php` - check if is between DD.MM - DD.MM
 * `check_var.php` - check if variable and eventually return value
+* `ci_zip.php` - create zip file in memory (MIT)
 * `cli_prompt.php` - console prompter
 * `cli_server_finish_request.php` - `fastcgi_finish_request` emulation for PHP built-in server
 * `convert_bytes.php` - automatically convert input number to human-readable form
@@ -52,6 +53,7 @@ Supported cache databases: Redis, Memcached, APCu
 * `csv2table.php` - convert CSV file to HTML table
 * `curl_file_updown.php` - quickly download/upload file
 * `dotenv.php` - DotEnv proxy implementation
+* `dw_tar.php` - create tar file in memory (GNU LGPL2.1)
 * `file_http_request.php` - `file_get_contents()` wrapper for http streams
 * `find_php_definitions.php` - look up the definition of functions, classes, interfaces and traits in the source code
 * `generate_csp_hash.php` - generate SHA-256 for a string or file
@@ -87,6 +89,7 @@ Supported cache databases: Redis, Memcached, APCu
 * `registry.php` - design pattern
 * `relative_path.php` - get relative path between two files/directories
 * `rmdir_recursive.php` - remove non-empty directories
+* `rss_generator.php` - RSS XML builder
 * `scandir_recursive.php` - scan directory recursively
 * `sess_array.php` - store the session in an array (mainly for testing purposes)
 * `simple_html_dom.php` - S.C. Chen's HTML DOM parser v1.9.1 (MIT)
@@ -97,6 +100,7 @@ Supported cache databases: Redis, Memcached, APCu
 * `string_translator.php` - translate your app
 * `strip_php_comments.php` - remove comments from PHP source
 * `superclosure.php` - serializable anonymous functions
+* `switch_path_info.php` - `$_SERVER["PATH_INFO"]` replacement
 * `time_converter.php` - time converting library - convert time to human-readable form
 * `trivial_templating_engine.php`
 * `ulid.php` - ULID manipulation (MIT)

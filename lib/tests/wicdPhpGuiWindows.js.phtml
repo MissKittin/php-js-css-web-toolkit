@@ -20,7 +20,16 @@
 <html>
 	<head>
 		<meta charset="utf-8">
-		<script>
+		<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'self' 'nonce-stylemain'; script-src 'self' 'nonce-scriptmain'; img-src 'self'">
+		<style nonce="stylemain">
+			.link_big {
+				font-size: 30pt;
+			}
+			.textaligncenter {
+				text-align: center;
+			}
+		</style>
+		<script nonce="scriptmain">
 			document.addEventListener('DOMContentLoaded', function(){
 				<?php
 					if(is_file(__DIR__.'/../lib/'.basename(__FILE__, '.phtml')))
@@ -64,7 +73,7 @@
 								});
 
 								// create text label, text input and checkbox
-								main.createLabel('Text label', 'color: #0000aa').createLineBreak();
+								main.createLabel('Text label', {'color': '#0000aa'}).createLineBreak();
 								main.createFormInput('text', 'inputText', 'Placeholder', 'Default value').createLineBreak();
 								main.createFormCheckBox('This is a checkbox', 'checkboxName').createHorizontalLine();
 
@@ -101,7 +110,7 @@
 								});
 
 								// add text
-								about.appendInlineHTML('<h1 style="text-align: center;">About</h1><div style="text-align: center;">Sample text</div>');
+								about.appendInlineHTML('<h1 class="textaligncenter">About</h1><div class="textaligncenter">Sample text</div>');
 
 								// create button at the bottom
 								about.createBottomButton('OK', function(){
@@ -126,8 +135,8 @@
 			<?php }
 			else
 			{ ?>
-				<a href="?theme=default" style="font-size: 30pt;">Default theme</a><br>
-				<a href="?theme=bright" style="font-size: 30pt;">Bright theme</a>
+				<a href="?theme=default" class="link_big">Default theme</a><br>
+				<a href="?theme=bright" class="link_big">Bright theme</a>
 			<?php }
 		?>
 	</body>

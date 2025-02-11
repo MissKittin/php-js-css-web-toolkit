@@ -187,6 +187,15 @@
 				$failed=true;
 			}
 
+		echo ' -> Testing is_logged cache (returns true)';
+			if(is_logged(false))
+				echo ' [ OK ]'.PHP_EOL;
+			else
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				$failed=true;
+			}
+
 		echo ' -> Testing is_logged (returns false)';
 			if(!login_validator::is_logged(false)) // bypass cache
 				echo ' [ OK ]'.PHP_EOL;

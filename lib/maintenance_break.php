@@ -87,7 +87,7 @@
 
 		if(isset($params['set_cookie']))
 		{
-			if(!$params['set_cookie'] instanceOf Closure)
+			if(!$params['set_cookie'] instanceof Closure)
 				throw new InvalidArgumentException('set_cookie: closure expected');
 
 			$set_cookie=$params['set_cookie'];
@@ -163,7 +163,7 @@
 
 		if(isset($params['set_cookie']))
 		{
-			if(!$params['set_cookie'] instanceOf Closure)
+			if(!$params['set_cookie'] instanceof Closure)
 				throw new InvalidArgumentException('set_cookie: closure expected');
 
 			$set_cookie=$params['set_cookie'];

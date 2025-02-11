@@ -47,6 +47,7 @@
 	$public_key=check_argv_next_param('--public');
 	$key_bits=check_argv_next_param('--key-bits');
 	$input_file=check_argv_next_param('--file');
+	$input_signature=check_argv_next_param('--sig');
 	$signature_algorithm=check_argv_next_param('--algorithm');
 
 	switch(check_argv_next_param('--key-type'))
@@ -72,7 +73,10 @@
 		$signature_algorithm='sha256WithRSAEncryption';
 
 	if(
-		($private_key === null) ||
+		(
+			(!check_argv('--verify')) &&
+			($private_key === null)
+		) ||
 		($public_key === null) ||
 		check_argv('--help') || check_argv('-h')
 	){
@@ -82,11 +86,15 @@
 		echo PHP_EOL;
 		echo 'Generate signature:'.PHP_EOL;
 		echo ' '.$argv[0].' --private path/to/private-key.pem --public path/to/public-key.pem --file path/to/file [--algorithm sha256WithRSAEncryption]'.PHP_EOL;
-		echo ' the generated signature will be printed on the stdout'.PHP_EOL;
+		echo '  the generated signature will be printed on the stdout'.PHP_EOL;
+		echo ' '.$argv[0].' --private path/to/private-key.pem --public path/to/public-key.pem --file path/to/file --sig path/to/signature [--algorithm sha256WithRSAEncryption]'.PHP_EOL;
+		echo '  the generated signature will be saved to the file'.PHP_EOL;
 		echo PHP_EOL;
 		echo 'Verify signature:'.PHP_EOL;
-		echo ' '.$argv[0].' --private path/to/private-key.pem --public path/to/public-key.pem --verify --file path/to/file [--algorithm sha256WithRSAEncryption]'.PHP_EOL;
-		echo ' expects a signature on stdin'.PHP_EOL;
+		echo ' '.$argv[0].' --public path/to/public-key.pem --verify --file path/to/file [--algorithm sha256WithRSAEncryption]'.PHP_EOL;
+		echo '  expects a signature on stdin'.PHP_EOL;
+		echo ' '.$argv[0].' --public path/to/public-key.pem --verify --file path/to/file --sig path/to/signature [--algorithm sha256WithRSAEncryption]'.PHP_EOL;
+		echo '  expects a signature in file'.PHP_EOL;
 		echo ' also exits with code 1 if the signature is bad'.PHP_EOL;
 		exit(1);
 	}
@@ -96,31 +104,57 @@
 		if(check_argv('--verify'))
 		{
 			if($input_file === null)
-				throw new Exception('No file name given');
+				throw new Exception(
+					'No file name given'
+				);
 
-			if(!
+			if($input_signature === null)
+				$input_signature='php://stdin';
+			else if(!is_file($input_signature))
+				throw new Exception(
+					$input_signature.' does not exist'
+				);
+
+			if(
 				(new file_sign([
-					'private_key'=>$private_key,
 					'public_key'=>$public_key,
 					'signature_algorithm'=>$signature_algorithm
-				]))->verify_file_signature($input_file, file_get_contents('php://stdin'))
+				]))->verify_file_signature(
+					$input_file,
+					file_get_contents($input_signature)
+				)
 			){
-				echo 'Bad signature'.PHP_EOL;
-				exit(1);
+				echo 'Good signature'.PHP_EOL;
+				exit();
 			}
 
-			echo 'Good signature'.PHP_EOL;
-
-			exit();
+			echo 'Bad signature'.PHP_EOL;
+			exit(1);
 		}
 
-		 if($input_file !== null)
+		if($input_file !== null)
 		{
-			echo (new file_sign([
+			$signature=(new file_sign([
 				'private_key'=>$private_key,
 				'public_key'=>$public_key,
 				'signature_algorithm'=>$signature_algorithm
 			]))->generate_file_signature($input_file);
+
+			if($input_signature === null)
+			{
+				echo $signature;
+				exit();
+			}
+
+			if(file_exists($input_signature))
+				throw new Exception(
+					$input_signature.' already exists'
+				);
+
+			if(file_put_contents($input_signature, $signature) === false)
+				throw new Exception(
+					'Unable to save signature file'
+				);
 
 			exit();
 		}

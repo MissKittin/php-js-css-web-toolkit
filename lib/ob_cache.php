@@ -59,6 +59,14 @@
 		int $expire=3600,
 		bool $gzip=false
 	){
+		if(
+			$gzip &&
+			(!function_exists('gzencode'))
+		)
+			throw new ob_cache_exception(
+				'zlib extension is not loaded'
+			);
+
 		$_ob_cache['gzip']=$gzip;
 		$_ob_cache['browser_gzip_support']=false;
 
@@ -163,6 +171,14 @@
 		bool $gzip=false,
 		string $prefix='ob_redis_cache_'
 	){
+		if(
+			$gzip &&
+			(!function_exists('gzencode'))
+		)
+			throw new ob_cache_exception(
+				'zlib extension is not loaded'
+			);
+
 		if(!is_object($redis_handle))
 			throw new ob_cache_exception(
 				'redis_handle is not an object'
@@ -264,6 +280,14 @@
 		bool $gzip=false,
 		string $prefix='ob_memcached_cache_'
 	){
+		if(
+			$gzip &&
+			(!function_exists('gzencode'))
+		)
+			throw new ob_cache_exception(
+				'zlib extension is not loaded'
+			);
+
 		if(!is_object($memcached_handle))
 			throw new ob_cache_exception(
 				'memcached_handle is not an object'

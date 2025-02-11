@@ -1,13 +1,13 @@
 <?php
 	$test_hashes=[
-		'notfound'=>'eff3f25091d823463f1d1d2af19ed15e',
-		'default'=>'8785071b1cddbef5727d26dcdede9a3b',
-		'dashboard'=>'109af2ece7cda0cfe5d4afa88468dac5',
-		'posts-new'=>'586f0f5283ad192bcfcb2c37c50ea38f',
-		'posts-edit'=>'0a0ec05f73b541d9e51e4c57222ed50f',
-		'posts-del'=>'94e06b10d012424b6490103825f9b121',
-		'class-a'=>'e895f6de2c52106e85fba4d1b12e9405',
-		'class-b'=>'a55947cbb8360ce2cc59c370c11c6f97'
+		'notfound'=>'b9c46c24f75000cb2fb6fbe4bef5f587',
+		'default'=>'66ff0822c88548c99adc3b1820e76147',
+		'dashboard'=>'dad08e51dfcfaddbd6ddd2c9d8f9e355',
+		'posts-new'=>'3fab7c4a2701290af5aca3a543fffedd',
+		'posts-edit'=>'7d0658f6ea757e56edec05c125502366',
+		'posts-del'=>'0b4367929ab470d751d4b1a1420f13d9',
+		'class-a'=>'4d15dc10b502bd6e0fe77f1708763992',
+		'class-b'=>'66eb7ab3e13179c742a2aaab8070665d'
 	];
 
 	foreach(['assets_compiler.php', 'rmdir_recursive.php'] as $library)

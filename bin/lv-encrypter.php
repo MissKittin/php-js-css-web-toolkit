@@ -47,9 +47,9 @@
 		(check_argv('--help')) || (check_argv('-h'))
 	){
 		echo 'Usage:'.PHP_EOL;
-		echo ' key generation: '.$argv[0].' --generate-key [--no-eol]'.PHP_EOL;
-		echo ' encryption: '.$argv[0].' --encrypt --key KEY [--cipher CIPHER] --content CONTENT [--no-serialize] [--no-eol]'.PHP_EOL;
-		echo ' decryption: '.$argv[0].' --decrypt --key KEY [--cipher CIPHER] --content PAYLOAD [--no-serialize] [--no-eol]'.PHP_EOL;
+		echo ' key generation:'.PHP_EOL.'  '.$argv[0].' --generate-key [--no-eol]'.PHP_EOL;
+		echo ' encryption:'.PHP_EOL.'  '.$argv[0].' --encrypt --key KEY [--cipher CIPHER] --content CONTENT [--no-serialize] [--no-eol]'.PHP_EOL;
+		echo ' decryption:'.PHP_EOL.'  '.$argv[0].' --decrypt --key KEY [--cipher CIPHER] --content PAYLOAD [--no-serialize] [--no-eol]'.PHP_EOL;
 		echo PHP_EOL;
 		echo 'Available ciphers:'.PHP_EOL;
 
@@ -92,8 +92,10 @@
 	if(check_argv('--no-serialize'))
 		$do_serialization=false;
 
-	if(($key === null) || ($content === null))
-	{
+	if(
+		($key === null) ||
+		($content === null)
+	){
 		echo 'Error: no key or content/payload specified'.PHP_EOL;
 		exit(1);
 	}

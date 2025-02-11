@@ -795,6 +795,224 @@
 				$failed=true;
 			}
 
+	echo ' -> Testing count parameter'.PHP_EOL;
+		// apply 1 === rollback 1
+		create_test_migrations(false, false, false, $pdo_handle->getAttribute(PDO::ATTR_DRIVER_NAME));
+		echo '  -> apply 1';
+			$callbacks_executed='';
+			$exception_caught=false;
+			try {
+				pdo_migrate([
+					'pdo_handle'=>$pdo_handle,
+					'table_name'=>'pdo_migrate_test_migrations',
+					'directory'=>__DIR__.'/tmp/pdo_migrate/migrations',
+					'mode'=>'apply',
+					'count'=>1,
+					'on_begin'=>function() use(&$callbacks_executed)
+					{
+						$callbacks_executed.='on_begin-';
+					},
+					'on_skip'=>function() use(&$callbacks_executed)
+					{
+						$callbacks_executed.='on_skip-';
+					},
+					'on_error'=>function() use(&$callbacks_executed)
+					{
+						$callbacks_executed.='on_error-';
+					},
+					'on_error_rollback'=>function($migration) use(&$callbacks_executed)
+					{
+						$callbacks_executed.='on_error_rollback-';
+					},
+					'on_end'=>function() use(&$callbacks_executed)
+					{
+						$callbacks_executed.='on_end-';
+					}
+				]);
+			} catch(Throwable $error) {
+				$exception_caught=true;
+			}
+			if($exception_caught)
+			{
+				echo ' [FAIL]';
+				$failed=true;
+			}
+			else
+				echo ' [ OK ]';
+			try {
+				$query=$pdo_handle->query('SELECT * FROM pdo_migrate_test_migrations');
+				if($query === false)
+				{
+					echo ' [FAIL] (query)';
+					$failed=true;
+				}
+				else
+				{
+					$result_a="array(0=>array('id'=>'1','migration'=>'0000-00-00_00-00-00_create-table','failed'=>'0',),)";
+					$result_b="array(0=>array('id'=>1,'migration'=>'0000-00-00_00-00-00_create-table','failed'=>0,),)"; // id can be (int)1 or (string)"1"
+
+					$query_result=$query->fetchAll(PDO::FETCH_NAMED);
+
+					//echo ' ('.var_export_contains($query_result, '', true).')';
+					if(
+						var_export_contains($query_result, $result_a) ||
+						var_export_contains($query_result, $result_b)
+					)
+						echo ' [ OK ]';
+					else
+					{
+						echo ' [FAIL]';
+						$failed=true;
+					}
+				}
+			} catch(PDOException $error) {
+				echo ' [FAIL] (PDOException)';
+				$failed=true;
+			}
+			try {
+				$query=$pdo_handle->query('SELECT * FROM pdo_migrate_test_table');
+				if($query === false)
+				{
+					echo ' [FAIL]';
+					$failed=true;
+				}
+				else
+				{
+					$query_result=$query->fetchAll(PDO::FETCH_NAMED);
+
+					if(empty($query_result))
+						echo ' [ OK ]';
+					else
+					{
+						echo ' [FAIL]';
+						$failed=true;
+					}
+				}
+			} catch(PDOException $error) {
+				echo ' [ OK ] (PDOException)';
+			}
+			//echo ' ('.$callbacks_executed.')';
+			if($callbacks_executed === 'on_begin-on_end-on_begin-on_skip-on_end-')
+				echo ' [ OK ]'.PHP_EOL;
+			else
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				$failed=true;
+			}
+		echo '  -> apply all'.PHP_EOL;
+			try {
+				pdo_migrate([
+					'pdo_handle'=>$pdo_handle,
+					'table_name'=>'pdo_migrate_test_migrations',
+					'directory'=>__DIR__.'/tmp/pdo_migrate/migrations',
+					'mode'=>'apply'
+				]);
+			} catch(Throwable $error) {
+				echo '  <- apply all [FAIL]'.PHP_EOL;
+				$failed=true;
+			}
+		echo '  -> rollback 1';
+			$callbacks_executed='';
+			$exception_caught=false;
+			try {
+				pdo_migrate([
+					'pdo_handle'=>$pdo_handle,
+					'table_name'=>'pdo_migrate_test_migrations',
+					'directory'=>__DIR__.'/tmp/pdo_migrate/migrations',
+					'mode'=>'rollback',
+					'count'=>1,
+					'on_begin'=>function() use(&$callbacks_executed)
+					{
+						$callbacks_executed.='on_begin-';
+					},
+					'on_skip'=>function() use(&$callbacks_executed)
+					{
+						$callbacks_executed.='on_skip-';
+					},
+					'on_error'=>function() use(&$callbacks_executed)
+					{
+						$callbacks_executed.='on_error-';
+					},
+					'on_error_rollback'=>function($migration) use(&$callbacks_executed)
+					{
+						$callbacks_executed.='on_error_rollback-';
+					},
+					'on_end'=>function() use(&$callbacks_executed)
+					{
+						$callbacks_executed.='on_end-';
+					}
+				]);
+			} catch(Throwable $error) {
+				$exception_caught=true;
+			}
+			if($exception_caught)
+			{
+				echo ' [FAIL]';
+				$failed=true;
+			}
+			else
+				echo ' [ OK ]';
+			try {
+				$query=$pdo_handle->query('SELECT * FROM pdo_migrate_test_migrations');
+				if($query === false)
+				{
+					echo ' [FAIL] (query)';
+					$failed=true;
+				}
+				else
+				{
+					$result_a="array(0=>array('id'=>'1','migration'=>'0000-00-00_00-00-00_create-table','failed'=>'0',),)";
+					$result_b="array(0=>array('id'=>1,'migration'=>'0000-00-00_00-00-00_create-table','failed'=>0,),)"; // id can be (int)1 or (string)"1"
+
+					$query_result=$query->fetchAll(PDO::FETCH_NAMED);
+
+					//echo ' ('.var_export_contains($query_result, '', true).')';
+					if(
+						var_export_contains($query_result, $result_a) ||
+						var_export_contains($query_result, $result_b)
+					)
+						echo ' [ OK ]';
+					else
+					{
+						echo ' [FAIL]';
+						$failed=true;
+					}
+				}
+			} catch(PDOException $error) {
+				echo ' [FAIL] (PDOException)';
+				$failed=true;
+			}
+			try {
+				$query=$pdo_handle->query('SELECT * FROM pdo_migrate_test_table');
+				if($query === false)
+				{
+					echo ' [FAIL]';
+					$failed=true;
+				}
+				else
+				{
+					$query_result=$query->fetchAll(PDO::FETCH_NAMED);
+
+					if(empty($query_result))
+						echo ' [ OK ]';
+					else
+					{
+						echo ' [FAIL]';
+						$failed=true;
+					}
+				}
+			} catch(PDOException $error) {
+				echo ' [ OK ] (PDOException)';
+			}
+			//echo ' ('.$callbacks_executed.')';
+			if($callbacks_executed === 'on_begin-on_end-on_begin-on_skip-on_end-')
+				echo ' [ OK ]'.PHP_EOL;
+			else
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				$failed=true;
+			}
+
 	if($failed)
 		exit(1);
 ?>

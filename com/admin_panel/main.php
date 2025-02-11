@@ -3,12 +3,18 @@
 
 	if(!class_exists('registry'))
 	{
-		if(file_exists(__DIR__.'/lib/registry.php'))
+		if(file_exists(
+			__DIR__.'/lib/registry.php'
+		))
 			require __DIR__.'/lib/registry.php';
-		else if(file_exists(__DIR__.'/../../lib/registry.php'))
+		else if(file_exists(
+			__DIR__.'/../../lib/registry.php'
+		))
 			require __DIR__.'/../../lib/registry.php';
 		else
-			throw new admin_panel_exception('registry.php library not found');
+			throw new admin_panel_exception(
+				'registry.php library not found'
+			);
 	}
 
 	class admin_panel extends registry
@@ -21,6 +27,9 @@
 		protected $modules=[];
 		protected $default_module=null;
 		protected $registered_urls=[];
+		protected $view_plugins_csp=[];
+		protected $view_plugins_head=[];
+		protected $view_plugins_body=[];
 
 		public function __construct(array $params)
 		{
@@ -36,28 +45,40 @@
 					isset($params[$param]) &&
 					(gettype($params[$param]) !== $param_type)
 				)
-					throw new admin_panel_exception('The input array parameter '.$param.' is not a '.$param_type);
+					throw new admin_panel_exception(
+						'The input array parameter '.$param.' is not a '.$param_type
+					);
 
 			if(!isset($_SERVER['REQUEST_URI']))
-				throw new admin_panel_exception('$_SERVER["REQUEST_URI"] is not set');
+				throw new admin_panel_exception(
+					'$_SERVER["REQUEST_URI"] is not set'
+				);
 
 			if(!isset($params['base_url']))
-				throw new admin_panel_exception('The base_url parameter was not specified for the constructor');
+				throw new admin_panel_exception(
+					'The base_url parameter was not specified for the constructor'
+				);
 
 			$this->base_url=$params['base_url'];
 
 			if(isset($params['templates_dir']))
 			{
 				if(!is_dir($params['templates_dir']))
-					throw new admin_panel_exception($params['templates_dir'].' is not a directory');
+					throw new admin_panel_exception(
+						$params['templates_dir'].' is not a directory'
+					);
 
 				$this->templates_dir=realpath($params['templates_dir']);
 			}
 
 			if(isset($params['template']))
 			{
-				if(!file_exists($this->templates_dir.'/'.$params['template']))
-					throw new admin_panel_exception('The '.$params['template'].' template does not exist');
+				if(!file_exists(
+					$this->templates_dir.'/'.$params['template']
+				))
+					throw new admin_panel_exception(
+						'The '.$params['template'].' template does not exist'
+					);
 
 				$this->template=$params['template'];
 			}
@@ -78,13 +99,19 @@
 					(!isset($params['csrf_token'][0])) ||
 					(!isset($params['csrf_token'][1]))
 				)
-					throw new admin_panel_exception('The csrf_token[0] nor csrf_token[1] parameter was not specified for the constructor');
+					throw new admin_panel_exception(
+						'The csrf_token[0] nor csrf_token[1] parameter was not specified for the constructor'
+					);
 
 				if(!is_string($params['csrf_token'][0]))
-					throw new admin_panel_exception('The input array parameter csrf_token[0] is not a string');
+					throw new admin_panel_exception(
+						'The input array parameter csrf_token[0] is not a string'
+					);
 
 				if(!is_string($params['csrf_token'][1]))
-					throw new admin_panel_exception('The input array parameter csrf_token[1] is not a string');
+					throw new admin_panel_exception(
+						'The input array parameter csrf_token[1] is not a string'
+					);
 
 				$this->registry['_csrf_token']=[
 					'name'=>$params['csrf_token'][0],
@@ -96,7 +123,9 @@
 				isset($this->registry['_show_logout_button']) &&
 				(!isset($this->registry['_csrf_token']))
 			)
-				throw new admin_panel_exception('The CSRF token has not been set');
+				throw new admin_panel_exception(
+					'The CSRF token has not been set'
+				);
 		}
 
 		protected function _list_modules()
@@ -106,7 +135,10 @@
 			foreach($this->modules as $module_id=>$module_params)
 				if(isset($module_params['name']))
 				{
-					if(isset($module_params['path']) || isset($module_params['class']))
+					if(
+						isset($module_params['path']) ||
+						isset($module_params['class'])
+					)
 						yield $module_params['name']=>[
 							'url'=>$this->base_url.'/'.$module_params['url'],
 							'id'=>$module_params['id']
@@ -121,6 +153,7 @@
 		protected function _set_default_labels()
 		{
 			$this
+
 			->	add_csp_header('default-src', '\'none\'')
 			->	add_csp_header('script-src', '\'self\'')
 			->	add_csp_header('connect-src', '\'self\'')
@@ -134,16 +167,28 @@
 			->	set_panel_label('Administration')
 			->	set_logout_button_name('logout')
 			->	set_logout_button_label('Logout')
-			->	set_inline_assets(false);
+			->	set_inline_assets(false)
+
+			;
 		}
 		protected function _view($_module)
 		{
 			if(isset($_module['config']))
-				require $_module['path'].'/'.$_module['config'];
-			else if(isset($_module['class']) && isset($_module['config_method']))
-				$_module['class']::{$_module['config_method']}($this);
+				require ''
+				.	$_module['path'].'/'
+				.	$_module['config'];
+			else if(
+				isset($_module['class']) &&
+				isset($_module['config_method'])
+			)
+				$_module['class']
+				::	{$_module['config_method']}
+					($this);
 
-			require $this->templates_dir.'/'.$this->template.'/view.php';
+			require ''
+			.	$this->templates_dir.'/'
+			.	$this->template.'/'
+			.	'view.php';
 		}
 
 		public function set_lang(string $lang)
@@ -185,38 +230,76 @@
 		{
 			foreach(['id', 'path', 'script', 'url'] as $param)
 				if(!isset($params[$param]))
-					throw new admin_panel_exception('The '.$param.' parameter was not specified for the add_module');
+					throw new admin_panel_exception(
+						'The '.$param.' parameter was not specified for the add_module'
+					);
 
 			foreach(['_args', '_is_default', '_not_found'] as $reserved_param)
 				if(isset($params[$reserved_param]))
-					throw new admin_panel_exception('The '.$reserved_param.' parameter is reserved');
+					throw new admin_panel_exception(
+						'The '.$reserved_param.' parameter is reserved'
+					);
 
-			if(isset($this->modules[$params['id']]))
-				throw new admin_panel_exception('Module with id '.$params['id'].' is already registered');
+			if(isset(
+				$this->modules[
+					$params['id']
+				]
+			))
+				throw new admin_panel_exception(
+					'Module with id '.$params['id'].' is already registered'
+				);
 
-			foreach(['id', 'path', 'config', 'script', 'name', 'url', 'template_header'] as $param)
+			foreach([
+				'id',
+				'path',
+				'config',
+				'script',
+				'name',
+				'url',
+				'template_header'
+			] as $param)
 				if(
 					isset($params[$param]) &&
 					(!is_string($params[$param]))
 				)
-					throw new admin_panel_exception('The input array parameter '.$param.' is not a string');
+					throw new admin_panel_exception(
+						'The input array parameter '.$param.' is not a string'
+					);
 
 			$params['path']=realpath($params['path']);
 
 			if($params['path'] === false)
-				throw new admin_panel_exception('Module path does not exists');
+				throw new admin_panel_exception(
+					'Module path does not exist'
+				);
 
 			if(
 				isset($params['config']) &&
-				(!file_exists($params['path'].'/'.$params['config']))
+				(!file_exists(''
+				.	$params['path'].'/'
+				.	$params['config']
+				))
 			)
-				throw new admin_panel_exception($params['path'].'/'.$params['config'].' does not exists');
+				throw new admin_panel_exception(''
+				.	$params['path'].'/'
+				.	$params['config']
+				.	' does not exist'
+				);
 
-			if(!file_exists($params['path'].'/'.$params['script']))
-				throw new admin_panel_exception($params['path'].'/'.$params['script'].' does not exists');
+			if(!file_exists(''
+			.	$params['path'].'/'
+			.	$params['script']
+			))
+				throw new admin_panel_exception(''
+				.	$params['path'].'/'
+				.	$params['script']
+				.	' does not exist'
+				);
 
 			if(isset($this->registered_urls[$params['url']]))
-				throw new admin_panel_exception('URL '.$params['url'].' is already in use');
+				throw new admin_panel_exception(
+					'URL '.$params['url'].' is already in use'
+				);
 
 			$this->modules[$params['id']]=$params;
 			$this->registered_urls[$params['url']]=$params['id'];
@@ -227,21 +310,46 @@
 		{
 			foreach(['id', 'class', 'main_method', 'url'] as $param)
 				if(!isset($params[$param]))
-					throw new admin_panel_exception('The '.$param.' parameter was not specified for the add_module');
+					throw new admin_panel_exception(
+						'The '.$param.' parameter was not specified for the add_module'
+					);
 
 			foreach(['_args', '_is_default', '_not_found'] as $reserved_param)
 				if(isset($params[$reserved_param]))
-					throw new admin_panel_exception('The '.$reserved_param.' parameter is reserved');
+					throw new admin_panel_exception(
+						'The '.$reserved_param.' parameter is reserved'
+					);
 
 			if(isset($this->modules[$params['id']]))
-				throw new admin_panel_exception('Module with id '.$params['id'].' is already registered');
+				throw new admin_panel_exception(
+					'Module with id '.$params['id'].' is already registered'
+				);
 
-			foreach(['id', 'class', 'config_method', 'main_method', 'name', 'url', 'template_header'] as $param)
-				if(isset($params[$param]) && (!is_string($params[$param])))
-					throw new admin_panel_exception('The input array parameter '.$param.' is not a string');
+			foreach([
+				'id',
+				'class',
+				'config_method',
+				'main_method',
+				'name',
+				'url',
+				'template_header'
+			] as $param)
+				if(
+					isset($params[$param]) &&
+					(!is_string($params[$param]))
+				)
+					throw new admin_panel_exception(
+						'The input array parameter '.$param.' is not a string'
+					);
 
-			if(isset($this->registered_urls[$params['url']]))
-				throw new admin_panel_exception('URL '.$params['url'].' is already in use');
+			if(isset(
+				$this->registered_urls[
+					$params['url']
+				]
+			))
+				throw new admin_panel_exception(
+					'URL '.$params['url'].' is already in use'
+				);
 
 			$this->modules[$params['id']]=$params;
 			$this->registered_urls[$params['url']]=$params['id'];
@@ -250,10 +358,18 @@
 		}
 		public function remove_module(string $module_id)
 		{
-			if(!isset($this->modules[$module_id]))
-				throw new admin_panel_exception('Module with id '.$params['id'].' is not registered');
+			if(!isset(
+				$this->modules[
+					$module_id
+				]
+			))
+				throw new admin_panel_exception(
+					'Module with id '.$params['id'].' is not registered'
+				);
 
-			unset($this->registered_urls[$this->modules[$module_id]['url']]);
+			unset($this->registered_urls[
+				$this->modules[$module_id]['url']
+			]);
 			unset($this->modules[$module_id]);
 
 			return $this;
@@ -268,14 +384,24 @@
 			foreach(['id', 'url', 'name'] as $param)
 			{
 				if(!isset($params[$param]))
-					throw new admin_panel_exception('The '.$param.' parameter was not specified for the '.__FUNCTION__);
+					throw new admin_panel_exception(
+						'The '.$param.' parameter was not specified for the '.__FUNCTION__
+					);
 
 				if(!is_string($params[$param]))
-					throw new admin_panel_exception('The input array parameter '.$param.' is not a string');
+					throw new admin_panel_exception(
+						'The input array parameter '.$param.' is not a string'
+					);
 			}
 
-			if(isset($this->modules[$params['id']]))
-				throw new admin_panel_exception('Module with id '.$params['id'].' is already registered');
+			if(isset(
+				$this->modules[
+					$params['id']
+				]
+			))
+				throw new admin_panel_exception(
+					'Module with id '.$params['id'].' is already registered'
+				);
 
 			$this->modules[$params['id']]=$params;
 
@@ -284,10 +410,27 @@
 		public function add_favicon(string $path)
 		{
 			if(!file_exists($path))
-				throw new admin_panel_exception($path.' does not exist');
+				throw new admin_panel_exception(
+					$path.' does not exist'
+				);
 
 			$this->registry['_favicon']=realpath($path);
 
+			return $this;
+		}
+		public function add_view_plugin_csp(callable $callback)
+		{
+			$this->view_plugins_csp[]=$callback;
+			return $this;
+		}
+		public function add_view_plugin_head(callable $callback)
+		{
+			$this->view_plugins_head[]=$callback;
+			return $this;
+		}
+		public function add_view_plugin_body(callable $callback)
+		{
+			$this->view_plugins_body[]=$callback;
 			return $this;
 		}
 
@@ -297,7 +440,11 @@
 		}
 		public function is_url_registered(string $module_url)
 		{
-			return isset($this->registered_urls[$module_url]);
+			return isset(
+				$this->registered_urls[
+					$module_url
+				]
+			);
 		}
 		public function is_default_module_registered()
 		{
@@ -310,10 +457,18 @@
 		public function run(bool $return_content=false)
 		{
 			if($this->default_module === null)
-				throw new admin_panel_exception('Default module is not defined');
+				throw new admin_panel_exception(
+					'Default module is not defined'
+				);
 
-			if(!isset($this->modules[$this->default_module]))
-				throw new admin_panel_exception('Default module is not registered');
+			if(!isset(
+				$this->modules[
+					$this->default_module
+				]
+			))
+				throw new admin_panel_exception(
+					'Default module is not registered'
+				);
 
 			$current_url=substr(
 				strtok($_SERVER['REQUEST_URI'], '?'),
@@ -329,8 +484,12 @@
 				($current_module === '') || // PHP 7
 				($current_module === false) // PHP 8
 			){
-				$current_module=$this->modules[$this->default_module]['url'];
-				$this->modules[$this->default_module]['_is_default']=true;
+				$current_module=$this->modules[
+					$this->default_module
+				]['url'];
+				$this->modules[
+					$this->default_module
+				]['_is_default']=true;
 			}
 
 			foreach($this->modules as $module_id=>$module_params)
@@ -347,17 +506,26 @@
 
 			if(isset($current_module_id))
 			{
-				$module_params=$this->modules[$current_module_id];
-				$module_params['_args']=explode('/', substr($current_url, strlen($module_params['url'])+1));
+				$module_params=$this->modules[
+					$current_module_id
+				];
+				$module_params['_args']=explode('/', substr(
+					$current_url,
+					strlen($module_params['url'])+1)
+				);
 			}
 			else
 			{
-				$module_params=$this->modules[$this->default_module];
+				$module_params=$this->modules[
+					$this->default_module
+				];
 				$module_params['_args']=[''];
 				$module_params['_not_found']=true;
 			}
 
-			$module_params['url']=$this->base_url.'/'.$module_params['url'];
+			$module_params['url']=''
+			.	$this->base_url.'/'
+			.	$module_params['url'];
 
 			if($return_content)
 				ob_start(function($content){
@@ -404,12 +572,18 @@
 				$option &&
 				(!function_exists('rand_str_secure'))
 			){
-				if(file_exists(__DIR__.'/lib/rand_str.php'))
+				if(file_exists(
+					__DIR__.'/lib/rand_str.php'
+				))
 					require __DIR__.'/lib/rand_str.php';
-				else if(file_exists(__DIR__.'/../../lib/rand_str.php'))
+				else if(file_exists(
+					__DIR__.'/../../lib/rand_str.php'
+				))
 					require __DIR__.'/../../lib/rand_str.php';
 				else
-					throw new admin_panel_exception('rand_str.php library not found');
+					throw new admin_panel_exception(
+						'rand_str.php library not found'
+					);
 			}
 
 			$this->registry['_inline_assets']=[

@@ -587,6 +587,8 @@
 		}
 		private function chunk_write($session_data, $cookie_expire)
 		{
+			$i=-1;
+
 			foreach(str_split(
 				$session_data,
 				4000-strlen($this->cookie_id)
@@ -603,9 +605,16 @@
 					$this->cookie_secure,
 					true
 				);
+
+				if($i === '')
+					$i=0;
 			}
 
 			for(++$i; $i<$this->session_data_chunks; ++$i)
+			{
+				if($i === 0)
+					$i='';
+
 				setcookie(
 					$this->cookie_id.$i,
 					'',
@@ -615,6 +624,7 @@
 					$this->cookie_secure,
 					true
 				);
+			}
 		}
 
 		public function read($id)

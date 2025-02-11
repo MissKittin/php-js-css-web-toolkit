@@ -10,34 +10,27 @@
 		 */
 
 		return str_replace(
-			['\'\'', '-src\''],
-			['\' \'', '-src \''],
-			str_replace(
+			[
+				'\'\'', '-src\'',
+				"\r", "\n", "\t", '  ',
+				' type="text/css"', " type='text/css'", ' type="text/javascript"', " type='text/javascript'",
+				'<script  ', '<style  ',
+				'<script >', '<style >'
+			],
+			[
+				'\' \'', '-src \'',
+				'', '', '', '',
+				' ', ' ', ' ', ' ',
+				'<script ', '<style ',
+				'<script>', '<style>'
+			],
+			preg_replace(
 				[
-					"\r\n",
-					"\r",
-					"\n",
-					"\t",
-					'  '
+					'!/\*[^*]*\*+([^/][^*]*\*+)*/!',
+					'/(?=<!--)([\s\S]*?)-->/'
 				],
 				'',
-				str_replace(
-					[
-						'type="text/css"',
-						"' type='text/css'",
-						' type="text/javascript"',
-						" type='text/javascript'"
-					],
-					' ',
-					preg_replace(
-						[
-							'!/\*[^*]*\*+([^/][^*]*\*+)*/!',
-							'/(?=<!--)([\s\S]*?)-->/'
-						],
-						'',
-						$buffer
-					)
-				)
+				$buffer
 			)
 		);
 	}

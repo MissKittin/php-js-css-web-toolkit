@@ -13,6 +13,8 @@
 	 *  SQLite3 class is required
 	 */
 
+	$db_dump_hash='8c006f700b473d0665c580fc5742e4d4';
+
 	echo ' -> Including '.basename(__FILE__);
 		if(is_file(__DIR__.'/../lib/'.basename(__FILE__)))
 		{
@@ -72,6 +74,7 @@
 					$database->exec('INSERT INTO table'.$table.'(columna, columnb) VALUES("cella'.$row.'", "cellb'.$row.'")');
 			}
 
+		$database->exec('CREATE INDEX testindex ON tablea(columna)');
 		$database->exec('CREATE VIEW testview AS SELECT columna FROM tablea');
 		$database->exec('CREATE TRIGGER testtrigger AFTER INSERT ON tablea BEGIN INSERT INTO tablea(columna, columnb) VALUES("testtrigger", "testtrigger"); END');
 
@@ -88,7 +91,7 @@
 			if(
 				md5(sqlite3_db_dump(new SQLite3(__DIR__.'/tmp/sqlite3_db_dump/sqlite3_db_dump.sqlite3')))
 				===
-				'9d470faff77f16abd46cc4927fc28a41'
+				$db_dump_hash
 			)
 				echo ' [ OK ]'.PHP_EOL;
 			else
@@ -108,7 +111,7 @@
 			if(
 				md5(sqlite3_pdo_dump(new PDO('sqlite:'.__DIR__.'/tmp/sqlite3_db_dump/sqlite3_db_dump.sqlite3')))
 				===
-				'9d470faff77f16abd46cc4927fc28a41'
+				$db_dump_hash
 			)
 				echo ' [ OK ]'.PHP_EOL;
 			else

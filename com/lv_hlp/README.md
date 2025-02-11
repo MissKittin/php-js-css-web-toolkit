@@ -21,6 +21,7 @@ The rest of the documentation is located in the `lv_arr.php` and `lv_str.php` li
 * `pf_is_countable.php` (loaded on demand, for PHP older than 7.3)
 * `has_php_close_tag.php` (for tests)
 * `include_into_namespace.php` (for tests)
+* `rmdir_recursive.php` (for tests)
 * `var_export_contains.php` (for tests)
 * `bin/get-composer.php` (for tests)
 * `tests/lv_arr.php` (for tests)
@@ -32,11 +33,12 @@ The rest of the documentation is located in the `lv_arr.php` and `lv_str.php` li
 
 ## Suggested packages
 * `doctrine/inflector`
+* `illuminate/view`
 * `league/commonmark`
 * `nesbot/carbon`
 * `symfony/var-dumper` (for development)
 ```
-php composer.phar --optimize-autoloader require doctrine/inflector league/commonmark nesbot/carbon
+php composer.phar --optimize-autoloader require doctrine/inflector illuminate/view league/commonmark nesbot/carbon
 php composer.phar --optimize-autoloader require --dev symfony/var-dumper
 ```
 composer.json:
@@ -44,14 +46,12 @@ composer.json:
 {
     "require": {
         "doctrine/inflector": "*",
+        "illuminate/view": "*",
         "league/commonmark": "*",
         "nesbot/carbon": "*"
     },
     "require-dev": {
         "symfony/var-dumper": "*"
-    },
-    "config": {
-        "optimize-autoloader": true
     }
 }
 
@@ -338,6 +338,7 @@ tested on Inflector 1.4.4 and 2.0.10
 
 ## Fluent strings
 The component extends the `lv_str_ingable` class to `lv_hlp_ingable`  
+
 * updated methods
 	* `excerpt`  
 		Uses `lv_hlp_excerpt()` instead of `lv_str_excerpt()`
@@ -599,37 +600,11 @@ The component extends the `lv_str_ingable` class to `lv_hlp_ingable`
 		`is_uuid` method is required  
 		`when` method is required
 
-## Encrypter
-Encrypter uses `aes-256-gcm` cipher by default.  
-**Warning:** the following functions require the `lv_hlp_encrypter` class.
-* `lv_hlp_encrypter_generate_key`  
-	Generate the key required for encryption and decryption:
-
-		// for more info see sec_lv_encrypter.php library
-		$key=lv_hlp_encrypter_generate_key(); // aes-256-gcm
-		$key=lv_hlp_encrypter_generate_key('aes-128-cbc'); // custom cipher
-
-* `lv_hlp_encrypter_key`  
-	Set the key required for encryption and decryption:
-
-		lv_hlp_encrypter_key($key);
-		lv_hlp_encrypter_key(getenv('ENCRYPT_KEY')); // will not set if getenv returns false
-
-* `lv_hlp_encrypt`  
-	Encrypt data (will be serialized):
-
-		$data=['a', 'b', 'c'];
-		$encrypted_data=lv_hlp_encrypt($data);
-
-* `lv_hlp_decrypt`  
-
-		$decrypted_data=lv_hlp_encrypt($encrypted_data);
-
-
 ## Collections
 Component extends collection classes:  
 `lv_arr_collection` to `lv_hlp_collection`  
 and `lv_arr_lazy_collection` to `lv_hlp_lazy_collection`
+
 * `lv_hlp_collection`
 	* `lazy`  
 		Returns an instance of `lv_hlp_lazy_collection`
@@ -709,6 +684,152 @@ and `lv_arr_lazy_collection` to `lv_hlp_lazy_collection`
 			$translated=$collection->to_locale('es');
 
 
+## Encrypter
+Encrypter uses `aes-256-gcm` cipher by default.  
+**Warning:** the following functions require the `lv_hlp_encrypter` class.
+
+* `lv_hlp_encrypter_generate_key`  
+	Generate the key required for encryption and decryption:
+
+		// for more info see sec_lv_encrypter.php library
+		$key=lv_hlp_encrypter_generate_key(); // aes-256-gcm
+		$key=lv_hlp_encrypter_generate_key('aes-128-cbc'); // custom cipher
+
+* `lv_hlp_encrypter_key`  
+	Set the key required for encryption and decryption:
+
+		lv_hlp_encrypter_key($key);
+		lv_hlp_encrypter_key(getenv('ENCRYPT_KEY')); // will not set if getenv returns false
+
+* `lv_hlp_encrypt`  
+	Encrypt data (will be serialized):
+
+		$data=['a', 'b', 'c'];
+		$encrypted_data=lv_hlp_encrypt($data);
+
+* `lv_hlp_decrypt`  
+
+		$decrypted_data=lv_hlp_decrypt($encrypted_data);
+
+You can also use `lv_hlp_encrypter`:
+* `set_key` [returns self]  
+	Set the key required for encryption and decryption:
+
+		lv_hlp_encrypter::set_key($key);
+		lv_hlp_encrypter::set_key(getenv('ENCRYPT_KEY')); // will not set if getenv returns false
+
+* `encrypt`  
+	Encrypt data (will be serialized):
+
+		$data=['a', 'b', 'c'];
+		$encrypted_data=lv_hlp_encrypter::encrypt($data);
+
+* `decrypt`  
+
+		$decrypted_data=lv_hlp_encrypter::decrypt($encrypted_data);
+
+
+## View
+View component facade that allows easy use of the Blade templating engine.
+
+* `is_resolver_registered`  
+	Check if the resolver is already registered:
+
+		if(lv_hlp_view::is_resolver_registered('blade'))
+			// already registered
+
+* `register_resolver` [returns self]  
+	For the `Illuminate\View\Engines\EngineResolver::register` method):
+
+		// if resolver is already defined it will be overwritten
+		lv_hlp_view::register_resolver('blade', function(){
+			return new Illuminate\View\Engines\CompilerEngine(
+				new Illuminate\View\Compilers\BladeCompiler(
+					new Illuminate\Filesystem\Filesystem(),
+					'path/to/views_cache'
+				)
+			);
+		});
+
+* `set_cache_path` [returns self]  
+	Set path to `.blade.php` templates.  
+	You have to use this method before calling `lv_hlp_view::load_blade` or `lv_hlp_view::view`:
+
+		// path can be relative
+		lv_hlp_view::set_cache_path(__DIR__.'/views_cache');
+
+* `set_view_path` [returns self]  
+	Set the path to the directory where the compiled templates will be stored.  
+	You have to use this method before calling `lv_hlp_view::load_blade` or `lv_hlp_view::view`:
+
+		// path can be relative
+		lv_hlp_view::set_view_path(__DIR__.'/views');
+
+* `load_blade`  
+	Returns an initialized instance of the `Illuminate\View\View`:
+
+		$view_handle=lv_hlp_view::load_blade(
+			'templatename', // without .blade.php
+			[
+				'my_variable'=>'Hello world'
+			]
+		);
+
+* `view`  
+	Renders the selected template:
+
+		$rendered_view=lv_hlp_view::view(
+			'templatename', // without .blade.php
+			[
+				'my_variable'=>'Hello world'
+			]
+		);
+
+Example usage:
+```
+$rendered_view=lv_hlp_view
+::	register_resolver('blade', function(){ // optional
+		return new Illuminate\View\Engines\CompilerEngine(
+			new Illuminate\View\Compilers\BladeCompiler(
+				new Illuminate\Filesystem\Filesystem(),
+				'path/to/views_cache'
+			)
+		);
+	})
+::	set_cache_path(__DIR__.'/views_cache') // required
+::	set_view_path(__DIR__.'/views') // required
+::	view(
+		'templatename', // without .blade.php
+		[
+			'my_variable'=>'Hello world'
+		]
+	);
+```
+Example initialization of the `Illuminate\View\View` object:
+```
+$view_handle=lv_hlp_view
+::	register_resolver('blade', function(){ // optional
+		return new Illuminate\View\Engines\CompilerEngine(
+			new Illuminate\View\Compilers\BladeCompiler(
+				new Illuminate\Filesystem\Filesystem(),
+				'path/to/views_cache'
+			)
+		);
+	})
+::	set_cache_path(__DIR__.'/views_cache') // required
+::	set_view_path(__DIR__.'/views') // required
+::	load_blade(
+		'templatename', // without .blade.php
+		[
+			'my_variable'=>'Hello world'
+		]
+	);
+```
+**Note:**  
+tested on Illuminate View 5.5 and 11.34  
+**Warning:**  
+`illuminate/view` package is required
+
 ## Portability
 Create a `./lib` directory  
 and copy the required libraries to this directory.  
@@ -717,4 +838,5 @@ Also you can copy tests to the `./lib/tests` and tools to the `./bin` directory.
 
 ## Sources
 [Traits/Dumpable.php](https://github.com/laravel/framework/blob/master/src/Illuminate/Support/Traits/Dumpable.php)  
-[Pluralizer.php](https://github.com/laravel/framework/blob/11.x/src/Illuminate/Support/Pluralizer.php)
+[Pluralizer.php](https://github.com/laravel/framework/blob/11.x/src/Illuminate/Support/Pluralizer.php)  
+[Use blade outside laravel](https://laravel.io/forum/10-02-2014-use-blade-outside-laravel)

@@ -82,7 +82,7 @@
 
 				eval('$this->reflection='.$data_field.';');
 
-				if(!$this->reflection instanceOf Closure)
+				if(!$this->reflection instanceof Closure)
 					throw new superclosure_exception('Closure expected in unserialized data');
 			}
 

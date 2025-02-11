@@ -81,6 +81,12 @@
 		 *   Truncating table:
 				truncate_table('table_name')
 		 *
+		 *  Creating/dropping indexes:
+				create_index('index_name', 'table_name', ['column_a', 'column_b', 'column_n'])
+				create_unique_index('index_name', 'table_name', ['column_a', 'column_b', 'column_n'])
+				drop_index('index_name')
+				drop_index('index_name', 'table_name') // MySQL
+		 *
 		 *  Creating/altering/dropping views:
 				create_view('view_name')->methods...
 				create_view('view_name', true)->methods... // temporary view
@@ -468,6 +474,47 @@
 		public function truncate_table(string $table_name)
 		{
 			$this->sql_query.='TRUNCATE TABLE '.$table_name.' ';
+			return $this;
+		}
+
+		public function create_index(
+			string $index_name,
+			string $table_name,
+			array $columns
+		){
+			$this->sql_query.=''
+			.	'CREATE INDEX IF NOT EXISTS '.$index_name.' '
+			.	'ON '.$table_name
+			.	'('.implode(',', $columns).') ';
+
+			return $this;
+		}
+		public function create_unique_index(
+			string $index_name,
+			string $table_name,
+			array $columns
+		){
+			$this->sql_query.=''
+			.	'CREATE UNIQUE INDEX IF NOT EXISTS '.$index_name.' '
+			.	'ON '.$table_name
+			.	'('.implode(',', $columns).') ';
+
+			return $this;
+		}
+		public function drop_index(
+			string $index_name,
+			?string $table_name=null
+		){
+			if($table_name === null)
+			{
+				$this->sql_query.='DROP INDEX IF EXISTS '.$index_name.' ';
+				return $this;
+			}
+
+			$this->sql_query.=''
+			.	'ALTER TABLE '.$table_name.' '
+			.	'DROP INDEX '.$index_name.' ';
+
 			return $this;
 		}
 

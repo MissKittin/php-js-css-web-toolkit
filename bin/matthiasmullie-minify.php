@@ -11,6 +11,7 @@
 	 *  __DIR__/vendor
 	 *  __DIR__/../composer/vendor
 	 *  __DIR__/../vendor
+	 *  getenv(TK_COMPOSER)
 	 *
 	 * lib directory path:
 	 *  __DIR__/lib
@@ -47,6 +48,14 @@
 		] as $composer_path)
 			if(is_file(__DIR__.'/'.$composer_path))
 				return __DIR__.'/'.$composer_path;
+
+		$TK_COMPOSER=getenv('TK_COMPOSER');
+
+		if(
+			($TK_COMPOSER !== false) &&
+			is_file($TK_COMPOSER.'/autoload.php')
+		)
+			return $TK_COMPOSER.'/autoload.php';
 
 		throw new Exception('Composer autoloader not found');
 	}

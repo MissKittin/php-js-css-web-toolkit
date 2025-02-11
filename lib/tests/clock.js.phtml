@@ -5,7 +5,143 @@
 	 * Note:
 	 *  looks for a library at ../lib
 	 *  looks for a library at ..
+	 *
+	 * Warning:
+	 *  gd extension is recommended
 	 */
+
+	function generate_clock_assets()
+	{
+		if(!extension_loaded('gd'))
+		{
+			echo 'Error: gd extension is not loaded';
+			return false;
+		}
+
+		@mkdir(__DIR__.'/tmp/clock');
+
+		echo 'clockDigitalImage<br>';
+			ob_flush();
+			for($i=0; $i<11; ++$i)
+			{
+				if($i === 10)
+					$i=':';
+
+				$image=imagecreate(16, 24);
+				imagecolorallocate($image, 0,0,0);
+				$image_fg=imagecolorallocate($image, 255,255,255);
+				imagestring($image, 5, 0, 0, $i, $image_fg);
+
+				if($i === ':')
+					$i='separator';
+
+				imagepng($image, __DIR__.'/tmp/clock/'.$i.'.png');
+				imagedestroy($image);
+
+				if($i === 'separator')
+					$i=10;
+			}
+
+		echo 'clockDigitalImageSprite<br>';
+			ob_flush();
+			$image=imagecreate(176, 24);
+			imagecolorallocate($image, 0,0,0);
+			$image_fg=imagecolorallocate($image, 255,255,255);
+			for($i=0; $i<11; ++$i)
+			{
+				$char=$i;
+
+				if($i === 10)
+					$char=':';
+
+				imagestring($image, 5, 16*$i, 0, $char, $image_fg);
+			}
+			imagepng($image, __DIR__.'/tmp/clock/clock.png');
+			imagedestroy($image);
+
+		echo 'clockAnalogImage<br>';
+			ob_flush();
+			$image=imagecreatetruecolor(500, 500);
+				imagealphablending($image, false);
+				imagefill($image, 0, 0, imagecolorallocatealpha($image, 0,0,0, 127));
+				imagesavealpha($image, true);
+				imagearc($image, 250,250, 500,500, 0,360, imagecolorallocate($image, 0,0,0));
+				imagepng($image, __DIR__.'/tmp/clock/clock-face.png');
+				imagedestroy($image);
+			foreach([
+				'hour-hand'=>[
+					[248, 160, 248, 250],
+					[249, 160, 249, 250],
+					[250, 160, 250, 250],
+					[251, 160, 251, 250],
+					[252, 160, 252, 250]
+				],
+				'minute-hand'=>[
+					[249, 130, 249, 250],
+					[250, 130, 250, 250],
+					[251, 130, 251, 250]
+				],
+				'second-hand'=>[[250, 0, 250, 250]]
+			] as $file_name=>$lines){
+				$image=imagecreatetruecolor(500, 500);
+				imagealphablending($image, false);
+				imagefill($image, 0, 0, imagecolorallocatealpha($image, 0,0,0, 127));
+				imagesavealpha($image, true);
+				$image_fg=imagecolorallocate($image, 0,0,0);
+
+				foreach($lines as $line)
+					imageline($image, $line[0], $line[1], $line[2], $line[3], $image_fg);
+
+				imagepng($image, __DIR__.'/tmp/clock/'.$file_name.'.png');
+				imagedestroy($image);
+			}
+			$image=imagecreatetruecolor(500, 500);
+				imagealphablending($image, false);
+				imagefill($image, 0, 0, imagecolorallocatealpha($image, 0,0,0, 127));
+				imagesavealpha($image, true);
+				imagefilledarc($image, 250,250, 40,40, 0,360, imagecolorallocate($image, 0,0,0), IMG_ARC_PIE);
+				imagepng($image, __DIR__.'/tmp/clock/top-image.png');
+				imagedestroy($image);
+
+		echo 'clockAnalogImageSprite<br>';
+			ob_flush();
+			$image=imagecreatetruecolor(2500, 500);
+				imagealphablending($image, false);
+				imagefill($image, 0, 0, imagecolorallocatealpha($image, 0,0,0, 127));
+				imagesavealpha($image, true);
+				imagearc($image, 250,250, 500,500, 0,360, imagecolorallocate($image, 0,0,0));
+			$i=1;
+			foreach([
+				'hour-hand'=>[
+					[248, 160, 248, 250],
+					[249, 160, 249, 250],
+					[250, 160, 250, 250],
+					[251, 160, 251, 250],
+					[252, 160, 252, 250]
+				],
+				'minute-hand'=>[
+					[249, 130, 249, 250],
+					[250, 130, 250, 250],
+					[251, 130, 251, 250]
+				],
+				'second-hand'=>[[250, 0, 250, 250]]
+			] as $file_name=>$lines){
+				$offset=$i*500;
+
+				$image_fg=imagecolorallocate($image, 0,0,0);
+
+				foreach($lines as $line)
+					imageline($image, $line[0]+$offset, $line[1], $line[2]+$offset, $line[3], $image_fg);
+
+				++$i;
+			}
+			$offset=$i*500;
+				imagefilledarc($image, 250+$offset,250, 40,40, 0,360, imagecolorallocate($image, 0,0,0), IMG_ARC_PIE);
+			imagepng($image, __DIR__.'/tmp/clock/clockspriteanalog.png');
+			imagedestroy($image);
+
+		return true;
+	}
 
 	if(
 		(!is_file(__DIR__.'/../lib/'.basename(__FILE__, '.phtml'))) &&
@@ -20,7 +156,17 @@
 <html>
 	<head>
 		<meta charset="utf-8">
-		<?php if(isset($_GET['clock'])) { ?><script>
+		<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'self' 'nonce-stylemain'; script-src 'self' 'nonce-scriptmain'; img-src 'self'">
+		<style nonce="stylemain">
+			#select_clock {
+				font-size: 30pt;
+			}
+			#clock_div_id_analog {
+				width: 500px;
+				height: 500px;
+			}
+		</style>
+		<?php if(isset($_GET['clock'])) { ?><script nonce="scriptmain">
 			<?php
 				if(is_file(__DIR__.'/../lib/'.basename(__FILE__, '.phtml')))
 					require __DIR__.'/../lib/'.basename(__FILE__, '.phtml');
@@ -32,11 +178,11 @@
 				switch($_GET['clock'])
 				{
 					case 'clockDigital': ?>
-						clockDigital('clock_div_id', ':');
+						clockDigital(document.getElementById('clock_div_id'), ':');
 					<?php break;
 					case 'clockDigitalImage': ?>
 						clockDigitalImage(
-							'clock_div_id',
+							document.getElementById('clock_div_id'),
 							[
 								'/tmp/clock/0.png',
 								'/tmp/clock/1.png',
@@ -54,11 +200,11 @@
 					<?php break;
 					case 'clockDigitalImageSprite': ?>
 						clockDigitalImageSprite(
-							'clock_div_id',
+							document.getElementById('clock_div_id'),
 							'/tmp/clock/clock.png',
 							'24px',
 							'16px',
-							'8px',
+							'16px',
 							[
 								'0px',
 								'16px',
@@ -75,11 +221,11 @@
 						);
 					<?php break;
 					case 'clockAnalogCSS': ?>
-						clockAnalogCSS('clock_div_id', '#000000');
+						clockAnalogCSS(document.getElementById('clock_div_id_analog'), '#000000');
 					<?php break;
 					case 'clockAnalogImage': ?>
 						clockAnalogImage(
-							'clock_div_id',
+							document.getElementById('clock_div_id_analog'),
 							[
 								'/tmp/clock/clock-face.png',
 								'/tmp/clock/hour-hand.png',
@@ -91,9 +237,9 @@
 					<?php break;
 					case 'clockAnalogImageSprite': ?>
 						clockAnalogImageSprite(
-							'clock_div_id',
+							document.getElementById('clock_div_id_analog'),
 							'/tmp/clock/clockspriteanalog.png',
-							['400px', '800px', '1200px', '1600px']
+							['500px', '1000px', '1500px', '2000px']
 						);
 					<?php break;
 				}
@@ -115,20 +261,25 @@
 					case 'clockAnalogCSS':
 					case 'clockAnalogImage':
 					case 'clockAnalogImageSprite': ?>
-						<div id="clock_div_id" style="width: 500px; height: 500px;"></div>
+						<div id="clock_div_id_analog"></div>
 					<?php break;
+					case 'generateImages':
+						if(generate_clock_assets())
+							?><h1>OK</h1><?php
 				}
 			else
 			{ ?>
-				<div style="font-size: 30pt;">
+				<div id="select_clock">
 					<a href="?clock=clockDigital">clockDigital</a><br>
 					<a href="?clock=clockDigitalImage">clockDigitalImage</a><br>
 					<a href="?clock=clockDigitalImageSprite">clockDigitalImageSprite</a><br>
 					<a href="?clock=clockAnalogCSS">clockAnalogCSS</a><br>
 					<a href="?clock=clockAnalogImage">clockAnalogImage</a><br>
-					<a href="?clock=clockAnalogImageSprite">clockAnalogImageSprite</a>
+					<a href="?clock=clockAnalogImageSprite">clockAnalogImageSprite</a><br>
+					<br>
+					<a href="?clock=generateImages">Generate images</a>
 				</div>
-				<?php }
+			<?php }
 		?>
 	</body>
 </html>

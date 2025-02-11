@@ -135,8 +135,14 @@
 
 			if($arg[0] === $param_name)
 			{
-				$cache[$param_name.$delimiter]=$arg[1];
-				return $arg[1];
+				$arg1=null;
+
+				if(isset($arg[1]))
+					$arg1=$arg[1];
+
+				$cache[$param_name.$delimiter]=$arg1;
+
+				return $arg1;
 			}
 		}
 
@@ -161,7 +167,14 @@
 			$arg=explode($delimiter, $arg);
 
 			if($arg[0] === $param_name)
-				$output_array[]=$arg[1];
+			{
+				$arg1=null;
+
+				if(isset($arg[1]))
+					$arg1=$arg[1];
+
+				$output_array[]=$arg1;
+			}
 		}
 
 		if(empty($output_array))

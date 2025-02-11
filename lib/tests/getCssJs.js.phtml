@@ -36,7 +36,8 @@
 <html>
 	<head>
 		<meta charset="utf-8">
-		<script>
+		<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'self'; script-src 'self' 'nonce-scriptmain'">
+		<script nonce="scriptmain">
 			document.addEventListener('DOMContentLoaded', function(){
 				<?php
 					if(is_file(__DIR__.'/../lib/'.basename(__FILE__, '.phtml')))

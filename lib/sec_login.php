@@ -26,8 +26,18 @@
 	 *   password_needs_rehash() wrapper
 	 *  string2hash [returns string]
 	 *   convert plain password to hash
+	 *  login_password_verify [returns bool]
+	 *   call password_verify()
+	 *
+	 * Plaintext hash:
+	 *  NEVER EVER USE THIS FEATURE IN PRODUCTION ENVIRONMENT!!!
+	 *  you can disable password hashing for debugging purposes:
+		login_password_hash::algo(null);
 	 *
 	 * Usage:
+		// set hash algorithm (optional, required for plaintext)
+			login_password_hash::algo(PASSWORD_ARGON2ID);
+
 		// login methods
 			if(login_single('input_login', 'input_plain_password', 'valid_login', 'valid_bcrypted_password'))
 				// login success
@@ -97,7 +107,7 @@
 			// to change the default algorithm (PASSWORD_BCRYPT)
 			// and options (empty array) you can:
 			login_password_hash
-			::	algo(PASSWORD_ARGON2ID)
+			::	algo(PASSWORD_ARGON2ID) // if you pass null, plaintext will be used - you have been warned
 			::	options([
 					'memory_cost'=>2048,
 					'time_cost'=>4,
@@ -106,6 +116,12 @@
 
 			// and now generate the hash:
 			$password_hash=string2hash('string_password');
+
+		// verifying password hash
+			if(login_password_verify($password_hash))
+				// password is valid
+			else
+				// password is invalid
 	 *
 	 * Callbacks and validators:
 	 *  the library allows you to define your own validators and callbacks
@@ -233,7 +249,7 @@
 
 			if(
 				($password !== null) &&
-				(password_verify($input_password, $password))
+				(login_password_hash::password_verify($input_password, $password))
 			){
 				$_SESSION['_sec_login']['state']=true;
 
@@ -333,7 +349,7 @@
 		private static $algo=PASSWORD_BCRYPT;
 		private static $options=[];
 
-		public static function algo(int $algo)
+		public static function algo($algo)
 		{
 			self::$algo=$algo;
 			return self::class;
@@ -346,6 +362,9 @@
 
 		public static function password_needs_rehash(string $password)
 		{
+			if(self::$algo === null)
+				return false;
+
 			return password_needs_rehash(
 				$password,
 				self::$algo,
@@ -354,10 +373,30 @@
 		}
 		public static function password_hash(string $password)
 		{
+			if(self::$algo === null)
+				return $password;
+
 			return password_hash(
 				$password,
 				self::$algo,
 				self::$options
+			);
+		}
+		public static function password_verify(
+			string $password,
+			string $hash
+		){
+			if(self::$algo === null)
+			{
+				if($password === $hash)
+					return true;
+
+				return false;
+			}
+
+			return password_verify(
+				$password,
+				$hash
 			);
 		}
 
@@ -426,6 +465,15 @@
 	function string2hash(string $password)
 	{
 		return login_password_hash::password_hash($password);
+	}
+	function login_password_verify(
+		string $password,
+		string $hash
+	){
+		return login_password_hash::password_verify(
+			$password,
+			$hash
+		);
 	}
 
 	login_validator

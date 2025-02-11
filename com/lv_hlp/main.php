@@ -886,67 +886,6 @@
 			}
 		}
 
-	// encrypter
-		final class lv_hlp_encrypter
-		{
-			private static $encrypter=null;
-
-			public static function set_key(
-				$key,
-				$cipher='aes-256-gcm'
-			){
-				_lv_hlp_load_library('class', 'sec_lv_encrypter.php', 'lv_encrypter');
-
-				self::$encrypter=new lv_encrypter(
-					$key,
-					$cipher
-				);
-
-				return self::class;
-			}
-
-			public static function encrypt($content)
-			{
-				if(self::$encrypter === null)
-					throw new lv_hlp_exception(
-						'Use '.__CLASS__.'::set_key first'
-					);
-
-				return self::$encrypter->encrypt($content);
-			}
-			public static function decrypt($payload)
-			{
-				if(self::$encrypter === null)
-					throw new lv_hlp_exception(
-						'Use '.__CLASS__.'::set_key first'
-					);
-
-				return self::$encrypter
-				->	decrypt($payload);
-			}
-		}
-
-		function lv_hlp_encrypter_generate_key($cipher='aes-256-gcm')
-		{
-			_lv_hlp_load_library('class', 'sec_lv_encrypter.php', 'lv_encrypter');
-			return lv_encrypter::generate_key($cipher);
-		}
-		function lv_hlp_encrypter_key($key)
-		{
-			if($key === false)
-				return;
-
-			return lv_hlp_encrypter::set_key($key);
-		}
-		function lv_hlp_encrypt($content)
-		{
-			return lv_hlp_encrypter::encrypt($content);
-		}
-		function lv_hlp_decrypt($content)
-		{
-			return lv_hlp_encrypter::decrypt($content);
-		}
-
 	// collections
 		trait lv_hlp_enumerates_values
 		{
@@ -1032,6 +971,183 @@
 			protected function chunk_while_collection()
 			{
 				return new lv_hlp_collection();
+			}
+		}
+
+	// encrypter
+		final class lv_hlp_encrypter
+		{
+			private static $encrypter=null;
+
+			public static function set_key(
+				$key,
+				$cipher='aes-256-gcm'
+			){
+				_lv_hlp_load_library('class', 'sec_lv_encrypter.php', 'lv_encrypter');
+
+				self::$encrypter=new lv_encrypter(
+					$key,
+					$cipher
+				);
+
+				return self::class;
+			}
+
+			public static function encrypt($content)
+			{
+				if(self::$encrypter === null)
+					throw new lv_hlp_exception(
+						'Use '.__CLASS__.'::set_key first'
+					);
+
+				return self::$encrypter->encrypt($content);
+			}
+			public static function decrypt($payload)
+			{
+				if(self::$encrypter === null)
+					throw new lv_hlp_exception(
+						'Use '.__CLASS__.'::set_key first'
+					);
+
+				return self::$encrypter
+				->	decrypt($payload);
+			}
+		}
+
+		function lv_hlp_encrypter_generate_key($cipher='aes-256-gcm')
+		{
+			_lv_hlp_load_library('class', 'sec_lv_encrypter.php', 'lv_encrypter');
+			return lv_encrypter::generate_key($cipher);
+		}
+		function lv_hlp_encrypter_key($key)
+		{
+			if($key === false)
+				return;
+
+			return lv_hlp_encrypter::set_key($key);
+		}
+		function lv_hlp_encrypt($content)
+		{
+			return lv_hlp_encrypter::encrypt($content);
+		}
+		function lv_hlp_decrypt($content)
+		{
+			return lv_hlp_encrypter::decrypt($content);
+		}
+
+	// view
+		class lv_hlp_view
+		{
+			protected static $engine_resolvers=[];
+			protected static $cache_path=null;
+			protected static $view_path=null;
+
+			public static function is_resolver_registered(string $name)
+			{
+				return isset(
+					static::$engine_resolvers[$name]
+				);
+			}
+			public static function register_resolver(
+				string $name,
+				Closure $callback
+			){
+				static::$engine_resolvers[$name]=$callback;
+				return static::class;
+			}
+
+			public static function set_cache_path(string $path)
+			{
+				static::$cache_path=$path;
+				return static::class;
+			}
+			public static function set_view_path(string $path)
+			{
+				static::$view_path=$path;
+				return static::class;
+			}
+
+			public static function load_blade(
+				string $blade,
+				array $data=[]
+			){
+				if(!class_exists('\Illuminate\View\View'))
+					throw new lv_hlp_exception(
+						'illuminate/view package is not installed'
+					);
+
+				if(static::$cache_path === null)
+					throw new lv_hlp_exception(
+						'Use '.__CLASS__.'::set_cache_path first'
+					);
+
+				if(static::$view_path === null)
+					throw new lv_hlp_exception(
+						'Use '.__CLASS__.'::set_view_path first'
+					);
+
+				if(!file_exists(static::$cache_path))
+					throw new lv_hlp_exception(''
+					.	static::$cache_path
+					.	' does not exist (cache path)'
+					);
+
+				if(!file_exists(
+					static::$view_path.'/'.$blade.'.blade.php'
+				))
+					throw new lv_hlp_exception(''
+					.	static::$view_path.'/'.$blade.'.blade.php '
+					.	'does not exist (view path)'
+					);
+
+				$compiler_engine=new Illuminate\View\Engines\CompilerEngine(
+					new Illuminate\View\Compilers\BladeCompiler(
+						new Illuminate\Filesystem\Filesystem(),
+						static::$cache_path
+					)
+				);
+
+				$engine_resolver=new Illuminate\View\Engines\EngineResolver();
+
+				if(!isset(static::$engine_resolvers['blade']))
+					static::$engine_resolvers['blade']=function() use($compiler_engine)
+					{
+						return $compiler_engine;
+					};
+
+				foreach(
+					static::$engine_resolvers
+					as $resolver_name=>$resolver_callback
+				)
+					$engine_resolver->register(
+						$resolver_name,
+						$resolver_callback
+					);
+
+				return new Illuminate\View\View(
+					new Illuminate\View\Factory(
+						$engine_resolver,
+						new Illuminate\View\FileViewFinder(
+							new Illuminate\Filesystem\Filesystem(),
+							[static::$view_path]
+						),
+						new Illuminate\Events\Dispatcher(
+							new Illuminate\Container\Container()
+						)
+					),
+					$compiler_engine,
+					static::$view_path,
+					static::$view_path.'/'.$blade.'.blade.php',
+					$data
+				);
+			}
+			public static function view(
+				string $blade,
+				array $data=[]
+			){
+				return static
+				::	load_blade($blade, $data)
+				->	render();
 			}
 		}
 ?>

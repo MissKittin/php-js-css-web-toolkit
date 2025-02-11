@@ -15,12 +15,54 @@
 		echo __DIR__.'/../'.basename(__FILE__, '.phtml').' is not a file'.PHP_EOL;
 		exit();
 	}
+
+	if(extension_loaded('gd'))
+	{
+		@mkdir(__DIR__.'/tmp/imgRotator');
+
+		if(!file_exists(__DIR__.'/tmp/imgRotator/imgrotator.png'))
+		{
+			$image=imagecreate(32, 32);
+			imagecolorallocate($image, 0,0,0);
+			imagefilledarc($image, 16,16, 32,32, 0,360, imagecolorallocate($image, 255,255,255), IMG_ARC_PIE);
+			imagepng($image, __DIR__.'/tmp/imgRotator/imgrotator.png');
+			imagedestroy($image);
+		}
+
+		if(!file_exists(__DIR__.'/tmp/imgRotator/img1.png'))
+		{
+			$image=imagecreate(32, 32);
+			imagecolorallocate($image, 0,0,0);
+			imagefilledarc($image, 16,16, 32,32, 0,360, imagecolorallocate($image, 255,0,0), IMG_ARC_PIE);
+			imagepng($image, __DIR__.'/tmp/imgRotator/img1.png');
+			imagedestroy($image);
+		}
+
+		if(!file_exists(__DIR__.'/tmp/imgRotator/img2.png'))
+		{
+			$image=imagecreate(32, 32);
+			imagecolorallocate($image, 0,0,0);
+			imagefilledarc($image, 16,16, 32,32, 0,360, imagecolorallocate($image, 0,255,0), IMG_ARC_PIE);
+			imagepng($image, __DIR__.'/tmp/imgRotator/img2.png');
+			imagedestroy($image);
+		}
+
+		if(!file_exists(__DIR__.'/tmp/imgRotator/img3.png'))
+		{
+			$image=imagecreate(32, 32);
+			imagecolorallocate($image, 0,0,0);
+			imagefilledarc($image, 16,16, 32,32, 0,360, imagecolorallocate($image, 0,0,255), IMG_ARC_PIE);
+			imagepng($image, __DIR__.'/tmp/imgRotator/img3.png');
+			imagedestroy($image);
+		}
+	}
 ?>
 <!DOCTYPE html>
 <html>
 	<head>
 		<meta charset="utf-8">
-		<script>
+		<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'nonce-scriptmain'; img-src 'self'">
+		<script nonce="scriptmain">
 			document.addEventListener('DOMContentLoaded', function(){
 				<?php
 					if(is_file(__DIR__.'/../lib/'.basename(__FILE__, '.phtml')))
@@ -29,11 +71,15 @@
 						require __DIR__.'/../'.basename(__FILE__, '.phtml');
 				?>
 
-				imgRotator(document.getElementById('myimgtag'), 1000, ['/img1.png', '/img2.png', '/img3.png']);
+				imgRotator(
+					document.getElementById('myimgtag'),
+					1000,
+					['/tmp/imgRotator/img1.png', '/tmp/imgRotator/img2.png', '/tmp/imgRotator/img3.png']
+				);
 			}, false);
 		</script>
 	</head>
 	<body>
-		<img id="myimgtag" src="/tmp/imgrotator.png">
+		<img id="myimgtag" src="/tmp/imgRotator/imgrotator.png">
 	</body>
 </html>

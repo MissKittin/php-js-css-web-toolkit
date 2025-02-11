@@ -211,6 +211,23 @@
 					'template_header'=>'Class test B'
 				])
 			->	set_default_module('dashboard')
+			->	add_view_plugin_csp(function(\$admin_panel){
+					\$admin_panel->add_csp_header('script-src', '\'nonce-plugintest\'');
+				})
+			->	add_view_plugin_head(function(){
+					echo '<!-- PLUGIN HEADER TEST -->';
+				})
+			->	add_view_plugin_body(function(){
+					echo '
+						<script nonce=\"plugintest\">
+							if(document.head.innerHTML.indexOf(\\'<!-- PLUGIN HEADER TEST -->\\') === -1)
+								console.log(\\'View plugin headers test failed\\');
+							else
+								console.log(\\'View plugin headers test passed\\');
+							console.log(\\'View plugin test passed\\');
+						</script>
+					';
+				})
 			->	run();
 		?>");
 
