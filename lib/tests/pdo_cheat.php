@@ -390,8 +390,13 @@
 		->	surname('tseT')
 		->	personal_id(30)
 		->	save_row();
-		$output_string_a="array(0=>array('id'=>1,'name'=>'Test1','surname'=>'tseT','personal_id'=>20,),1=>array('id'=>2,'name'=>'Test2','surname'=>'tseT','personal_id'=>30,),)";
-		$output_string_b="array(0=>array('id'=>'1','name'=>'Test1','surname'=>'tseT','personal_id'=>'20',),1=>array('id'=>'2','name'=>'Test2','surname'=>'tseT','personal_id'=>'30',),)";
+		$pdo_cheat->new_row()
+		->	name('Test3')
+		->	surname(null)
+		->	personal_id(40)
+		->	save_row();
+		$output_string_a="array(0=>array('id'=>1,'name'=>'Test1','surname'=>'tseT','personal_id'=>20,),1=>array('id'=>2,'name'=>'Test2','surname'=>'tseT','personal_id'=>30,),2=>array('id'=>3,'name'=>'Test3','surname'=>NULL,'personal_id'=>40,),)";
+		$output_string_b="array(0=>array('id'=>'1','name'=>'Test1','surname'=>'tseT','personal_id'=>'20',),1=>array('id'=>'2','name'=>'Test2','surname'=>'tseT','personal_id'=>'30',),2=>array('id'=>'3','name'=>'Test3','surname'=>NULL,'personal_id'=>'40',),)";
 		$query_result=$pdo_handle->query('SELECT * FROM pdo_cheat_test_table')->fetchAll(PDO::FETCH_NAMED);
 		if(
 			var_export_contains($query_result, $output_string_a) ||
@@ -460,38 +465,149 @@
 				$errors[]='Reading rows second result/dump row phase 2';
 			}
 
-	echo ' -> Editing row';
-		$test_person=$pdo_cheat->get_row()
-		->	get_row_by_name('Test1')
-		->	get_row();
-		$test_person->personal_id(50)->save_row();
-		$output_string_a="array(0=>array('id'=>2,'name'=>'Test2','surname'=>'tseT','personal_id'=>30,),1=>array('id'=>1,'name'=>'Test1','surname'=>'tseT','personal_id'=>50,),)";
-		$output_string_b="array(0=>array('id'=>'1','name'=>'Test1','surname'=>'tseT','personal_id'=>'50',),1=>array('id'=>'2','name'=>'Test2','surname'=>'tseT','personal_id'=>'30',),)";
-		$output_string_c="array(0=>array('id'=>1,'name'=>'Test1','surname'=>'tseT','personal_id'=>50,),1=>array('id'=>2,'name'=>'Test2','surname'=>'tseT','personal_id'=>30,),)";
-		$query_result=$pdo_handle->query('SELECT * FROM pdo_cheat_test_table')->fetchAll(PDO::FETCH_NAMED);
-		//echo ' ('.var_export_contains($query_result, '', true).')';
-		if(
-			var_export_contains($query_result, $output_string_a) ||
-			var_export_contains($query_result, $output_string_b) ||
-			var_export_contains($query_result, $output_string_c)
-		)
-			echo ' [ OK ]'.PHP_EOL;
-		else
-		{
-			echo ' [FAIL]'.PHP_EOL;
-			$errors[]='Editing row';
-		}
+	echo ' -> Reading rows (not) null'.PHP_EOL;
+		echo '  -> is null/dump row';
+			$test_person=$pdo_cheat->get_row()
+			->	select_id()
+			->	select_personal_id()
+			->	get_row_by_surname(false)
+			->	get_row();
+			if(($test_person !== false) && ($test_person->id() == '3') /*int*/ && ($test_person->personal_id() == '40'))
+				echo ' [ OK ]';
+			else
+			{
+				echo ' [FAIL]';
+				$errors[]='Reading rows is null/dump row phase 1';
+			}
+			$output_string_a="array('id'=>3,'personal_id'=>40,)";
+			$output_string_b="array('id'=>'3','personal_id'=>'40',)";
+			$query_result=$test_person->dump_row();
+			if(
+				var_export_contains($query_result, $output_string_a) ||
+				var_export_contains($query_result, $output_string_b)
+			)
+				echo ' [ OK ]'.PHP_EOL;
+			else
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				$errors[]='Reading rows is null/dump row phase 2';
+			}
+		echo '  -> is not null'.PHP_EOL;
+			echo '   -> first result/dump row';
+				$test_person=$pdo_cheat->get_row()
+				->	select_id()
+				->	select_personal_id()
+				->	get_row_by_surname(true)
+				->	get_row();
+				if(($test_person !== false) && ($test_person->id() == '1') /*int*/ && ($test_person->personal_id() == '20'))
+					echo ' [ OK ]';
+				else
+				{
+					echo ' [FAIL]';
+					$errors[]='Reading rows is not null first result/dump row phase 1';
+				}
+				$output_string_a="array('id'=>1,'personal_id'=>20,)";
+				$output_string_b="array('id'=>'1','personal_id'=>'20',)";
+				$query_result=$test_person->dump_row();
+				if(
+					var_export_contains($query_result, $output_string_a) ||
+					var_export_contains($query_result, $output_string_b)
+				)
+					echo ' [ OK ]'.PHP_EOL;
+				else
+				{
+					echo ' [FAIL]'.PHP_EOL;
+					$errors[]='Reading rows is not null second result phase 2';
+				}
+			echo '   -> second result/dump row';
+				$test_person=$pdo_cheat->get_row();
+				$test_person
+				->	select_id()
+				->	select_personal_id()
+				->	get_row_by_surname(true)
+				->	get_row();
+				$test_person=$test_person->get_next_row();
+				if(($test_person !== false) && ($test_person->id() == '2') /*int*/ && ($test_person->personal_id() == '30'))
+					echo ' [ OK ]';
+				else
+				{
+					echo ' [FAIL]';
+					$errors[]='Reading rows is not null second result/dump row phase 1';
+				}
+				$output_string_a="array('id'=>2,'personal_id'=>30,)";
+				$output_string_b="array('id'=>'2','personal_id'=>'30',)";
+				$query_result=$test_person->dump_row();
+				if(
+					var_export_contains($query_result, $output_string_a) ||
+					var_export_contains($query_result, $output_string_b)
+				)
+					echo ' [ OK ]'.PHP_EOL;
+				else
+				{
+					echo ' [FAIL]'.PHP_EOL;
+					$errors[]='Reading rows is not null second result/dump row phase 2';
+				}
+
+	echo ' -> Editing row'.PHP_EOL;
+		echo '  -> phase 1 (personal_id=NULL)';
+			$test_person=$pdo_cheat->get_row()
+			->	get_row_by_name('Test1')
+			->	get_row();
+			$test_person->personal_id(null)->save_row();
+			$output_string_a="array(0=>array('id'=>3,'name'=>'Test3','surname'=>NULL,'personal_id'=>40,),1=>array('id'=>2,'name'=>'Test2','surname'=>'tseT','personal_id'=>30,),2=>array('id'=>1,'name'=>'Test1','surname'=>'tseT','personal_id'=>NULL,),)";
+			$output_string_b="array(0=>array('id'=>'1','name'=>'Test1','surname'=>'tseT','personal_id'=>NULL,),1=>array('id'=>'2','name'=>'Test2','surname'=>'tseT','personal_id'=>'30',),2=>array('id'=>'3','name'=>'Test3','surname'=>NULL,'personal_id'=>'40',),)";
+			$output_string_c="array(0=>array('id'=>1,'name'=>'Test1','surname'=>'tseT','personal_id'=>NULL,),1=>array('id'=>2,'name'=>'Test2','surname'=>'tseT','personal_id'=>30,),2=>array('id'=>3,'name'=>'Test3','surname'=>NULL,'personal_id'=>40,),)";
+			$output_string_d="array(0=>array('id'=>2,'name'=>'Test2','surname'=>'tseT','personal_id'=>30,),1=>array('id'=>3,'name'=>'Test3','surname'=>NULL,'personal_id'=>40,),2=>array('id'=>1,'name'=>'Test1','surname'=>'tseT','personal_id'=>NULL,),)";
+			$query_result=$pdo_handle->query('SELECT * FROM pdo_cheat_test_table')->fetchAll(PDO::FETCH_NAMED);
+			//echo ' ('.var_export_contains($query_result, '', true).')';
+			if(
+				var_export_contains($query_result, $output_string_a) ||
+				var_export_contains($query_result, $output_string_b) ||
+				var_export_contains($query_result, $output_string_c) ||
+				var_export_contains($query_result, $output_string_d)
+			)
+				echo ' [ OK ]'.PHP_EOL;
+			else
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				$errors[]='Editing row phase 1';
+			}
+		echo '  -> phase 2 (personal_id=50)';
+			$test_person=$pdo_cheat->get_row()
+			->	get_row_by_name('Test1')
+			->	get_row();
+			$test_person->personal_id(50)->save_row();
+			$output_string_a="array(0=>array('id'=>3,'name'=>'Test3','surname'=>NULL,'personal_id'=>40,),1=>array('id'=>2,'name'=>'Test2','surname'=>'tseT','personal_id'=>30,),2=>array('id'=>1,'name'=>'Test1','surname'=>'tseT','personal_id'=>50,),)";
+			$output_string_b="array(0=>array('id'=>'1','name'=>'Test1','surname'=>'tseT','personal_id'=>'50',),1=>array('id'=>'2','name'=>'Test2','surname'=>'tseT','personal_id'=>'30',),2=>array('id'=>'3','name'=>'Test3','surname'=>NULL,'personal_id'=>'40',),)";
+			$output_string_c="array(0=>array('id'=>1,'name'=>'Test1','surname'=>'tseT','personal_id'=>50,),1=>array('id'=>2,'name'=>'Test2','surname'=>'tseT','personal_id'=>30,),2=>array('id'=>3,'name'=>'Test3','surname'=>NULL,'personal_id'=>40,),)";
+			$output_string_d="array(0=>array('id'=>2,'name'=>'Test2','surname'=>'tseT','personal_id'=>30,),1=>array('id'=>3,'name'=>'Test3','surname'=>NULL,'personal_id'=>40,),2=>array('id'=>1,'name'=>'Test1','surname'=>'tseT','personal_id'=>50,),)";
+			$query_result=$pdo_handle->query('SELECT * FROM pdo_cheat_test_table')->fetchAll(PDO::FETCH_NAMED);
+			//echo ' ('.var_export_contains($query_result, '', true).')';
+			if(
+				var_export_contains($query_result, $output_string_a) ||
+				var_export_contains($query_result, $output_string_b) ||
+				var_export_contains($query_result, $output_string_c) ||
+				var_export_contains($query_result, $output_string_d)
+			)
+				echo ' [ OK ]'.PHP_EOL;
+			else
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				$errors[]='Editing row phase 2';
+			}
 
 	echo ' -> Dumping table';
-		$output_string_a="array(0=>array('id'=>2,'name'=>'Test2','surname'=>'tseT','personal_id'=>30,),1=>array('id'=>1,'name'=>'Test1','surname'=>'tseT','personal_id'=>50,),)";
-		$output_string_b="array(0=>array('id'=>'1','name'=>'Test1','surname'=>'tseT','personal_id'=>'50',),1=>array('id'=>'2','name'=>'Test2','surname'=>'tseT','personal_id'=>'30',),)";
-		$output_string_c="array(0=>array('id'=>1,'name'=>'Test1','surname'=>'tseT','personal_id'=>50,),1=>array('id'=>2,'name'=>'Test2','surname'=>'tseT','personal_id'=>30,),)";
+		$output_string_a="array(0=>array('id'=>1,'name'=>'Test3','surname'=>NULL,'personal_id'=>40,),1=>array('id'=>2,'name'=>'Test2','surname'=>'tseT','personal_id'=>30,),2=>array('id'=>1,'name'=>'Test1','surname'=>'tseT','personal_id'=>50,),)";
+		$output_string_b="array(0=>array('id'=>'1','name'=>'Test1','surname'=>'tseT','personal_id'=>'50',),1=>array('id'=>'2','name'=>'Test2','surname'=>'tseT','personal_id'=>'30',),2=>array('id'=>'3','name'=>'Test3','surname'=>NULL,'personal_id'=>'40',),)";
+		$output_string_c="array(0=>array('id'=>1,'name'=>'Test1','surname'=>'tseT','personal_id'=>50,),1=>array('id'=>2,'name'=>'Test2','surname'=>'tseT','personal_id'=>30,),2=>array('id'=>3,'name'=>'Test3','surname'=>NULL,'personal_id'=>40,),)";
+		$output_string_d="array(0=>array('id'=>2,'name'=>'Test2','surname'=>'tseT','personal_id'=>30,),1=>array('id'=>3,'name'=>'Test3','surname'=>NULL,'personal_id'=>40,),2=>array('id'=>1,'name'=>'Test1','surname'=>'tseT','personal_id'=>50,),)";
 		$query_result=$pdo_cheat->dump_table();
 		//echo ' ('.var_export_contains($query_result, '', true).')';
 		if(
 			var_export_contains($query_result, $output_string_a) ||
 			var_export_contains($query_result, $output_string_b) ||
-			var_export_contains($query_result, $output_string_c)
+			var_export_contains($query_result, $output_string_c) ||
+			var_export_contains($query_result, $output_string_d)
 		)
 			echo ' [ OK ]'.PHP_EOL;
 		else
@@ -512,22 +628,40 @@
 			$errors[]='Dumping schema';
 		}
 
-	echo ' -> Deleting row';
-		$pdo_cheat->delete_row()
-		->	name('Test1')
-		->	delete_row();
-		$output_string_a="array(0=>array('id'=>2,'name'=>'Test2','surname'=>'tseT','personal_id'=>30,),)";
-		$output_string_b="array(0=>array('id'=>'2','name'=>'Test2','surname'=>'tseT','personal_id'=>'30',),)";
-		$query_result=$pdo_handle->query('SELECT * FROM pdo_cheat_test_table')->fetchAll(PDO::FETCH_NAMED);
-		if(
-			var_export_contains($query_result, $output_string_a) ||
-			var_export_contains($query_result, $output_string_b)
-		)
-			echo ' [ OK ]'.PHP_EOL;
-		else
-		{
-			echo ' [FAIL]'.PHP_EOL;
-			$errors[]='Deleting row';
+	echo ' -> Deleting row'.PHP_EOL;
+		echo '  -> phase 1 (name=Test1)';
+			$pdo_cheat->delete_row()
+			->	name('Test1')
+			->	delete_row();
+			$output_string_a="array(0=>array('id'=>2,'name'=>'Test2','surname'=>'tseT','personal_id'=>30,),1=>array('id'=>3,'name'=>'Test3','surname'=>NULL,'personal_id'=>40,),)";
+			$output_string_b="array(0=>array('id'=>'2','name'=>'Test2','surname'=>'tseT','personal_id'=>'30',),1=>array('id'=>'3','name'=>'Test3','surname'=>NULL,'personal_id'=>'40',),)";
+			$query_result=$pdo_handle->query('SELECT * FROM pdo_cheat_test_table')->fetchAll(PDO::FETCH_NAMED);
+			if(
+				var_export_contains($query_result, $output_string_a) ||
+				var_export_contains($query_result, $output_string_b)
+			)
+				echo ' [ OK ]'.PHP_EOL;
+			else
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				$errors[]='Deleting row phase 1';
+			}
+		echo '  -> phase 2 (surname=NULL)';
+			$pdo_cheat->delete_row()
+			->	surname(false)
+			->	delete_row();
+			$output_string_a="array(0=>array('id'=>2,'name'=>'Test2','surname'=>'tseT','personal_id'=>30,),)";
+			$output_string_b="array(0=>array('id'=>'2','name'=>'Test2','surname'=>'tseT','personal_id'=>'30',),)";
+			$query_result=$pdo_handle->query('SELECT * FROM pdo_cheat_test_table')->fetchAll(PDO::FETCH_NAMED);
+			if(
+				var_export_contains($query_result, $output_string_a) ||
+				var_export_contains($query_result, $output_string_b)
+			)
+				echo ' [ OK ]'.PHP_EOL;
+			else
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				$errors[]='Deleting row phase 2';
 		}
 
 	echo ' -> Clearing table';
@@ -537,8 +671,8 @@
 		->	surname('tseT')
 		->	personal_id(20)
 		->	save_row();
-		$output_string_a="array(0=>array('id'=>3,'name'=>'Test1','surname'=>'tseT','personal_id'=>20,),)";
-		$output_string_b="array(0=>array('id'=>'3','name'=>'Test1','surname'=>'tseT','personal_id'=>'20',),)";
+		$output_string_a="array(0=>array('id'=>4,'name'=>'Test1','surname'=>'tseT','personal_id'=>20,),)";
+		$output_string_b="array(0=>array('id'=>'4','name'=>'Test1','surname'=>'tseT','personal_id'=>'20',),)";
 		$query_result=$pdo_handle->query('SELECT * FROM pdo_cheat_test_table')->fetchAll(PDO::FETCH_NAMED);
 		if(
 			var_export_contains($query_result, $output_string_a) ||

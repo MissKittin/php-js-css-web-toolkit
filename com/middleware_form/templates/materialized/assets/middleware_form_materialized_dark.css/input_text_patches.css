@@ -1,0 +1,4 @@
+#middleware_form .input_text input[type=text],
+#middleware_form .input_text input[type=password] {
+	color: #ffffff;
+}

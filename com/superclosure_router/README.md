@@ -55,11 +55,16 @@ superclosure_router::route(); // exec and flush routing table
 ```
 
 ## Set run callback
+Here it's different - do not extend the `superclosure_router` class  
 If you want to define routing function arguments,  
 you can use the `set_run_callback()` method, eg:
 ```
-superclosure_router::set_run_callback(function($callback){
-	$callback('example-arg-1', 'example-arg-2');
+superclosure_router::set_run_callback(function($callback, $matches){
+	return $callback(
+		$matches, // regex matches
+		'example-arg-1',
+		'example-arg-2'
+	);
 });
 ```
 

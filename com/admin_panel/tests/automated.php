@@ -222,8 +222,9 @@
 
 		mkdir(__DIR__.'/tmp/automatic/public/assets');
 		foreach(array_diff(scandir(__DIR__.'/../templates'), ['.', '..']) as $template)
-			foreach(array_diff(scandir(__DIR__.'/../templates/'.$template.'/assets'), ['.', '..']) as $file)
-				assets_compiler(__DIR__.'/../templates/'.$template.'/assets/'.$file, __DIR__.'/tmp/automatic/public/assets/'.$file);
+			if(is_dir(__DIR__.'/../templates/'.$template.'/assets'))
+				foreach(array_diff(scandir(__DIR__.'/../templates/'.$template.'/assets'), ['.', '..']) as $file)
+					assets_compiler(__DIR__.'/../templates/'.$template.'/assets/'.$file, __DIR__.'/tmp/automatic/public/assets/'.$file);
 	echo ' [ OK ]'.PHP_EOL;
 
 	$failed=false;

@@ -307,7 +307,7 @@
 
 			$log_handle=new $class($log_params);
 
-			foreach(['debug', 'info', 'warn', 'error'] as $method)
+			foreach(['debug', 'info', 'notice', 'warn', 'error', 'crit', 'alert', 'emerg'] as $method)
 				$log_handle->$method($method.' test');
 
 			$test_failed=false;
@@ -315,73 +315,81 @@
 			switch($class)
 			{
 				case 'Test\log_to_csv':
+					//echo ' ('.str_replace("\r\n", '', file_get_contents(__DIR__.'/tmp/logger/log.csv')).')';
 					if(
 						str_replace("\r\n", '', file_get_contents(__DIR__.'/tmp/logger/log.csv'))
 						!==
-						'0000-00-00 00:00:00,test_app,DEBUG,debug test0000-00-00 00:00:00,test_app,INFO,info test0000-00-00 00:00:00,test_app,WARN,warn test0000-00-00 00:00:00,test_app,ERROR,error test'
+						'0000-00-00 00:00:00,test_app,DEBUG,debug test0000-00-00 00:00:00,test_app,INFO,info test0000-00-00 00:00:00,test_app,NOTICE,notice test0000-00-00 00:00:00,test_app,WARN,warn test0000-00-00 00:00:00,test_app,ERROR,error test0000-00-00 00:00:00,test_app,CRITICAL,crit test0000-00-00 00:00:00,test_app,ALERT,alert test0000-00-00 00:00:00,test_app,EMERGENCY,emerg test'
 					)
 						$test_failed=true;
 				break;
 				case 'Test\log_to_json':
+					//echo ' ('.file_get_contents(__DIR__.'/tmp/logger/log.json').')';
 					if(
 						file_get_contents(__DIR__.'/tmp/logger/log.json')
 						!==
-						'[["0000-00-00 00:00:00","test_app","DEBUG","debug test"],["0000-00-00 00:00:00","test_app","INFO","info test"],["0000-00-00 00:00:00","test_app","WARN","warn test"],["0000-00-00 00:00:00","test_app","ERROR","error test"]]'
+						'[["0000-00-00 00:00:00","test_app","DEBUG","debug test"],["0000-00-00 00:00:00","test_app","INFO","info test"],["0000-00-00 00:00:00","test_app","NOTICE","notice test"],["0000-00-00 00:00:00","test_app","WARN","warn test"],["0000-00-00 00:00:00","test_app","ERROR","error test"],["0000-00-00 00:00:00","test_app","CRITICAL","crit test"],["0000-00-00 00:00:00","test_app","ALERT","alert test"],["0000-00-00 00:00:00","test_app","EMERGENCY","emerg test"]]'
 					)
 						$test_failed=true;
 				break;
 				case 'Test\log_to_mail':
-					foreach(['DEBUG', 'INFO', 'WARN', 'ERROR'] as $mail_callback_output_test)
+					//echo ' ('.var_export($GLOBALS['_mail_callback_output'], true).')';
+					foreach(['DEBUG', 'INFO', 'NOTICE', 'WARN', 'ERROR', 'CRITICAL', 'ALERT', 'EMERGENCY'] as $mail_callback_output_test)
+					{
+						$mail_callback_output_test_meth=$mail_callback_output_test;
+						switch($mail_callback_output_test)
+						{
+							case 'CRITICAL':
+								$mail_callback_output_test_meth='crit';
+							break;
+							case 'EMERGENCY':
+								$mail_callback_output_test_meth='emerg';
+						}
 						if(!isset($GLOBALS['_mail_callback_output'][$mail_callback_output_test]))
 							$test_failed=true;
 						else if(
 							$GLOBALS['_mail_callback_output'][$mail_callback_output_test]
 							!==
-							'example@example.com-test_app-'.strtolower($mail_callback_output_test).' test'
+							'example@example.com-test_app-'.strtolower($mail_callback_output_test_meth).' test'
+						)
+							$test_failed=true;
+					}
+				break;
+				case 'Test\log_to_pdo':
+					$pdo_fetch=$pdo_handle->query('SELECT * FROM logger_test')->fetchAll(PDO::FETCH_ASSOC);
+					//echo ' ('.var_export($pdo_fetch, true).')';
+					foreach([
+						['DEBUG', 'debug'],
+						['INFO', 'info'],
+						['NOTICE', 'notice'],
+						['WARN', 'warn'],
+						['ERROR', 'error'],
+						['CRITICAL', 'crit'],
+						['ALERT', 'alert'],
+						['EMERGENCY', 'emerg']
+					] as $pdo_fetch_k=>$pdo_fetch_v)
+						if(
+							$pdo_fetch[$pdo_fetch_k]['id'].$pdo_fetch[$pdo_fetch_k]['date'].$pdo_fetch[$pdo_fetch_k]['app_name'].$pdo_fetch[$pdo_fetch_k]['priority'].$pdo_fetch[$pdo_fetch_k]['message']
+							!==
+							++$pdo_fetch_k.'0000-00-00 00:00:00test_app'.$pdo_fetch_v[0].$pdo_fetch_v[1].' test'
 						)
 							$test_failed=true;
 				break;
-				case 'Test\log_to_pdo':
-					$pdo_fetch=$pdo_handle->query('SELECT * FROM logger_test')->fetchAll();
-
-					if(
-						$pdo_fetch[0]['id'].$pdo_fetch[0]['date'].$pdo_fetch[0]['app_name'].$pdo_fetch[0]['priority'].$pdo_fetch[0]['message']
-						!==
-						'10000-00-00 00:00:00test_appDEBUGdebug test'
-					)
-						$test_failed=true;
-					if(
-						$pdo_fetch[1]['id'].$pdo_fetch[1]['date'].$pdo_fetch[1]['app_name'].$pdo_fetch[1]['priority'].$pdo_fetch[1]['message']
-						!==
-						'20000-00-00 00:00:00test_appINFOinfo test'
-					)
-						$test_failed=true;
-					if(
-						$pdo_fetch[2]['id'].$pdo_fetch[2]['date'].$pdo_fetch[2]['app_name'].$pdo_fetch[2]['priority'].$pdo_fetch[2]['message']
-						!==
-						'30000-00-00 00:00:00test_appWARNwarn test'
-					)
-						$test_failed=true;
-					if(
-						$pdo_fetch[3]['id'].$pdo_fetch[3]['date'].$pdo_fetch[3]['app_name'].$pdo_fetch[3]['priority'].$pdo_fetch[3]['message']
-						!==
-						'40000-00-00 00:00:00test_appERRORerror test'
-					)
-						$test_failed=true;
-				break;
 				case 'Test\log_to_txt':
+					//echo ' ('.str_replace("\n", '', file_get_contents(__DIR__.'/tmp/logger/log.txt')).')';
 					if(
 						str_replace("\n", '', file_get_contents(__DIR__.'/tmp/logger/log.txt'))
 						!==
-						'0000-00-00 00:00:00 test_app [DEBUG] debug test0000-00-00 00:00:00 test_app [INFO] info test0000-00-00 00:00:00 test_app [WARN] warn test0000-00-00 00:00:00 test_app [ERROR] error test'
+						'0000-00-00 00:00:00 test_app [DEBUG] debug test0000-00-00 00:00:00 test_app [INFO] info test0000-00-00 00:00:00 test_app [NOTICE] notice test0000-00-00 00:00:00 test_app [WARN] warn test0000-00-00 00:00:00 test_app [ERROR] error test0000-00-00 00:00:00 test_app [CRITICAL] crit test0000-00-00 00:00:00 test_app [ALERT] alert test0000-00-00 00:00:00 test_app [EMERGENCY] emerg test'
 					)
 						$test_failed=true;
 				break;
 				case 'Test\log_to_xml':
+					//echo ' ('.file_get_contents(__DIR__.'/tmp/logger/log.xml').')';
 					if(
 						file_get_contents(__DIR__.'/tmp/logger/log.xml')
 						!==
-						'<?xml version="1.0" encoding="UTF-8" ?><journal><entry><date>0000-00-00 00:00:00</date><appname>test_app</appname><priority>DEBUG</priority><message>debug test</message></entry><entry><date>0000-00-00 00:00:00</date><appname>test_app</appname><priority>INFO</priority><message>info test</message></entry><entry><date>0000-00-00 00:00:00</date><appname>test_app</appname><priority>WARN</priority><message>warn test</message></entry><entry><date>0000-00-00 00:00:00</date><appname>test_app</appname><priority>ERROR</priority><message>error test</message></entry></journal>'
+						'<?xml version="1.0" encoding="UTF-8" ?><journal><entry><date>0000-00-00 00:00:00</date><appname>test_app</appname><priority>DEBUG</priority><message>debug test</message></entry><entry><date>0000-00-00 00:00:00</date><appname>test_app</appname><priority>INFO</priority><message>info test</message></entry><entry><date>0000-00-00 00:00:00</date><appname>test_app</appname><priority>NOTICE</priority><message>notice test</message></entry><entry><date>0000-00-00 00:00:00</date><appname>test_app</appname><priority>WARN</priority><message>warn test</message></entry><entry><date>0000-00-00 00:00:00</date><appname>test_app</appname><priority>ERROR</priority><message>error test</message></entry><entry><date>0000-00-00 00:00:00</date><appname>test_app</appname><priority>CRITICAL</priority><message>crit test</message></entry><entry><date>0000-00-00 00:00:00</date><appname>test_app</appname><priority>ALERT</priority><message>alert test</message></entry><entry><date>0000-00-00 00:00:00</date><appname>test_app</appname><priority>EMERGENCY</priority><message>emerg test</message></entry></journal>'
 					)
 						$test_failed=true;
 			}

@@ -110,8 +110,12 @@
 	 * Usage:
 	 *  $output=$log->debug('The condition is true');
 	 *  $output=$log->info('Nice message');
+	 *  $output=$log->notice('Check this out');
 	 *  $output=$log->warn('This feature is deprecated');
 	 *  $output=$log->error('Something went wrong');
+	 *  $output=$log->crit('The troubles begin - keep an eye on this');
+	 *  $output=$log->alert('Something is not working, pls help me now');
+	 *  $output=$log->emerg('LAY OUT THE MATTRESSES! YOU FUCKED UP DEPLOYMENT!');
 	 *
 	 * Examples:
 		$log=new log_to_csv([
@@ -205,8 +209,126 @@
 		]);
 		$log->debug('The condition is true');
 		$log->info('Nice message');
+		$log->notice('Check this out');
 		$log->warn('This feature is deprecated');
 		$log->error('Something went wrong');
+		$log->crit('The troubles begin - keep an eye on this');
+		$log->alert('Something is not working, pls help me now');
+		$log->emerg('LAY OUT THE MATTRESSES! YOU FUCKED UP DEPLOYMENT!');
+	 *
+	 * PSR-3:
+	 *  you need an adapter compatible with the version of the psr/log package you are using
+	 *  the string_interpolator.php library can be used to implement context handling, e.g.
+		require './lib/string_interpolator.php';
+
+		class log_to_psr
+		implements Psr\Log\LoggerInterface
+		{
+			protected $logger;
+
+			public function __construct(log_to_generic $logger)
+			{
+				$this->logger=$logger;
+			}
+
+			public function emergency($message, array $context=[])
+			{
+				$this->logger->emerg(string_interpolator(
+					$message,
+					$context
+				));
+			}
+			public function alert($message, array $context=[])
+			{
+				$this->logger->alert(string_interpolator(
+					$message,
+					$context
+				));
+			}
+			public function critical($message, array $context=[])
+			{
+				$this->logger->crit(string_interpolator(
+					$message,
+					$context
+				));
+			}
+			public function error($message, array $context=[])
+			{
+				$this->logger->error(string_interpolator(
+					$message,
+					$context
+				));
+			}
+			public function warning($message, array $context=[])
+			{
+				$this->logger->warn(string_interpolator(
+					$message,
+					$context
+				));
+			}
+			public function notice($message, array $context=[])
+			{
+				$this->logger->notice(string_interpolator(
+					$message,
+					$context
+				));
+			}
+			public function info($message, array $context=[])
+			{
+				$this->logger->info(string_interpolator(
+					$message,
+					$context
+				));
+			}
+			public function debug($message, array $context=[])
+			{
+				$this->logger->debug(string_interpolator(
+					$message,
+					$context
+				));
+			}
+			public function log(
+				$level,
+				$message, array $context=[]
+			){
+				$this->$level(
+					$message,
+					$context
+				);
+			}
+
+			// compatibility with the original class
+			public function emerg($message, array $context=[])
+			{
+				$this->emergency($message, $context);
+			}
+			public function crit($message, array $context=[])
+			{
+				$this->critical($message, $context);
+			}
+			public function warn($message, array $context=[])
+			{
+				$this->warning($message, $context);
+			}
+		}
+
+		// dress the selected logger object in a wrapper
+		$log_psr=new log_to_psr($log);
+
+		$log_psr->debug(
+			'The condition is {placeholder}',
+			['placeholder'=>'yes']
+		);
+		$log_psr->log(
+			'debug',
+			'The condition is {placeholder}',
+			['placeholder'=>'yes']
+		);
+		$log_psr->log(
+			Psr\Log\LogLevel::DEBUG,
+			'The condition is {placeholder}',
+			['placeholder'=>'yes']
+		);
 	 */
 
 	class logger_exception extends Exception {}
@@ -246,6 +368,10 @@
 		{
 			return $this->log('INFO', $message);
 		}
+		public function notice(string $message)
+		{
+			return $this->log('NOTICE', $message);
+		}
 		public function warn(string $message)
 		{
 			return $this->log('WARN', $message);
@@ -253,6 +379,18 @@
 		public function error(string $message)
 		{
 			return $this->log('ERROR', $message);
+		}
+		public function crit(string $message)
+		{
+			return $this->log('CRITICAL', $message);
+		}
+		public function alert(string $message)
+		{
+			return $this->log('ALERT', $message);
+		}
+		public function emerg(string $message)
+		{
+			return $this->log('EMERGENCY', $message);
 		}
 	}
 	abstract class log_to_file extends log_to_generic

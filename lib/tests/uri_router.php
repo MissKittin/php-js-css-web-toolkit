@@ -37,8 +37,11 @@
 		$GLOBALS['default_route']=0;
 		$GLOBALS['simple_route']=0;
 		$GLOBALS['multipath_route']=0;
+		$GLOBALS['regex_route_abandoned']=false;
 		$GLOBALS['regex_route']=0;
 		$GLOBALS['regex_route_matches']=null;
+		$GLOBALS['regex_route_B']=0;
+		$GLOBALS['regex_route_B_matches']=null;
 		$GLOBALS['post_route']=0;
 
 		uri_router::set_base_path('/basepth');
@@ -67,11 +70,29 @@
 		});
 
 		uri_router::add(['/arg1/arg([0-9])/arg3'], function($matches){
+			if($matches[1] === '9')
+			{
+				$GLOBALS['regex_route_abandoned']=true;
+				return true;
+			}
+
 			++$GLOBALS['regex_route'];
 			$GLOBALS['regex_route_matches']=$matches[1];
 
 			if($GLOBALS['do_echo'])
 				echo ' (executed regex_route)';
+		}, true);
+
+		uri_router::add(['/arg1/arg([0-9])/arg3'], function($matches){
+			if($matches[1] !== '9') // for reverse mode
+				return true;
+
+			$GLOBALS['regex_route_abandoned']=true; // for reverse mode
+			++$GLOBALS['regex_route_B'];
+			$GLOBALS['regex_route_B_matches']=$matches[1];
+
+			if($GLOBALS['do_echo'])
+				echo ' (executed regex_route_B)';
 		}, true);
 
 		uri_router::add(['/arg1/arg2/arg3'], function(){
@@ -185,6 +206,19 @@
 			echo '   -> regex_route';
 				$_SERVER['REQUEST_URI']='/basepth/arg1/arg0/arg3?getarg1=getval1&getarg2=getval2';
 				exec_uri_router();
+
+				if($GLOBALS['regex_route_abandoned'])
+				{
+					echo ' [FAIL]';
+
+					if($reverse_mode)
+						$errors[]='reverse_mode '.$method.' regex_route';
+					else
+						$errors[]='simple_mode '.$method.' regex_route';
+				}
+				else
+					echo ' [ OK ]';
+
 				if($GLOBALS['regex_route'] === 1)
 					echo ' [ OK ]';
 				else
@@ -196,6 +230,7 @@
 					else
 						$errors[]='simple_mode '.$method.' regex_route';
 				}
+
 				if($GLOBALS['regex_route_matches'] === '0')
 					echo ' [ OK ]'.PHP_EOL;
 				else
@@ -206,6 +241,46 @@
 						$errors[]='reverse_mode '.$method.' regex_route matches';
 					else
 						$errors[]='simple_mode '.$method.' regex_route matches';
+				}
+
+			echo '   -> regex_route with return true';
+				$_SERVER['REQUEST_URI']='/basepth/arg1/arg9/arg3?getarg1=getval1&getarg2=getval2';
+				exec_uri_router();
+
+				if($GLOBALS['regex_route_abandoned'])
+					echo ' [ OK ]';
+				else
+				{
+					echo ' [FAIL]';
+
+					if($reverse_mode)
+						$errors[]='reverse_mode '.$method.' regex_route return true';
+					else
+						$errors[]='simple_mode '.$method.' regex_route return true';
+				}
+
+				if($GLOBALS['regex_route_B'] === 1)
+					echo ' [ OK ]';
+				else
+				{
+					echo ' [FAIL]';
+
+					if($reverse_mode)
+						$errors[]='reverse_mode '.$method.' regex_route return true';
+					else
+						$errors[]='simple_mode '.$method.' regex_route return true';
+				}
+
+				if($GLOBALS['regex_route_B_matches'] === '9')
+					echo ' [ OK ]'.PHP_EOL;
+				else
+				{
+					echo ' [FAIL]'.PHP_EOL;
+
+					if($reverse_mode)
+						$errors[]='reverse_mode '.$method.' regex_route return true matches';
+					else
+						$errors[]='simple_mode '.$method.' regex_route return true matches';
 				}
 
 			echo '   -> post_route';
@@ -245,7 +320,7 @@
 		{
 			protected static function run_callback(callable $callback, $matches=null)
 			{
-				$callback('example-arg-1', 'example-arg-2');
+				return $callback('example-arg-1', 'example-arg-2');
 			}
 		}
 

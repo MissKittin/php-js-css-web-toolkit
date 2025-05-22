@@ -50,6 +50,7 @@
 		file_put_contents('./lib/sleep.js', 'sleepjs');
 		file_put_contents('./lib/tests/lib.php', 'libtest');
 		file_put_contents('./lib/pf_inc.php', 'pfincphp');
+		file_put_contents('./sourcefile.php', 'sourcefile');
 		file_put_contents('./stub.php', '<?php echo "STUB"; __HALT_COMPILER();');
 	echo ' [ OK ]'.PHP_EOL;
 
@@ -60,6 +61,7 @@
 		.	'--compress=gz '
 		.	'--source=com '
 		.	'--source=lib '
+		.	'--source=./sourcefile.php '
 		.	'--ignore=tests/ '
 		.	'--ignore=README.md '
 		.	'--ignore=.js '
@@ -180,6 +182,25 @@
 			if(file_get_contents('phar://'
 			.	'./output.phar'
 			.	'/lib/pf_inc.php') === 'pfincphp')
+				echo ' [ OK ]'.PHP_EOL;
+			else
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				$failed=true;
+			}
+		echo '  -> sourcefile.php';
+			if(is_file('phar://'
+			.	'./output.phar'
+			.	'/sourcefile.php'))
+				echo ' [ OK ]';
+			else
+			{
+				echo ' [FAIL]';
+				$failed=true;
+			}
+			if(file_get_contents('phar://'
+			.	'./output.phar'
+			.	'/sourcefile.php') === 'sourcefile')
 				echo ' [ OK ]'.PHP_EOL;
 			else
 			{

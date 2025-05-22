@@ -30,15 +30,22 @@
 			return true;
 		}
 
-		if(!extension_loaded('mbstring'))
+		if(!\function_exists('mb_get_info'))
 		{
 			echo 'mbstring extension is not loaded'.PHP_EOL;
 			exit(1);
 		}
 
 		echo ' -> Mocking functions';
+			$GLOBALS['function_exists_mock']=true;
 			function function_exists()
 			{
+				if($GLOBALS['function_exists_mock'])
+				{
+					$GLOBALS['function_exists_mock']=false;
+					return true;
+				}
+
 				return false;
 			}
 		echo ' [ OK ]'.PHP_EOL;

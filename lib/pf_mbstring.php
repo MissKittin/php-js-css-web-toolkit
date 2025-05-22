@@ -1,5 +1,5 @@
 <?php
-	if(extension_loaded('mbstring'))
+	if(function_exists('mb_get_info'))
 	{
 		/*
 		 * mb_chr() polyfill

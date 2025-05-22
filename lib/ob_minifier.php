@@ -6,7 +6,7 @@
 		 * minify HTML and CSS from PHP output buffer
 		 *
 		 * Usage:
-		 *  ob_start('ob_minifier')
+			ob_start('ob_minifier');
 		 */
 
 		return str_replace(
@@ -30,7 +30,18 @@
 					'/(?=<!--)([\s\S]*?)-->/'
 				],
 				'',
-				$buffer
+				preg_replace_callback(
+					'/<script[^>]*>(.*?)<\/script>/s',
+					function($matches)
+					{
+						return preg_replace(
+							'/\/\/[^\n\r]+(?:[\n\r]|\*\))$/m',
+							'',
+							$matches[0]
+						);
+					},
+					$buffer
+				)
 			)
 		);
 	}

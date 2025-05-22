@@ -63,7 +63,8 @@ To set the desired value use `login_com_reg_name::_()['key']='value'` (except `l
 	* `login_style` [string]  
 		`login_default_bright.css` for default template or  
 		`login_default_dark.css` for default template or  
-		`login_materialized.css` for materialized template  
+		`login_materialized.css` for materialized template or  
+		`login_materialized_dark.css` for materialized template  
 		default: `login_default_bright.css`
 	* `inline_style` [bool]  
 		compiles the style and adds it to the inline tag instead of `link rel="stylesheet"` (not recommended)  
@@ -223,11 +224,12 @@ mklink /d app\assets\login_default_dark.css ..\..\tk\com\login\templates\default
 ### materialized template
 for *nix:
 ```
-ln -s ../../tk/com/login/templates/materialized/assets/login_materialized.css ./app/assets/login_materialized.css; ln -s ../../tk/lib/simpleblog_materialized.css ./app/assets/simpleblog_materialized.css
+ln -s ../../tk/com/login/templates/materialized/assets/login_materialized.css ./app/assets/login_materialized.css; ln -s ../../tk/com/login/templates/materialized/assets/login_materialized_dark.css ./app/assets/login_materialized_dark.css; ln -s ../../tk/lib/simpleblog_materialized.css ./app/assets/simpleblog_materialized.css
 ```
 for windows:
 ```
 mklink /d app\assets\login_materialized.css ..\..\tk\com\login\templates\materialized\assets\login_materialized.css
+mklink /d app\assets\login_materialized_dark.css ..\..\tk\com\login\templates\materialized\assets\login_materialized_dark.css
 mklink app\assets\simpleblog_materialized.css ..\..\tk\lib\simpleblog_materialized.css
 ```
 

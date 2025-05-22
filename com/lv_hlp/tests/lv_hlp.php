@@ -83,7 +83,8 @@
 				'doctrine/inflector',
 				'illuminate/view',
 				'league/commonmark',
-				'nesbot/carbon'
+				'nesbot/carbon',
+				'twig/twig'
 			] as $_composer_package){
 				echo ' -> Installing '.$_composer_package.PHP_EOL;
 				system('"'.PHP_BINARY.'" "'.$_composer_binary.'" '
@@ -123,6 +124,8 @@
 					.'@include(\'header\')'."\n"
 					.'MAINSTART {{ $my_variable }} MAINEND'
 				);
+				file_put_contents(__DIR__.'/tmp/lv_hlp/views/inertia.blade.php', '<body> @inertia </body>');
+				file_put_contents(__DIR__.'/tmp/lv_hlp/views/inertia.twig', '<body> {{ inertia() }} </body>');
 
 				echo ' [ OK ]'.PHP_EOL;
 			}
@@ -1009,8 +1012,8 @@
 					$failed=true;
 				}
 
-		echo ' -> Testing encrypter';
-			if(extension_loaded('openssl'))
+		echo ' -> Testing lv_hlp_encrypter';
+			if(function_exists('openssl_random_pseudo_bytes'))
 			{
 				echo PHP_EOL;
 				echo '  -> lv_hlp_encrypter_generate_key';
@@ -1049,7 +1052,7 @@
 			else
 				echo ' [SKIP]'.PHP_EOL;
 
-		echo ' -> Testing view';
+		echo ' -> Testing lv_hlp_view';
 			if(class_exists('\Illuminate\View\View'))
 			{
 				$view_output='HEADERB-HEADER-MAINSTART Hello world MAINEND';
@@ -1058,8 +1061,8 @@
 					::	set_cache_path(__DIR__.'/tmp/lv_hlp/views_cache')
 					::	set_view_path(__DIR__.'/tmp/lv_hlp/views')
 					::	view('main', [
-						'my_variable'=>'Hello world'
-					]);
+							'my_variable'=>'Hello world'
+						]);
 					//echo ' ('.$rendered_view.')';
 					if($rendered_view === $view_output)
 						echo ' [ OK ]';
@@ -1081,8 +1084,8 @@
 					::	set_cache_path(__DIR__.'/tmp/lv_hlp/views_cache')
 					::	set_view_path(__DIR__.'/tmp/lv_hlp/views')
 					::	view('main', [
-						'my_variable'=>'Hello world'
-					]);
+							'my_variable'=>'Hello world'
+						]);
 					//echo ' ('.$rendered_view.')';
 					if($rendered_view === $view_output)
 						echo ' [ OK ]'.PHP_EOL;
@@ -1144,7 +1147,7 @@
 			echo ' [ OK ]'.PHP_EOL;
 		}
 
-		echo ' -> Mocking functions';
+		echo ' -> Mocking functions and classes';
 			class Exception extends \Exception {}
 			class lv_str_ingable extends \lv_str_ingable {}
 			trait t_lv_macroable { use \t_lv_macroable; }
@@ -1178,6 +1181,31 @@
 			}
 		echo ' [ OK ]'.PHP_EOL;
 
+		echo ' -> Mocking lv_hlp_inertia';
+			$GLOBALS['http_response_code_mock']=null;
+			$GLOBALS['header_mock']=[];
+			class lv_hlp_inertia_mock extends lv_hlp_inertia
+			{
+				public static function set_asset_version(string $file)
+				{
+					static::$asset_version='inertiahash';
+					return static::class;
+				}
+				protected static function _instanceof_closure($prop_value)
+				{
+					return ($prop_value instanceof \Closure);
+				}
+			}
+			function http_response_code($code)
+			{
+				$GLOBALS['http_response_code_mock']=$code;
+			}
+			function header($header)
+			{
+				$GLOBALS['header_mock'][]=$header;
+			}
+		echo ' [ OK ]'.PHP_EOL;
+
 		echo ' -> Testing lv_str_password';
 			$password=lv_str_password(8);
 			if(
@@ -1191,6 +1219,236 @@
 				echo ' [FAIL]'.PHP_EOL;
 				$failed=true;
 			}
+
+		echo ' -> Testing lv_hlp_inertia'.PHP_EOL;
+			echo '  -> set_asset_version/set_clear_history/set_encrypt_history';
+				lv_hlp_inertia_mock
+				::	set_asset_version('string')
+				::	set_clear_history(true)
+				::	set_encrypt_history(true);
+				echo ' [ OK ]'.PHP_EOL;
+			echo '  -> api';
+				$_SERVER['REQUEST_URI']='/about';
+				if(lv_hlp_inertia_mock::api('about', [
+					'user'=>'user-name',
+					'data'=>function()
+					{
+						return [
+							'value1',
+							'value2',
+							'value3'
+						];
+					},
+					'classdata'=>new class()
+					{
+						public function __toString()
+						{
+							return 'TOSTRING';
+						}
+					}
+				])){
+					echo ' [FAIL]';
+					$failed=true;
+				}
+				else
+					echo ' [ OK ]';
+				$_SERVER['HTTP_X_INERTIA']='true';
+				if(lv_hlp_inertia_mock::api('about', [
+					'user'=>'user-name',
+					'data'=>function()
+					{
+						return [
+							'value1',
+							'value2',
+							'value3'
+						];
+					},
+					'classdata'=>new class()
+					{
+						public function __toString()
+						{
+							return 'TOSTRING';
+						}
+					}
+				]))
+					echo ' [ OK ]'.PHP_EOL;
+				else
+				{
+					echo ' [FAIL]'.PHP_EOL;
+					$failed=true;
+				}
+			echo '  -> render';
+				$_SERVER['REQUEST_METHOD']='GET';
+				$_SERVER['HTTP_X_INERTIA_VERSION']='outdated';
+				if(lv_hlp_inertia_mock::render() === '')
+				{
+					echo ' [ OK ]';
+					if($GLOBALS['http_response_code_mock'] === 409)
+						echo ' [ OK ]';
+					else
+					{
+						echo ' [FAIL]';
+						$failed=true;
+					}
+					if(in_array('X-Inertia-Location: /about', $GLOBALS['header_mock']))
+						echo ' [ OK ]';
+					else
+					{
+						echo ' [FAIL]';
+						$failed=true;
+					}
+				}
+				else
+				{
+					echo ' [FAIL]';
+					$failed=true;
+				}
+				$_SERVER['HTTP_X_INERTIA_VERSION']='inertiahash';
+				$GLOBALS['header_mock']=[];
+				//echo ' ('.lv_hlp_inertia_mock::render().')';
+				if(
+					lv_hlp_inertia_mock::render()
+					===
+					'{"component":"about","props":{"user":"user-name","data":["value1","value2","value3"],"classdata":"TOSTRING"},"url":"\/about","encryptHistory":true,"clearHistory":true,"version":"inertiahash"}'
+				){
+					echo ' [ OK ]';
+					if(in_array('Content-Type: application/json', $GLOBALS['header_mock']))
+						echo ' [ OK ]';
+					else
+					{
+						echo ' [FAIL]';
+						$failed=true;
+					}
+					if(in_array('X-Inertia: true', $GLOBALS['header_mock']))
+						echo ' [ OK ]';
+					else
+					{
+						echo ' [FAIL]';
+						$failed=true;
+					}
+					if(in_array('Vary: X-Inertia', $GLOBALS['header_mock']))
+						echo ' [ OK ]'.PHP_EOL;
+					else
+					{
+						echo ' [FAIL]'.PHP_EOL;
+						$failed=true;
+					}
+				}
+				else
+				{
+					echo ' [FAIL]'.PHP_EOL;
+					$failed=true;
+				}
+			echo '  -> get_template';
+				//echo ' ('.lv_hlp_inertia_mock::get_template().')';
+				if(
+					lv_hlp_inertia_mock::get_template()
+					===
+					'<div id="app" data-page="{&quot;component&quot;:&quot;about&quot;,&quot;props&quot;:{&quot;user&quot;:&quot;user-name&quot;,&quot;data&quot;:[&quot;value1&quot;,&quot;value2&quot;,&quot;value3&quot;],&quot;classdata&quot;:&quot;TOSTRING&quot;},&quot;url&quot;:&quot;\/about&quot;,&quot;encryptHistory&quot;:true,&quot;clearHistory&quot;:true,&quot;version&quot;:&quot;inertiahash&quot;}"></div>'
+				)
+					echo ' [ OK ]'.PHP_EOL;
+				else
+				{
+					echo ' [FAIL]'.PHP_EOL;
+					$failed=true;
+				}
+			echo '  -> register_lv_view_directives';
+				if(class_exists('\Illuminate\View\View'))
+				{
+					\lv_hlp_inertia::api('about', [
+						'user'=>'user-name',
+						'data'=>function()
+						{
+							return [
+								'value1',
+								'value2',
+								'value3'
+							];
+						},
+						'classdata'=>new class()
+						{
+							public function __toString()
+							{
+								return 'TOSTRING';
+							}
+						}
+					]);
+					\lv_hlp_inertia::register_lv_view_directives();
+					//echo ' ('.\lv_hlp_view(
+					//	'inertia',
+					//	[],
+					//	__DIR__.'/tmp/lv_hlp/views',
+					//	__DIR__.'/tmp/lv_hlp/views_cache'
+					//).')';
+					if(
+						\lv_hlp_view(
+							'inertia',
+							[],
+							__DIR__.'/tmp/lv_hlp/views',
+							__DIR__.'/tmp/lv_hlp/views_cache'
+						)
+						===
+						'<body> <div id="app" data-page="{&quot;component&quot;:&quot;about&quot;,&quot;props&quot;:{&quot;user&quot;:&quot;user-name&quot;,&quot;data&quot;:[&quot;value1&quot;,&quot;value2&quot;,&quot;value3&quot;],&quot;classdata&quot;:&quot;TOSTRING&quot;},&quot;url&quot;:&quot;\/about&quot;,&quot;encryptHistory&quot;:false,&quot;clearHistory&quot;:false}"></div> </body>'
+					)
+						echo ' [ OK ]'.PHP_EOL;
+					else
+					{
+						echo ' [FAIL]'.PHP_EOL;
+						$failed=true;
+					}
+				}
+				else
+					echo ' [SKIP]'.PHP_EOL;
+			echo '  -> register_twig_functions';
+				if(class_exists('\Twig\Environment'))
+				{
+					\lv_hlp_inertia::api('about', [
+						'user'=>'user-name',
+						'data'=>function()
+						{
+							return [
+								'value1',
+								'value2',
+								'value3'
+							];
+						},
+						'classdata'=>new class()
+						{
+							public function __toString()
+							{
+								return 'TOSTRING';
+							}
+						}
+					]);
+					$twig=new \Twig\Environment(
+						new \Twig\Loader\FilesystemLoader(
+							__DIR__.'/tmp/lv_hlp/views'
+						)
+					);
+					$twig->addFunction(
+						\lv_hlp_inertia::register_twig_functions()
+					);
+					//echo ' ('.$twig->render(
+					//	'inertia.twig',
+					//	[]
+					//).')';
+					if(
+						$twig->render(
+							'inertia.twig',
+							[]
+						)
+						===
+						'<body> <div id="app" data-page="{&quot;component&quot;:&quot;about&quot;,&quot;props&quot;:{&quot;user&quot;:&quot;user-name&quot;,&quot;data&quot;:[&quot;value1&quot;,&quot;value2&quot;,&quot;value3&quot;],&quot;classdata&quot;:&quot;TOSTRING&quot;},&quot;url&quot;:&quot;\/about&quot;,&quot;encryptHistory&quot;:false,&quot;clearHistory&quot;:false}"></div> </body>'
+					)
+						echo ' [ OK ]'.PHP_EOL;
+					else
+					{
+						echo ' [FAIL]'.PHP_EOL;
+						$failed=true;
+					}
+				}
+				else
+					echo ' [SKIP]'.PHP_EOL;
 
 		if(!is_file(__DIR__.'/tmp/.composer/vendor/autoload.php'))
 		{

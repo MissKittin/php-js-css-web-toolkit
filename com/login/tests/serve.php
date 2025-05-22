@@ -2,6 +2,7 @@
 	/*
 	 * add ?theme=dark in url to apply login_default_dark.css
 	 * add ?theme=materialized in url to apply login_materialized.css
+	 * add ?theme=materialized_dark in url to apply login_materialized_dark.css
 	 * set TEST_INLINE_STYLE=yes to test inline styles option
 	 */
 
@@ -24,6 +25,10 @@
 				case '/assets/login_materialized.css':
 					$assets_template='materialized';
 					$assets_dir='login_materialized.css';
+				break;
+				case '/assets/login_materialized_dark.css':
+					$assets_template='materialized';
+					$assets_dir='login_materialized_dark.css';
 				break;
 				case '/assets/simpleblog_materialized.css':
 					error_log(' -> Reading simpleblog_materialized.css');
@@ -55,6 +60,9 @@
 
 		include __DIR__.'/../main.php';
 
+		login_com_reg_config::_()['method']='login_single';
+		login_com_reg::_()['credentials']=['login', password_hash('password', PASSWORD_BCRYPT)];
+		login_com_reg_config::_()['reload_by_http']=false;
 		login_com_reg_view::_()['favicon']=__DIR__.'/tmp/favicon.html';
 
 		if(getenv('TEST_INLINE_STYLE') === 'yes')
@@ -72,9 +80,18 @@
 				case 'materialized':
 					login_com_reg_view::_()['template']='materialized';
 					login_com_reg_view::_()['login_style']='login_materialized.css';
+				break;
+				case 'materialized_dark':
+					login_com_reg_view::_()['template']='materialized';
+					login_com_reg_view::_()['login_style']='login_materialized_dark.css';
 			}
 
-		login_com();
+		if(!login_com())
+			echo ''
+			.	'<form action="" method="POST">'
+			.		'<input type="submit" name="logout" value="Logout">'
+			.		'<input type="hidden" name="'.csrf_print_token('parameter').'" value="'.csrf_print_token('value').'">'
+			.	'</form>';
 
 		exit();
 	}

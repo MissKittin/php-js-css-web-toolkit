@@ -3,7 +3,7 @@ A small framework
 
 ## Required libraries
 * `registry.php`
-* `simpleblog_materialized.css` (for materialized template)
+* `simpleblog_materialized.css` (for `materialized` and `materialized_dark` templates)
 * `rand_str.php` (if `set_inline_assets(true)` was used)
 * `assets_compiler.php` (for tests)
 * `rmdir_recursive.php` (for tests)
@@ -16,7 +16,7 @@ The logout button action is the current URL via POST
 * `__construct(array_params)`  
 	params:  
 	* `'base_url'=>'/admin'` - required; don't add a slash at the end; if without "subdirectory" leave it empty
-	* `'template'=>'template_name'` - `default` or `materialized`, optional
+	* `'template'=>'template_name'` - `default`, `materialized` or `materialized_dark`, optional
 	* `'templates_dir'=>'path/to/directory'` - path to the template directory, optional
 	* `'assets_path'=>'/assets'` - optional
 	* `'show_logout_button'=>true` - optional
@@ -102,6 +102,30 @@ The logout button action is the current URL via POST
 * `set_inline_assets(bool_option)` [returns self]  
 	compiles styles and scripts and adds them to the inline tag instead of `link rel="stylesheet"` and `script src=""` (not recommended)  
 	default: `false`
+* `rename_assets(array_assets)` [returns self]  
+	change the built-in asset file names
+
+		->	rename_assets([
+				// default template
+				'admin_panel_default.css'=>'rename_to_default.css',
+				'admin_panel_default.js'=>'rename_to_default.js',
+				// materialized and materialized_dark templates
+				'admin_panel_materialized.css'=>'rename_to_materialized.css',
+				'simpleblog_materialized.css'=>'rename_to_library_materialized.css'
+			])
+
+* `disable_assets(array_assets)` [returns self]  
+	disable built-in template assets
+
+		->	disable_assets([
+				// default template
+				'admin_panel_default.css',
+				'admin_panel_default.js',
+				// materialized and materialized_dark templates
+				'admin_panel_materialized.css',
+				'simpleblog_materialized.css'
+			])
+
 * `add_view_plugin_csp(callable_function)` [returns self]  
 	add CSP rules for view plugin (they will be applied for each page)
 
@@ -126,11 +150,12 @@ The logout button action is the current URL via POST
 			})
 
 ## Templates
-There are two templates available:
 * `default`  
 	purple-yellow-blue theme
 * `materialized`  
 	based on the Google's Material Design in green
+* `materialized_dark`  
+	**Warning:** requires `materialized` template assets
 
 ## Standard modules
 All application logic is defined by modules.  
@@ -316,15 +341,17 @@ The given example uses the `maximebf_debugbar.php` library to make bar installat
 ```
 <?php
 	require './vendor/autoload.php';
-	require './app/lib/stdlib.php';
-	require './app/lib/maximebf_debugbar.php';
+	require './lib/maximebf_debugbar.php';
 
-	if(php_debugbar
-	::	enable((getenv('APP_ENV') === 'dev'))
+	if(maximebf_debugbar
+	::	enable(($app_env === 'dev')) // enable((getenv('APP_ENV') === 'dev'))
+	::	set_vendor_dir('./vendor')
 	::	collectors([
-			'pdo'=>(class_exists('\DebugBar\DataCollector\PDO\PDOCollector'))? new DebugBar\DataCollector\PDO\PDOCollector() : new php_debugbar_dummy()
+			'pdo'=>(class_exists('\DebugBar\DataCollector\PDO\PDOCollector')) ? new DebugBar\DataCollector\PDO\PDOCollector() : new maximebf_debugbar_dummy()
 		])
-	::	route(strtok($_SERVER['REQUEST_URI'], '?')))
+	::	set_csp_nonce('phpdebugbar')
+	::	set_base_url('/__PHPDEBUGBAR__')
+	::	route(strtok($_SERVER['REQUEST_URI'], '?'))) // route('/'.app_params())
 		exit();
 
 	$admin_panel=new admin_panel([
@@ -334,18 +361,18 @@ The given example uses the `maximebf_debugbar.php` library to make bar installat
 	$admin_panel
 	//etc...
 	->	add_view_plugin_csp(function($admin_panel){
-			if(!php_debugbar::is_enabled())
+			if(!maximebf_debugbar::is_enabled())
 				return;
 
-			foreach(php_debugbar::get_csp_headers() as $section=>$values)
+			foreach(maximebf_debugbar::get_csp_headers() as $section=>$values)
 				foreach($values as $value)
 					$admin_panel->add_csp_header($section, $value);
 		})
 	->	add_view_plugin_head(function(){
-			echo php_debugbar::get_html_headers();
+			echo maximebf_debugbar::get_html_headers();
 		})
 	->	add_view_plugin_body(function(){
-			php_debugbar::get_page_content();
+			echo maximebf_debugbar::get_page_content();
 		})
 	//etc...
 ?>
@@ -365,7 +392,7 @@ mklink /d app\assets\admin_panel_default.css ..\..\tk\com\admin_panel\templates\
 mklink app\assets\admin_panel_default.js ..\..\tk\com\admin_panel\templates\default\assets\admin_panel_default.js
 ```
 
-### materialized template
+### materialized and materialized_dark templates
 for *nix:
 ```
 ln -s ../../tk/com/admin_panel/templates/materialized/assets/admin_panel_materialized.css ./app/assets/admin_panel_materialized.css; ln -s ../../tk/lib/simpleblog_materialized.css ./app/assets/simpleblog_materialized.css

@@ -1,6 +1,6 @@
 <?php
 	/*
-	 * Registry design pattern library
+	 * Registry design pattern
 	 *
 	 * Traits:
 	 *  t_registry
@@ -14,6 +14,51 @@
 
 	class registry_exception extends Exception {}
 
+	if(PHP_VERSION_ID < 80000) // compatibility bridge for t_registry trait
+	{
+		trait t_registry_arrayaccess
+		{
+			public function offsetExists($offset)
+			{
+				return $this->_offsetExists($offset);
+			}
+			public function offsetGet($offset)
+			{
+				return $this->_offsetGet($offset);
+			}
+			public function offsetSet($offset, $value)
+			{
+				$this->_offsetSet($offset, $value);
+			}
+			public function offsetUnset($offset)
+			{
+				$this->_offsetUnset($offset);
+			}
+		}
+	}
+	else
+	{
+		trait t_registry_arrayaccess
+		{
+			public function offsetExists(mixed $offset): bool
+			{
+				return $this->_offsetExists($offset);
+			}
+			public function offsetGet(mixed $offset): mixed
+			{
+				return $this->_offsetGet($offset);
+			}
+			public function offsetSet(mixed $offset, mixed $value): void
+			{
+				$this->_offsetSet($offset, $value);
+			}
+			public function offsetUnset(mixed $offset): void
+			{
+				$this->_offsetUnset($offset);
+			}
+		}
+	}
+
 	trait t_registry
 	{
 		/*
@@ -21,6 +66,9 @@
 		 *
 		 * Note:
 		 *  throws an registry_exception on error
+		 *
+		 * Warning:
+		 *  t_registry_arrayaccess trait is required
 		 *
 		 * Usage:
 			class my_registry implements ArrayAccess { use t_registry; }
@@ -36,6 +84,8 @@
 			echo $registry['key']; // prints 'value'
 		 * note: you cannot use unset()
 		 */
+
+		use t_registry_arrayaccess;
 
 		protected $registry=[];
 		protected $default_value;
@@ -57,19 +107,19 @@
 			$this->registry[$key]=$value;
 		}
 
-		public function offsetSet($key, $value)
+		protected function _offsetSet($key, $value)
 		{
 			return $this->__set($key, $value);
 		}
-		public function offsetExists($key)
+		protected function _offsetExists($key)
 		{
 			return isset($this->registry[$key]);
 		}
-		public function offsetGet($key)
+		protected function _offsetGet($key)
 		{
 			return $this->__get($key);
 		}
-		public function offsetUnset($key)
+		protected function _offsetUnset($key)
 		{
 			throw new registry_exception('unset is not allowed');
 		}
@@ -82,6 +132,7 @@
 		 *
 		 * Warning:
 		 *  t_registry trait is required
+		 *  t_registry_arrayaccess trait is required
 		 *
 		 * Usage:
 			$registry=new registry(false);
@@ -104,6 +155,8 @@
 		 * Registry design pattern - static class wrapper
 		 *
 		 * Warning:
+		 *  t_registry trait is required
+		 *  t_registry_arrayaccess trait is required
 		 *  registry class is required
 		 *
 		 * Note:
@@ -113,9 +166,11 @@
 			// first container
 			abstract class my_registry extends static_registry { protected static $registry=null; }
 			my_registry::r('default_value')['key']='value';
+
 			// second container
 			abstract class my_reg_b extends static_registry { protected static $registry=null; }
 			my_reg_b::r()->key='value2';
+
 			echo my_registry::r()->key // prints 'value'
 			echo my_reg_b::r()['key'] // prints 'value2'
 			echo my_registry::r()['nonexistent'] // prints 'default_value'
@@ -141,7 +196,10 @@
 
 				return static::$registry;
 			} catch(Error $error) {
-				throw new registry_exception('You did not declare a protected static $registry property or you used the static_registry class directly');
+				throw new registry_exception(''
+				.	'You did not declare a protected static $registry property '
+				.	'or you used the static_registry class directly'
+				);
 			}
 		}
 	}

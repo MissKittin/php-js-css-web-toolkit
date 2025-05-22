@@ -29,6 +29,8 @@
 	 *   TEST_MEMCACHED_SOCKET (has priority over the HOST)
 	 *    eg. /var/run/memcached/memcached.sock
 	 *   TEST_MEMCACHED_PORT (default: 11211)
+	 *  you can also use the memcached.php package instead of memcached extension:
+	 *   TEST_MEMCACHED_CM=yes (default: no)
 	 *
 	 * Hint:
 	 *  you can setup database credentials by environment variables
@@ -51,13 +53,14 @@
 	 *   TEST_MYSQL_PASSWORD
 	 *
 	 * Warning:
-	 *  predis-connect.php library is required for predis
-	 *  memcached extension is recommended
+	 *  memcached extension is recommended or
+	 *   clickalicious_memcached.php library is recommended
 	 *  PDO extension is recommended
 	 *  pdo_pgsql extension is recommended
 	 *  pdo_mysql extension is recommended
 	 *  pdo_sqlite extension is recommended
-	 *  redis extension is recommended
+	 *  redis extension is recommended or
+	 *   predis_connect.php library is recommended
 	 *  get-composer.php tool is recommended for predis
 	 */
 
@@ -450,7 +453,92 @@
 
 	if(getenv('TEST_MEMCACHED') === 'yes')
 	{
-		if(!class_exists('Memcached'))
+		$_memcached_client='Memcached';
+
+		if(getenv('TEST_MEMCACHED_CM') === 'yes')
+		{
+			$_memcached_client='clickalicious_memcached';
+
+			echo '  -> Including clickalicious_memcached.php';
+				if(is_file(__DIR__.'/../lib/clickalicious_memcached.php'))
+				{
+					if(@(include __DIR__.'/../lib/clickalicious_memcached.php') === false)
+					{
+						echo ' [FAIL]'.PHP_EOL;
+						exit(1);
+					}
+				}
+				else if(is_file(__DIR__.'/../clickalicious_memcached.php'))
+				{
+					if(@(include __DIR__.'/../clickalicious_memcached.php') === false)
+					{
+						echo ' [FAIL]'.PHP_EOL;
+						exit(1);
+					}
+				}
+				else
+				{
+					echo ' [FAIL]'.PHP_EOL;
+					exit(1);
+				}
+			echo ' [ OK ]'.PHP_EOL;
+
+			if(!file_exists(__DIR__.'/tmp/.composer/vendor/clickalicious/memcached.php'))
+			{
+				@mkdir(__DIR__.'/tmp');
+				@mkdir(__DIR__.'/tmp/.composer');
+
+				if(file_exists(__DIR__.'/../../bin/composer.phar'))
+					$_composer_binary=__DIR__.'/../../bin/composer.phar';
+				else if(file_exists(__DIR__.'/tmp/.composer/composer.phar'))
+					$_composer_binary=__DIR__.'/tmp/.composer/composer.phar';
+				else if(file_exists(__DIR__.'/../../bin/get-composer.php'))
+				{
+					echo '  -> Downloading composer'.PHP_EOL;
+
+					system(''
+					.	'"'.PHP_BINARY.'" '
+					.	'"'.__DIR__.'/../../bin/get-composer.php" '
+					.	'"'.__DIR__.'/tmp/.composer"'
+					);
+
+					if(!file_exists(__DIR__.'/tmp/.composer/composer.phar'))
+					{
+						echo '  <- composer download failed [FAIL]'.PHP_EOL;
+						exit(1);
+					}
+
+					$_composer_binary=__DIR__.'/tmp/.composer/composer.phar';
+				}
+				else
+				{
+					echo 'Error: get-composer.php tool not found'.PHP_EOL;
+					exit(1);
+				}
+
+				echo '  -> Installing clickalicious/memcached.php'.PHP_EOL;
+					system('"'.PHP_BINARY.'" "'.$_composer_binary.'" '
+					.	'--no-cache '
+					.	'"--working-dir='.__DIR__.'/tmp/.composer" '
+					.	'require clickalicious/memcached.php'
+					);
+			}
+
+			echo '  -> Including composer autoloader';
+				if(@(include __DIR__.'/tmp/.composer/vendor/autoload.php') === false)
+				{
+					echo ' [FAIL]'.PHP_EOL;
+					exit(1);
+				}
+			echo ' [ OK ]'.PHP_EOL;
+
+			if(!class_exists('\Clickalicious\Memcached\Client'))
+			{
+				echo '  <- clickalicious/memcached.php package is not installed [FAIL]'.PHP_EOL;
+				exit(1);
+			}
+		}
+		else if(!class_exists('Memcached'))
 		{
 			echo 'memcached extension is not loaded'.PHP_EOL;
 			exit(1);
@@ -484,7 +572,7 @@
 			$_memcached['credentials']['port']=0;
 		}
 
-		$memcached_handle=new Memcached();
+		$memcached_handle=new $_memcached_client();
 
 		if(!$memcached_handle->addServer(
 			$_memcached['credentials']['host'],

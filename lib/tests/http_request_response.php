@@ -150,6 +150,297 @@
 
 		$errors=[];
 
+		echo ' -> Testing http_input_stream'.PHP_EOL;
+			$stream=http_input_stream::from_scalar('TEST CONTENT');
+			echo '  -> eof (1/2)';
+				if($stream->eof())
+				{
+					echo ' [FAIL]'.PHP_EOL;
+					$errors[]='http_input_stream eof (1/2)';
+				}
+				else
+					echo ' [ OK ]'.PHP_EOL;
+			echo '  -> is_readable';
+				if($stream->is_readable())
+					echo ' [ OK ]'.PHP_EOL;
+				else
+				{
+					echo ' [FAIL]'.PHP_EOL;
+					$errors[]='http_input_stream is_readable';
+				}
+			echo '  -> read';
+				if($stream->read(3) === 'TES')
+					echo ' [ OK ]'.PHP_EOL;
+				else
+				{
+					echo ' [FAIL]'.PHP_EOL;
+					$errors[]='http_input_stream read';
+				}
+			echo '  -> is_seekable';
+				if($stream->is_seekable())
+					echo ' [ OK ]'.PHP_EOL;
+				else
+				{
+					echo ' [FAIL]'.PHP_EOL;
+					$errors[]='http_input_stream is_seekable';
+				}
+			echo '  -> tell';
+				if($stream->tell() === 3)
+					echo ' [ OK ]'.PHP_EOL;
+				else
+				{
+					echo ' [FAIL]'.PHP_EOL;
+					$errors[]='http_input_stream tell';
+				}
+			echo '  -> seek/tell';
+				$stream->seek(5);
+				if($stream->tell() === 5)
+					echo ' [ OK ]'.PHP_EOL;
+				else
+				{
+					echo ' [FAIL]'.PHP_EOL;
+					$errors[]='http_input_stream seek/tell';
+				}
+			echo '  -> rewind/tell';
+				$stream->rewind();
+				if($stream->tell() === 0)
+					echo ' [ OK ]'.PHP_EOL;
+				else
+				{
+					echo ' [FAIL]'.PHP_EOL;
+					$errors[]='http_input_stream rewind/tell';
+				}
+			echo '  -> is_writable';
+				if($stream->is_writable())
+					echo ' [ OK ]'.PHP_EOL;
+				else
+				{
+					echo ' [FAIL]'.PHP_EOL;
+					$errors[]='http_input_stream is_writable';
+				}
+			echo '  -> get_contents';
+				if($stream->get_contents() === 'TEST CONTENT')
+					echo ' [ OK ]'.PHP_EOL;
+				else
+				{
+					echo ' [FAIL]'.PHP_EOL;
+					$errors[]='http_input_stream get_contents';
+				}
+			echo '  -> rewind/write/rewind/get_contents';
+				$stream->rewind();
+				if($stream->write('tesT COntEnt') === 12)
+					echo ' [ OK ]';
+				else
+				{
+					echo ' [FAIL]';
+					$errors[]='http_input_stream rewind/write/rewind/get_contents 1/2';
+				}
+				$stream->rewind();
+				if($stream->get_contents() === 'tesT COntEnt')
+					echo ' [ OK ]'.PHP_EOL;
+				else
+				{
+					echo ' [FAIL]'.PHP_EOL;
+					$errors[]='http_input_stream rewind/write/rewind/get_contents 2/2';
+				}
+			echo '  -> eof (2/2)';
+				if($stream->eof())
+					echo ' [ OK ]'.PHP_EOL;
+				else
+				{
+					echo ' [FAIL]'.PHP_EOL;
+					$errors[]='http_input_stream eof (2/2)';
+				}
+			echo '  -> get_metadata';
+				//echo ' ('.var_export_contains($stream->get_metadata(), '', true).')';
+				if(var_export_contains(
+					$stream->get_metadata(),
+					"array('wrapper_type'=>'PHP','stream_type'=>'TEMP','mode'=>'w+b','unread_bytes'=>0,'seekable'=>true,'uri'=>'php://temp',)"
+				))
+					echo ' [ OK ]'.PHP_EOL;
+				else
+				{
+					echo ' [FAIL]'.PHP_EOL;
+					$errors[]='http_input_stream get_metadata';
+				}
+			echo '  -> get_size';
+				if($stream->get_size() === 12)
+					echo ' [ OK ]'.PHP_EOL;
+				else
+				{
+					echo ' [FAIL]'.PHP_EOL;
+					$errors[]='http_input_stream get_size';
+				}
+			echo '  -> detach';
+				$raw_stream=$stream->detach();
+				if(is_resource($raw_stream))
+					echo ' [ OK ]';
+				else
+				{
+					echo ' [FAIL]';
+					$errors[]='http_input_stream detach 1/2';
+				}
+				if($stream->detach() === null)
+					echo ' [ OK ]'.PHP_EOL;
+				else
+				{
+					echo ' [FAIL]'.PHP_EOL;
+					$errors[]='http_input_stream detach 2/2';
+				}
+			echo '  -> close';
+				$stream=http_input_stream::from_scalar('TEST CONTENT');
+				$stream->close();
+				if($stream->detach() === null)
+					echo ' [ OK ]'.PHP_EOL;
+				else
+				{
+					echo ' [FAIL]'.PHP_EOL;
+					$errors[]='http_input_stream close';
+				}
+
+		echo ' -> Testing http_uri'.PHP_EOL;
+			$uri=new http_uri('http://user:pass@host.com:8080/path?query=qvalue&qarr[]=fval&qarr[]=fvab#paragraph');
+			echo '  -> scheme';
+				if($uri->scheme() === 'http')
+					echo ' [ OK ]'.PHP_EOL;
+				else
+				{
+					echo ' [FAIL]'.PHP_EOL;
+					$errors[]='http_uri scheme';
+				}
+			echo '  -> authority';
+				if($uri->authority() === 'user:pass@host.com:8080')
+					echo ' [ OK ]'.PHP_EOL;
+				else
+				{
+					echo ' [FAIL]'.PHP_EOL;
+					$errors[]='http_uri authority';
+				}
+			echo '  -> user_info';
+				if($uri->user_info() === 'user:pass')
+					echo ' [ OK ]'.PHP_EOL;
+				else
+				{
+					echo ' [FAIL]'.PHP_EOL;
+					$errors[]='http_uri user_info';
+				}
+			echo '  -> host';
+				if($uri->host() === 'host.com')
+					echo ' [ OK ]'.PHP_EOL;
+				else
+				{
+					echo ' [FAIL]'.PHP_EOL;
+					$errors[]='http_uri host';
+				}
+			echo '  -> port';
+				if($uri->port() === 8080)
+					echo ' [ OK ]'.PHP_EOL;
+				else
+				{
+					echo ' [FAIL]'.PHP_EOL;
+					$errors[]='http_uri port';
+				}
+			echo '  -> path';
+				if($uri->path() === '/path')
+					echo ' [ OK ]'.PHP_EOL;
+				else
+				{
+					echo ' [FAIL]'.PHP_EOL;
+					$errors[]='http_uri path';
+				}
+			echo '  -> query';
+				if($uri->query() === 'query=qvalue&qarr[]=fval&qarr[]=fvab')
+					echo ' [ OK ]'.PHP_EOL;
+				else
+				{
+					echo ' [FAIL]'.PHP_EOL;
+					$errors[]='http_uri query';
+				}
+			echo '  -> query_array';
+				//echo ' ('.var_export_contains($uri->query_array(), '', true).')';
+				if(var_export_contains(
+					$uri->query_array(),
+					"array('query'=>'qvalue','qarr'=>array(0=>'fval',1=>'fvab',),)"
+				))
+					echo ' [ OK ]'.PHP_EOL;
+				else
+				{
+					echo ' [FAIL]'.PHP_EOL;
+					$errors[]='http_uri query_array';
+				}
+			echo '  -> fragment';
+				if($uri->fragment() === 'paragraph')
+					echo ' [ OK ]'.PHP_EOL;
+				else
+				{
+					echo ' [FAIL]'.PHP_EOL;
+					$errors[]='http_uri fragment';
+				}
+			echo '  -> __toString';
+				if($uri->__toString() === 'http://user:pass@host.com:8080/path?query=qvalue&qarr[]=fval&qarr[]=fvab#paragraph')
+					echo ' [ OK ]'.PHP_EOL;
+				else
+				{
+					echo ' [FAIL]'.PHP_EOL;
+					$errors[]='http_uri __toString';
+				}
+			echo '  -> set_scheme';
+				if($uri->set_scheme('https')->__toString() === 'https://user:pass@host.com:8080/path?query=qvalue&qarr[]=fval&qarr[]=fvab#paragraph')
+					echo ' [ OK ]'.PHP_EOL;
+				else
+				{
+					echo ' [FAIL]'.PHP_EOL;
+					$errors[]='http_uri set_scheme';
+				}
+			echo '  -> set_user_info';
+				if($uri->set_user_info('nuser', 'npass')->__toString() === 'http://nuser:npass@host.com:8080/path?query=qvalue&qarr[]=fval&qarr[]=fvab#paragraph')
+					echo ' [ OK ]'.PHP_EOL;
+				else
+				{
+					echo ' [FAIL]'.PHP_EOL;
+					$errors[]='http_uri set_user_info';
+				}
+			echo '  -> set_host';
+				if($uri->set_host('nhost.com')->__toString() === 'http://user:pass@nhost.com:8080/path?query=qvalue&qarr[]=fval&qarr[]=fvab#paragraph')
+					echo ' [ OK ]'.PHP_EOL;
+				else
+				{
+					echo ' [FAIL]'.PHP_EOL;
+					$errors[]='http_uri set_host';
+				}
+			echo '  -> set_port';
+				if($uri->set_port(8000)->__toString() === 'http://user:pass@host.com:8000/path?query=qvalue&qarr[]=fval&qarr[]=fvab#paragraph')
+					echo ' [ OK ]'.PHP_EOL;
+				else
+				{
+					echo ' [FAIL]'.PHP_EOL;
+					$errors[]='http_uri set_port';
+				}
+			echo '  -> set_path';
+				if($uri->set_path('/path/new')->__toString() === 'http://user:pass@host.com:8080/path/new?query=qvalue&qarr[]=fval&qarr[]=fvab#paragraph')
+					echo ' [ OK ]'.PHP_EOL;
+				else
+				{
+					echo ' [FAIL]'.PHP_EOL;
+					$errors[]='http_uri set_path';
+				}
+			echo '  -> set_query';
+				if($uri->set_query('nquery=nval')->__toString() === 'http://user:pass@host.com:8080/path?nquery=nval#paragraph')
+					echo ' [ OK ]'.PHP_EOL;
+				else
+				{
+					echo ' [FAIL]'.PHP_EOL;
+					$errors[]='http_uri set_query';
+				}
+			echo '  -> set_fragment';
+				if($uri->set_fragment('nparagraph')->__toString() === 'http://user:pass@host.com:8080/path?query=qvalue&qarr[]=fval&qarr[]=fvab#nparagraph')
+					echo ' [ OK ]'.PHP_EOL;
+				else
+				{
+					echo ' [FAIL]'.PHP_EOL;
+					$errors[]='http_uri set_fragment';
+				}
+
 		echo ' -> Testing http_request'.PHP_EOL;
 			$request=new http_request();
 			echo '  -> accept';
@@ -163,6 +454,38 @@
 				{
 					echo ' [FAIL]'.PHP_EOL;
 					$errors[]='http_request accept';
+				}
+			echo '  -> auth_user';
+				if($request->auth_user() === false)
+					echo ' [ OK ]';
+				else
+				{
+					echo ' [FAIL]';
+					$errors[]='http_request auth_user 1/2';
+				}
+				$_SERVER['PHP_AUTH_USER']='ba-user';
+				if($request->auth_user() === 'ba-user')
+					echo ' [ OK ]'.PHP_EOL;
+				else
+				{
+					echo ' [FAIL]'.PHP_EOL;
+					$errors[]='http_request auth_user 2/2';
+				}
+			echo '  -> auth_password';
+				if($request->auth_password() === false)
+					echo ' [ OK ]';
+				else
+				{
+					echo ' [FAIL]';
+					$errors[]='http_request auth_password 1/2';
+				}
+				$_SERVER['PHP_AUTH_PW']='ba-pass';
+				if($request->auth_password() === 'ba-pass')
+					echo ' [ OK ]'.PHP_EOL;
+				else
+				{
+					echo ' [FAIL]'.PHP_EOL;
+					$errors[]='http_request auth_password 2/2';
 				}
 			echo '  -> cache_control';
 				$_SERVER['HTTP_CACHE_CONTROL']='public, max-age=604800, immutable';
@@ -391,6 +714,15 @@
 					echo ' [FAIL]'.PHP_EOL;
 					$errors[]='http_request remote_port';
 				}
+			echo '  -> request_uri';
+				$_SERVER['REQUEST_URI']='/app/uri?param=value';
+				if($request->request_uri() === '/app/uri')
+					echo ' [ OK ]'.PHP_EOL;
+				else
+				{
+					echo ' [FAIL]'.PHP_EOL;
+					$errors[]='http_request request_uri';
+				}
 			echo '  -> user_agent';
 				$_SERVER['HTTP_USER_AGENT']='Mozilla/5.0 (X11; Linux x86_64; rv:12.0) Gecko/20100101 Firefox/12.0';
 				if($request->user_agent() === 'Mozilla/5.0 (X11; Linux x86_64; rv:12.0) Gecko/20100101 Firefox/12.0')
@@ -427,13 +759,20 @@
 						$errors[]='http_request upgrade_insecure_request returns true';
 					}
 			echo '  -> uri';
-				$_SERVER['REQUEST_URI']='/app/uri?param=value';
-				if($request->uri() === '/app/uri')
+				if($request->uri() instanceof http_uri)
 					echo ' [ OK ]'.PHP_EOL;
 				else
 				{
 					echo ' [FAIL]'.PHP_EOL;
 					$errors[]='http_request uri';
+				}
+			echo '  -> input_stream';
+				if($request->input_stream() instanceof http_input_stream)
+					echo ' [ OK ]'.PHP_EOL;
+				else
+				{
+					echo ' [FAIL]'.PHP_EOL;
+					$errors[]='http_request input_stream';
 				}
 			echo '  -> json [SKIP]'.PHP_EOL;
 
@@ -554,17 +893,67 @@
 				}
 
 		echo ' -> Testing http_response'.PHP_EOL;
-			$response=new http_response();
-			$response
-			->	cookie('testcookie', 'testvalue', 2, 'testpath', 'testdomain', true, true)
-			->	etag('ETAGG')
-			->	expire(10, true)
-			->	content_type('custom/type')->charset('czarset')
-			->	response_content('CZIKITA CZIKITA')
-			->	status(http_response::http_loop_detected);
-			ob_start();
-			$response->send_response();
-			$response_content=ob_get_clean();
+			echo '  -> send_response [....]'.PHP_EOL;
+				$GLOBALS['middleware_before']=0;
+				$GLOBALS['middleware_before_arg']=false;
+				$GLOBALS['middleware_after']=0;
+				$GLOBALS['middleware_after_arg']=false;
+				http_response
+				::	middleware_arg('test', 'value')
+				::	middleware(function($test){
+						++$GLOBALS['middleware_before'];
+
+						if($test === 'value')
+							$GLOBALS['middleware_before_arg']=true;
+					}, true)
+				::	middleware(function($test){
+						++$GLOBALS['middleware_after'];
+
+						if($test === 'value')
+							$GLOBALS['middleware_after_arg']=true;
+					});
+				$response=new http_response();
+				$response
+				->	cookie('testcookie', 'testvalue', 2, 'testpath', 'testdomain', true, true)
+				->	etag('ETAGG')
+				->	expire(10, true)
+				->	content_type('custom/type')->charset('czarset')
+				->	response_content('CZIKITA CZIKITA')
+				->	status(http_response::http_loop_detected);
+				ob_start();
+				$response->send_response();
+				$response_content=ob_get_clean();
+			echo '  -> send_response middleware'.PHP_EOL;
+				echo '   -> before';
+					if($GLOBALS['middleware_before'] === 1)
+						echo ' [ OK ]';
+					else
+					{
+						echo ' [FAIL]';
+						$errors[]='http_response send_response middleware before 1/2';
+					}
+					if($GLOBALS['middleware_before_arg'])
+						echo ' [ OK ]'.PHP_EOL;
+					else
+					{
+						echo ' [FAIL]'.PHP_EOL;
+						$errors[]='http_response send_response middleware before 2/2';
+					}
+				echo '   -> after';
+					if($GLOBALS['middleware_after'] === 1)
+						echo ' [ OK ]';
+					else
+					{
+						echo ' [FAIL]';
+						$errors[]='http_response send_response middleware after 1/2';
+					}
+					if($GLOBALS['middleware_after_arg'])
+						echo ' [ OK ]'.PHP_EOL;
+					else
+					{
+						echo ' [FAIL]'.PHP_EOL;
+						$errors[]='http_response send_response middleware after 2/2';
+					}
 			echo '  -> cookie';
 				if(var_export_contains(
 					$GLOBALS['http_response_cookies'],
@@ -575,6 +964,40 @@
 				{
 					echo ' [FAIL]'.PHP_EOL;
 					$errors[]='http_response cookie';
+				}
+			echo '  -> get_cookie';
+				//echo ' ('.var_export_contains($response->get_cookie(), '', true).')';
+				if(var_export_contains(
+					$response->get_cookie(),
+					"array('testcookie'=>array(0=>'testvalue',1=>2,2=>'testpath',3=>'testdomain',4=>true,5=>true,),)"
+				))
+					echo ' [ OK ]'.PHP_EOL;
+				else
+				{
+					echo ' [FAIL]'.PHP_EOL;
+					$errors[]='http_response get_cookie';
+				}
+			echo '  -> cookie_expire/get_cookie';
+				$response->cookie_expire('testcookie', 'testpath', 'testdomain', true, true);
+				//echo ' ('.var_export_contains($response->get_cookie('testcookie'), '', true).')';
+				if(var_export_contains(
+					$response->get_cookie('testcookie'),
+					"array(0=>'',1=>-1,2=>'testpath',3=>'testdomain',4=>true,5=>true,)"
+				))
+					echo ' [ OK ]'.PHP_EOL;
+				else
+				{
+					echo ' [FAIL]'.PHP_EOL;
+					$errors[]='http_response cookie_expire/get_cookie';
+				}
+			echo '  -> cookie_remove/get_cookie';
+				$response->cookie_remove('testcookie');
+				if($response->get_cookie('testcookie') === false)
+					echo ' [ OK ]'.PHP_EOL;
+				else
+				{
+					echo ' [FAIL]'.PHP_EOL;
+					$errors[]='http_response cookie_remove/get_cookie';
 				}
 			echo '  -> etag';
 				if(
@@ -616,7 +1039,47 @@
 					echo ' [FAIL]'.PHP_EOL;
 					$errors[]='http_response content_type/charset';
 				}
-			echo '  -> header [SKIP]'.PHP_EOL;
+			echo '  -> header/has_header/get_header';
+				$response->header('X-Test-Header', 'test value');
+				if($response->has_header('X-Test-Header'))
+					echo ' [ OK ]';
+				else
+				{
+					echo ' [FAIL]';
+					$errors[]='http_response header/has_header/get_header 1/2';
+				}
+				if($response->get_header('X-Test-Header') === 'test value')
+					echo ' [ OK ]'.PHP_EOL;
+				else
+				{
+					echo ' [FAIL]'.PHP_EOL;
+					$errors[]='http_response header/has_header/get_header 2/2';
+				}
+			echo '  -> header_append/get_header';
+				$response->header_append('X-Test-Header', 'append value');
+				if($response->get_header('X-Test-Header') === 'test value,append value')
+					echo ' [ OK ]'.PHP_EOL;
+				else
+				{
+					echo ' [FAIL]'.PHP_EOL;
+					$errors[]='http_response header_append/get_header';
+				}
+			echo '  -> header_remove/has_header/get_header';
+				$response->header_remove('X-Test-Header');
+				if($response->has_header('X-Test-Header'))
+				{
+					echo ' [FAIL]';
+					$errors[]='http_response header_remove/has_header/get_header 1/2';
+				}
+				else
+					echo ' [ OK ]';
+				if($response->get_header('X-Test-Header') === false)
+					echo ' [ OK ]'.PHP_EOL;
+				else
+				{
+					echo ' [FAIL]'.PHP_EOL;
+					$errors[]='http_response header_remove/has_header/get_header 2/2';
+				}
 			echo '  -> response_content';
 				if($response_content === 'CZIKITA CZIKITA')
 					echo ' [ OK ]'.PHP_EOL;
@@ -625,6 +1088,29 @@
 					echo ' [FAIL]'.PHP_EOL;
 					$errors[]='http_response response_content';
 				}
+			echo '  -> get_response_content';
+				if($response->get_response_content() === 'CZIKITA CZIKITA')
+					echo ' [ OK ]'.PHP_EOL;
+				else
+				{
+					echo ' [FAIL]'.PHP_EOL;
+					$errors[]='http_response get_response_content';
+				}
+			echo '  -> get_response_stream';
+				if($response->get_response_stream() instanceof http_input_stream)
+					echo ' [ OK ]';
+				else
+				{
+					echo ' [FAIL]';
+					$errors[]='http_response get_response_stream 1/2';
+				}
+				if($response->get_response_stream()->__toString() === 'CZIKITA CZIKITA')
+					echo ' [ OK ]'.PHP_EOL;
+				else
+				{
+					echo ' [FAIL]'.PHP_EOL;
+					$errors[]='http_response get_response_stream 2/2';
+				}
 			echo '  -> status';
 				if($GLOBALS['http_response_code'] === 508)
 					echo ' [ OK ]'.PHP_EOL;
@@ -632,6 +1118,21 @@
 				{
 					echo ' [FAIL]'.PHP_EOL;
 					$errors[]='http_response status';
+				}
+			echo '  -> get_status';
+				if($response->get_status()[0] === 508)
+					echo ' [ OK ]';
+				else
+				{
+					echo ' [FAIL]';
+					$errors[]='http_response get_status 1/2';
+				}
+				if($response->get_status()[1] === 'Loop Detected')
+					echo ' [ OK ]'.PHP_EOL;
+				else
+				{
+					echo ' [FAIL]'.PHP_EOL;
+					$errors[]='http_response get_status 2/2';
 				}
 			echo '  -> send_redirect [SKIP]'.PHP_EOL;
 			echo '  -> send_file [SKIP]'.PHP_EOL;

@@ -145,7 +145,9 @@
 						if($method === 'lv_str_of')
 							$method='lv_hlp_of';
 
-						return $method(...$parameters);
+						return $method(
+							...$parameters
+						);
 					}
 					public function __toString()
 					{
@@ -702,7 +704,9 @@
 						'symfony/var-dumper package is not installed'
 					);
 
-				Symfony\Component\VarDumper\VarDumper::dump($this->value);
+				Symfony\Component\VarDumper\VarDumper::dump(
+					$this->value
+				);
 
 				return $this;
 			}
@@ -1038,15 +1042,83 @@
 	// view
 		class lv_hlp_view
 		{
+			protected static $directives=[];
 			protected static $engine_resolvers=[];
 			protected static $cache_path=null;
 			protected static $view_path=null;
 
+			protected static function get_blade_compiler()
+			{
+				$blade_compiler=new Illuminate\View\Compilers\BladeCompiler(
+					new Illuminate\Filesystem\Filesystem(),
+					static::$cache_path
+				);
+
+				foreach(
+					static::$directives
+					as $directive_name=>$directive_params
+				)
+					$blade_compiler->directive(
+						$directive_name,
+						$directive_params[0],
+						$directive_params[1]
+					);
+
+				return $blade_compiler;
+			}
+			protected static function get_compiler_engine($blade_compiler)
+			{
+				return new Illuminate\View\Engines\CompilerEngine(
+					$blade_compiler
+				);
+			}
+			protected static function get_engine_resolver($compiler_engine=null)
+			{
+				$engine_resolver=new Illuminate\View\Engines\EngineResolver();
+
+				if(
+					($compiler_engine !== null) &&
+					(!static::is_resolver_registered('blade'))
+				)
+					static::register_resolver('blade', function() use($compiler_engine){
+						return $compiler_engine;
+					});
+
+				foreach(
+					static::$engine_resolvers
+					as $resolver_name=>$resolver_callback
+				)
+					$engine_resolver->register(
+						$resolver_name,
+						$resolver_callback
+					);
+
+				return $engine_resolver;
+			}
+
+			public static function is_directive_registered(string $name)
+			{
+				return isset(
+					static::$directives[$name]
+				);
+			}
 			public static function is_resolver_registered(string $name)
 			{
 				return isset(
 					static::$engine_resolvers[$name]
 				);
+			}
+			public static function register_directive(
+				string $name,
+				callable $callback,
+				bool $bind=false
+			){
+				static::$directives[$name]=[
+					$callback,
+					$bind
+				];
+
+				return static::class;
 			}
 			public static function register_resolver(
 				string $name,
@@ -1100,33 +1172,15 @@
 					.	'does not exist (view path)'
 					);
 
-				$compiler_engine=new Illuminate\View\Engines\CompilerEngine(
-					new Illuminate\View\Compilers\BladeCompiler(
-						new Illuminate\Filesystem\Filesystem(),
-						static::$cache_path
-					)
+				$compiler_engine=static::get_compiler_engine(
+					static::get_blade_compiler()
 				);
-
-				$engine_resolver=new Illuminate\View\Engines\EngineResolver();
-
-				if(!isset(static::$engine_resolvers['blade']))
-					static::$engine_resolvers['blade']=function() use($compiler_engine)
-					{
-						return $compiler_engine;
-					};
-
-				foreach(
-					static::$engine_resolvers
-					as $resolver_name=>$resolver_callback
-				)
-					$engine_resolver->register(
-						$resolver_name,
-						$resolver_callback
-					);
 
 				return new Illuminate\View\View(
 					new Illuminate\View\Factory(
-						$engine_resolver,
+						static::get_engine_resolver(
+							$compiler_engine
+						),
 						new Illuminate\View\FileViewFinder(
 							new Illuminate\Filesystem\Filesystem(),
 							[static::$view_path]
@@ -1148,6 +1202,257 @@
 				return static
 				::	load_blade($blade, $data)
 				->	render();
+			}
+		}
+
+		function lv_hlp_view(
+			string $view_file,
+			array $view_data=[],
+			?string $view_dir=null,
+			?string $cache_dir=null
+		){
+			if($view_dir !== null)
+				lv_hlp_view::set_view_path($view_dir);
+
+			if($cache_dir !== null)
+				lv_hlp_view::set_cache_path($cache_dir);
+
+			return lv_hlp_view::view(
+				$view_file,
+				$view_data
+			);
+		}
+
+	// inertia
+		class lv_hlp_inertia
+		{
+			protected static $data_page=null;
+			protected static $asset_version=null;
+			protected static $encrypt_history=false;
+			protected static $clear_history=false;
+
+			protected static function process_partial_properties($component, $props)
+			{
+				if(!isset(
+					$_SERVER['HTTP_X_INERTIA_PARTIAL_COMPONENT']
+				))
+					return $props;
+
+				if(
+					$_SERVER['HTTP_X_INERTIA_PARTIAL_COMPONENT']
+					!==
+					$component
+				)
+					return $props;
+
+				if(isset(
+					$_SERVER['HTTP_X_INERTIA_PARTIAL_DATA']
+				)){
+					$partial_data=array_filter(explode(
+						',',
+						$_SERVER['HTTP_X_INERTIA_PARTIAL_DATA']
+					));
+
+					foreach($props as $prop=>$prop_value)
+						if(!in_array($prop, $partial_data))
+							unset($props[$prop]);
+
+					return $props;
+				}
+
+				if(!isset(
+					$_SERVER['HTTP_X_INERTIA_PARTIAL_EXCEPT']
+				))
+					return $props;
+
+				$partial_data=array_filter(explode(
+					',',
+					$_SERVER['HTTP_X_INERTIA_PARTIAL_EXCEPT']
+				));
+
+				foreach($props as $prop=>$prop_value)
+					if(in_array($prop, $partial_data))
+						unset($props[$prop]);
+
+				return $props;
+			}
+			protected static function process_closures($props)
+			{
+				foreach($props as $prop=>$prop_value)
+				{
+					if(static::_instanceof_closure($prop_value))
+					{
+						$props[$prop]=$prop_value();
+						continue;
+					}
+
+					if(
+						is_object($prop_value) &&
+						method_exists($prop_value , '__toString')
+					)
+						$props[$prop]=$prop_value->__toString();
+				}
+
+				return $props;
+			}
+			protected static function _instanceof_closure($prop_value)
+			{
+				// for testing purposes
+				return ($prop_value instanceof Closure);
+			}
+
+			public static function set_asset_version(string $file)
+			{
+				if(!is_file($file))
+					throw new lv_hlp_exception(
+						$file.' does not exist'
+					);
+
+				static::$asset_version=md5_file($file);
+
+				return static::class;
+			}
+			public static function set_clear_history(bool $option)
+			{
+				static::$clear_history=$option;
+				return static::class;
+			}
+			public static function set_encrypt_history(bool $option)
+			{
+				static::$encrypt_history=$option;
+				return static::class;
+			}
+
+			public static function api(
+				string $component,
+				array $props=[]
+			){
+				if(!isset(
+					$_SERVER['REQUEST_URI']
+				))
+					throw new lv_hlp_exception(
+						'REQUEST_URI is not set in $_SERVER'
+					);
+
+				static::$data_page=[
+					'component'=>$component,
+					'props'=>static::process_closures(
+						static::process_partial_properties(
+							$component,
+							$props
+						)
+					),
+					'url'=>$_SERVER['REQUEST_URI'],
+					'encryptHistory'=>static::$encrypt_history,
+					'clearHistory'=>static::$clear_history
+				];
+
+				if(static::$asset_version !== null)
+					static::$data_page['version']=static::$asset_version;
+
+				return (
+					isset($_SERVER['HTTP_X_INERTIA']) &&
+					($_SERVER['HTTP_X_INERTIA'] === 'true')
+				);
+			}
+			public static function render($data_page=null)
+			{
+				if($data_page === null)
+					$data_page=static::$data_page;
+
+				if($data_page === null)
+					throw new lv_hlp_exception(
+						'$data_page is not set - maybe you did not call the api() method?'
+					);
+
+				if(static::$asset_version !== null)
+				{
+					if(!isset(
+						$_SERVER['REQUEST_METHOD']
+					))
+						throw new lv_hlp_exception(
+							'REQUEST_METHOD is not set in $_SERVER'
+						);
+
+					if(
+						isset($_SERVER['HTTP_X_INERTIA_VERSION']) &&
+						($_SERVER['REQUEST_METHOD'] === 'GET') &&
+						($_SERVER['HTTP_X_INERTIA_VERSION'] !== static::$asset_version)
+					){
+						http_response_code(409);
+
+						header(''
+						.	'X-Inertia-Location: '
+						.	$_SERVER['REQUEST_URI']
+						);
+
+						return '';
+					}
+
+					header(''
+					.	'X-Inertia-Version: '
+					.	static::$asset_version
+					);
+				}
+
+				header('Content-Type: application/json');
+				header('X-Inertia: true');
+				header('Vary: X-Inertia');
+
+				return json_encode(
+					static::$data_page
+				);
+			}
+
+			public static function get_template(
+				string $id='app',
+				$data_page=null
+			){
+				if($data_page === null)
+					$data_page=static::$data_page;
+
+				if($data_page === null)
+					throw new lv_hlp_exception(
+						'$data_page is not set - maybe you did not call the api() method?'
+					);
+
+				return ''
+				.	'<div '
+				.		'id="'.$id.'" '
+				.		'data-page="'
+				.			htmlspecialchars(
+								json_encode($data_page)
+							)
+				.		'"'
+				.	'></div>';
+			}
+
+			public static function register_lv_view_directives(string $id='app')
+			{
+				if(lv_hlp_view::is_directive_registered(
+					'inertia'
+				))
+					return static::class;
+
+				lv_hlp_view::register_directive('inertia', function() use($id){
+					return static::get_template($id);
+				});
+
+				return static::class;
+			}
+			public static function register_twig_functions(string $id='app')
+			{
+				if(!class_exists('\Twig\TwigFunction'))
+					throw new lv_hlp_exception(
+						'twig/twig package is not installed'
+					);
+
+				return new Twig\TwigFunction('inertia', function() use($id){
+					return new Twig\Markup(
+						static::get_template($id),
+						'UTF-8'
+					);
+				});
 			}
 		}
 ?>

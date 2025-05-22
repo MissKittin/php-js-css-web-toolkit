@@ -86,11 +86,15 @@
 		else
 		{
 			if(!function_exists('openssl_random_pseudo_bytes'))
-				throw new uuid_exception('openssl extension is not loaded');
+				throw new uuid_exception(
+					'openssl extension is not loaded'
+				);
 
 			$random_bytes=function($bytes)
 			{
-				return openssl_random_pseudo_bytes($bytes);
+				return openssl_random_pseudo_bytes(
+					$bytes
+				);
 			};
 		}
 
@@ -136,7 +140,11 @@
 	}
 	function generate_uuid_v3(string $name_space, string $string)
 	{
-		$n_hex=str_replace(['-','{','}'], '', $name_space);
+		$n_hex=str_replace(
+			['-','{','}'],
+			'',
+			$name_space
+		);
 		$binary_str='';
 
 		for($i=0; $i<strlen($n_hex); $i+=2)
@@ -162,12 +170,16 @@
 			};
 		else
 		{
-			if(!extension_loaded('openssl_random_pseudo_bytes'))
-				throw new uuid_exception('openssl extension is not loaded');
+			if(!function_exists('openssl_random_pseudo_bytes'))
+				throw new uuid_exception(
+					'openssl extension is not loaded'
+				);
 
 			$random_bytes=function($bytes)
 			{
-				return openssl_random_pseudo_bytes($bytes);
+				return openssl_random_pseudo_bytes(
+					$bytes
+				);
 			};
 		}
 
@@ -175,7 +187,9 @@
 			$data=$random_bytes(16);
 
 		if((!isset($data[15])) || isset($data[16])) // (strlen($data) !== 16)
-			throw new uuid_exception('Input data must be 16 bytes long');
+			throw new uuid_exception(
+				'Input data must be 16 bytes long'
+			);
 
 		$data[6]=chr(ord($data[6]) & 0x0f | 0x40);
 		$data[8]=chr(ord($data[8]) & 0x3f | 0x80);
@@ -187,7 +201,11 @@
 	}
 	function generate_uuid_v5(string $name_space, string $string)
 	{
-		$n_hex=str_replace(['-','{','}'], '', $name_space);
+		$n_hex=str_replace(
+			['-','{','}'],
+			'',
+			$name_space
+		);
 		$binray_str='';
 
 		for($i=0; $i<strlen($n_hex); $i+=2)
@@ -213,12 +231,16 @@
 			};
 		else
 		{
-			if(!extension_loaded('openssl_random_pseudo_bytes'))
-				throw new uuid_exception('openssl extension is not loaded');
+			if(!function_exists('openssl_random_pseudo_bytes'))
+				throw new uuid_exception(
+					'openssl extension is not loaded'
+				);
 
 			$random_bytes=function($bytes)
 			{
-				return openssl_random_pseudo_bytes($bytes);
+				return openssl_random_pseudo_bytes(
+					$bytes
+				);
 			};
 		}
 
@@ -311,7 +333,11 @@
 			return false;
 
 		// fromString()
-			$uuid=hex2bin(str_replace('-', '', $uuid));
+			$uuid=hex2bin(str_replace(
+				'-',
+				'',
+				$uuid
+			));
 
 		// getMicroTime()
 			$microtime=base_convert(bin2hex(
@@ -323,7 +349,11 @@
 			$identifier_null_pos=strpos($identifier, "\0");
 
 			if($identifier_null_pos !== false)
-				$identifier=substr($identifier, 0, $identifier_null_pos);
+				$identifier=substr(
+					$identifier,
+					0,
+					$identifier_null_pos
+				);
 
 		// decode() $this->decoded['rand']
 			$identifier_len=strlen($identifier);

@@ -67,15 +67,828 @@
  *  <div class="button button_in_row sb_button sb_button_in_row"><a href="/page">Go to page</a></div>
  * Add files button label (<style>):
  *  input[type=file]::before { content: 'Add files'; }
+ * Table interlaced background color (<style>):
+ *  table tr:nth-child(even) { background-color: var(--sbc-grey-800); }
+ *
+ * Colors:
+ *  you can change the text color by adding the appropriate class name
+ *   sbc_red_50
+ *   sbc_red_100
+ *   sbc_red_200
+ *   sbc_red_300
+ *   sbc_red_400
+ *   sbc_red sbc_red_500
+ *   sbc_red_600
+ *   sbc_red_700
+ *   sbc_red_800
+ *   sbc_red_900
+ *   sbc_red_a100
+ *   sbc_red_a200
+ *   sbc_red_a400
+ *   sbc_red_a700
+ *   sbc_pink_50
+ *   sbc_pink_100
+ *   sbc_pink_200
+ *   sbc_pink_300
+ *   sbc_pink_400
+ *   sbc_pink sbc_pink_500
+ *   sbc_pink_600
+ *   sbc_pink_700
+ *   sbc_pink_800
+ *   sbc_pink_900
+ *   sbc_pink_a100
+ *   sbc_pink_a200
+ *   sbc_pink_a400
+ *   sbc_pink_a700
+ *   sbc_purple_50
+ *   sbc_purple_100
+ *   sbc_purple_200
+ *   sbc_purple_300
+ *   sbc_purple_400
+ *   sbc_purple sbc_purple_500
+ *   sbc_purple_600
+ *   sbc_purple_700
+ *   sbc_purple_800
+ *   sbc_purple_900
+ *   sbc_purple_a100
+ *   sbc_purple_a200
+ *   sbc_purple_a400
+ *   sbc_purple_a700
+ *   sbc_deep_purple_50
+ *   sbc_deep_purple_100
+ *   sbc_deep_purple_200
+ *   sbc_deep_purple_300
+ *   sbc_deep_purple_400
+ *   sbc_deep_purple sbc_deep_purple_500
+ *   sbc_deep_purple_600
+ *   sbc_deep_purple_700
+ *   sbc_deep_purple_800
+ *   sbc_deep_purple_900
+ *   sbc_deep_purple_a100
+ *   sbc_deep_purple_a200
+ *   sbc_deep_purple_a400
+ *   sbc_deep_purple_a700
+ *   sbc_indigo_50
+ *   sbc_indigo_100
+ *   sbc_indigo_200
+ *   sbc_indigo_300
+ *   sbc_indigo_400
+ *   sbc_indigo sbc_indigo_500
+ *   sbc_indigo_600
+ *   sbc_indigo_700
+ *   sbc_indigo_800
+ *   sbc_indigo_900
+ *   sbc_indigo_a100
+ *   sbc_indigo_a200
+ *   sbc_indigo_a400
+ *   sbc_indigo_a700
+ *   sbc_blue_50
+ *   sbc_blue_100
+ *   sbc_blue_200
+ *   sbc_blue_300
+ *   sbc_blue_400
+ *   sbc_blue sbc_blue_500
+ *   sbc_blue_600
+ *   sbc_blue_700
+ *   sbc_blue_800
+ *   sbc_blue_900
+ *   sbc_blue_a100
+ *   sbc_blue_a200
+ *   sbc_blue_a400
+ *   sbc_blue_a700
+ *   sbc_light_blue_50
+ *   sbc_light_blue_100
+ *   sbc_light_blue_200
+ *   sbc_light_blue_300
+ *   sbc_light_blue_400
+ *   sbc_light_blue sbc_light_blue_500
+ *   sbc_light_blue_600
+ *   sbc_light_blue_700
+ *   sbc_light_blue_800
+ *   sbc_light_blue_900
+ *   sbc_light_blue_a100
+ *   sbc_light_blue_a200
+ *   sbc_light_blue_a400
+ *   sbc_light_blue_a700
+ *   sbc_cyan_50
+ *   sbc_cyan_100
+ *   sbc_cyan_200
+ *   sbc_cyan_300
+ *   sbc_cyan_400
+ *   sbc_cyan sbc_cyan_500
+ *   sbc_cyan_600
+ *   sbc_cyan_700
+ *   sbc_cyan_800
+ *   sbc_cyan_900
+ *   sbc_cyan_a100
+ *   sbc_cyan_a200
+ *   sbc_cyan_a400
+ *   sbc_cyan_a700
+ *   sbc_teal_50
+ *   sbc_teal_100
+ *   sbc_teal_200
+ *   sbc_teal_300
+ *   sbc_teal_400
+ *   sbc_teal sbc_teal_500
+ *   sbc_teal_600
+ *   sbc_teal_700
+ *   sbc_teal_800
+ *   sbc_teal_900
+ *   sbc_teal_a100
+ *   sbc_teal_a200
+ *   sbc_teal_a400
+ *   sbc_teal_a700
+ *   sbc_green_50
+ *   sbc_green_100
+ *   sbc_green_200
+ *   sbc_green_300
+ *   sbc_green_400
+ *   sbc_green sbc_green_500
+ *   sbc_green_600
+ *   sbc_green_700
+ *   sbc_green_800
+ *   sbc_green_900
+ *   sbc_green_a100
+ *   sbc_green_a200
+ *   sbc_green_a400
+ *   sbc_green_a700
+ *   sbc_light_green_50
+ *   sbc_light_green_100
+ *   sbc_light_green_200
+ *   sbc_light_green_300
+ *   sbc_light_green_400
+ *   sbc_light_green sbc_light_green_500
+ *   sbc_light_green_600
+ *   sbc_light_green_700
+ *   sbc_light_green_800
+ *   sbc_light_green_900
+ *   sbc_light_green_a100
+ *   sbc_light_green_a200
+ *   sbc_light_green_a400
+ *   sbc_light_green_a700
+ *   sbc_lime_50
+ *   sbc_lime_100
+ *   sbc_lime_200
+ *   sbc_lime_300
+ *   sbc_lime_400
+ *   sbc_lime sbc_lime_500
+ *   sbc_lime_600
+ *   sbc_lime_700
+ *   sbc_lime_800
+ *   sbc_lime_900
+ *   sbc_lime_a100
+ *   sbc_lime_a200
+ *   sbc_lime_a400
+ *   sbc_lime_a700
+ *   sbc_yellow_50
+ *   sbc_yellow_100
+ *   sbc_yellow_200
+ *   sbc_yellow_300
+ *   sbc_yellow_400
+ *   sbc_yellow sbc_yellow_500
+ *   sbc_yellow_600
+ *   sbc_yellow_700
+ *   sbc_yellow_800
+ *   sbc_yellow_900
+ *   sbc_yellow_a100
+ *   sbc_yellow_a200
+ *   sbc_yellow_a400
+ *   sbc_yellow_a700
+ *   sbc_amber_50
+ *   sbc_amber_100
+ *   sbc_amber_200
+ *   sbc_amber_300
+ *   sbc_amber_400
+ *   sbc_amber sbc_amber_500
+ *   sbc_amber_600
+ *   sbc_amber_700
+ *   sbc_amber_800
+ *   sbc_amber_900
+ *   sbc_amber_a100
+ *   sbc_amber_a200
+ *   sbc_amber_a400
+ *   sbc_amber_a700
+ *   sbc_orange_50
+ *   sbc_orange_100
+ *   sbc_orange_200
+ *   sbc_orange_300
+ *   sbc_orange_400
+ *   sbc_orange sbc_orange_500
+ *   sbc_orange_600
+ *   sbc_orange_700
+ *   sbc_orange_800
+ *   sbc_orange_900
+ *   sbc_orange_a100
+ *   sbc_orange_a200
+ *   sbc_orange_a400
+ *   sbc_orange_a700
+ *   sbc_deep_orange_50
+ *   sbc_deep_orange_100
+ *   sbc_deep_orange_200
+ *   sbc_deep_orange_300
+ *   sbc_deep_orange_400
+ *   sbc_deep_orange sbc_deep_orange_500
+ *   sbc_deep_orange_600
+ *   sbc_deep_orange_700
+ *   sbc_deep_orange_800
+ *   sbc_deep_orange_900
+ *   sbc_deep_orange_a100
+ *   sbc_deep_orange_a200
+ *   sbc_deep_orange_a400
+ *   sbc_deep_orange_a700
+ *   sbc_brown_50
+ *   sbc_brown_100
+ *   sbc_brown_200
+ *   sbc_brown_300
+ *   sbc_brown_400
+ *   sbc_brown sbc_brown_500
+ *   sbc_brown_600
+ *   sbc_brown_700
+ *   sbc_brown_800
+ *   sbc_brown_900
+ *   sbc_brown_a100
+ *   sbc_brown_a200
+ *   sbc_brown_a400
+ *   sbc_brown_a700
+ *   sbc_grey_50
+ *   sbc_grey_100
+ *   sbc_grey_200
+ *   sbc_grey_300
+ *   sbc_grey_400
+ *   sbc_grey sbc_grey_500
+ *   sbc_grey_600
+ *   sbc_grey_700
+ *   sbc_grey_800
+ *   sbc_grey_900
+ *   sbc_grey_a100
+ *   sbc_grey_a200
+ *   sbc_grey_a400
+ *   sbc_grey_a700
+ *   sbc_blue_grey_50
+ *   sbc_blue_grey_100
+ *   sbc_blue_grey_200
+ *   sbc_blue_grey_300
+ *   sbc_blue_grey_400
+ *   sbc_blue_grey sbc_blue_grey_500
+ *   sbc_blue_grey_600
+ *   sbc_blue_grey_700
+ *   sbc_blue_grey_800
+ *   sbc_blue_grey_900
+ *   sbc_blue_grey_a100
+ *   sbc_blue_grey_a200
+ *   sbc_blue_grey_a400
+ *   sbc_blue_grey_a700
+ *   sbc_black
+ *   sbc_white
+ *  you can change the background color by adding the appropriate class name
+ *   sbbc_red_50
+ *   sbbc_red_100
+ *   sbbc_red_200
+ *   sbbc_red_300
+ *   sbbc_red_400
+ *   sbbc_red sbbc_red_500
+ *   sbbc_red_600
+ *   sbbc_red_700
+ *   sbbc_red_800
+ *   sbbc_red_900
+ *   sbbc_red_a100
+ *   sbbc_red_a200
+ *   sbbc_red_a400
+ *   sbbc_red_a700
+ *   sbbc_pink_50
+ *   sbbc_pink_100
+ *   sbbc_pink_200
+ *   sbbc_pink_300
+ *   sbbc_pink_400
+ *   sbbc_pink sbbc_pink_500
+ *   sbbc_pink_600
+ *   sbbc_pink_700
+ *   sbbc_pink_800
+ *   sbbc_pink_900
+ *   sbbc_pink_a100
+ *   sbbc_pink_a200
+ *   sbbc_pink_a400
+ *   sbbc_pink_a700
+ *   sbbc_purple_50
+ *   sbbc_purple_100
+ *   sbbc_purple_200
+ *   sbbc_purple_300
+ *   sbbc_purple_400
+ *   sbbc_purple sbbc_purple_500
+ *   sbbc_purple_600
+ *   sbbc_purple_700
+ *   sbbc_purple_800
+ *   sbbc_purple_900
+ *   sbbc_purple_a100
+ *   sbbc_purple_a200
+ *   sbbc_purple_a400
+ *   sbbc_purple_a700
+ *   sbbc_deep_purple_50
+ *   sbbc_deep_purple_100
+ *   sbbc_deep_purple_200
+ *   sbbc_deep_purple_300
+ *   sbbc_deep_purple_400
+ *   sbbc_deep_purple sbbc_deep_purple_500
+ *   sbbc_deep_purple_600
+ *   sbbc_deep_purple_700
+ *   sbbc_deep_purple_800
+ *   sbbc_deep_purple_900
+ *   sbbc_deep_purple_a100
+ *   sbbc_deep_purple_a200
+ *   sbbc_deep_purple_a400
+ *   sbbc_deep_purple_a700
+ *   sbbc_indigo_50
+ *   sbbc_indigo_100
+ *   sbbc_indigo_200
+ *   sbbc_indigo_300
+ *   sbbc_indigo_400
+ *   sbbc_indigo sbbc_indigo_500
+ *   sbbc_indigo_600
+ *   sbbc_indigo_700
+ *   sbbc_indigo_800
+ *   sbbc_indigo_900
+ *   sbbc_indigo_a100
+ *   sbbc_indigo_a200
+ *   sbbc_indigo_a400
+ *   sbbc_indigo_a700
+ *   sbbc_blue_50
+ *   sbbc_blue_100
+ *   sbbc_blue_200
+ *   sbbc_blue_300
+ *   sbbc_blue_400
+ *   sbbc_blue sbbc_blue_500
+ *   sbbc_blue_600
+ *   sbbc_blue_700
+ *   sbbc_blue_800
+ *   sbbc_blue_900
+ *   sbbc_blue_a100
+ *   sbbc_blue_a200
+ *   sbbc_blue_a400
+ *   sbbc_blue_a700
+ *   sbbc_light_blue_50
+ *   sbbc_light_blue_100
+ *   sbbc_light_blue_200
+ *   sbbc_light_blue_300
+ *   sbbc_light_blue_400
+ *   sbbc_light_blue sbbc_light_blue_500
+ *   sbbc_light_blue_600
+ *   sbbc_light_blue_700
+ *   sbbc_light_blue_800
+ *   sbbc_light_blue_900
+ *   sbbc_light_blue_a100
+ *   sbbc_light_blue_a200
+ *   sbbc_light_blue_a400
+ *   sbbc_light_blue_a700
+ *   sbbc_cyan_50
+ *   sbbc_cyan_100
+ *   sbbc_cyan_200
+ *   sbbc_cyan_300
+ *   sbbc_cyan_400
+ *   sbbc_cyan sbbc_cyan_500
+ *   sbbc_cyan_600
+ *   sbbc_cyan_700
+ *   sbbc_cyan_800
+ *   sbbc_cyan_900
+ *   sbbc_cyan_a100
+ *   sbbc_cyan_a200
+ *   sbbc_cyan_a400
+ *   sbbc_cyan_a700
+ *   sbbc_teal_50
+ *   sbbc_teal_100
+ *   sbbc_teal_200
+ *   sbbc_teal_300
+ *   sbbc_teal_400
+ *   sbbc_teal sbbc_teal_500
+ *   sbbc_teal_600
+ *   sbbc_teal_700
+ *   sbbc_teal_800
+ *   sbbc_teal_900
+ *   sbbc_teal_a100
+ *   sbbc_teal_a200
+ *   sbbc_teal_a400
+ *   sbbc_teal_a700
+ *   sbbc_green_50
+ *   sbbc_green_100
+ *   sbbc_green_200
+ *   sbbc_green_300
+ *   sbbc_green_400
+ *   sbbc_green sbbc_green_500
+ *   sbbc_green_600
+ *   sbbc_green_700
+ *   sbbc_green_800
+ *   sbbc_green_900
+ *   sbbc_green_a100
+ *   sbbc_green_a200
+ *   sbbc_green_a400
+ *   sbbc_green_a700
+ *   sbbc_light_green_50
+ *   sbbc_light_green_100
+ *   sbbc_light_green_200
+ *   sbbc_light_green_300
+ *   sbbc_light_green_400
+ *   sbbc_light_green sbbc_light_green_500
+ *   sbbc_light_green_600
+ *   sbbc_light_green_700
+ *   sbbc_light_green_800
+ *   sbbc_light_green_900
+ *   sbbc_light_green_a100
+ *   sbbc_light_green_a200
+ *   sbbc_light_green_a400
+ *   sbbc_light_green_a700
+ *   sbbc_lime_50
+ *   sbbc_lime_100
+ *   sbbc_lime_200
+ *   sbbc_lime_300
+ *   sbbc_lime_400
+ *   sbbc_lime sbbc_lime_500
+ *   sbbc_lime_600
+ *   sbbc_lime_700
+ *   sbbc_lime_800
+ *   sbbc_lime_900
+ *   sbbc_lime_a100
+ *   sbbc_lime_a200
+ *   sbbc_lime_a400
+ *   sbbc_lime_a700
+ *   sbbc_yellow_50
+ *   sbbc_yellow_100
+ *   sbbc_yellow_200
+ *   sbbc_yellow_300
+ *   sbbc_yellow_400
+ *   sbbc_yellow sbbc_yellow_500
+ *   sbbc_yellow_600
+ *   sbbc_yellow_700
+ *   sbbc_yellow_800
+ *   sbbc_yellow_900
+ *   sbbc_yellow_a100
+ *   sbbc_yellow_a200
+ *   sbbc_yellow_a400
+ *   sbbc_yellow_a700
+ *   sbbc_amber_50
+ *   sbbc_amber_100
+ *   sbbc_amber_200
+ *   sbbc_amber_300
+ *   sbbc_amber_400
+ *   sbbc_amber sbbc_amber_500
+ *   sbbc_amber_600
+ *   sbbc_amber_700
+ *   sbbc_amber_800
+ *   sbbc_amber_900
+ *   sbbc_amber_a100
+ *   sbbc_amber_a200
+ *   sbbc_amber_a400
+ *   sbbc_amber_a700
+ *   sbbc_orange_50
+ *   sbbc_orange_100
+ *   sbbc_orange_200
+ *   sbbc_orange_300
+ *   sbbc_orange_400
+ *   sbbc_orange sbbc_orange_500
+ *   sbbc_orange_600
+ *   sbbc_orange_700
+ *   sbbc_orange_800
+ *   sbbc_orange_900
+ *   sbbc_orange_a100
+ *   sbbc_orange_a200
+ *   sbbc_orange_a400
+ *   sbbc_orange_a700
+ *   sbbc_deep_orange_50
+ *   sbbc_deep_orange_100
+ *   sbbc_deep_orange_200
+ *   sbbc_deep_orange_300
+ *   sbbc_deep_orange_400
+ *   sbbc_deep_orange sbbc_deep_orange_500
+ *   sbbc_deep_orange_600
+ *   sbbc_deep_orange_700
+ *   sbbc_deep_orange_800
+ *   sbbc_deep_orange_900
+ *   sbbc_deep_orange_a100
+ *   sbbc_deep_orange_a200
+ *   sbbc_deep_orange_a400
+ *   sbbc_deep_orange_a700
+ *   sbbc_brown_50
+ *   sbbc_brown_100
+ *   sbbc_brown_200
+ *   sbbc_brown_300
+ *   sbbc_brown_400
+ *   sbbc_brown sbbc_brown_500
+ *   sbbc_brown_600
+ *   sbbc_brown_700
+ *   sbbc_brown_800
+ *   sbbc_brown_900
+ *   sbbc_brown_a100
+ *   sbbc_brown_a200
+ *   sbbc_brown_a400
+ *   sbbc_brown_a700
+ *   sbbc_grey_50
+ *   sbbc_grey_100
+ *   sbbc_grey_200
+ *   sbbc_grey_300
+ *   sbbc_grey_400
+ *   sbbc_grey sbbc_grey_500
+ *   sbbc_grey_600
+ *   sbbc_grey_700
+ *   sbbc_grey_800
+ *   sbbc_grey_900
+ *   sbbc_grey_a100
+ *   sbbc_grey_a200
+ *   sbbc_grey_a400
+ *   sbbc_grey_a700
+ *   sbbc_blue_grey_50
+ *   sbbc_blue_grey_100
+ *   sbbc_blue_grey_200
+ *   sbbc_blue_grey_300
+ *   sbbc_blue_grey_400
+ *   sbbc_blue_grey sbbc_blue_grey_500
+ *   sbbc_blue_grey_600
+ *   sbbc_blue_grey_700
+ *   sbbc_blue_grey_800
+ *   sbbc_blue_grey_900
+ *   sbbc_blue_grey_a100
+ *   sbbc_blue_grey_a200
+ *   sbbc_blue_grey_a400
+ *   sbbc_blue_grey_a700
+ *   sbbc_black
+ *   sbbc_white
+ *  you can also use CSS variables
+ *   --sbc-red-50
+ *   --sbc-red-100
+ *   --sbc-red-200
+ *   --sbc-red-300
+ *   --sbc-red-400
+ *   --sbc-red --sbc-red-500
+ *   --sbc-red-600
+ *   --sbc-red-700
+ *   --sbc-red-800
+ *   --sbc-red-900
+ *   --sbc-red-a100
+ *   --sbc-red-a200
+ *   --sbc-red-a400
+ *   --sbc-red-a700
+ *   --sbc-pink-50
+ *   --sbc-pink-100
+ *   --sbc-pink-200
+ *   --sbc-pink-300
+ *   --sbc-pink-400
+ *   --sbc-pink --sbc-pink-500
+ *   --sbc-pink-600
+ *   --sbc-pink-700
+ *   --sbc-pink-800
+ *   --sbc-pink-900
+ *   --sbc-pink-a100
+ *   --sbc-pink-a200
+ *   --sbc-pink-a400
+ *   --sbc-pink-a700
+ *   --sbc-purple-50
+ *   --sbc-purple-100
+ *   --sbc-purple-200
+ *   --sbc-purple-300
+ *   --sbc-purple-400
+ *   --sbc-purple --sbc-purple-500
+ *   --sbc-purple-600
+ *   --sbc-purple-700
+ *   --sbc-purple-800
+ *   --sbc-purple-900
+ *   --sbc-purple-a100
+ *   --sbc-purple-a200
+ *   --sbc-purple-a400
+ *   --sbc-purple-a700
+ *   --sbc-deep-purple-50
+ *   --sbc-deep-purple-100
+ *   --sbc-deep-purple-200
+ *   --sbc-deep-purple-300
+ *   --sbc-deep-purple-400
+ *   --sbc-deep-purple --sbc-deep-purple-500
+ *   --sbc-deep-purple-600
+ *   --sbc-deep-purple-700
+ *   --sbc-deep-purple-800
+ *   --sbc-deep-purple-900
+ *   --sbc-deep-purple-a100
+ *   --sbc-deep-purple-a200
+ *   --sbc-deep-purple-a400
+ *   --sbc-deep-purple-a700
+ *   --sbc-indigo-50
+ *   --sbc-indigo-100
+ *   --sbc-indigo-200
+ *   --sbc-indigo-300
+ *   --sbc-indigo-400
+ *   --sbc-indigo --sbc-indigo-500
+ *   --sbc-indigo-600
+ *   --sbc-indigo-700
+ *   --sbc-indigo-800
+ *   --sbc-indigo-900
+ *   --sbc-indigo-a100
+ *   --sbc-indigo-a200
+ *   --sbc-indigo-a400
+ *   --sbc-indigo-a700
+ *   --sbc-blue-50
+ *   --sbc-blue-100
+ *   --sbc-blue-200
+ *   --sbc-blue-300
+ *   --sbc-blue-400
+ *   --sbc-blue --sbc-blue-500
+ *   --sbc-blue-600
+ *   --sbc-blue-700
+ *   --sbc-blue-800
+ *   --sbc-blue-900
+ *   --sbc-blue-a100
+ *   --sbc-blue-a200
+ *   --sbc-blue-a400
+ *   --sbc-blue-a700
+ *   --sbc-light-blue-50
+ *   --sbc-light-blue-100
+ *   --sbc-light-blue-200
+ *   --sbc-light-blue-300
+ *   --sbc-light-blue-400
+ *   --sbc-light-blue --sbc-light-blue-500
+ *   --sbc-light-blue-600
+ *   --sbc-light-blue-700
+ *   --sbc-light-blue-800
+ *   --sbc-light-blue-900
+ *   --sbc-light-blue-a100
+ *   --sbc-light-blue-a200
+ *   --sbc-light-blue-a400
+ *   --sbc-light-blue-a700
+ *   --sbc-cyan-50
+ *   --sbc-cyan-100
+ *   --sbc-cyan-200
+ *   --sbc-cyan-300
+ *   --sbc-cyan-400
+ *   --sbc-cyan --sbc-cyan-500
+ *   --sbc-cyan-600
+ *   --sbc-cyan-700
+ *   --sbc-cyan-800
+ *   --sbc-cyan-900
+ *   --sbc-cyan-a100
+ *   --sbc-cyan-a200
+ *   --sbc-cyan-a400
+ *   --sbc-cyan-a700
+ *   --sbc-teal-50
+ *   --sbc-teal-100
+ *   --sbc-teal-200
+ *   --sbc-teal-300
+ *   --sbc-teal-400
+ *   --sbc-teal --sbc-teal-500
+ *   --sbc-teal-600
+ *   --sbc-teal-700
+ *   --sbc-teal-800
+ *   --sbc-teal-900
+ *   --sbc-teal-a100
+ *   --sbc-teal-a200
+ *   --sbc-teal-a400
+ *   --sbc-teal-a700
+ *   --sbc-green-50
+ *   --sbc-green-100
+ *   --sbc-green-200
+ *   --sbc-green-300
+ *   --sbc-green-400
+ *   --sbc-green --sbc-green-500
+ *   --sbc-green-600
+ *   --sbc-green-700
+ *   --sbc-green-800
+ *   --sbc-green-900
+ *   --sbc-green-a100
+ *   --sbc-green-a200
+ *   --sbc-green-a400
+ *   --sbc-green-a700
+ *   --sbc-light-green-50
+ *   --sbc-light-green-100
+ *   --sbc-light-green-200
+ *   --sbc-light-green-300
+ *   --sbc-light-green-400
+ *   --sbc-light-green --sbc-light-green-500
+ *   --sbc-light-green-600
+ *   --sbc-light-green-700
+ *   --sbc-light-green-800
+ *   --sbc-light-green-900
+ *   --sbc-light-green-a100
+ *   --sbc-light-green-a200
+ *   --sbc-light-green-a400
+ *   --sbc-light-green-a700
+ *   --sbc-lime-50
+ *   --sbc-lime-100
+ *   --sbc-lime-200
+ *   --sbc-lime-300
+ *   --sbc-lime-400
+ *   --sbc-lime --sbc-lime-500
+ *   --sbc-lime-600
+ *   --sbc-lime-700
+ *   --sbc-lime-800
+ *   --sbc-lime-900
+ *   --sbc-lime-a100
+ *   --sbc-lime-a200
+ *   --sbc-lime-a400
+ *   --sbc-lime-a700
+ *   --sbc-yellow-50
+ *   --sbc-yellow-100
+ *   --sbc-yellow-200
+ *   --sbc-yellow-300
+ *   --sbc-yellow-400
+ *   --sbc-yellow --sbc-yellow-500
+ *   --sbc-yellow-600
+ *   --sbc-yellow-700
+ *   --sbc-yellow-800
+ *   --sbc-yellow-900
+ *   --sbc-yellow-a100
+ *   --sbc-yellow-a200
+ *   --sbc-yellow-a400
+ *   --sbc-yellow-a700
+ *   --sbc-amber-50
+ *   --sbc-amber-100
+ *   --sbc-amber-200
+ *   --sbc-amber-300
+ *   --sbc-amber-400
+ *   --sbc-amber --sbc-amber-500
+ *   --sbc-amber-600
+ *   --sbc-amber-700
+ *   --sbc-amber-800
+ *   --sbc-amber-900
+ *   --sbc-amber-a100
+ *   --sbc-amber-a200
+ *   --sbc-amber-a400
+ *   --sbc-amber-a700
+ *   --sbc-orange-50
+ *   --sbc-orange-100
+ *   --sbc-orange-200
+ *   --sbc-orange-300
+ *   --sbc-orange-400
+ *   --sbc-orange --sbc-orange-500
+ *   --sbc-orange-600
+ *   --sbc-orange-700
+ *   --sbc-orange-800
+ *   --sbc-orange-900
+ *   --sbc-orange-a100
+ *   --sbc-orange-a200
+ *   --sbc-orange-a400
+ *   --sbc-orange-a700
+ *   --sbc-deep-orange-50
+ *   --sbc-deep-orange-100
+ *   --sbc-deep-orange-200
+ *   --sbc-deep-orange-300
+ *   --sbc-deep-orange-400
+ *   --sbc-deep-orange --sbc-deep-orange-500
+ *   --sbc-deep-orange-600
+ *   --sbc-deep-orange-700
+ *   --sbc-deep-orange-800
+ *   --sbc-deep-orange-900
+ *   --sbc-deep-orange-a100
+ *   --sbc-deep-orange-a200
+ *   --sbc-deep-orange-a400
+ *   --sbc-deep-orange-a700
+ *   --sbc-brown-50
+ *   --sbc-brown-100
+ *   --sbc-brown-200
+ *   --sbc-brown-300
+ *   --sbc-brown-400
+ *   --sbc-brown --sbc-brown-500
+ *   --sbc-brown-600
+ *   --sbc-brown-700
+ *   --sbc-brown-800
+ *   --sbc-brown-900
+ *   --sbc-brown-a100
+ *   --sbc-brown-a200
+ *   --sbc-brown-a400
+ *   --sbc-brown-a700
+ *   --sbc-grey-50
+ *   --sbc-grey-100
+ *   --sbc-grey-200
+ *   --sbc-grey-300
+ *   --sbc-grey-400
+ *   --sbc-grey --sbc-grey-500
+ *   --sbc-grey-600
+ *   --sbc-grey-700
+ *   --sbc-grey-800
+ *   --sbc-grey-900
+ *   --sbc-grey-a100
+ *   --sbc-grey-a200
+ *   --sbc-grey-a400
+ *   --sbc-grey-a700
+ *   --sbc-blue-grey-50
+ *   --sbc-blue-grey-100
+ *   --sbc-blue-grey-200
+ *   --sbc-blue-grey-300
+ *   --sbc-blue-grey-400
+ *   --sbc-blue-grey --sbc-blue-grey-500
+ *   --sbc-blue-grey-600
+ *   --sbc-blue-grey-700
+ *   --sbc-blue-grey-800
+ *   --sbc-blue-grey-900
+ *   --sbc-blue-grey-a100
+ *   --sbc-blue-grey-a200
+ *   --sbc-blue-grey-a400
+ *   --sbc-blue-grey-a700
+ *   --sbc-black
+ *   --sbc-white
  *
  * Sources:
  *  https://materializecss.com
  *  https://github.com/vinyanalista/material-jekyll-plus
+ *  https://github.com/mdbootstrap/bootstrap-material-design/blob/master/scss/variables/_colors.scss
  * License: MIT https://github.com/vinyanalista/material-jekyll-plus/blob/master/LICENSE
  */
 
 body {
 	background-color: #e5e5e5;
+
 	font-size: 16px;
 	font-family: Roboto, Helvetica, Arial, sans-serif;
 	margin: 0;
@@ -86,6 +899,10 @@ body {
 .sb_button {
 	color: #ffffff;
 	background-color: #26a69a;
+	box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14),
+		0 3px 1px -2px rgba(0, 0, 0, 0.12),
+		0 1px 5px 0 rgba(0, 0, 0, 0.2);
+
 	letter-spacing: .5px;
 	font-size: 14px;
 	text-align: center;
@@ -96,26 +913,25 @@ body {
 	line-height: 36px;
 	margin: 5px;
 	padding: 0 16px;
-	box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14),
-		0 3px 1px -2px rgba(0, 0, 0, 0.12),
-		0 1px 5px 0 rgba(0, 0, 0, 0.2);
 }
 .sb_button a,
 .sb_button a:hover,
 .sb_button a:visited {
 	color: #ffffff;
+
 	text-decoration: none;
 }
 .sb_button_in_row {
 	float: left;
 }
 .sb_full_button {
-	width: 100%;
-	border: none;
+	color: #ffffff;
+	background-color: #4caf50;
 	box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.16),
 		0 2px 10px 0 rgba(0, 0, 0, 0.12);
-	background-color: #4caf50;
-	color: #ffffff;
+
+	width: 100%;
+	border: none;
 	padding: 20px;
 	margin-top: 5px;
 	text-transform: uppercase;
@@ -123,19 +939,21 @@ body {
 
 /* Text inputs */
 textarea {
-	border: none;
-	resize: none;
-	outline: none;
 	box-shadow: 0 2px 2px 0 rgba(0, 0, 0, .14),
 		0 3px 1px -2px rgba(0, 0, 0, .2),
 		0 1px 5px 0 rgba(0, 0, 0, .12);
+
+	border: none;
+	resize: none;
+	outline: none;
 	white-space: nowrap;
 }
 input[type=text],
 input[type=password] {
 	background-color: transparent;
-	border: none;
 	border-bottom: 1px solid #9e9e9e;
+
+	border: none;
 	height: 48px;
 	width: 100%;
 	margin: 0 0 15px 0;
@@ -148,6 +966,7 @@ input[type=password]:focus {
 }
 label {
 	color: #9e9e9e;
+
 	position: relative;
 	top: 0;
 	left: 0.75rem;
@@ -158,8 +977,9 @@ label {
 table a,
 table a:hover,
 table a:visited {
-	text-decoration: none;
 	color: #0000ff;
+
+	text-decoration: none;
 }
 table {
 	border-collapse: collapse;
@@ -188,12 +1008,13 @@ label input[type=checkbox]:checked + .sb_switch_lever:after {
 	background-color: #26a69a;
 }
 label .sb_switch_lever {
+	background-color: rgba(0, 0, 0, 0.38);
+
 	content: "";
 	display: inline-block;
 	position: relative;
 	width: 36px;
 	height: 14px;
-	background-color: rgba(0, 0, 0, 0.38);
 	border-radius: 15px;
 	margin-right: 10px;
 	transition: background 0.3s ease;
@@ -219,20 +1040,22 @@ label .sb_switch_lever:before {
 	background-color: rgba(38, 166, 154, 0.15);
 }
 label .sb_switch_lever:after {
-	background-color: #F1F1F1;
+	background-color: #f1f1f1;
 	box-shadow: 0px 3px 1px -2px rgba(0, 0, 0, 0.2),
 		0 2px 2px 0 rgba(0, 0, 0, 0.14),
 		0 1px 5px 0 rgba(0, 0, 0, 0.12);
 }
 input[type=checkbox]:checked:not(:disabled) ~ .sb_switch_lever:active::before,
 input[type=checkbox]:checked:not(:disabled).tabbed:focus ~ .sb_switch_lever::before {
-	transform: scale(2.4);
 	background-color: rgba(38, 166, 154, 0.15);
+
+	transform: scale(2.4);
 }
 input[type=checkbox]:not(:disabled) ~ .sb_switch_lever:active:before,
 input[type=checkbox]:not(:disabled).tabbed:focus ~ .sb_switch_lever::before {
-	transform: scale(2.4);
 	background-color: rgba(0, 0, 0, 0.08);
+
+	transform: scale(2.4);
 }
 
 /* file upload */
@@ -240,10 +1063,16 @@ input[type=file]::-webkit-file-upload-button {
 	visibility: hidden;
 }
 input[type=file]::before {
-	display: inline-block;
 	/* .button */
 	color: #ffffff;
 	background-color: #26a69a;
+	box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14),
+		0 3px 1px -2px rgba(0, 0, 0, 0.12),
+		0 1px 5px 0 rgba(0, 0, 0, 0.2);
+
+	display: inline-block;
+
+	/* .button */
 	letter-spacing: .5px;
 	font-size: 14px;
 	text-align: center;
@@ -252,28 +1081,27 @@ input[type=file]::before {
 	line-height: 36px;
 	margin-left: 2px;
 	padding: 0 5px;
-	box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14),
-		0 3px 1px -2px rgba(0, 0, 0, 0.12),
-		0 1px 5px 0 rgba(0, 0, 0, 0.2);
 }
 
 /* header */
 .sb_header {
 	color: #ffffff;
 	background-color: #4caf50;
+	box-shadow: 0 2px 2px 0 rgba(0, 0, 0, .14),
+		0 3px 1px -2px rgba(0, 0, 0, .2),
+		0 1px 5px 0 rgba(0, 0, 0, .12);
+
 	overflow: auto;
 	position: relative;
 	margin: 0;
 	padding: 0;
 	padding-left: 10px;
-	box-shadow: 0 2px 2px 0 rgba(0, 0, 0, .14),
-		0 3px 1px -2px rgba(0, 0, 0, .2),
-		0 1px 5px 0 rgba(0, 0, 0, .12);
 }
 
 /* menu */
 .sb_headlinks {
 	background-color: #f6f6f6;
+
 	overflow: auto;
 	margin-top: 2px;
 	margin-left: 5px;
@@ -281,6 +1109,7 @@ input[type=file]::before {
 }
 .headlink {
 	color: #7fbf8f;
+
 	text-align: center;
 	text-transform: uppercase;
 	position: relative;
@@ -293,11 +1122,13 @@ input[type=file]::before {
 .sb_headlink a:hover,
 .sb_headlink a:visited {
 	color: #197b10;
+
 	text-decoration: none;
 	text-transform: uppercase;
 }
 .sb_headlink_active {
 	background-color: #4caf50;
+
 	position: absolute;
 	bottom: 0;
 	width: 100px;
@@ -309,24 +1140,26 @@ input[type=file]::before {
 .sb_page .article_title {
 	color: #777777;
 	background-color: #f5f5f5;
+	box-shadow: 0 2px 2px 0 rgba(0, 0, 0, .14),
+		0 3px 1px -2px rgba(0, 0, 0, .2),
+		0 1px 5px 0 rgba(0, 0, 0, .12);
+
 	font-size: 2rem;
 	margin: 10px;
 	margin-bottom: 1px;
 	padding: 5px;
-	box-shadow: 0 2px 2px 0 rgba(0, 0, 0, .14),
-		0 3px 1px -2px rgba(0, 0, 0, .2),
-		0 1px 5px 0 rgba(0, 0, 0, .12);
 }
 .sb_content,
 .sb_page .sb_article_content,
 .sb_page .sb_page_switches {
 	background-color: #ffffff;
-	margin: 10px;
-	margin-top: 1px;
-	padding: 5px;
 	box-shadow: 0 2px 2px 0 rgba(0, 0, 0, .14),
 		0 3px 1px -2px rgba(0, 0, 0, .2),
 		0 1px 5px 0 rgba(0, 0, 0, .12);
+
+	margin: 10px;
+	margin-top: 1px;
+	padding: 5px;
 	margin-bottom: 50px; /* for footer */
 	overflow: auto;
 }
@@ -348,36 +1181,866 @@ input[type=file]::before {
 	padding: 1px;
 }
 .sb_page .sb_page_switches .sb_page_switch {
+	background-color: #b2b2b2;
+
 	width: 30px;
 	height: 26px;
 	margin: 5px;
 	padding-top: 4px;
-	background-color: #b2b2b2;
 	border-radius: 50%;
 	text-align: center;
 }
 .sb_page .sb_page_switches .sb_page_switch a,
 .sb_page .sb_page_switches .page_switch a:hover,
 .sb_page .sb_page_switches .sb_page_switch a:visited {
-	text-decoration: none;
 	color: #000000;
+
+	text-decoration: none;
 }
 
 /* footer */
 .sb_footer {
 	color: #ffffff;
 	background-color: #4caf50;
+	box-shadow: 0 2px 2px 0 rgba(0, 0, 0, .14),
+		0 3px 1px -2px rgba(0, 0, 0, .2),
+		0 1px 5px 0 rgba(0, 0, 0, .12);
+
 	padding: 5px;
 	position: fixed;
 	bottom: 0;
 	width: 100%;
 	height: 30px;
-	box-shadow: 0 2px 2px 0 rgba(0, 0, 0, .14),
-		0 3px 1px -2px rgba(0, 0, 0, .2),
-		0 1px 5px 0 rgba(0, 0, 0, .12);
 }
 .sb_footer .sb_footer_text {
 	float: right;
 	margin-right: 20px;
 	padding-top: 5px;
+}
+
+/* colors */
+.sbc_red_50 { color: #ffebee; }
+.sbc_red_100 { color: #ffcdd2; }
+.sbc_red_200 { color: #ef9a9a; }
+.sbc_red_300 { color: #e57373; }
+.sbc_red_400 { color: #ef5350; }
+.sbc_red_500, .sbc_red { color: #f44336; }
+.sbc_red_600 { color: #e53935; }
+.sbc_red_700 { color: #d32f2f; }
+.sbc_red_800 { color: #c62828; }
+.sbc_red_900 { color: #b71c1c; }
+.sbc_red_a100 { color: #ff8a80; }
+.sbc_red_a200 { color: #ff5252; }
+.sbc_red_a400 { color: #ff1744; }
+.sbc_red_a700 { color: #d50000; }
+.sbc_pink_50 { color: #fce4ec; }
+.sbc_pink_100 { color: #f8bbd0; }
+.sbc_pink_200 { color: #f48fb1; }
+.sbc_pink_300 { color: #f06292; }
+.sbc_pink_400 { color: #ec407a; }
+.sbc_pink_500, .sbc_pink { color: #e91e63; }
+.sbc_pink_600 { color: #d81b60; }
+.sbc_pink_700 { color: #c2185b; }
+.sbc_pink_800 { color: #ad1457; }
+.sbc_pink_900 { color: #880e4f; }
+.sbc_pink_a100 { color: #ff80ab; }
+.sbc_pink_a200 { color: #ff4081; }
+.sbc_pink_a400 { color: #f50057; }
+.sbc_pink_a700 { color: #c51162; }
+.sbc_purple_50 { color: #f3e5f5; }
+.sbc_purple_100 { color: #e1bee7; }
+.sbc_purple_200 { color: #ce93d8; }
+.sbc_purple_300 { color: #ba68c8; }
+.sbc_purple_400 { color: #ab47bc; }
+.sbc_purple_500, .sbc_purple { color: #9c27b0; }
+.sbc_purple_600 { color: #8e24aa; }
+.sbc_purple_700 { color: #7b1fa2; }
+.sbc_purple_800 { color: #6a1b9a; }
+.sbc_purple_900 { color: #4a148c; }
+.sbc_purple_a100 { color: #ea80fc; }
+.sbc_purple_a200 { color: #e040fb; }
+.sbc_purple_a400 { color: #d500f9; }
+.sbc_purple_a700 { color: #aa00ff; }
+.sbc_deep_purple_50 { color: #ede7f6; }
+.sbc_deep_purple_100 { color: #d1c4e9; }
+.sbc_deep_purple_200 { color: #b39ddb; }
+.sbc_deep_purple_300 { color: #9575cd; }
+.sbc_deep_purple_400 { color: #7e57c2; }
+.sbc_deep_purple_500, .sbc_deep_purple { color: #673ab7; }
+.sbc_deep_purple_600 { color: #5e35b1; }
+.sbc_deep_purple_700 { color: #512da8; }
+.sbc_deep_purple_800 { color: #4527a0; }
+.sbc_deep_purple_900 { color: #311b92; }
+.sbc_deep_purple_a100 { color: #b388ff; }
+.sbc_deep_purple_a200 { color: #7c4dff; }
+.sbc_deep_purple_a400 { color: #651fff; }
+.sbc_deep_purple_a700 { color: #6200ea; }
+.sbc_indigo_50 { color: #e8eaf6; }
+.sbc_indigo_100 { color: #c5cae9; }
+.sbc_indigo_200 { color: #9fa8da; }
+.sbc_indigo_300 { color: #7986cb; }
+.sbc_indigo_400 { color: #5c6bc0; }
+.sbc_indigo_500, .sbc_indigo { color: #3f51b5; }
+.sbc_indigo_600 { color: #3949ab; }
+.sbc_indigo_700 { color: #303f9f; }
+.sbc_indigo_800 { color: #283593; }
+.sbc_indigo_900 { color: #1a237e; }
+.sbc_indigo_a100 { color: #8c9eff; }
+.sbc_indigo_a200 { color: #536dfe; }
+.sbc_indigo_a400 { color: #3d5afe; }
+.sbc_indigo_a700 { color: #304ffe; }
+.sbc_blue_50 { color: #e3f2fd; }
+.sbc_blue_100 { color: #bbdefb; }
+.sbc_blue_200 { color: #90caf9; }
+.sbc_blue_300 { color: #64b5f6; }
+.sbc_blue_400 { color: #42a5f5; }
+.sbc_blue_500, .sbc_blue { color: #2196f3; }
+.sbc_blue_600 { color: #1e88e5; }
+.sbc_blue_700 { color: #1976d2; }
+.sbc_blue_800 { color: #1565c0; }
+.sbc_blue_900 { color: #0d47a1; }
+.sbc_blue_a100 { color: #82b1ff; }
+.sbc_blue_a200 { color: #448aff; }
+.sbc_blue_a400 { color: #2979ff; }
+.sbc_blue_a700 { color: #2962ff; }
+.sbc_light_blue_50 { color: #e1f5fe; }
+.sbc_light_blue_100 { color: #b3e5fc; }
+.sbc_light_blue_200 { color: #81d4fa; }
+.sbc_light_blue_300 { color: #4fc3f7; }
+.sbc_light_blue_400 { color: #29b6f6; }
+.sbc_light_blue_500, .sbc_light_blue { color: #03a9f4; }
+.sbc_light_blue_600 { color: #039be5; }
+.sbc_light_blue_700 { color: #0288d1; }
+.sbc_light_blue_800 { color: #0277bd; }
+.sbc_light_blue_900 { color: #01579b; }
+.sbc_light_blue_a100 { color: #80d8ff; }
+.sbc_light_blue_a200 { color: #40c4ff; }
+.sbc_light_blue_a400 { color: #00b0ff; }
+.sbc_light_blue_a700 { color: #0091ea; }
+.sbc_cyan_50 { color: #e0f7fa; }
+.sbc_cyan_100 { color: #b2ebf2; }
+.sbc_cyan_200 { color: #80deea; }
+.sbc_cyan_300 { color: #4dd0e1; }
+.sbc_cyan_400 { color: #26c6da; }
+.sbc_cyan_500, .sbc_cyan { color: #00bcd4; }
+.sbc_cyan_600 { color: #00acc1; }
+.sbc_cyan_700 { color: #0097a7; }
+.sbc_cyan_800 { color: #00838f; }
+.sbc_cyan_900 { color: #006064; }
+.sbc_cyan_a100 { color: #84ffff; }
+.sbc_cyan_a200 { color: #18ffff; }
+.sbc_cyan_a400 { color: #00e5ff; }
+.sbc_cyan_a700 { color: #00b8d4; }
+.sbc_teal_50 { color: #e0f2f1; }
+.sbc_teal_100 { color: #b2dfdb; }
+.sbc_teal_200 { color: #80cbc4; }
+.sbc_teal_300 { color: #4db6ac; }
+.sbc_teal_400 { color: #26a69a; }
+.sbc_teal_500, .sbc_teal { color: #009688; }
+.sbc_teal_600 { color: #00897b; }
+.sbc_teal_700 { color: #00796b; }
+.sbc_teal_800 { color: #00695c; }
+.sbc_teal_900 { color: #004d40; }
+.sbc_teal_a100 { color: #a7ffeb; }
+.sbc_teal_a200 { color: #64ffda; }
+.sbc_teal_a400 { color: #1de9b6; }
+.sbc_teal_a700 { color: #00bfa5; }
+.sbc_green_50 { color: #e8f5e9; }
+.sbc_green_100 { color: #c8e6c9; }
+.sbc_green_200 { color: #a5d6a7; }
+.sbc_green_300 { color: #81c784; }
+.sbc_green_400 { color: #66bb6a; }
+.sbc_green_500, .sbc_green { color: #4caf50; }
+.sbc_green_600 { color: #43a047; }
+.sbc_green_700 { color: #388e3c; }
+.sbc_green_800 { color: #2e7d32; }
+.sbc_green_900 { color: #1b5e20; }
+.sbc_green_a100 { color: #b9f6ca; }
+.sbc_green_a200 { color: #69f0ae; }
+.sbc_green_a400 { color: #00e676; }
+.sbc_green_a700 { color: #00c853; }
+.sbc_light_green_50 { color: #f1f8e9; }
+.sbc_light_green_100 { color: #dcedc8; }
+.sbc_light_green_200 { color: #c5e1a5; }
+.sbc_light_green_300 { color: #aed581; }
+.sbc_light_green_400 { color: #9ccc65; }
+.sbc_light_green_500, .sbc_light_green { color: #8bc34a; }
+.sbc_light_green_600 { color: #7cb342; }
+.sbc_light_green_700 { color: #689f38; }
+.sbc_light_green_800 { color: #558b2f; }
+.sbc_light_green_900 { color: #33691e; }
+.sbc_light_green_a100 { color: #ccff90; }
+.sbc_light_green_a200 { color: #b2ff59; }
+.sbc_light_green_a400 { color: #76ff03; }
+.sbc_light_green_a700 { color: #64dd17; }
+.sbc_lime_50 { color: #f9fbe7; }
+.sbc_lime_100 { color: #f0f4c3; }
+.sbc_lime_200 { color: #e6ee9c; }
+.sbc_lime_300 { color: #dce775; }
+.sbc_lime_400 { color: #d4e157; }
+.sbc_lime_500, .sbc_lime { color: #cddc39; }
+.sbc_lime_600 { color: #c0ca33; }
+.sbc_lime_700 { color: #afb42b; }
+.sbc_lime_800 { color: #9e9d24; }
+.sbc_lime_900 { color: #827717; }
+.sbc_lime_a100 { color: #f4ff81; }
+.sbc_lime_a200 { color: #eeff41; }
+.sbc_lime_a400 { color: #c6ff00; }
+.sbc_lime_a700 { color: #aeea00; }
+.sbc_yellow_50 { color: #fffde7; }
+.sbc_yellow_100 { color: #fff9c4; }
+.sbc_yellow_200 { color: #fff59d; }
+.sbc_yellow_300 { color: #fff176; }
+.sbc_yellow_400 { color: #ffee58; }
+.sbc_yellow_500, .sbc_yellow { color: #ffeb3b; }
+.sbc_yellow_600 { color: #fdd835; }
+.sbc_yellow_700 { color: #fbc02d; }
+.sbc_yellow_800 { color: #f9a825; }
+.sbc_yellow_900 { color: #f57f17; }
+.sbc_yellow_a100 { color: #ffff8d; }
+.sbc_yellow_a200 { color: #ffff00; }
+.sbc_yellow_a400 { color: #ffea00; }
+.sbc_yellow_a700 { color: #ffd600; }
+.sbc_amber_50 { color: #fff8e1; }
+.sbc_amber_100 { color: #ffecb3; }
+.sbc_amber_200 { color: #ffe082; }
+.sbc_amber_300 { color: #ffd54f; }
+.sbc_amber_400 { color: #ffca28; }
+.sbc_amber_500, .sbc_amber { color: #ffc107; }
+.sbc_amber_600 { color: #ffb300; }
+.sbc_amber_700 { color: #ffa000; }
+.sbc_amber_800 { color: #ff8f00; }
+.sbc_amber_900 { color: #ff6f00; }
+.sbc_amber_a100 { color: #ffe57f; }
+.sbc_amber_a200 { color: #ffd740; }
+.sbc_amber_a400 { color: #ffc400; }
+.sbc_amber_a700 { color: #ffab00; }
+.sbc_orange_50 { color: #fff3e0; }
+.sbc_orange_100 { color: #ffe0b2; }
+.sbc_orange_200 { color: #ffcc80; }
+.sbc_orange_300 { color: #ffb74d; }
+.sbc_orange_400 { color: #ffa726; }
+.sbc_orange_500, .sbc_orange { color: #ff9800; }
+.sbc_orange_600 { color: #fb8c00; }
+.sbc_orange_700 { color: #f57c00; }
+.sbc_orange_800 { color: #ef6c00; }
+.sbc_orange_900 { color: #e65100; }
+.sbc_orange_a100 { color: #ffd180; }
+.sbc_orange_a200 { color: #ffab40; }
+.sbc_orange_a400 { color: #ff9100; }
+.sbc_orange_a700 { color: #ff6d00; }
+.sbc_deep_orange_50 { color: #fbe9e7; }
+.sbc_deep_orange_100 { color: #ffccbc; }
+.sbc_deep_orange_200 { color: #ffab91; }
+.sbc_deep_orange_300 { color: #ff8a65; }
+.sbc_deep_orange_400 { color: #ff7043; }
+.sbc_deep_orange_500, .sbc_deep_orange { color: #ff5722; }
+.sbc_deep_orange_600 { color: #f4511e; }
+.sbc_deep_orange_700 { color: #e64a19; }
+.sbc_deep_orange_800 { color: #d84315; }
+.sbc_deep_orange_900 { color: #bf360c; }
+.sbc_deep_orange_a100 { color: #ff9e80; }
+.sbc_deep_orange_a200 { color: #ff6e40; }
+.sbc_deep_orange_a400 { color: #ff3d00; }
+.sbc_deep_orange_a700 { color: #dd2c00; }
+.sbc_brown_50 { color: #efebe9; }
+.sbc_brown_100 { color: #d7ccc8; }
+.sbc_brown_200 { color: #bcaaa4; }
+.sbc_brown_300 { color: #a1887f; }
+.sbc_brown_400 { color: #8d6e63; }
+.sbc_brown_500, .sbc_brown { color: #795548; }
+.sbc_brown_600 { color: #6d4c41; }
+.sbc_brown_700 { color: #5d4037; }
+.sbc_brown_800 { color: #4e342e; }
+.sbc_brown_900 { color: #3e2723; }
+.sbc_brown_a100 { color: #d7ccc8; }
+.sbc_brown_a200 { color: #bcaaa4; }
+.sbc_brown_a400 { color: #8d6e63; }
+.sbc_brown_a700 { color: #5d4037; }
+.sbc_grey_50 { color: #fafafa; }
+.sbc_grey_100 { color: #f5f5f5; }
+.sbc_grey_200 { color: #eeeeee; }
+.sbc_grey_300 { color: #e0e0e0; }
+.sbc_grey_400 { color: #bdbdbd; }
+.sbc_grey_500, .sbc_grey { color: #9e9e9e; }
+.sbc_grey_600 { color: #757575; }
+.sbc_grey_700 { color: #616161; }
+.sbc_grey_800 { color: #424242; }
+.sbc_grey_900 { color: #212121; }
+.sbc_grey_a100 { color: #f5f5f5; }
+.sbc_grey_a200 { color: #eeeeee; }
+.sbc_grey_a400 { color: #bdbdbd; }
+.sbc_grey_a700 { color: #616161; }
+.sbc_blue_grey_50 { color: #eceff1; }
+.sbc_blue_grey_100 { color: #cfd8dc; }
+.sbc_blue_grey_200 { color: #b0bec5; }
+.sbc_blue_grey_300 { color: #90a4ae; }
+.sbc_blue_grey_400 { color: #78909c; }
+.sbc_blue_grey_500, .sbc_blue_grey { color: #607d8b; }
+.sbc_blue_grey_600 { color: #546e7a; }
+.sbc_blue_grey_700 { color: #455a64; }
+.sbc_blue_grey_800 { color: #37474f; }
+.sbc_blue_grey_900 { color: #263238; }
+.sbc_blue_grey_a100 { color: #cfd8dc; }
+.sbc_blue_grey_a200 { color: #b0bec5; }
+.sbc_blue_grey_a400 { color: #78909c; }
+.sbc_blue_grey_a700 { color: #455a64; }
+.sbc_black { color: #000000; }
+.sbc_white { color: #ffffff; }
+.sbbc_red_50 { background-color: #ffebee; }
+.sbbc_red_100 { background-color: #ffcdd2; }
+.sbbc_red_200 { background-color: #ef9a9a; }
+.sbbc_red_300 { background-color: #e57373; }
+.sbbc_red_400 { background-color: #ef5350; }
+.sbbc_red_500, .sbbc_red { background-color: #f44336; }
+.sbbc_red_600 { background-color: #e53935; }
+.sbbc_red_700 { background-color: #d32f2f; }
+.sbbc_red_800 { background-color: #c62828; }
+.sbbc_red_900 { background-color: #b71c1c; }
+.sbbc_red_a100 { background-color: #ff8a80; }
+.sbbc_red_a200 { background-color: #ff5252; }
+.sbbc_red_a400 { background-color: #ff1744; }
+.sbbc_red_a700 { background-color: #d50000; }
+.sbbc_pink_50 { background-color: #fce4ec; }
+.sbbc_pink_100 { background-color: #f8bbd0; }
+.sbbc_pink_200 { background-color: #f48fb1; }
+.sbbc_pink_300 { background-color: #f06292; }
+.sbbc_pink_400 { background-color: #ec407a; }
+.sbbc_pink_500, .sbbc_pink { background-color: #e91e63; }
+.sbbc_pink_600 { background-color: #d81b60; }
+.sbbc_pink_700 { background-color: #c2185b; }
+.sbbc_pink_800 { background-color: #ad1457; }
+.sbbc_pink_900 { background-color: #880e4f; }
+.sbbc_pink_a100 { background-color: #ff80ab; }
+.sbbc_pink_a200 { background-color: #ff4081; }
+.sbbc_pink_a400 { background-color: #f50057; }
+.sbbc_pink_a700 { background-color: #c51162; }
+.sbbc_purple_50 { background-color: #f3e5f5; }
+.sbbc_purple_100 { background-color: #e1bee7; }
+.sbbc_purple_200 { background-color: #ce93d8; }
+.sbbc_purple_300 { background-color: #ba68c8; }
+.sbbc_purple_400 { background-color: #ab47bc; }
+.sbbc_purple_500, .sbbc_purple { background-color: #9c27b0; }
+.sbbc_purple_600 { background-color: #8e24aa; }
+.sbbc_purple_700 { background-color: #7b1fa2; }
+.sbbc_purple_800 { background-color: #6a1b9a; }
+.sbbc_purple_900 { background-color: #4a148c; }
+.sbbc_purple_a100 { background-color: #ea80fc; }
+.sbbc_purple_a200 { background-color: #e040fb; }
+.sbbc_purple_a400 { background-color: #d500f9; }
+.sbbc_purple_a700 { background-color: #aa00ff; }
+.sbbc_deep_purple_50 { background-color: #ede7f6; }
+.sbbc_deep_purple_100 { background-color: #d1c4e9; }
+.sbbc_deep_purple_200 { background-color: #b39ddb; }
+.sbbc_deep_purple_300 { background-color: #9575cd; }
+.sbbc_deep_purple_400 { background-color: #7e57c2; }
+.sbbc_deep_purple_500, .sbbc_deep_purple { background-color: #673ab7; }
+.sbbc_deep_purple_600 { background-color: #5e35b1; }
+.sbbc_deep_purple_700 { background-color: #512da8; }
+.sbbc_deep_purple_800 { background-color: #4527a0; }
+.sbbc_deep_purple_900 { background-color: #311b92; }
+.sbbc_deep_purple_a100 { background-color: #b388ff; }
+.sbbc_deep_purple_a200 { background-color: #7c4dff; }
+.sbbc_deep_purple_a400 { background-color: #651fff; }
+.sbbc_deep_purple_a700 { background-color: #6200ea; }
+.sbbc_indigo_50 { background-color: #e8eaf6; }
+.sbbc_indigo_100 { background-color: #c5cae9; }
+.sbbc_indigo_200 { background-color: #9fa8da; }
+.sbbc_indigo_300 { background-color: #7986cb; }
+.sbbc_indigo_400 { background-color: #5c6bc0; }
+.sbbc_indigo_500, .sbbc_indigo { background-color: #3f51b5; }
+.sbbc_indigo_600 { background-color: #3949ab; }
+.sbbc_indigo_700 { background-color: #303f9f; }
+.sbbc_indigo_800 { background-color: #283593; }
+.sbbc_indigo_900 { background-color: #1a237e; }
+.sbbc_indigo_a100 { background-color: #8c9eff; }
+.sbbc_indigo_a200 { background-color: #536dfe; }
+.sbbc_indigo_a400 { background-color: #3d5afe; }
+.sbbc_indigo_a700 { background-color: #304ffe; }
+.sbbc_blue_50 { background-color: #e3f2fd; }
+.sbbc_blue_100 { background-color: #bbdefb; }
+.sbbc_blue_200 { background-color: #90caf9; }
+.sbbc_blue_300 { background-color: #64b5f6; }
+.sbbc_blue_400 { background-color: #42a5f5; }
+.sbbc_blue_500, .sbbc_blue { background-color: #2196f3; }
+.sbbc_blue_600 { background-color: #1e88e5; }
+.sbbc_blue_700 { background-color: #1976d2; }
+.sbbc_blue_800 { background-color: #1565c0; }
+.sbbc_blue_900 { background-color: #0d47a1; }
+.sbbc_blue_a100 { background-color: #82b1ff; }
+.sbbc_blue_a200 { background-color: #448aff; }
+.sbbc_blue_a400 { background-color: #2979ff; }
+.sbbc_blue_a700 { background-color: #2962ff; }
+.sbbc_light_blue_50 { background-color: #e1f5fe; }
+.sbbc_light_blue_100 { background-color: #b3e5fc; }
+.sbbc_light_blue_200 { background-color: #81d4fa; }
+.sbbc_light_blue_300 { background-color: #4fc3f7; }
+.sbbc_light_blue_400 { background-color: #29b6f6; }
+.sbbc_light_blue_500, .sbbc_light_blue { background-color: #03a9f4; }
+.sbbc_light_blue_600 { background-color: #039be5; }
+.sbbc_light_blue_700 { background-color: #0288d1; }
+.sbbc_light_blue_800 { background-color: #0277bd; }
+.sbbc_light_blue_900 { background-color: #01579b; }
+.sbbc_light_blue_a100 { background-color: #80d8ff; }
+.sbbc_light_blue_a200 { background-color: #40c4ff; }
+.sbbc_light_blue_a400 { background-color: #00b0ff; }
+.sbbc_light_blue_a700 { background-color: #0091ea; }
+.sbbc_cyan_50 { background-color: #e0f7fa; }
+.sbbc_cyan_100 { background-color: #b2ebf2; }
+.sbbc_cyan_200 { background-color: #80deea; }
+.sbbc_cyan_300 { background-color: #4dd0e1; }
+.sbbc_cyan_400 { background-color: #26c6da; }
+.sbbc_cyan_500, .sbbc_cyan { background-color: #00bcd4; }
+.sbbc_cyan_600 { background-color: #00acc1; }
+.sbbc_cyan_700 { background-color: #0097a7; }
+.sbbc_cyan_800 { background-color: #00838f; }
+.sbbc_cyan_900 { background-color: #006064; }
+.sbbc_cyan_a100 { background-color: #84ffff; }
+.sbbc_cyan_a200 { background-color: #18ffff; }
+.sbbc_cyan_a400 { background-color: #00e5ff; }
+.sbbc_cyan_a700 { background-color: #00b8d4; }
+.sbbc_teal_50 { background-color: #e0f2f1; }
+.sbbc_teal_100 { background-color: #b2dfdb; }
+.sbbc_teal_200 { background-color: #80cbc4; }
+.sbbc_teal_300 { background-color: #4db6ac; }
+.sbbc_teal_400 { background-color: #26a69a; }
+.sbbc_teal_500, .sbbc_teal { background-color: #009688; }
+.sbbc_teal_600 { background-color: #00897b; }
+.sbbc_teal_700 { background-color: #00796b; }
+.sbbc_teal_800 { background-color: #00695c; }
+.sbbc_teal_900 { background-color: #004d40; }
+.sbbc_teal_a100 { background-color: #a7ffeb; }
+.sbbc_teal_a200 { background-color: #64ffda; }
+.sbbc_teal_a400 { background-color: #1de9b6; }
+.sbbc_teal_a700 { background-color: #00bfa5; }
+.sbbc_green_50 { background-color: #e8f5e9; }
+.sbbc_green_100 { background-color: #c8e6c9; }
+.sbbc_green_200 { background-color: #a5d6a7; }
+.sbbc_green_300 { background-color: #81c784; }
+.sbbc_green_400 { background-color: #66bb6a; }
+.sbbc_green_500, .sbbc_green { background-color: #4caf50; }
+.sbbc_green_600 { background-color: #43a047; }
+.sbbc_green_700 { background-color: #388e3c; }
+.sbbc_green_800 { background-color: #2e7d32; }
+.sbbc_green_900 { background-color: #1b5e20; }
+.sbbc_green_a100 { background-color: #b9f6ca; }
+.sbbc_green_a200 { background-color: #69f0ae; }
+.sbbc_green_a400 { background-color: #00e676; }
+.sbbc_green_a700 { background-color: #00c853; }
+.sbbc_light_green_50 { background-color: #f1f8e9; }
+.sbbc_light_green_100 { background-color: #dcedc8; }
+.sbbc_light_green_200 { background-color: #c5e1a5; }
+.sbbc_light_green_300 { background-color: #aed581; }
+.sbbc_light_green_400 { background-color: #9ccc65; }
+.sbbc_light_green_500, .sbbc_light_green { background-color: #8bc34a; }
+.sbbc_light_green_600 { background-color: #7cb342; }
+.sbbc_light_green_700 { background-color: #689f38; }
+.sbbc_light_green_800 { background-color: #558b2f; }
+.sbbc_light_green_900 { background-color: #33691e; }
+.sbbc_light_green_a100 { background-color: #ccff90; }
+.sbbc_light_green_a200 { background-color: #b2ff59; }
+.sbbc_light_green_a400 { background-color: #76ff03; }
+.sbbc_light_green_a700 { background-color: #64dd17; }
+.sbbc_lime_50 { background-color: #f9fbe7; }
+.sbbc_lime_100 { background-color: #f0f4c3; }
+.sbbc_lime_200 { background-color: #e6ee9c; }
+.sbbc_lime_300 { background-color: #dce775; }
+.sbbc_lime_400 { background-color: #d4e157; }
+.sbbc_lime_500, .sbbc_lime { background-color: #cddc39; }
+.sbbc_lime_600 { background-color: #c0ca33; }
+.sbbc_lime_700 { background-color: #afb42b; }
+.sbbc_lime_800 { background-color: #9e9d24; }
+.sbbc_lime_900 { background-color: #827717; }
+.sbbc_lime_a100 { background-color: #f4ff81; }
+.sbbc_lime_a200 { background-color: #eeff41; }
+.sbbc_lime_a400 { background-color: #c6ff00; }
+.sbbc_lime_a700 { background-color: #aeea00; }
+.sbbc_yellow_50 { background-color: #fffde7; }
+.sbbc_yellow_100 { background-color: #fff9c4; }
+.sbbc_yellow_200 { background-color: #fff59d; }
+.sbbc_yellow_300 { background-color: #fff176; }
+.sbbc_yellow_400 { background-color: #ffee58; }
+.sbbc_yellow_500, .sbbc_yellow { background-color: #ffeb3b; }
+.sbbc_yellow_600 { background-color: #fdd835; }
+.sbbc_yellow_700 { background-color: #fbc02d; }
+.sbbc_yellow_800 { background-color: #f9a825; }
+.sbbc_yellow_900 { background-color: #f57f17; }
+.sbbc_yellow_a100 { background-color: #ffff8d; }
+.sbbc_yellow_a200 { background-color: #ffff00; }
+.sbbc_yellow_a400 { background-color: #ffea00; }
+.sbbc_yellow_a700 { background-color: #ffd600; }
+.sbbc_amber_50 { background-color: #fff8e1; }
+.sbbc_amber_100 { background-color: #ffecb3; }
+.sbbc_amber_200 { background-color: #ffe082; }
+.sbbc_amber_300 { background-color: #ffd54f; }
+.sbbc_amber_400 { background-color: #ffca28; }
+.sbbc_amber_500, .sbbc_amber { background-color: #ffc107; }
+.sbbc_amber_600 { background-color: #ffb300; }
+.sbbc_amber_700 { background-color: #ffa000; }
+.sbbc_amber_800 { background-color: #ff8f00; }
+.sbbc_amber_900 { background-color: #ff6f00; }
+.sbbc_amber_a100 { background-color: #ffe57f; }
+.sbbc_amber_a200 { background-color: #ffd740; }
+.sbbc_amber_a400 { background-color: #ffc400; }
+.sbbc_amber_a700 { background-color: #ffab00; }
+.sbbc_orange_50 { background-color: #fff3e0; }
+.sbbc_orange_100 { background-color: #ffe0b2; }
+.sbbc_orange_200 { background-color: #ffcc80; }
+.sbbc_orange_300 { background-color: #ffb74d; }
+.sbbc_orange_400 { background-color: #ffa726; }
+.sbbc_orange_500, .sbbc_orange { background-color: #ff9800; }
+.sbbc_orange_600 { background-color: #fb8c00; }
+.sbbc_orange_700 { background-color: #f57c00; }
+.sbbc_orange_800 { background-color: #ef6c00; }
+.sbbc_orange_900 { background-color: #e65100; }
+.sbbc_orange_a100 { background-color: #ffd180; }
+.sbbc_orange_a200 { background-color: #ffab40; }
+.sbbc_orange_a400 { background-color: #ff9100; }
+.sbbc_orange_a700 { background-color: #ff6d00; }
+.sbbc_deep_orange_50 { background-color: #fbe9e7; }
+.sbbc_deep_orange_100 { background-color: #ffccbc; }
+.sbbc_deep_orange_200 { background-color: #ffab91; }
+.sbbc_deep_orange_300 { background-color: #ff8a65; }
+.sbbc_deep_orange_400 { background-color: #ff7043; }
+.sbbc_deep_orange_500, .sbbc_deep_orange { background-color: #ff5722; }
+.sbbc_deep_orange_600 { background-color: #f4511e; }
+.sbbc_deep_orange_700 { background-color: #e64a19; }
+.sbbc_deep_orange_800 { background-color: #d84315; }
+.sbbc_deep_orange_900 { background-color: #bf360c; }
+.sbbc_deep_orange_a100 { background-color: #ff9e80; }
+.sbbc_deep_orange_a200 { background-color: #ff6e40; }
+.sbbc_deep_orange_a400 { background-color: #ff3d00; }
+.sbbc_deep_orange_a700 { background-color: #dd2c00; }
+.sbbc_brown_50 { background-color: #efebe9; }
+.sbbc_brown_100 { background-color: #d7ccc8; }
+.sbbc_brown_200 { background-color: #bcaaa4; }
+.sbbc_brown_300 { background-color: #a1887f; }
+.sbbc_brown_400 { background-color: #8d6e63; }
+.sbbc_brown_500, .sbbc_brown { background-color: #795548; }
+.sbbc_brown_600 { background-color: #6d4c41; }
+.sbbc_brown_700 { background-color: #5d4037; }
+.sbbc_brown_800 { background-color: #4e342e; }
+.sbbc_brown_900 { background-color: #3e2723; }
+.sbbc_brown_a100 { background-color: #d7ccc8; }
+.sbbc_brown_a200 { background-color: #bcaaa4; }
+.sbbc_brown_a400 { background-color: #8d6e63; }
+.sbbc_brown_a700 { background-color: #5d4037; }
+.sbbc_grey_50 { background-color: #fafafa; }
+.sbbc_grey_100 { background-color: #f5f5f5; }
+.sbbc_grey_200 { background-color: #eeeeee; }
+.sbbc_grey_300 { background-color: #e0e0e0; }
+.sbbc_grey_400 { background-color: #bdbdbd; }
+.sbbc_grey_500, .sbbc_grey { background-color: #9e9e9e; }
+.sbbc_grey_600 { background-color: #757575; }
+.sbbc_grey_700 { background-color: #616161; }
+.sbbc_grey_800 { background-color: #424242; }
+.sbbc_grey_900 { background-color: #212121; }
+.sbbc_grey_a100 { background-color: #f5f5f5; }
+.sbbc_grey_a200 { background-color: #eeeeee; }
+.sbbc_grey_a400 { background-color: #bdbdbd; }
+.sbbc_grey_a700 { background-color: #616161; }
+.sbbc_blue_grey_50 { background-color: #eceff1; }
+.sbbc_blue_grey_100 { background-color: #cfd8dc; }
+.sbbc_blue_grey_200 { background-color: #b0bec5; }
+.sbbc_blue_grey_300 { background-color: #90a4ae; }
+.sbbc_blue_grey_400 { background-color: #78909c; }
+.sbbc_blue_grey_500, .sbbc_blue_grey { background-color: #607d8b; }
+.sbbc_blue_grey_600 { background-color: #546e7a; }
+.sbbc_blue_grey_700 { background-color: #455a64; }
+.sbbc_blue_grey_800 { background-color: #37474f; }
+.sbbc_blue_grey_900 { background-color: #263238; }
+.sbbc_blue_grey_a100 { background-color: #cfd8dc; }
+.sbbc_blue_grey_a200 { background-color: #b0bec5; }
+.sbbc_blue_grey_a400 { background-color: #78909c; }
+.sbbc_blue_grey_a700 { background-color: #455a64; }
+.sbbc_black { background-color: #000000; }
+.sbbc_white { background-color: #ffffff; }
+:root {
+	--sbc-red-50: #ffebee;
+	--sbc-red-100: #ffcdd2;
+	--sbc-red-200: #ef9a9a;
+	--sbc-red-300: #e57373;
+	--sbc-red-400: #ef5350;
+	--sbc-red: #f44336;
+	--sbc-red-500: #f44336;
+	--sbc-red-600: #e53935;
+	--sbc-red-700: #d32f2f;
+	--sbc-red-800: #c62828;
+	--sbc-red-900: #b71c1c;
+	--sbc-red-a100: #ff8a80;
+	--sbc-red-a200: #ff5252;
+	--sbc-red-a400: #ff1744;
+	--sbc-red-a700: #d50000;
+	--sbc-pink-50: #fce4ec;
+	--sbc-pink-100: #f8bbd0;
+	--sbc-pink-200: #f48fb1;
+	--sbc-pink-300: #f06292;
+	--sbc-pink-400: #ec407a;
+	--sbc-pink: #e91e63;
+	--sbc-pink-500: #e91e63;
+	--sbc-pink-600: #d81b60;
+	--sbc-pink-700: #c2185b;
+	--sbc-pink-800: #ad1457;
+	--sbc-pink-900: #880e4f;
+	--sbc-pink-a100: #ff80ab;
+	--sbc-pink-a200: #ff4081;
+	--sbc-pink-a400: #f50057;
+	--sbc-pink-a700: #c51162;
+	--sbc-purple-50: #f3e5f5;
+	--sbc-purple-100: #e1bee7;
+	--sbc-purple-200: #ce93d8;
+	--sbc-purple-300: #ba68c8;
+	--sbc-purple-400: #ab47bc;
+	--sbc-purple: #9c27b0;
+	--sbc-purple-500: #9c27b0;
+	--sbc-purple-600: #8e24aa;
+	--sbc-purple-700: #7b1fa2;
+	--sbc-purple-800: #6a1b9a;
+	--sbc-purple-900: #4a148c;
+	--sbc-purple-a100: #ea80fc;
+	--sbc-purple-a200: #e040fb;
+	--sbc-purple-a400: #d500f9;
+	--sbc-purple-a700: #aa00ff;
+	--sbc-deep-purple-50: #ede7f6;
+	--sbc-deep-purple-100: #d1c4e9;
+	--sbc-deep-purple-200: #b39ddb;
+	--sbc-deep-purple-300: #9575cd;
+	--sbc-deep-purple-400: #7e57c2;
+	--sbc-deep-purple: #673ab7;
+	--sbc-deep-purple-500: #673ab7;
+	--sbc-deep-purple-600: #5e35b1;
+	--sbc-deep-purple-700: #512da8;
+	--sbc-deep-purple-800: #4527a0;
+	--sbc-deep-purple-900: #311b92;
+	--sbc-deep-purple-a100: #b388ff;
+	--sbc-deep-purple-a200: #7c4dff;
+	--sbc-deep-purple-a400: #651fff;
+	--sbc-deep-purple-a700: #6200ea;
+	--sbc-indigo-50: #e8eaf6;
+	--sbc-indigo-100: #c5cae9;
+	--sbc-indigo-200: #9fa8da;
+	--sbc-indigo-300: #7986cb;
+	--sbc-indigo-400: #5c6bc0;
+	--sbc-indigo: #3f51b5;
+	--sbc-indigo-500: #3f51b5;
+	--sbc-indigo-600: #3949ab;
+	--sbc-indigo-700: #303f9f;
+	--sbc-indigo-800: #283593;
+	--sbc-indigo-900: #1a237e;
+	--sbc-indigo-a100: #8c9eff;
+	--sbc-indigo-a200: #536dfe;
+	--sbc-indigo-a400: #3d5afe;
+	--sbc-indigo-a700: #304ffe;
+	--sbc-blue-50: #e3f2fd;
+	--sbc-blue-100: #bbdefb;
+	--sbc-blue-200: #90caf9;
+	--sbc-blue-300: #64b5f6;
+	--sbc-blue-400: #42a5f5;
+	--sbc-blue: #2196f3;
+	--sbc-blue-500: #2196f3;
+	--sbc-blue-600: #1e88e5;
+	--sbc-blue-700: #1976d2;
+	--sbc-blue-800: #1565c0;
+	--sbc-blue-900: #0d47a1;
+	--sbc-blue-a100: #82b1ff;
+	--sbc-blue-a200: #448aff;
+	--sbc-blue-a400: #2979ff;
+	--sbc-blue-a700: #2962ff;
+	--sbc-light-blue-50: #e1f5fe;
+	--sbc-light-blue-100: #b3e5fc;
+	--sbc-light-blue-200: #81d4fa;
+	--sbc-light-blue-300: #4fc3f7;
+	--sbc-light-blue-400: #29b6f6;
+	--sbc-light-blue: #03a9f4;
+	--sbc-light-blue-500: #03a9f4;
+	--sbc-light-blue-600: #039be5;
+	--sbc-light-blue-700: #0288d1;
+	--sbc-light-blue-800: #0277bd;
+	--sbc-light-blue-900: #01579b;
+	--sbc-light-blue-a100: #80d8ff;
+	--sbc-light-blue-a200: #40c4ff;
+	--sbc-light-blue-a400: #00b0ff;
+	--sbc-light-blue-a700: #0091ea;
+	--sbc-cyan-50: #e0f7fa;
+	--sbc-cyan-100: #b2ebf2;
+	--sbc-cyan-200: #80deea;
+	--sbc-cyan-300: #4dd0e1;
+	--sbc-cyan-400: #26c6da;
+	--sbc-cyan: #00bcd4;
+	--sbc-cyan-500: #00bcd4;
+	--sbc-cyan-600: #00acc1;
+	--sbc-cyan-700: #0097a7;
+	--sbc-cyan-800: #00838f;
+	--sbc-cyan-900: #006064;
+	--sbc-cyan-a100: #84ffff;
+	--sbc-cyan-a200: #18ffff;
+	--sbc-cyan-a400: #00e5ff;
+	--sbc-cyan-a700: #00b8d4;
+	--sbc-teal-50: #e0f2f1;
+	--sbc-teal-100: #b2dfdb;
+	--sbc-teal-200: #80cbc4;
+	--sbc-teal-300: #4db6ac;
+	--sbc-teal-400: #26a69a;
+	--sbc-teal: #009688;
+	--sbc-teal-500: #009688;
+	--sbc-teal-600: #00897b;
+	--sbc-teal-700: #00796b;
+	--sbc-teal-800: #00695c;
+	--sbc-teal-900: #004d40;
+	--sbc-teal-a100: #a7ffeb;
+	--sbc-teal-a200: #64ffda;
+	--sbc-teal-a400: #1de9b6;
+	--sbc-teal-a700: #00bfa5;
+	--sbc-green-50: #e8f5e9;
+	--sbc-green-100: #c8e6c9;
+	--sbc-green-200: #a5d6a7;
+	--sbc-green-300: #81c784;
+	--sbc-green-400: #66bb6a;
+	--sbc-green: #4caf50;
+	--sbc-green-500: #4caf50;
+	--sbc-green-600: #43a047;
+	--sbc-green-700: #388e3c;
+	--sbc-green-800: #2e7d32;
+	--sbc-green-900: #1b5e20;
+	--sbc-green-a100: #b9f6ca;
+	--sbc-green-a200: #69f0ae;
+	--sbc-green-a400: #00e676;
+	--sbc-green-a700: #00c853;
+	--sbc-light-green-50: #f1f8e9;
+	--sbc-light-green-100: #dcedc8;
+	--sbc-light-green-200: #c5e1a5;
+	--sbc-light-green-300: #aed581;
+	--sbc-light-green-400: #9ccc65;
+	--sbc-light-green: #8bc34a;
+	--sbc-light-green-500: #8bc34a;
+	--sbc-light-green-600: #7cb342;
+	--sbc-light-green-700: #689f38;
+	--sbc-light-green-800: #558b2f;
+	--sbc-light-green-900: #33691e;
+	--sbc-light-green-a100: #ccff90;
+	--sbc-light-green-a200: #b2ff59;
+	--sbc-light-green-a400: #76ff03;
+	--sbc-light-green-a700: #64dd17;
+	--sbc-lime-50: #f9fbe7;
+	--sbc-lime-100: #f0f4c3;
+	--sbc-lime-200: #e6ee9c;
+	--sbc-lime-300: #dce775;
+	--sbc-lime-400: #d4e157;
+	--sbc-lime: #cddc39;
+	--sbc-lime-500: #cddc39;
+	--sbc-lime-600: #c0ca33;
+	--sbc-lime-700: #afb42b;
+	--sbc-lime-800: #9e9d24;
+	--sbc-lime-900: #827717;
+	--sbc-lime-a100: #f4ff81;
+	--sbc-lime-a200: #eeff41;
+	--sbc-lime-a400: #c6ff00;
+	--sbc-lime-a700: #aeea00;
+	--sbc-yellow-50: #fffde7;
+	--sbc-yellow-100: #fff9c4;
+	--sbc-yellow-200: #fff59d;
+	--sbc-yellow-300: #fff176;
+	--sbc-yellow-400: #ffee58;
+	--sbc-yellow: #ffeb3b;
+	--sbc-yellow-500: #ffeb3b;
+	--sbc-yellow-600: #fdd835;
+	--sbc-yellow-700: #fbc02d;
+	--sbc-yellow-800: #f9a825;
+	--sbc-yellow-900: #f57f17;
+	--sbc-yellow-a100: #ffff8d;
+	--sbc-yellow-a200: #ffff00;
+	--sbc-yellow-a400: #ffea00;
+	--sbc-yellow-a700: #ffd600;
+	--sbc-amber-50: #fff8e1;
+	--sbc-amber-100: #ffecb3;
+	--sbc-amber-200: #ffe082;
+	--sbc-amber-300: #ffd54f;
+	--sbc-amber-400: #ffca28;
+	--sbc-amber: #ffc107;
+	--sbc-amber-500: #ffc107;
+	--sbc-amber-600: #ffb300;
+	--sbc-amber-700: #ffa000;
+	--sbc-amber-800: #ff8f00;
+	--sbc-amber-900: #ff6f00;
+	--sbc-amber-a100: #ffe57f;
+	--sbc-amber-a200: #ffd740;
+	--sbc-amber-a400: #ffc400;
+	--sbc-amber-a700: #ffab00;
+	--sbc-orange-50: #fff3e0;
+	--sbc-orange-100: #ffe0b2;
+	--sbc-orange-200: #ffcc80;
+	--sbc-orange-300: #ffb74d;
+	--sbc-orange-400: #ffa726;
+	--sbc-orange: #ff9800;
+	--sbc-orange-500: #ff9800;
+	--sbc-orange-600: #fb8c00;
+	--sbc-orange-700: #f57c00;
+	--sbc-orange-800: #ef6c00;
+	--sbc-orange-900: #e65100;
+	--sbc-orange-a100: #ffd180;
+	--sbc-orange-a200: #ffab40;
+	--sbc-orange-a400: #ff9100;
+	--sbc-orange-a700: #ff6d00;
+	--sbc-deep-orange-50: #fbe9e7;
+	--sbc-deep-orange-100: #ffccbc;
+	--sbc-deep-orange-200: #ffab91;
+	--sbc-deep-orange-300: #ff8a65;
+	--sbc-deep-orange-400: #ff7043;
+	--sbc-deep-orange: #ff5722;
+	--sbc-deep-orange-500: #ff5722;
+	--sbc-deep-orange-600: #f4511e;
+	--sbc-deep-orange-700: #e64a19;
+	--sbc-deep-orange-800: #d84315;
+	--sbc-deep-orange-900: #bf360c;
+	--sbc-deep-orange-a100: #ff9e80;
+	--sbc-deep-orange-a200: #ff6e40;
+	--sbc-deep-orange-a400: #ff3d00;
+	--sbc-deep-orange-a700: #dd2c00;
+	--sbc-brown-50: #efebe9;
+	--sbc-brown-100: #d7ccc8;
+	--sbc-brown-200: #bcaaa4;
+	--sbc-brown-300: #a1887f;
+	--sbc-brown-400: #8d6e63;
+	--sbc-brown: #795548;
+	--sbc-brown-500: #795548;
+	--sbc-brown-600: #6d4c41;
+	--sbc-brown-700: #5d4037;
+	--sbc-brown-800: #4e342e;
+	--sbc-brown-900: #3e2723;
+	--sbc-brown-a100: #d7ccc8;
+	--sbc-brown-a200: #bcaaa4;
+	--sbc-brown-a400: #8d6e63;
+	--sbc-brown-a700: #5d4037;
+	--sbc-grey-50: #fafafa;
+	--sbc-grey-100: #f5f5f5;
+	--sbc-grey-200: #eeeeee;
+	--sbc-grey-300: #e0e0e0;
+	--sbc-grey-400: #bdbdbd;
+	--sbc-grey: #9e9e9e;
+	--sbc-grey-500: #9e9e9e;
+	--sbc-grey-600: #757575;
+	--sbc-grey-700: #616161;
+	--sbc-grey-800: #424242;
+	--sbc-grey-900: #212121;
+	--sbc-grey-a100: #f5f5f5;
+	--sbc-grey-a200: #eeeeee;
+	--sbc-grey-a400: #bdbdbd;
+	--sbc-grey-a700: #616161;
+	--sbc-blue-grey-50: #eceff1;
+	--sbc-blue-grey-100: #cfd8dc;
+	--sbc-blue-grey-200: #b0bec5;
+	--sbc-blue-grey-300: #90a4ae;
+	--sbc-blue-grey-400: #78909c;
+	--sbc-blue-grey: #607d8b;
+	--sbc-blue-grey-500: #607d8b;
+	--sbc-blue-grey-600: #546e7a;
+	--sbc-blue-grey-700: #455a64;
+	--sbc-blue-grey-800: #37474f;
+	--sbc-blue-grey-900: #263238;
+	--sbc-blue-grey-a100: #cfd8dc;
+	--sbc-blue-grey-a200: #b0bec5;
+	--sbc-blue-grey-a400: #78909c;
+	--sbc-blue-grey-a700: #455a64;
+	--sbc-black: #000000;
+	--sbc-white: #ffffff;
 }

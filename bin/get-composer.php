@@ -54,7 +54,7 @@
 
 	$force_copy=false;
 
-	if(extension_loaded('curl'))
+	if(function_exists('curl_init'))
 		try {
 			load_library(['curl_file_updown.php']);
 		} catch(Exception $error) {
@@ -93,7 +93,7 @@
 	foreach(['signature', 'installer'] as $file)
 	{
 		if(
-			extension_loaded('curl') &&
+			function_exists('curl_init') &&
 			(!$force_copy)
 		){
 			echo 'Downloading '.$file.' via curl'.PHP_EOL;

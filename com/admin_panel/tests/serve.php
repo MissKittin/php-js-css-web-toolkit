@@ -167,6 +167,20 @@
 
 			\$admin_panel['global_variable']='global_value';
 
+			/*\$admin_panel->rename_assets([
+				'admin_panel_default.css'=>'rename_to_default.css',
+				'admin_panel_default.js'=>'rename_to_default.js',
+				'admin_panel_materialized.css'=>'rename_to_materialized.css',
+				'simpleblog_materialized.css'=>'rename_to_library_materialized.css'
+			]);*/
+
+			\$admin_panel->disable_assets([
+				'admin_panel_default.css',
+				'admin_panel_default.js',
+				'admin_panel_materialized.css',
+				'simpleblog_materialized.css'
+			]);
+
 			\$admin_panel
 			->	add_module([
 					'id'=>'dashboard',
@@ -234,8 +248,9 @@
 		mkdir(__DIR__.'/tmp/serve/public/assets');
 
 		foreach(array_diff(scandir(__DIR__.'/../templates'), ['.', '..']) as $template)
-			foreach(array_diff(scandir(__DIR__.'/../templates/'.$template.'/assets'), ['.', '..']) as $file)
-				assets_compiler(__DIR__.'/../templates/'.$template.'/assets/'.$file, __DIR__.'/tmp/serve/public/assets/'.$file);
+			if(is_dir(__DIR__.'/../templates/'.$template.'/assets'))
+				foreach(array_diff(scandir(__DIR__.'/../templates/'.$template.'/assets'), ['.', '..']) as $file)
+					assets_compiler(__DIR__.'/../templates/'.$template.'/assets/'.$file, __DIR__.'/tmp/serve/public/assets/'.$file);
 
 		if(file_exists(__DIR__.'/../lib/simpleblog_materialized.css'))
 			copy(__DIR__.'/../lib/simpleblog_materialized.css', __DIR__.'/tmp/serve/public/assets/simpleblog_materialized.css');

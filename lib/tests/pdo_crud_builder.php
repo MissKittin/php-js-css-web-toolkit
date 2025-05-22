@@ -800,13 +800,13 @@
 		echo '  -> insert_into';
 			$pdo_builder->insert_into('exampletable', 'a,b', [
 				['aa', 'ba'],
-				['ba', 'bb']
+				['ba', null]
 			]);
 			if(
-				($pdo_builder->print_exec() === 'INSERT INTO exampletable(a,b) VALUES(?,?), (?,?) ') &&
+				($pdo_builder->print_exec() === 'INSERT INTO exampletable(a,b) VALUES(?,?), (?,NULL) ') &&
 				var_export_contains(
 					$pdo_builder->print_parameters(),
-					"array(0=>'aa',1=>'ba',2=>'ba',3=>'bb',)"
+					"array(0=>'aa',1=>'ba',2=>'ba',)"
 				)
 			)
 				echo ' [ OK ]'.PHP_EOL;
@@ -1075,13 +1075,13 @@
 		echo '  -> replace_into';
 			$pdo_builder->replace_into('exampletable', 'a,b', [
 				['aa', 'ab'],
-				['ba', 'bb']
+				['ba', null]
 			]);
 			if(
-				($pdo_builder->print_exec() === 'REPLACE INTO exampletable(a,b) VALUES(?,?), (?,?) ') &&
+				($pdo_builder->print_exec() === 'REPLACE INTO exampletable(a,b) VALUES(?,?), (?,NULL) ') &&
 				var_export_contains(
 					$pdo_builder->print_parameters(),
-					"array(0=>'aa',1=>'ab',2=>'ba',3=>'bb',)"
+					"array(0=>'aa',1=>'ab',2=>'ba',)"
 				)
 			)
 				echo ' [ OK ]'.PHP_EOL;
@@ -1110,10 +1110,11 @@
 		echo '  -> set';
 			$pdo_builder->set([
 				['aa', 'ab'],
-				['ba', 'bb']
+				['ba', 'bb'],
+				['ca', null]
 			]);
 			if(
-				($pdo_builder->print_exec() === 'SET aa = ?, ba = ? ') &&
+				($pdo_builder->print_exec() === 'SET aa = ?, ba = ?, ca = NULL ') &&
 				var_export_contains(
 					$pdo_builder->print_parameters(),
 					"array(0=>'ab',1=>'bb',)"
@@ -1252,6 +1253,38 @@
 			{
 				echo ' [FAIL]'.PHP_EOL;
 				$errors[]='where_is';
+			}
+			$pdo_builder->flush_all();
+		echo '  -> where_is_null';
+			$pdo_builder->where_is_null('a');
+			if(
+				($pdo_builder->print_exec() === 'WHERE a IS NULL ') &&
+				var_export_contains(
+					$pdo_builder->print_parameters(),
+					'array()'
+				)
+			)
+				echo ' [ OK ]'.PHP_EOL;
+			else
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				$errors[]='where_is_null';
+			}
+			$pdo_builder->flush_all();
+		echo '  -> where_is_not_null';
+			$pdo_builder->where_is_not_null('a');
+			if(
+				($pdo_builder->print_exec() === 'WHERE a IS NOT NULL ') &&
+				var_export_contains(
+					$pdo_builder->print_parameters(),
+					'array()'
+				)
+			)
+				echo ' [ OK ]'.PHP_EOL;
+			else
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				$errors[]='where_is_not_null';
 			}
 			$pdo_builder->flush_all();
 		echo '  -> where_not';

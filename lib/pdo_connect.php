@@ -58,6 +58,11 @@
 	 *  the socket path varies depending on the database, eg.
 	 *  for pgsql (note: this is the directory path): /var/run/postgresql
 	 *  for mysql: /var/run/mysqld/mysqld.sock
+	 *
+	 * Most zwadzacy:
+	 *  a bridge for replacing a PDO class with another
+	 *  recommended to be used with extreme caution
+	 *  more info below
 	 */
 
 	class pdo_connect_exception extends Exception {}
@@ -257,6 +262,7 @@
 		 *  or false if an error has occurred
 		 *
 		 * Warning:
+		 *  pdo_connect_bridge class is required
 		 *  PDO extension is required
 		 *  pdo_pgsql is required for the PostgreSQL driver
 		 *  pdo_mysql is required for the MySQL driver
@@ -315,7 +321,9 @@
 					);
 		};
 
-		if(!class_exists('PDO'))
+		if(!class_exists(
+			pdo_connect_bridge::class_exists()
+		))
 			throw new pdo_connect_exception(
 				'PDO extension is not loaded'
 			);
@@ -355,7 +363,7 @@
 				case 'pgsql':
 					if(!in_array(
 						'pgsql',
-						PDO::getAvailableDrivers()
+						pdo_connect_bridge::getAvailableDrivers()
 					))
 						throw new pdo_connect_exception(
 							'pdo_pgsql extension is not loaded'
@@ -378,10 +386,10 @@
 							'socket',
 							'db_name',
 							'user',
-							'password']
-						);
+							'password'
+						]);
 
-						return new PDO($db_config['db_type'].':'
+						return pdo_connect_bridge::PDO($db_config['db_type'].':'
 						.	'host='.$db_config['socket'].';'
 						.	'dbname='.$db_config['db_name'].';'
 						.	'user='.$db_config['user'].';'
@@ -401,7 +409,7 @@
 						'password'
 					]);
 
-					return new PDO($db_config['db_type'].':'
+					return pdo_connect_bridge::PDO($db_config['db_type'].':'
 					.	'host='.$db_config['host'].';'
 					.	'port='.$db_config['port'].';'
 					.	'dbname='.$db_config['db_name'].';'
@@ -416,7 +424,7 @@
 				case 'mysql':
 					if(!in_array(
 						'mysql',
-						PDO::getAvailableDrivers()
+						pdo_connect_bridge::getAvailableDrivers()
 					))
 						throw new pdo_connect_exception(
 							'pdo_mysql extension is not loaded'
@@ -440,7 +448,7 @@
 							'password'
 						]);
 
-						return new PDO($db_config['db_type'].':'
+						return pdo_connect_bridge::PDO($db_config['db_type'].':'
 						.	'unix_socket='.$db_config['socket'].';'
 						.	'dbname='.$db_config['db_name']
 						.	$db_config['charset']
@@ -458,7 +466,7 @@
 						'password'
 					]);
 
-					return new PDO($db_config['db_type'].':'
+					return pdo_connect_bridge::PDO($db_config['db_type'].':'
 					.	'host='.$db_config['host'].';'
 					.	'port='.$db_config['port'].';'
 					.	'dbname='.$db_config['db_name']
@@ -471,7 +479,7 @@
 				case 'sqlite':
 					if(!in_array(
 						'sqlite',
-						PDO::getAvailableDrivers()
+						pdo_connect_bridge::getAvailableDrivers()
 					))
 						throw new pdo_connect_exception(
 							'pdo_sqlite extension is not loaded'
@@ -482,7 +490,7 @@
 						['host']
 					);
 
-					return new PDO($db_config['db_type'].':'
+					return pdo_connect_bridge::PDO($db_config['db_type'].':'
 					.	$db_config['host']
 					);
 				break;
@@ -534,5 +542,106 @@
 		}
 
 		return false;
+	}
+
+	final class pdo_connect_bridge
+	{
+		/*
+		 * Most zwodzacy
+		 *
+		 * A bridge for replacing a PDO class with another
+		 * It can be used for debugging and mocking methods
+		 * or for defining your own PDO drivers in pure PHP
+		 *
+		 * Note:
+		 *  throws an pdo_connect_exception on error
+		 *
+		 * Usage:
+		 *  before calling any function from this library define a new class
+		 *  and set it as a replacement
+			class PDO_mock extends PDO // you don't need to extend PDO if you have a PDO-compliant replacement
+			{
+				public static function getAvailableDrivers()
+				{
+					// add customdbdriver to the registry
+
+					return array_merge(
+						parent::{__FUNCTION__}(),
+						['customdbdriver']
+					);
+				}
+
+				public function __construct(...$arguments)
+				{
+					// debug when database connection occurs
+
+					echo ': '.__METHOD__.'() :';
+
+					parent::{__FUNCTION__}(
+						...$arguments
+					);
+
+					// add connection to debug bar collector (maximebf_debugbar.php library)
+					//maximebf_debugbar
+					//::	get_collector('pdo')
+					//->	addConnection($this);
+				}
+				public function __destruct()
+				{
+					// debug when disconnected from database
+					echo ': '.__METHOD__.'() :';
+				}
+
+				// other methods
+			}
+
+			// set the PDO_mock class as a substitute for the PDO class
+			pdo_connect_bridge::set_class('PDO_mock', function(...$arguments){
+				return new PDO_mock(
+					...$arguments
+				);
+			});
+		 *  then use the functions from this library as if nothing had happened
+		 */
+
+		private static $pdo_class_name='PDO';
+		private static $pdo_class=null;
+
+		public static function set_class(
+			string $class_name,
+			callable $callback
+		){
+			self::$pdo_class_name=$class_name;
+			self::$pdo_class[0]=$callback;
+		}
+
+		public static function class_exists()
+		{
+			return self::$pdo_class_name;
+		}
+		public static function getAvailableDrivers()
+		{
+			return self
+			::	$pdo_class_name
+			::	getAvailableDrivers();
+		}
+		public static function PDO(...$arguments)
+		{
+			if(self::$pdo_class !== null)
+				return self::$pdo_class[0](
+					...$arguments
+				);
+
+			return new PDO(
+				...$arguments
+			);
+		}
+
+		public function __construct()
+		{
+			throw new pdo_connect_exception(
+				'You cannot initialize '.self::class
+			);
+		}
 	}
 ?>

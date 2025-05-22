@@ -2,6 +2,7 @@
 	/*
 	 * add ?theme=dark in url to apply middleware_form_default_dark.css
 	 * add ?theme=materialized in url to apply middleware_form_materialized.css
+	 * add ?theme=materialized_dark in url to apply middleware_form_materialized_dark.css
 	 * set TEST_INLINE_STYLE=yes to test inline styles option
 	 */
 
@@ -24,6 +25,10 @@
 				case '/assets/middleware_form_materialized.css':
 					$assets_template='materialized';
 					$assets_dir='middleware_form_materialized.css';
+				break;
+				case '/assets/middleware_form_materialized_dark.css':
+					$assets_template='materialized';
+					$assets_dir='middleware_form_materialized_dark.css';
 				break;
 				case '/assets/simpleblog_materialized.css':
 					error_log(' -> Reading simpleblog_materialized.css');
@@ -57,15 +62,26 @@
 
 		include __DIR__.'/../main.php';
 
-		if(isset($_GET['theme']) && ($_GET['theme'] === 'materialized'))
-			$middleware_form=new middleware_form('materialized');
-		else if(isset($_GET['theme']) && ($_GET['theme'] === 'dark'))
-		{
-			$middleware_form=new middleware_form();
-			$middleware_form->add_config('middleware_form_style', 'middleware_form_default_dark.css');
-		}
-		else
-			$middleware_form=new middleware_form();
+		$template='default';
+		$template_params=null;
+
+		if(isset($_GET['theme']))
+			switch($_GET['theme'])
+			{
+				case 'materialized_dark':
+					$template_params=['middleware_form_style', 'middleware_form_materialized_dark.css'];
+				case 'materialized':
+					$template='materialized';
+				break;
+				case 'dark':
+					$template_params=['middleware_form_style', 'middleware_form_default_dark.css'];
+				break;
+			}
+
+		$middleware_form=new middleware_form($template);
+
+		if($template_params !== null)
+			$middleware_form->add_config($template_params[0], $template_params[1]);
 
 		$middleware_form->add_config('favicon', __DIR__.'/tmp/favicon.html');
 
@@ -102,7 +118,11 @@
 			])
 		->	add_field([
 				'tag'=>null,
-				'content'=>'<a href="?theme=materialized">Materialized template here</a><hr>'
+				'content'=>'<a href="?theme=materialized">Materialized template here</a><br>'
+			])
+		->	add_field([
+				'tag'=>null,
+				'content'=>'<a href="?theme=materialized_dark">Materialized dark template here</a><hr>'
 			])
 
 		->	add_field([

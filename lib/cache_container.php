@@ -81,6 +81,14 @@
 	 *   constructor array parameters:
 	 *    [prefix] => string, adds to the name of each key (default: cache_container__)
 	 *   warning: apcu extension is required
+	 *  cache_driver_shm -> use Unix shared memory
+	 *   constructor array parameters:
+	 *    [key] => int, system's id for the shared memory block
+	 *    [size] => int, the size of the shared memory block you wish to create in bytes (default: 320000)
+	 *   warning:
+	 *    shmop extension is required
+	 *    if the process that opened the memory block dies, the data will be lost
+	 *    use only for long-lived processes
 	 *
 	 * Example initialization:
 		$cache=new cache_container(new cache_driver_pdo([
@@ -1040,7 +1048,7 @@
 		public function __construct(array $params)
 		{
 			if(!function_exists('apcu_enabled'))
-				throw new pdo_connect_exception(
+				throw new cache_container_exception(
 					'apcu extension is not loaded'
 				);
 
@@ -1110,6 +1118,156 @@
 			.	'.*/'
 			)as $item)
 				apcu_delete($item['key']);
+		}
+	}
+	class cache_driver_shm implements cache_driver
+	{
+		protected $key;
+		protected $size=320000;
+		protected $id;
+		protected $mode='c';
+
+		public function __construct(array $params=[])
+		{
+			if(!function_exists('shmop_open'))
+				throw new cache_container_exception(
+					'shmop extension is not loaded'
+				);
+
+			foreach(['key', 'size'] as $param)
+				if(isset($params[$param]))
+				{
+					if(!is_int($params[$param]))
+						throw new cache_container_exception(
+							'The input array parameter '.$param.' is not an integer'
+						);
+
+					$this->$param=$params[$param];
+				}
+
+			if($this->key === null)
+				$this->key=ftok(__FILE__, 'b');
+
+			if(@shmop_open(
+				$this->key,
+				'a',
+				0, 0
+			))
+				$this->mode='w';
+
+			$this->id=shmop_open(
+				$this->key,
+				$this->mode,
+				0644,
+				$this->size
+			);
+
+			if($this->id === false)
+				throw new cache_container_exception(
+					'shmop_open failed'
+				);
+		}
+		public function __destruct()
+		{
+			if($this->mode === 'c')
+				shmop_delete(
+					$this->id
+				);
+		}
+
+		protected function get_shm_data()
+		{
+			$data=shmop_read(
+				$this->id,
+				0,
+				shmop_size(
+					$this->id
+				)
+			);
+
+			if($data === false)
+				return '';
+
+			$data=rtrim($data);
+
+			if($data === '')
+				return '';
+
+			$data=json_decode($data, true);
+
+			if($data === null)
+				return '';
+
+			return $data;
+		}
+		protected function put_shm_data($data)
+		{
+			shmop_write(
+				$this->id,
+				str_repeat("\0", shmop_size(
+					$this->id
+				)),
+				0
+			);
+
+			if($data === null)
+				return;
+
+			shmop_write(
+				$this->id,
+				json_encode(
+					$data,
+					JSON_UNESCAPED_UNICODE
+				),
+				0
+			);
+		}
+
+		public function put($key, $value, $timeout): void
+		{
+			$data=$this->get_shm_data();
+
+			if($data === '')
+				$data=[];
+
+			$data[$key]=[
+				$value,
+				$timeout,
+				time()
+			];
+
+			$this->put_shm_data($data);
+		}
+		public function get($key): array
+		{
+			$data=$this->get_shm_data();
+
+			if($data === '')
+				return [];
+
+			if(!isset($data[$key]))
+				return [];
+
+			return [
+				'value'=>$data[$key][0],
+				'timeout'=>$data[$key][1],
+				'timestamp'=>$data[$key][2]
+			];
+		}
+		public function unset($key): void
+		{
+			$data=$this->get_shm_data();
+
+			if($data === '')
+				return;
+
+			unset($data[$key]);
+
+			$this->put_shm_data($data);
+		}
+		public function flush(): void
+		{
+			$this->put_shm_data(null);
 		}
 	}
 ?>

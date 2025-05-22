@@ -14,7 +14,7 @@
 	 *  proc_* functions are required
 	 */
 
-	if(!extension_loaded('sockets'))
+	if(!function_exists('socket_create'))
 	{
 		echo 'Error: sockets extension is not loaded'.PHP_EOL;
 		exit(1);

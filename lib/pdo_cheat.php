@@ -63,16 +63,16 @@
 			->	rename_table('newname');
 	 *  Create a new row:
 			$my_table->new_row()
-			->	name('Test')
-			->	surname('tseT')
-			->	personal_id(20)
+			->	name('Test') // string (INSERT name VALUES Test ; escaped), or null (INSERT name VALUES NULL)
+			->	surname('tseT') // string (INSERT surname VALUES tseT ; escaped), or null (INSERT surname VALUES NULL)
+			->	personal_id(20) // int (INSERT personal_id VALUES 20 ; escaped), or null (INSERT personal_id VALUES NULL)
 			->	save_row();
 	 *  Reading the row (first result):
 			$test_person=$my_table->get_row()
 			->	select_id()
 			//	// and
 			->	select_personal_id()
-			->	get_row_by_name('Test')
+			->	get_row_by_name('Test') // string (WHERE name=Test ; escaped), true (WHERE name IS NOT NULL) or false (WHERE name IS NULL)
 			->	get_row();
 	 *  Cell reading:
 			$value=$test_person->personal_id();
@@ -81,20 +81,20 @@
 	 *  Reading the row (second result) and editing the row:
 			$test_mod=$my_table->get_row();
 			$test_mod
-			->	get_row_by_name('Test')
+			->	get_row_by_name('Test') // string (WHERE name=Test ; escaped), true (WHERE name IS NOT NULL) or false (WHERE name IS NULL)
 			//	// and
-			->	get_row_by_surname('tseT')
+			->	get_row_by_surname('tseT') // string (WHERE name=tseT ; escaped), true (WHERE surname IS NOT NULL) or false (WHERE surname IS NULL)
 			->	get_row();
 			$test_mod=$test_mod->get_next_row();
 			if($test_mod !== false)
 				$test_mod
-				->	personal_id(40)
+				->	personal_id(40) // int (UPDATE personal_id=40 ; escaped), or null (UPDATE personal_id=NULL)
 				->	save_row();
 	 *  Delete a row:
 			$my_table->delete_row()
-			->	name('Test')
+			->	name('Test') // string (WHERE name=Test ; escaped), true (WHERE name IS NOT NULL) or false (WHERE name IS NULL)
 			//	// and
-			->	surname('tseT')
+			->	surname('tseT') // string (WHERE surname=tseT ; escaped), true (WHERE surname IS NOT NULL) or false (WHERE surname IS NULL)
 			->	delete_row();
 	 *  Clearing the table (does not reset the id counter):
 			$my_table->clear_table()->flush_table();
@@ -970,6 +970,18 @@
 
 			foreach($this->query_conditions as $column_name=>$value)
 			{
+				if($value === true)
+				{
+					$statement.=$column_name.' IS NOT NULL AND ';
+					continue;
+				}
+
+				if($value === false)
+				{
+					$statement.=$column_name.' IS NULL AND ';
+					continue;
+				}
+
 				$statement.=$column_name.'=? AND ';
 				$parameters[]=$value;
 			}
@@ -1055,6 +1067,18 @@
 
 			foreach($this->query_conditions as $column_name=>$value)
 			{
+				if($value === true)
+				{
+					$statement.=$column_name.' IS NOT NULL AND ';
+					continue;
+				}
+
+				if($value === false)
+				{
+					$statement.=$column_name.' IS NULL AND ';
+					continue;
+				}
+
 				$statement.=$column_name.'=? AND ';
 				$parameters[]=$value;
 			}
@@ -1095,7 +1119,7 @@
 					$column_name.' column is not defined in the table schema'
 				);
 
-			if(isset($value[0]))
+			if(count($value) > 0)
 			{
 				$this->table_row[$column_name]=$value[0];
 				return $this;
@@ -1127,10 +1151,20 @@
 				{
 					if($pgsql_first_column === null)
 						$pgsql_first_column=$column_name;
+					else if($value === null)
+						$pgsql_update_columns.=$column_name.'=NULL, ';
 					else
 					{
 						$pgsql_update_columns.=$column_name.'=?, ';
 						$pgsql_update_values[]=$value;
+					}
+
+					if($value === null)
+					{
+						$columns.=$column_name.',';
+						$values.='NULL,';
+
+						continue;
 					}
 
 					$columns.=$column_name.',';
@@ -1143,6 +1177,14 @@
 			else
 				foreach($this->table_row as $column_name=>$value)
 				{
+					if($value === null)
+					{
+						$columns.=$column_name.',';
+						$values.='NULL,';
+
+						continue;
+					}
+
 					$columns.=$column_name.',';
 					$values.='?,';
 					$parameters[]=$value;

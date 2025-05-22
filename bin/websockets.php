@@ -355,8 +355,11 @@
 		}
 	}
 
-	foreach(['pcntl', 'sockets'] as $_ws_extension)
-		if(!extension_loaded($_ws_extension))
+	foreach([
+		'pcntl'=>'pcntl_signal',
+		'sockets'=>'socket_create'
+	] as $_ws_extension=>$_ws_extension_function)
+		if(!function_exists($_ws_extension_function))
 		{
 			echo $_ws_extension.' extension is not loaded'.PHP_EOL;
 			exit(1);

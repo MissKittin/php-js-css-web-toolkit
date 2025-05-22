@@ -5,6 +5,19 @@ The rest of the documentation is located in the `lv_arr.php` and `lv_str.php` li
   
 **This component is licensed under the MIT License, see [LICENSE.md](https://github.com/laravel/framework/blob/11.x/LICENSE.md)**
 
+* [Required libraries](#required-libraries)
+* [Suggested extensions and packages](#suggested-extensions)
+* [Note, Usage and Hint](#note)
+* [String helpers](#string-helpers)
+* [Array helpers](#array-helpers)
+* [Pluralizer](#pluralizer)
+* [Fluent strings](#fluent-strings)
+* [Collections](#collections)
+* [Encrypter](#encrypter)
+* [View](#view)
+* [Inertia.js](#inertiajs)
+* [Portability and Sources](#portability)
+
 ## Required libraries
 * `ascii.php` (loaded on demand)
 * `lv_arr.php`
@@ -730,7 +743,13 @@ You can also use `lv_hlp_encrypter`:
 
 
 ## View
-View component facade that allows easy use of the Blade templating engine.
+View component facade that allows easy use of the Blade templating engine
+
+* `is_directive_registered`  
+	Check if the directive is already registered:
+
+		if(lv_hlp_view::is_directive_registered('mydirective'))
+			// already registered
 
 * `is_resolver_registered`  
 	Check if the resolver is already registered:
@@ -738,8 +757,20 @@ View component facade that allows easy use of the Blade templating engine.
 		if(lv_hlp_view::is_resolver_registered('blade'))
 			// already registered
 
+* `register_directive` [returns self]  
+	Define a custom directive:
+
+		// if directive is already defined it will be overwritten
+		lv_hlp_view::register_directive('mydirective', function($param){
+			return myfunction($param);
+		});
+		// you can also use the bind option:
+		lv_hlp_view::register_directive('mydirective', function($param){
+			return myfunction($param);
+		}, true);
+
 * `register_resolver` [returns self]  
-	For the `Illuminate\View\Engines\EngineResolver::register` method):
+	For the `Illuminate\View\Engines\EngineResolver::register` method:
 
 		// if resolver is already defined it will be overwritten
 		lv_hlp_view::register_resolver('blade', function(){
@@ -769,8 +800,8 @@ View component facade that allows easy use of the Blade templating engine.
 	Returns an initialized instance of the `Illuminate\View\View`:
 
 		$view_handle=lv_hlp_view::load_blade(
-			'templatename', // without .blade.php
-			[
+			'templatename', // required, without .blade.php
+			[ // optional
 				'my_variable'=>'Hello world'
 			]
 		);
@@ -779,10 +810,34 @@ View component facade that allows easy use of the Blade templating engine.
 	Renders the selected template:
 
 		$rendered_view=lv_hlp_view::view(
-			'templatename', // without .blade.php
-			[
+			'templatename', // required, without .blade.php
+			[ // optional
 				'my_variable'=>'Hello world'
 			]
+		);
+
+* [protected] `get_blade_compiler`  
+	Returns the `Illuminate\View\Compilers\BladeCompiler` instance  
+	You can overwrite this method by inheritance
+
+* [protected] `get_compiler_engine`  
+	Returns the `Illuminate\View\Engines\CompilerEngine` instance  
+	You can overwrite this method by inheritance
+
+* [protected] `get_engine_resolver`  
+	Returns the `Illuminate\View\Engines\EngineResolver` instance  
+	You can overwrite this method by inheritance
+
+* `lv_hlp_view` function  
+	Quickly render a view:
+
+		$rendered_view=lv_hlp_view(
+			'templatename', // required, without .blade.php
+			[ // optional
+				'my_variable'=>'Hello world'
+			],
+			__DIR__.'/views', // optional if you have used lv_hlp_view::set_view_path() before
+			__DIR__.'/views_cache' // optional if you have used lv_hlp_view::set_cache_path() before
 		);
 
 Example usage:
@@ -805,6 +860,7 @@ $rendered_view=lv_hlp_view
 		]
 	);
 ```
+
 Example initialization of the `Illuminate\View\View` object:
 ```
 $view_handle=lv_hlp_view
@@ -825,10 +881,231 @@ $view_handle=lv_hlp_view
 		]
 	);
 ```
+
+Example usage of `lv_hlp_view` function:
+```
+$rendered_view=lv_hlp_view(
+	'templatename', // required, without .blade.php
+	[ // optional
+		'my_variable'=>'Hello world'
+	],
+	__DIR__.'/views', // required
+	__DIR__.'/views_cache' // required
+);
+```
+
+Example usage of `lv_hlp_view` function with preconfiguration:
+```
+lv_hlp_view
+::	set_cache_path(__DIR__.'/views_cache');
+::	set_view_path(__DIR__.'/views');
+
+$rendered_view=lv_hlp_view(
+	'templatename', // required, without .blade.php
+	[ // optional
+		'my_variable'=>'Hello world'
+	]
+);
+```
+
 **Note:**  
 tested on Illuminate View 5.5 and 11.34  
 **Warning:**  
 `illuminate/view` package is required
+
+## Inertia.js
+A simple Inertia.js adapter  
+For more info see [Inertia.js documentation](https://inertiajs.com/)  
+**Warning:** server-side rendering feature is not supported
+
+Methods:
+* `set_asset_version(string_path_to_file)` [returns self]  
+	Enable asset versioning feature
+* `set_clear_history(bool_option)` [returns self]  
+	Set `clearHistory` property
+* `set_encrypt_history(bool_option)` [returns self]  
+	Set `encryptHistory` property
+* `api(string_vue_component_name, array_properties=[])` [returns bool]  
+	Check if this is an inertia request  
+	and set the data for the API or the template  
+	**warning:** `$_SERVER['REQUEST_URI']` is required
+* `render(array_data=null)` [returns string]  
+	Set HTTP headers and return data for inertia  
+	You can overwrite all data for inertia through an argument  
+	**warning:** `$_SERVER['REQUEST_METHOD']` is required
+* `get_template(string_div_id='app', array_data=null)` [returns string]  
+	Render the HTML code (`<div>`) for the template with data for inertia  
+	You can change the `<div>` id parameter through the argument  
+	You can overwrite all data for inertia through an argument
+* `register_lv_view_directives(string_div_id='app')` [returns self]  
+	Register the `@inertia` directive for Blade (`lv_hlp_view`)  
+	You can change the `<div>` id parameter through the argument
+* `register_twig_functions(string_div_id='app')` [returns `Twig\TwigFunction` instance]  
+	Register the `inertia` function for Twig  
+	You can change the `<div>` id parameter through the argument  
+	**warning:** `twig/twig` package is required
+
+#### Usage
+At the beginning, add `rollupOptions` in `vite.config.js`
+```
+import { fileURLToPath, URL } from 'node:url'
+import { defineConfig } from 'vite'
+
+//
+
+export default defineConfig({
+  //
+
+  resolve: {
+    alias: {
+      '@': fileURLToPath(new URL('./app/ui', import.meta.url)) // instead of ./src
+    }
+  },
+  root: './app/ui', // instead of ./src
+  build: {
+    outDir: '../../public', // instead of ../dist
+    emptyOutDir: false, // do not purge public dir
+	rollupOptions: { // use a known path for generated files
+	  output: {
+	    entryFileNames: 'assets/index.js',
+	    assetFileNames: 'assets/index.css',
+	    chunkFileNames: "assets/chunk.js",
+	    manualChunks: undefined
+      }
+	}
+  }
+})
+```
+The only inconvenience is that every time you change something, you need to `npm run build` - see [Build automation](#build-automation) below  
+**Warning:** Vite will generate an `assets/index.html` file - delete it before committing changes or add it to `.gitignore`
+
+Then configure routing (this will look different depending on the solution used):
+```
+<?php
+	require './com/lv_hlp/main.php';
+
+	// you can configure the adapter here (optional)
+	lv_hlp_inertia
+	::	set_asset_version( // X-Inertia-Version HTTP header
+			'./public/assets/index.js'
+		)
+	::	set_clear_history(true) // clearHistory option, default: false
+	::	set_encrypt_history(true); // encryptHistory option, default: false
+
+	if($_SERVER['REQUEST_URI'] === '/')
+	{
+		// warning: you always have to first call the api() method
+
+		if(lv_hlp_inertia::api('home')) // where home is the name of the template (home.vue here)
+			echo lv_hlp_inertia::render(); // echo rendered json
+		else
+			require './views/home.php'; // first request - send HTML with bootstrap
+	}
+
+	if($_SERVER['REQUEST_URI'] === '/about')
+	{
+		if(lv_hlp_inertia::api('about', [
+			'user'=>'user-name',
+			'data'=>function()
+			{
+				// there may be anything that json_encode() accepts
+
+				return [
+					'value1',
+					'value2',
+					'value3'
+				];
+			},
+			'classdata'=>new my_class() // that implements __toString() method
+		]))
+			echo lv_hlp_inertia::render();
+		else
+			require './views/about.php';
+	}
+?>
+```
+
+An example view will look like this:
+```
+<!DOCTYPE html>
+<html>
+	<head>
+		<script type="module" crossorigin src="/assets/index.js"></script>
+	</head>
+	<body>
+		<?php echo lv_hlp_inertia::get_template(); ?>
+	</body>
+</html>
+```
+
+#### Build automation
+You can automate this operation using the `file-watch.php` tool:
+```
+php ./bin/file-watch.php "npm run build" ./app/ui
+```
+or using the `watch` package - run `npm install watch` and add to the `package.json`:
+```
+{
+  "scripts": {
+    "watch": "watch \"npm run build\" ./app/ui"
+  }
+}
+```
+
+#### Integraion with `lv_hlp_view`
+To the file where you setup the adapter, call the following method, e.g.
+```
+<?php
+	require './com/lv_hlp/main.php';
+
+	lv_hlp_inertia::register_lv_view_directives();
+
+	// the rest of the code
+```
+
+An example view will look like this:
+```
+<!DOCTYPE html>
+<html>
+	<head>
+		<script type="module" crossorigin src="/assets/index.js"></script>
+	</head>
+	<body>
+		@inertia
+	</body>
+</html>
+```
+
+#### Integraion with Twig
+To the file where you setup the adapter add the Twig configuration, e.g.
+```
+<?php
+	require './com/lv_hlp/main.php';
+
+	$twig=new Twig\Environment(
+		new Twig\Loader\FilesystemLoader(
+			'path/to/views'
+		)
+	);
+	$twig->addFunction(
+		lv_hlp_inertia::register_twig_functions()
+	);
+
+	// the rest of the code
+```
+
+An example view will look like this:
+```
+<!DOCTYPE html>
+<html>
+	<head>
+		<script type="module" crossorigin src="/assets/index.js"></script>
+	</head>
+	<body>
+		{{ inertia() }}
+	</body>
+</html>
+```
 
 ## Portability
 Create a `./lib` directory  

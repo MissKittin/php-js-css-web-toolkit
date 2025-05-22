@@ -28,36 +28,58 @@
 		?>">
 		<meta name="viewport" content="width=device-width, initial-scale=1">
 		<?php
-			if($this->registry['_inline_assets'][0])
-			{
-				?><style nonce="<?php echo $this->registry['_inline_assets'][2]; ?>"><?php
-					if(is_dir(__DIR__.'/assets/admin_panel_default.css'))
-						foreach(
-							array_diff(
-								scandir(__DIR__.'/assets/admin_panel_default.css'),
-								['.', '..']
+			if(!isset(
+				$this->registry['_disable_assets']['admin_panel_default.css']
+			)){
+				if($this->registry['_inline_assets'][0])
+				{
+					?><style nonce="<?php echo $this->registry['_inline_assets'][2]; ?>"><?php
+						if(is_dir(__DIR__.'/assets/admin_panel_default.css'))
+							foreach(
+								array_diff(
+									scandir(__DIR__.'/assets/admin_panel_default.css'),
+									['.', '..']
+								)
+								as $inline_style
 							)
-							as $inline_style
-						)
-							readfile(__DIR__.'/assets/admin_panel_default.css/'.$inline_style);
-				?></style><?php
+								readfile(__DIR__.'/assets/admin_panel_default.css/'.$inline_style);
+					?></style><?php
+				}
+				else
+					{ ?><link rel="stylesheet" href="<?php echo $this->registry['_assets_path']; ?>/<?php
+						if(isset(
+							$this->registry['_rename_assets']['admin_panel_default.css']
+						))
+							echo $this->registry['_rename_assets']['admin_panel_default.css'];
+						else
+							echo 'admin_panel_default.css';
+					?>"><?php }
 			}
-			else
-				{ ?><link rel="stylesheet" href="<?php echo $this->registry['_assets_path']; ?>/admin_panel_default.css"><?php }
 
 			if(isset($this->registry['_styles']))
 				foreach($this->registry['_styles'] as $_style)
 					{ ?><link rel="stylesheet" href="<?php echo $_style; ?>"><?php }
 
-			if($this->registry['_inline_assets'][0])
-			{
-				?><script nonce="<?php echo $this->registry['_inline_assets'][1]; ?>"><?php
-					if(is_file(__DIR__.'/assets/admin_panel_default.js'))
-						readfile(__DIR__.'/assets/admin_panel_default.js');
-				?></script><?php
+			if(!isset(
+				$this->registry['_disable_assets']['admin_panel_default.js']
+			)){
+				if($this->registry['_inline_assets'][0])
+				{
+					?><script nonce="<?php echo $this->registry['_inline_assets'][1]; ?>"><?php
+						if(is_file(__DIR__.'/assets/admin_panel_default.js'))
+							readfile(__DIR__.'/assets/admin_panel_default.js');
+					?></script><?php
+				}
+				else
+					{ ?><script src="<?php echo $this->registry['_assets_path']; ?>/<?php
+						if(isset(
+							$this->registry['_rename_assets']['admin_panel_default.js']
+						))
+							echo $this->registry['_rename_assets']['admin_panel_default.js'];
+						else
+							echo 'admin_panel_default.js';
+					?>"></script><?php }
 			}
-			else
-				{ ?><script src="<?php echo $this->registry['_assets_path']; ?>/admin_panel_default.js"></script><?php }
 
 			if(isset($this->registry['_scripts']))
 				foreach($this->registry['_scripts'] as $_script)
@@ -100,7 +122,10 @@
 				<?php if(isset($_module['template_header'])) { ?>
 					<h1><?php echo $_module['template_header']; ?></h1>
 				<?php }
-					if(isset($_module['class']) && isset($_module['main_method']))
+					if(
+						isset($_module['class']) &&
+						isset($_module['main_method'])
+					)
 						$_module['class']::{$_module['main_method']}($_module);
 					else
 						require $_module['path'].'/'.$_module['script'];

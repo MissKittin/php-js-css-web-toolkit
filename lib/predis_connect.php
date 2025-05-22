@@ -17,6 +17,11 @@
 	 * Classes:
 	 *  predis_phpredis_proxy(predis_connect('./path_to/your_database_config_directory'))
 	 *   same as predis_connect_proxy
+	 *
+	 * Most zwadzacy:
+	 *  a bridge for replacing a Predis\Client class with another
+	 *  recommended to be used with extreme caution
+	 *  more info below
 	 */
 
 	class predis_connect_exception extends Exception {}
@@ -27,6 +32,7 @@
 		 * Predis connection helper
 		 *
 		 * Warning:
+		 *  predis_connect_bridge class is required
 		 *  predis/predis package is required
 		 *
 		 * Note:
@@ -52,7 +58,9 @@
 			$redis=predis_connect('./path_to/your_database_config_directory');
 		 */
 
-		if(!class_exists('\Predis\Client'))
+		if(!class_exists(
+			predis_connect_bridge::class_exists()
+		))
 			throw new predis_connect_exception(
 				'predis/predis package is not installed'
 			);
@@ -63,12 +71,12 @@
 			);
 
 		if(file_exists($db.'/options.php'))
-			return new Predis\Client(
+			return predis_connect_bridge::Predis_Client(
 				require $db.'/config.php',
 				require $db.'/options.php'
 			);
 
-		return new Predis\Client(
+		return predis_connect_bridge::Predis_Client(
 			require $db.'/config.php'
 		);
 	}
@@ -161,6 +169,84 @@
 			}
 
 			return $output;
+		}
+	}
+	final class predis_connect_bridge
+	{
+		/*
+		 * Most zwodzacy
+		 *
+		 * A bridge for replacing a Predis\Client class with another
+		 * It can be used for debugging and mocking methods
+		 *
+		 * Note:
+		 *  throws an predis_connect_exception on error
+		 *
+		 * Usage:
+		 *  before calling any function from this library define a new class
+		 *  and set it as a replacement
+			class Predis_Client_mock extends Predis\Client
+			{
+				public function __construct(...$arguments)
+				{
+					// debug when database connection occurs
+
+					echo ': '.__METHOD__.'() :';
+
+					parent::{__FUNCTION__}(
+						...$arguments
+					);
+				}
+				public function __destruct()
+				{
+					// debug when disconnected from database
+					echo ': '.__METHOD__.'() :';
+				}
+
+				// other methods
+			}
+
+			// set the Predis_Client_mock class as a substitute for the Predis\Client class
+			predis_connect_bridge::set_class('Predis_Client_mock', function(...$arguments){
+				return new Predis_Client_mock(
+					...$arguments
+				);
+			});
+		 *  then use the functions from this library as if nothing had happened
+		 */
+
+		private static $predis_class_name='\Predis\Client';
+		private static $predis_class=null;
+
+		public static function set_class(
+			string $class_name,
+			callable $callback
+		){
+			self::$predis_class_name=$class_name;
+			self::$predis_class[0]=$callback;
+		}
+
+		public static function class_exists()
+		{
+			return self::$predis_class_name;
+		}
+		public static function Predis_Client(...$arguments)
+		{
+			if(self::$predis_class !== null)
+				return self::$predis_class[0](
+					...$arguments
+				);
+
+			return new Predis\Client(
+				...$arguments
+			);
+		}
+
+		public function __construct()
+		{
+			throw new predis_connect_exception(
+				'You cannot initialize '.self::class
+			);
 		}
 	}
 ?>

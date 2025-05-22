@@ -4962,9 +4962,55 @@
 		}
 	}
 
+	if(PHP_VERSION_ID < 80000) // compatibility bridge for lv_arr_collection class
+	{
+		trait lv_arr_collection_arrayaccess
+		{
+			public function offsetExists($offset)
+			{
+				return $this->_offsetExists($offset);
+			}
+			public function offsetGet($offset)
+			{
+				return $this->_offsetGet($offset);
+			}
+			public function offsetSet($offset, $value)
+			{
+				$this->_offsetSet($offset, $value);
+			}
+			public function offsetUnset($offset)
+			{
+				$this->_offsetUnset($offset);
+			}
+		}
+	}
+	else
+	{
+		trait lv_arr_collection_arrayaccess
+		{
+			public function offsetExists(mixed $offset): bool
+			{
+				return $this->_offsetExists($offset);
+			}
+			public function offsetGet(mixed $offset): mixed
+			{
+				return $this->_offsetGet($offset);
+			}
+			public function offsetSet(mixed $offset, mixed $value): void
+			{
+				$this->_offsetSet($offset, $value);
+			}
+			public function offsetUnset(mixed $offset): void
+			{
+				$this->_offsetUnset($offset);
+			}
+		}
+	}
+
 	class lv_arr_collection implements ArrayAccess, lv_arr_enumerable
 	{
 		use lv_arr_enumerates_values;
+		use lv_arr_collection_arrayaccess;
 
 		protected $items=[];
 
@@ -4983,16 +5029,16 @@
 		{
 			return new ArrayIterator($this->items);
 		}
-		// ArrayAccess
-		public function offsetExists($key): bool
+		// ArrayAccess <=> lv_arr_collection_arrayaccess
+		protected function _offsetExists($key)
 		{
 			return isset($this->items[$key]);
 		}
-		public function offsetGet($key)
+		protected function _offsetGet($key)
 		{
 			return $this->items[$key];
 		}
-		public function offsetSet($key, $value): void
+		protected function _offsetSet($key, $value)
 		{
 			if(is_null($key))
 			{
@@ -5002,7 +5048,7 @@
 
 			$this->items[$key]=$value;
 		}
-		public function offsetUnset($key): void
+		protected function _offsetUnset($key)
 		{
 			unset($this->items[$key]);
 		}

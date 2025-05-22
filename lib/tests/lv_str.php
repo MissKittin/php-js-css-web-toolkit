@@ -671,8 +671,10 @@
 				else
 					echo ' [SKIP]'.PHP_EOL;
 			echo ' -> Testing lv_str_snake';
-				if(extension_loaded('ctype') && function_exists('mb_substr'))
-				{
+				if(
+					function_exists('ctype_lower') &&
+					function_exists('mb_substr')
+				){
 					if(lv_str_snake('fooBar') === 'foo_bar')
 						echo ' [ OK ]';
 					else

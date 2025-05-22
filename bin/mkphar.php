@@ -57,7 +57,8 @@
 		echo ' --stub -> app entrypoint (will be added to the root directory)'.PHP_EOL;
 		echo ' --shebang -> add #!/usr/bin/env php (stub must be defined)'.PHP_EOL;
 		echo '  you can also use: "--shebang=#!/path/to/env php-bin-name"'.PHP_EOL;
-		echo ' --source -> path for addFile()'.PHP_EOL;
+		echo ' --source -> path for addFile() (to file or directory)'.PHP_EOL;
+		echo '  you can also use: --source=.'.PHP_EOL;
 		echo ' --ignore -> do not add file/directory with name'.PHP_EOL;
 		echo ' --include -> force add file that ends with name (has priority over --ignore)'.PHP_EOL;
 		echo ' --ignore-regex -> do not add file/directory with name'.PHP_EOL;
@@ -179,9 +180,9 @@
 
 	foreach($sources as &$source)
 	{
-		if(!is_dir($source))
+		if(!file_exists($source))
 		{
-			echo $source.' is not a directory'.PHP_EOL;
+			echo $source.' does not exist'.PHP_EOL;
 			exit(1);
 		}
 
@@ -202,6 +203,13 @@
 		}
 
 		if(
+			($source === '.') ||
+			($source === './') ||
+			($source === '.\\')
+		)
+			continue;
+
+		if(
 			(substr($source, 0, 2) === './') ||
 			(substr($source, 0, 2) === '.\\')
 		)
@@ -215,6 +223,19 @@
 		echo ' -> Adding files'.PHP_EOL;
 
 		foreach($sources as &$source)
+		{
+			if(is_file($source))
+			{
+				echo '[ADD] '.$source.PHP_EOL;
+
+				$phar->addFile(
+					$source,
+					strtr($source, '\\', '/')
+				);
+
+				continue;
+			}
+
 			foreach(
 				new RecursiveIteratorIterator(
 					new RecursiveDirectoryIterator(
@@ -250,6 +271,7 @@
 					strtr($file->getPathname(), '\\', '/')
 				);
 			}
+		}
 
 		if($stub === null)
 			$phar->setStub(''

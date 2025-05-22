@@ -78,7 +78,7 @@
 
 	if(
 		(!$_cron_once) &&
-		(!extension_loaded('pcntl'))
+		(!function_exists('pcntl_signal'))
 	){
 		echo 'pcntl extension is not loaded'.PHP_EOL;
 		exit(1);

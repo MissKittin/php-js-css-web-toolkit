@@ -45,10 +45,6 @@
 			{
 				return 'iqyGOW4#-:';
 			}
-			function extension_loaded()
-			{
-				return true;
-			}
 		echo ' [ OK ]'.PHP_EOL;
 
 		foreach(['has_php_close_tag.php', 'include_into_namespace.php'] as $library)

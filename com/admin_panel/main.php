@@ -594,5 +594,26 @@
 
 			return $this;
 		}
+		public function rename_assets(array $assets)
+		{
+			foreach($assets as $original_name=>$new_name)
+			{
+				if(!is_string($new_name))
+					throw new admin_panel_exception(
+						'The new name for the '.$original_name.' asset is not a string'
+					);
+
+				$this->registry['_rename_assets'][$original_name]=$new_name;
+			}
+
+			return $this;
+		}
+		public function disable_assets(array $assets)
+		{
+			foreach($assets as $asset)
+				$this->registry['_disable_assets'][$asset]=true;
+
+			return $this;
+		}
 	}
 ?>

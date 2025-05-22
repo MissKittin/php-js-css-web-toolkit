@@ -168,7 +168,7 @@
 				insert_into(
 					'table_name',
 					'first_column_name,second_column_name,n_column_name',
-					[
+					[ // if the value is null, SQL NULL will be sent unescaped
 						['new_value_aa', 'new_value_ab', 'new_value_ac'],
 						['new_value_ba', 'new_value_bb', 'new_value_bc'],
 						['new_value_ca', 'new_value_cb', 'new_value_cc'],
@@ -198,7 +198,7 @@
 				replace_into(
 					string_table_name,
 					'id,second_column_name,n_column_name',
-					[
+					[ // if the value is null, SQL NULL will be sent unescaped
 						['id_a', 'new_value_aa', 'new_value_ab'],
 						['id_b', 'new_value_ba', 'new_value_bb'],
 						['id_c', 'new_value_ca', 'new_value_cb'],
@@ -207,9 +207,10 @@
 				)
 				update(string_table_name)
 				set([
-					['first_column_name', 'new_value_a'],
-					['second_column_name', 'new_value_b'],
-					['n_column_name', 'new_value_n']
+					// if the string-or-null_new_value_* is null, SQL NULL will be sent unescaped
+					['string_first_column_name', 'string-or-null_new_value_a'],
+					['string_second_column_name', 'string-or-null_new_value_b'],
+					['string_n_column_name', 'string-or-null_new_value_n']
 				])
 		 *
 		 *  Deleting:
@@ -228,6 +229,8 @@
 				where_like(string_column_name, string_sql_with_wildcards)
 				where_not_like(string_column_name, string_sql_with_wildcards)
 				where_is(string_a, string_what)
+				where_is_null(string_a)
+				where_is_not_null(string_a)
 				where_not(string_a, string_operator, string_b)
 		 *
 		 *  Raw sql input:
@@ -304,7 +307,9 @@
 		public function __construct(array $params)
 		{
 			if(!isset($params['pdo_handle']))
-				throw new pdo_crud_builder_exception('No PDO handle given');
+				throw new pdo_crud_builder_exception(
+					'No PDO handle given'
+				);
 
 			$this->fetch_mode=PDO::FETCH_NAMED;
 			$this->on_error[0]=function(){};
@@ -366,6 +371,14 @@
 			.	'IS '.$what.' ';
 
 			return $this;
+		}
+		public function where_is_null(string $name)
+		{
+			return $this->where_is($name, 'NULL');
+		}
+		public function where_is_not_null(string $name)
+		{
+			return $this->where_is($name, 'NOT NULL');
 		}
 		public function where_like(string $name, string $string)
 		{
@@ -446,7 +459,9 @@
 			foreach($columns as $column_name=>$column_type)
 			{
 				if(!is_string($column_type))
-					throw new pdo_crud_builder_exception('Array value must be a string');
+					throw new pdo_crud_builder_exception(
+						'Array value must be a string'
+					);
 
 				$sql_columns.=$column_name.' '.$column_type.', ';
 			}
@@ -741,7 +756,9 @@
 			foreach($columns as $column_name=>$column_type)
 			{
 				if(!is_string($column_type))
-					throw new pdo_crud_builder_exception('Array value must be a string');
+					throw new pdo_crud_builder_exception(
+						'Array value must be a string'
+					);
 
 				$sql_columns.=$column_name.' '.$column_type.', ';
 			}
@@ -783,12 +800,20 @@
 			foreach($what as $what_data_set)
 			{
 				if(!is_array($what_data_set))
-					throw new pdo_crud_builder_exception('The dataset must be an array');
+					throw new pdo_crud_builder_exception(
+						'The dataset must be an array'
+					);
 
 				$sql_what.='(';
 
 				foreach($what_data_set as $what_value)
 				{
+					if($what_value === null)
+					{
+						$sql_what.='NULL,';
+						continue;
+					}
+
 					$sql_what.='?,';
 					$this->sql_parameters[]=$what_value;
 				}
@@ -1063,12 +1088,20 @@
 			foreach($what as $what_data_set)
 			{
 				if(!is_array($what_data_set))
-					throw new pdo_crud_builder_exception('The dataset must be an array');
+					throw new pdo_crud_builder_exception(
+						'The dataset must be an array'
+					);
 
 				$sql_what.='(';
 
 				foreach($what_data_set as $what_value)
 				{
+					if($what_value === null)
+					{
+						$sql_what.='NULL,';
+						continue;
+					}
+
 					$sql_what.='?,';
 					$this->sql_parameters[]=$what_value;
 				}
@@ -1098,16 +1131,31 @@
 			foreach($what as $data_set)
 			{
 				if(!is_array($data_set))
-					throw new pdo_crud_builder_exception('The dataset must be an array');
+					throw new pdo_crud_builder_exception(
+						'The dataset must be an array'
+					);
 
 				if(!isset($data_set[0]))
-					throw new pdo_crud_builder_exception('No column name was provided');
+					throw new pdo_crud_builder_exception(
+						'No column name was provided'
+					);
 
 				if(!is_string($data_set[0]))
-					throw new pdo_crud_builder_exception('Column name must be a string');
+					throw new pdo_crud_builder_exception(
+						'Column name must be a string'
+					);
 
-				if(!isset($data_set[1]))
-					throw new pdo_crud_builder_exception('No value was provided for column '.$data_set[0]);
+				if(count($data_set) !== 2)
+					throw new pdo_crud_builder_exception(''
+					.	'No value was provided for column '.$data_set[0].' '
+					.	'or more than two values were given in the array'
+					);
+
+				if($data_set[1] === null)
+				{
+					$sql_what.=$data_set[0].' = NULL, ';
+					continue;
+				}
 
 				$sql_what.=$data_set[0].' = ?, ';
 				$this->sql_parameters[]=$data_set[1];

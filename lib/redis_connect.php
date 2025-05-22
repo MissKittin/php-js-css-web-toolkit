@@ -45,6 +45,11 @@
 				my_log_function('redis_connect_array: '.$error->getMessage());
 			}
 		)
+	 *
+	 * Most zwadzacy:
+	 *  a bridge for replacing a Redis class with another
+	 *  recommended to be used with extreme caution
+	 *  more info below
 	 */
 
 	class redis_connect_exception extends Exception {}
@@ -149,6 +154,7 @@
 		 *  or false if an error has occurred
 		 *
 		 * Warning:
+		 *  redis_connect_bridge class is required
 		 *  redis extension is required
 		 *
 		 * Note:
@@ -182,7 +188,9 @@
 			);
 		 */
 
-		if(!class_exists('Redis'))
+		if(!class_exists(
+			redis_connect_bridge::class_exists()
+		))
 			throw new redis_connect_exception(
 				'redis extension is not loaded'
 			);
@@ -230,7 +238,7 @@
 				$db_config[$default_config]=$default_value;
 
 		try {
-			$redis_handle=new Redis();
+			$redis_handle=redis_connect_bridge::Redis();
 
 			if($db_config['options'] !== null)
 				foreach($db_config['options'] as $option_name=>$option_value)
@@ -269,5 +277,87 @@
 		}
 
 		return $redis_handle;
+	}
+
+	final class redis_connect_bridge
+	{
+		/*
+		 * Most zwodzacy
+		 *
+		 * A bridge for replacing a Redis class with another
+		 * It can be used for debugging and mocking methods
+		 *
+		 * Note:
+		 *  throws an redis_connect_exception on error
+		 *
+		 * Usage:
+		 *  before calling any function from this library define a new class
+		 *  and set it as a replacement
+			class Redis_mock extends Redis
+			{
+				public function __construct(...$arguments)
+				{
+					// debug when database connection occurs
+
+					echo ': '.__METHOD__.'() :';
+
+					parent::{__FUNCTION__}(
+						...$arguments
+					);
+				}
+				public function __destruct()
+				{
+					// debug when disconnected from database
+
+					echo ': '.__METHOD__.'() :';
+
+					parent::{__FUNCTION__}();
+				}
+
+				// other methods
+			}
+
+			// set the Redis_mock class as a substitute for the Redis class
+			redis_connect_bridge::set_class('Redis_mock', function(...$arguments){
+				return new Redis_mock(
+					...$arguments
+				);
+			});
+		 *  then use the functions from this library as if nothing had happened
+		 */
+
+		private static $predis_class_name='Redis';
+		private static $predis_class=null;
+
+		public static function set_class(
+			string $class_name,
+			callable $callback
+		){
+			self::$predis_class_name=$class_name;
+			self::$predis_class[0]=$callback;
+		}
+
+		public static function class_exists()
+		{
+			return self::$predis_class_name;
+		}
+		public static function Redis(...$arguments)
+		{
+			if(self::$predis_class !== null)
+				return self::$predis_class[0](
+					...$arguments
+				);
+
+			return new Redis(
+				...$arguments
+			);
+		}
+
+		public function __construct()
+		{
+			throw new redis_connect_exception(
+				'You cannot initialize '.self::class
+			);
+		}
 	}
 ?>

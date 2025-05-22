@@ -13,6 +13,9 @@
 	 *  mbstring extension is required
 	 *
 	 * Note:
+	 *  session handlers implements older version of
+	 *   SessionHandlerInterface for compatibility reasons
+	 *   which may cause deprecation notices to be generated
 	 *  throws an lv_encrypter_exception on error
 	 *
 	 * Classes:
@@ -27,8 +30,9 @@
 	 *   transparently encrypts session content
 	 *  lv_cookie_session_handler
 	 *   session handler that uses an encrypted cookie to store the session
+	 *   warning: the session will be automatically closed when output starts
 	 *   note:
-	 *    use lv_cookie_session_handler::session_start() instead of PHP session_start()
+	 *    always use lv_cookie_session_handler::session_start() instead of PHP session_start()
 	 *    session cookies always have the HttpOnly flag
 	 *  lv_pdo_session_handler
 	 *   session handler that uses a relational database to store an encrypted session
@@ -442,6 +446,7 @@
 		 * Uses an encrypted cookie to store the session
 		 *
 		 * Warning:
+		 *  the session will be automatically closed when output starts
 		 *  if the cookie cannot be decrypted, on_error will be called
 		 *   and a new session will be created automatically
 		 *  the cookie expiration date is refreshed with each request
@@ -543,13 +548,25 @@
 		{
 			$class=__CLASS__;
 
-			if(!$class::$initialized)
-				return session_set_save_handler(
-					new $class($params),
-					true
+			if($class::$initialized)
+				return false;
+
+			if(!session_set_save_handler(
+				new $class($params),
+				true
+			))
+				return false;
+
+			if(!header_register_callback(function(){
+				if(session_status() === PHP_SESSION_ACTIVE)
+					session_write_close();
+			}))
+				throw new lv_encrypter_exception(''
+				.	'header_register_callback returned false - you must catch this exception '
+				.	'and call session_write_close function before sending output'
 				);
 
-			return false;
+			return true;
 		}
 		public static function session_start(array $params=[])
 		{

@@ -2164,8 +2164,54 @@
 		}
 	}
 
+	if(PHP_VERSION_ID < 80000) // compatibility bridge for lv_str_ingable class
+	{
+		trait lv_str_ingable_arrayaccess
+		{
+			public function offsetExists($offset)
+			{
+				return $this->_offsetExists($offset);
+			}
+			public function offsetGet($offset)
+			{
+				return $this->_offsetGet($offset);
+			}
+			public function offsetSet($offset, $value)
+			{
+				$this->_offsetSet($offset, $value);
+			}
+			public function offsetUnset($offset)
+			{
+				$this->_offsetUnset($offset);
+			}
+		}
+	}
+	else
+	{
+		trait lv_str_ingable_arrayaccess
+		{
+			public function offsetExists(mixed $offset): bool
+			{
+				return $this->_offsetExists($offset);
+			}
+			public function offsetGet(mixed $offset): mixed
+			{
+				return $this->_offsetGet($offset);
+			}
+			public function offsetSet(mixed $offset, mixed $value): void
+			{
+				$this->_offsetSet($offset, $value);
+			}
+			public function offsetUnset(mixed $offset): void
+			{
+				$this->_offsetUnset($offset);
+			}
+		}
+	}
+
 	class lv_str_ingable implements JsonSerializable, ArrayAccess
 	{
+		use lv_str_ingable_arrayaccess;
 		// use conditionable, tappable;
 
 		/* trait conditionable */
@@ -2337,23 +2383,25 @@
 			return (string)$this->value;
 		}
 
+		// JsonSerializable
 		public function jsonSerialize(): string
 		{
 			return $this->__toString();
 		}
-		public function offsetExists($offset): bool
+		// ArrayAccess <=> lv_str_ingable_arrayaccess
+		protected function _offsetExists($offset)
 		{
 			return isset($this->value[$offset]);
 		}
-		public function offsetGet($offset): string
+		protected function _offsetGet($offset)
 		{
 			return $this->value[$offset];
 		}
-		public function offsetSet($offset, $value): void
+		protected function _offsetSet($offset, $value)
 		{
 			$this->value[$offset]=$value;
 		}
-		public function offsetUnset($offset): void
+		protected function _offsetUnset($offset)
 		{
 			unset($this->value[$offset]);
 		}

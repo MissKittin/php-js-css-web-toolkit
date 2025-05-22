@@ -1,6 +1,6 @@
 <?php
 	/*
-	 * Output buffer cache library
+	 * Output buffer & HTTP headers cache library
 	 *
 	 * Warning:
 	 *  buffer control must not be started
@@ -81,18 +81,43 @@
 			)
 				header('Content-Encoding: gzip');
 
-			if(file_put_contents($_ob_cache['output_file'], '') === false)
+			if(file_put_contents(
+				$_ob_cache['output_file'],
+				''
+			) === false)
 				throw new ob_cache_exception(
 					'Cannot write to the '.$_ob_cache['output_file']
 				);
 
 			ob_start(function($buffer) use($_ob_cache){
+				static $create_headers_cache=true;
+
 				if($_ob_cache['gzip'])
 				{
 					if(!$_ob_cache['browser_gzip_support'])
 						$raw_buffer=$buffer;
 
 					$buffer=gzencode($buffer);
+				}
+
+				if($create_headers_cache)
+				{
+					if(file_put_contents(
+						$_ob_cache['output_file'].'__headers__',
+						json_encode(
+							array_diff(
+								headers_list(),
+								['Content-Encoding: gzip']
+							),
+							JSON_UNESCAPED_UNICODE
+						)
+					) === false)
+						throw new ob_cache_exception(''
+						.	'Cannot write to the '
+						.	$_ob_cache['output_file'].'__headers__'
+						);
+
+					$create_headers_cache=false;
 				}
 
 				if(file_put_contents(
@@ -112,6 +137,22 @@
 
 				return $buffer;
 			});
+		};
+		$readfile=function($gzfile, $output_file)
+		{
+			if(file_exists($output_file.'__headers__'))
+				foreach(json_decode(
+					file_get_contents(
+						$output_file.'__headers__'
+					),
+					true
+				) as $header)
+					header($header);
+
+			if($gzfile)
+				return readgzfile($output_file);
+
+			return readfile($output_file);
 		};
 
 		$output_dir=dirname($output_file);
@@ -139,22 +180,25 @@
 				if($_ob_cache['browser_gzip_support'])
 				{
 					header('Content-Encoding: gzip');
-					readfile($output_file);
+					$readfile(false, $output_file);
 
 					return 0;
 				}
 
-				readgzfile($output_file);
+				$readfile(true, $output_file);
 
 				return 0;
 			}
 
-			readfile($output_file);
+			$readfile(false, $output_file);
 
 			return 0;
 		}
 
-		if(file_put_contents($output_file, '') === false)
+		if(file_put_contents(
+			$output_file,
+			''
+		) === false)
 			throw new ob_cache_exception(
 				'Cannot create '.$output_file
 			);
@@ -219,6 +263,8 @@
 				);
 
 			ob_start(function($buffer) use($_ob_cache){
+				static $create_headers_cache=true;
+
 				if($_ob_cache['gzip'])
 				{
 					if(!$_ob_cache['browser_gzip_support'])
@@ -230,17 +276,45 @@
 				$cache_content=$_ob_cache['redis_handle']
 				->	get($_ob_cache['url']);
 
+				if($create_headers_cache)
+					$headers_cache=json_encode(
+						array_diff(
+							headers_list(),
+							['Content-Encoding: gzip']
+						),
+						JSON_UNESCAPED_UNICODE
+					);
+
 				if($_ob_cache['expire'] === 0)
+				{
+					if($create_headers_cache)
+						$_ob_cache['redis_handle']->set(
+							$_ob_cache['url'].'__headers__',
+							$headers_cache
+						);
+
 					$_ob_cache['redis_handle']->set(
 						$_ob_cache['url'],
 						$cache_content.$buffer
 					);
+				}
 				else
+				{
+					if($create_headers_cache)
+						$_ob_cache['redis_handle']->set(
+							$_ob_cache['url'].'__headers__',
+							$headers_cache,
+							['ex'=>$_ob_cache['expire']]
+						);
+
 					$_ob_cache['redis_handle']->set(
 						$_ob_cache['url'],
 						$cache_content.$buffer,
 						['ex'=>$_ob_cache['expire']]
 					);
+				}
+
+				$create_headers_cache=false;
 
 				if(
 					$_ob_cache['gzip'] &&
@@ -253,6 +327,16 @@
 
 			return 1;
 		}
+
+		$cache_content_headers=$redis_handle
+		->	get($prefix.$url.'__headers__');
+
+		if($cache_content !== false)
+			foreach(json_decode(
+				$cache_content_headers,
+				true
+			) as $header)
+				header($header);
 
 		if($gzip)
 		{
@@ -328,6 +412,8 @@
 				);
 
 			ob_start(function($buffer) use($_ob_cache){
+				static $create_headers_cache=true;
+
 				if($_ob_cache['gzip'])
 				{
 					if(!$_ob_cache['browser_gzip_support'])
@@ -339,17 +425,45 @@
 				$cache_content=$_ob_cache['memcached_handle']
 				->	get($_ob_cache['url']);
 
+				if($create_headers_cache)
+					$headers_cache=json_encode(
+						array_diff(
+							headers_list(),
+							['Content-Encoding: gzip']
+						),
+						JSON_UNESCAPED_UNICODE
+					);
+
 				if($_ob_cache['expire'] === 0)
+				{
+					if($create_headers_cache)
+						$_ob_cache['memcached_handle']->set(
+							$_ob_cache['url'].'__headers__',
+							$headers_cache
+						);
+
 					$_ob_cache['memcached_handle']->set(
 						$_ob_cache['url'],
 						$cache_content.$buffer
 					);
+				}
 				else
+				{
+					if($create_headers_cache)
+						$_ob_cache['memcached_handle']->set(
+							$_ob_cache['url'].'__headers__',
+							$headers_cache,
+							$_ob_cache['expire']
+						);
+
 					$_ob_cache['memcached_handle']->set(
 						$_ob_cache['url'],
 						$cache_content.$buffer,
 						$_ob_cache['expire']
 					);
+				}
+
+				$create_headers_cache=false;
 
 				if(
 					$_ob_cache['gzip'] &&
@@ -362,6 +476,17 @@
 
 			return 1;
 		}
+
+		$memcached_handle->get($prefix.$url.'__headers__'); // trigger expiration
+		$cache_content_headers=$memcached_handle
+		->	get($prefix.$url.'__headers__');
+
+		if($cache_content !== false)
+			foreach(json_decode(
+				$cache_content_headers,
+				true
+			) as $header)
+				header($header);
 
 		if($gzip)
 		{
@@ -393,6 +518,8 @@
 				'redis_handle is not an object'
 			);
 
+		$redis_handle->del($prefix.$url.'__headers__');
+
 		return $redis_handle->del($prefix.$url);
 	}
 	function ob_memcached_cache_invalidate(
@@ -404,6 +531,8 @@
 			throw new ob_cache_exception(
 				'memcached_handle is not an object'
 			);
+
+		$memcached_handle->delete($prefix.$url.'__headers__');
 
 		return $memcached_handle->delete($prefix.$url);
 	}
@@ -420,7 +549,11 @@
 		if($ignore_get)
 			$result=strtok($result, '?');
 
-		return str_replace(['/', '\\'], '___', $result);
+		return str_replace(
+			['/', '\\'],
+			'___',
+			$result
+		);
 	}
 	function ob_url2sha1(bool $ignore_get=true)
 	{

@@ -28,22 +28,62 @@
 			if($this->registry['_inline_assets'][0])
 			{
 				?><style nonce="<?php echo $this->registry['_inline_assets'][2]; ?>"><?php
-					if(is_file(__DIR__.'/../../lib/simpleblog_materialized.css'))
-						readfile(__DIR__.'/../../lib/simpleblog_materialized.css');
-					else if(is_file(__DIR__.'/../../../../lib/simpleblog_materialized.css'))
-						readfile(__DIR__.'/../../../../lib/simpleblog_materialized.css');
-					else
-						echo '/* simpleblog_materialized.css library not found */';
+					if(!isset(
+						$this->registry['_disable_assets']['simpleblog_materialized.css']
+					)){
+						if(is_file(
+							__DIR__.'/../../lib/simpleblog_materialized.css'
+						))
+							readfile(
+								__DIR__.'/../../lib/simpleblog_materialized.css'
+							);
+						else if(is_file(
+							__DIR__.'/../../../../lib/simpleblog_materialized.css'
+						))
+							readfile(
+								__DIR__.'/../../../../lib/simpleblog_materialized.css'
+							);
+						else
+							echo '/* simpleblog_materialized.css library not found */';
+					}
 
-					if(is_file(__DIR__.'/assets/admin_panel_materialized.css'))
+					if(
+						(!isset(
+							$this->registry['_disable_assets']['admin_panel_materialized.css']
+						)) &&
+						is_file(
+							__DIR__.'/assets/admin_panel_materialized.css'
+						)
+					)
 						readfile(__DIR__.'/assets/admin_panel_materialized.css');
 				?></style><?php
 			}
 			else
-			{ ?>
-				<link rel="stylesheet" href="<?php echo $this->registry['_assets_path']; ?>/admin_panel_materialized.css">
-				<link rel="stylesheet" href="<?php echo $this->registry['_assets_path']; ?>/simpleblog_materialized.css">
-			<?php }
+			{
+				if(!isset(
+					$this->registry['_disable_assets']['simpleblog_materialized.css']
+				))
+					{ ?><link rel="stylesheet" href="<?php echo $this->registry['_assets_path']; ?>/<?php
+						if(isset(
+							$this->registry['_rename_assets']['simpleblog_materialized.css']
+						))
+							echo $this->registry['_rename_assets']['simpleblog_materialized.css'];
+						else
+							echo 'simpleblog_materialized.css';
+					?>"><?php }
+
+				if(!isset(
+					$this->registry['_disable_assets']['admin_panel_materialized.css']
+				))
+					{ ?><link rel="stylesheet" href="<?php echo $this->registry['_assets_path']; ?>/<?php
+						if(isset(
+							$this->registry['_rename_assets']['admin_panel_materialized.css']
+						))
+							echo $this->registry['_rename_assets']['admin_panel_materialized.css'];
+						else
+							echo 'admin_panel_materialized.css';
+					?>"><?php }
+			}
 
 			if(isset($this->registry['_styles']))
 				foreach($this->registry['_styles'] as $_style)
@@ -90,7 +130,10 @@
 		<?php } ?>
 		<div id="content" class="sb_content">
 			<?php
-				if(isset($_module['class']) && isset($_module['main_method']))
+				if(
+					isset($_module['class']) &&
+					isset($_module['main_method'])
+				)
 					$_module['class']::{$_module['main_method']}($_module);
 				else
 					require $_module['path'].'/'.$_module['script'];

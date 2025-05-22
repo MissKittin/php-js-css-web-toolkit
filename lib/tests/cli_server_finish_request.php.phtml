@@ -1,0 +1,29 @@
+<?php
+	/*
+	 * cli_server_finish_request.php library test
+	 *
+	 * Note:
+	 *  looks for a library at ../lib
+	 *  looks for a library at ..
+	 */
+
+	if(function_exists('fastcgi_finish_request'))
+	{
+		echo '<h1>This library cannot be tested in this environment</h1>';
+		exit();
+	}
+
+	if(is_file(__DIR__.'/../lib/'.basename(__FILE__, '.phtml')))
+		require __DIR__.'/../lib/'.basename(__FILE__, '.phtml');
+	else if(is_file(__DIR__.'/../'.basename(__FILE__, '.phtml')))
+		require __DIR__.'/../'.basename(__FILE__, '.phtml');
+	else
+	{
+		echo __DIR__.'/../lib/'.basename(__FILE__, '.phtml').' is not a file'.PHP_EOL;
+		echo __DIR__.'/../'.basename(__FILE__, '.phtml').' is not a file'.PHP_EOL;
+		exit();
+	}
+?>
+<h3>If you only see this line, the library is working.</h3>
+<?php fastcgi_finish_request(); ?>
+<h2>You shouldn't see this line - TEST FAILED!</h2>

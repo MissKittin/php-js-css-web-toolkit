@@ -75,6 +75,12 @@
 			::	add(['/arg1/arg([0-9])/arg3'], function($matches){
 					// route with regex
 
+					// if 2 matches, abandon the action and jump to the next rule
+					// note: you can use this trick in any type of rule
+					// this allows you to perform assertions
+					if($matches[1] === '2')
+						return true;
+
 					echo '[OK] arg1-arg'.$matches[1].'-arg3';
 				}, true)
 			::	add(['/arg1/arg2/arg3'], function(){
@@ -87,13 +93,15 @@
 			::	route(); // exec and flush routing table
 		 *
 		 * run_callback method
-		 *  if you want to define routing function arguments,
+		 *  if you want to define routing function arguments
 		 *  you can override the run_callback method with extension, eg:
 			class custom_router extends uri_router
 			{
-				protected static function run_callback(callable $callback, $matches)
-				{
-					$callback(
+				protected static function run_callback(
+					callable $callback,
+					$matches
+				){
+					return $callback(
 						$matches,
 						'example-arg-1',
 						'example-arg-2'
@@ -109,9 +117,11 @@
 		protected static $default_route=null;
 		protected static $reverse_mode=false;
 
-		protected static function run_callback(callable $callback, $matches=null)
-		{
-			$callback($matches);
+		protected static function run_callback(
+			callable $callback,
+			$matches=null
+		){
+			return $callback($matches);
 		}
 
 		public static function set_base_path(string $path)
@@ -218,8 +228,13 @@
 
 						if($path_matches)
 						{
+							if(static::run_callback(
+								$routing_element[1],
+								$matches
+							) === true)
+								continue;
+
 							static::$routing_table=[];
-							static::run_callback($routing_element[1], $matches);
 
 							return true;
 						}

@@ -16,6 +16,30 @@
 	{
 		function fastcgi_finish_request()
 		{
+			static $calls=1;
+
+			if($calls > 1)
+			{
+				trigger_error(
+					__FUNCTION__.' called '.$calls.' times - remove unnecessary calls',
+					E_USER_NOTICE
+				);
+
+				++$calls;
+
+				return;
+			}
+
+			if(headers_sent())
+			{
+				trigger_error(
+					__FUNCTION__.': headers already sent - check output buffer',
+					E_USER_WARNING
+				);
+
+				return;
+			}
+
 			header('Connection: close');
 
 			ignore_user_abort(true);
@@ -33,6 +57,8 @@
 			}
 
 			flush();
+
+			++$calls;
 		}
 
 		while(ob_get_level() > 0)

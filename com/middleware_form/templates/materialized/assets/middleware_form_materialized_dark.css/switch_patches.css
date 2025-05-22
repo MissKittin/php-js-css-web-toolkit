@@ -1,0 +1,6 @@
+#middleware_form .input_checkbox .sb_switch_lever {
+	background-color: rgba(255, 255, 255, 0.38);
+}
+#middleware_form .input_checkbox input[type=checkbox]:checked + .sb_switch_lever {
+	background-color: #84c7c1;
+}

@@ -67,7 +67,14 @@ Set config options with the `add_config` method
 * `assets_path` [string]  
 	default: `/assets`
 * `middleware_form_style` [string]  
-	default: `middleware_form_default_bright.css`
+	use a different form style  
+	for default templates you can use:  
+	* `middleware_form_default_bright.css` for `default`
+	* `middleware_form_default_dark.css` for `default`
+	* `middleware_form_materialized.css` for `materialized`
+	* `middleware_form_materialized_dark.css` for `materialized`
+
+	default: `middleware_form_default_bright.css` or `middleware_form_materialized.css` if the `materialized` template has been selected
 * `inline_style` [bool]  
 	compiles the style and adds it to the inline tag  
 	instead of `link rel="stylesheet"` (not recommended)  
@@ -88,7 +95,7 @@ $middleware_form=new middleware_form('materialized'); // self explanatory
 ```
 If you created your own template:
 ```
-$middleware_form=new middleware_form('my_template', './app/templates');
+$middleware_form=new middleware_form('my_template', './app/forms_templates');
 ```
 
 ## Example usage - captcha
@@ -196,11 +203,12 @@ mklink /d app\assets\middleware_form_default_dark.css ..\..\tk\com\middleware_fo
 ### materialized template
 for *nix:
 ```
-ln -s ../../tk/com/middleware_form/templates/materialized/assets/middleware_form_materialized.css ./app/assets/middleware_form_materialized.css; ln -s ../../tk/lib/simpleblog_materialized.css ./app/assets/simpleblog_materialized.css
+ln -s ../../tk/com/middleware_form/templates/materialized/assets/middleware_form_materialized.css ./app/assets/middleware_form_materialized.css; ln -s ../../tk/com/middleware_form/templates/materialized/assets/middleware_form_materialized_dark.css ./app/assets/middleware_form_materialized_dark.css; ln -s ../../tk/lib/simpleblog_materialized.css ./app/assets/simpleblog_materialized.css
 ```
 for windows:
 ```
 mklink /d app\assets\middleware_form_materialized.css ..\..\tk\com\middleware_form\templates\materialized\assets\middleware_form_materialized.css
+mklink /d app\assets\middleware_form_materialized_dark.css ..\..\tk\com\middleware_form\templates\materialized\assets\middleware_form_materialized_dark.css
 mklink app\assets\simpleblog_materialized.css ..\..\tk\lib\simpleblog_materialized.css
 ```
 

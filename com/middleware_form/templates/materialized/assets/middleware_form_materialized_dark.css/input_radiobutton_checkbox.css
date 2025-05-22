@@ -1,0 +1,11 @@
+middleware_form .input_radiobutton input,
+#middleware_form .input_checkbox input {
+	accent-color: #26a69a;
+	width: 15px;
+	height: 15px;
+}
+#middleware_form .input_radiobutton label:not(.switch),
+#middleware_form .input_checkbox label:not(.switch) {
+	color: #616161;
+	font-size: 15px;
+}

@@ -1,0 +1,14 @@
+#middleware_form .input_checkbox {
+	padding-top: 15px;
+	padding-bottom: 15px;
+	overflow: auto;
+}
+#middleware_form .input_checkbox .switch {
+	position: relative;
+	display: inline-block;
+	float: left;
+}
+#middleware_form .input_checkbox .input_checkbox_text {
+	color: #616161;
+	float: right;
+}

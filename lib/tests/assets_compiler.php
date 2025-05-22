@@ -87,77 +87,120 @@
 
 	$failed=false;
 
-	echo ' -> Testing preprocessed asset';
-		if(assets_compiler(
-			__DIR__.'/tmp/assets_compiler/assets/preprocessed.css',
-			__DIR__.'/tmp/assets_compiler/public/preprocessed.css'
-		) === 0)
-			echo ' [ OK ]';
-		else
-		{
-			echo ' [FAIL]';
-			$failed=true;
-		}
-		if(
-			file_get_contents(__DIR__.'/tmp/assets_compiler/assets/preprocessed.css/body.css')
-			.'span { color: #fff; }'
-			.file_get_contents(__DIR__.'/tmp/assets_compiler/assets/preprocessed.css/div.css')
-			===
-			file_get_contents(__DIR__.'/tmp/assets_compiler/public/preprocessed.css')
-		)
-			echo ' [ OK ]'.PHP_EOL;
-		else
-		{
-			echo ' [FAIL]'.PHP_EOL;
-			$failed=true;
-		}
+	echo ' -> Testing output to file'.PHP_EOL;
+		echo '  -> preprocessed asset';
+			if(assets_compiler(
+				__DIR__.'/tmp/assets_compiler/assets/preprocessed.css',
+				__DIR__.'/tmp/assets_compiler/public/preprocessed.css'
+			) === 0)
+				echo ' [ OK ]';
+			else
+			{
+				echo ' [FAIL]';
+				$failed=true;
+			}
+			if(
+				file_get_contents(__DIR__.'/tmp/assets_compiler/assets/preprocessed.css/body.css')
+				.'span { color: #fff; }'
+				.file_get_contents(__DIR__.'/tmp/assets_compiler/assets/preprocessed.css/div.css')
+				===
+				file_get_contents(__DIR__.'/tmp/assets_compiler/public/preprocessed.css')
+			)
+				echo ' [ OK ]'.PHP_EOL;
+			else
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				$failed=true;
+			}
+		echo '  -> concatenated asset';
+			if(!empty(assets_compiler(
+				__DIR__.'/tmp/assets_compiler/assets/concatenated.css',
+				__DIR__.'/tmp/assets_compiler/public/concatenated.css'
+			)))
+				echo ' [ OK ]';
+			else
+			{
+				echo ' [FAIL]';
+				$failed=true;
+			}
+			if(
+				file_get_contents(__DIR__.'/tmp/assets_compiler/assets/concatenated.css/body.css')
+				.file_get_contents(__DIR__.'/tmp/assets_compiler/assets/concatenated.css/div.css')
+				===
+				file_get_contents(__DIR__.'/tmp/assets_compiler/public/concatenated.css')
+			)
+				echo ' [ OK ]'.PHP_EOL;
+			else
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				$failed=true;
+			}
+		echo '  -> single file';
+			if(assets_compiler(
+				__DIR__.'/tmp/assets_compiler/assets/single.css',
+				__DIR__.'/tmp/assets_compiler/public/single.css'
+			) === 0)
+				echo ' [ OK ]';
+			else
+			{
+				echo ' [FAIL]';
+				$failed=true;
+			}
+			if(
+				file_get_contents(__DIR__.'/tmp/assets_compiler/assets/single.css')
+				===
+				file_get_contents(__DIR__.'/tmp/assets_compiler/public/single.css')
+			)
+				echo ' [ OK ]'.PHP_EOL;
+			else
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				$failed=true;
+			}
 
-	echo ' -> Testing concatenated asset';
-		if(!empty(assets_compiler(
-			__DIR__.'/tmp/assets_compiler/assets/concatenated.css',
-			__DIR__.'/tmp/assets_compiler/public/concatenated.css'
-		)))
-			echo ' [ OK ]';
-		else
-		{
-			echo ' [FAIL]';
-			$failed=true;
-		}
-		if(
-			file_get_contents(__DIR__.'/tmp/assets_compiler/assets/concatenated.css/body.css')
-			.file_get_contents(__DIR__.'/tmp/assets_compiler/assets/concatenated.css/div.css')
-			===
-			file_get_contents(__DIR__.'/tmp/assets_compiler/public/concatenated.css')
-		)
-			echo ' [ OK ]'.PHP_EOL;
-		else
-		{
-			echo ' [FAIL]'.PHP_EOL;
-			$failed=true;
-		}
-
-	echo ' -> Testing single file';
-		if(assets_compiler(
-			__DIR__.'/tmp/assets_compiler/assets/single.css',
-			__DIR__.'/tmp/assets_compiler/public/single.css'
-		) === 0)
-			echo ' [ OK ]';
-		else
-		{
-			echo ' [FAIL]';
-			$failed=true;
-		}
-		if(
-			file_get_contents(__DIR__.'/tmp/assets_compiler/assets/single.css')
-			===
-			file_get_contents(__DIR__.'/tmp/assets_compiler/public/single.css')
-		)
-			echo ' [ OK ]'.PHP_EOL;
-		else
-		{
-			echo ' [FAIL]'.PHP_EOL;
-			$failed=true;
-		}
+	echo ' -> Testing without output file'.PHP_EOL;
+		echo '  -> preprocessed asset';
+			if(
+				assets_compiler(
+					__DIR__.'/tmp/assets_compiler/assets/preprocessed.css'
+				)
+				===
+				'body { color: #000; }span { color: #fff; }div { color: #000; }'
+			)
+				echo ' [ OK ]'.PHP_EOL;
+			else
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				$failed=true;
+			}
+		echo '  -> concatenated asset';
+			if(
+				assets_compiler(
+					__DIR__.'/tmp/assets_compiler/assets/concatenated.css'
+				)
+				===
+				'body { color: #000; }div { color: #000; }'
+			)
+				echo ' [ OK ]'.PHP_EOL;
+			else
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				$failed=true;
+			}
+		echo '  -> single file';
+			if(
+				assets_compiler(
+					__DIR__.'/tmp/assets_compiler/assets/single.css'
+				)
+				===
+				'body { color: #000; }'
+			)
+				echo ' [ OK ]'.PHP_EOL;
+			else
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				$failed=true;
+			}
 
 	if($failed)
 		exit(1);

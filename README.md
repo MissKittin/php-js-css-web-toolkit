@@ -47,6 +47,7 @@ Supported cache databases: Redis, Memcached, APCu
 * `ci_zip.php` - create zip file in memory (MIT)
 * `cli_prompt.php` - console prompter
 * `cli_server_finish_request.php` - `fastcgi_finish_request` emulation for PHP built-in server
+* `clickalicious_memcached.php` - proxy for `clickalicious/memcached.php` package and Memcached polyfill
 * `convert_bytes.php` - automatically convert input number to human-readable form
 * `copy_recursive.php` - copy entire directories and replace symbolic link with file or directory
 * `cron.php` - task scheduler
@@ -63,16 +64,18 @@ Supported cache databases: Redis, Memcached, APCu
 * `include_into_namespace.php` - function that facilitates including libraries to a namespace (mainly for testing purposes)
 * `ioc_container.php` - dependency injection containers
 * `is_float_equal.php`
+* `json_contents.php` - Combination of `file_*_contexts()` and `json_*code()` functions
 * `logger.php` - easily write logs
 * `logrotate.php` - journalists rotation machine
 * `lv_arr.php` - Laravel array helpers & collections (MIT)
 * `lv_macroable.php` - add extra functionality to a class (MIT)
 * `lv_str.php` - Laravel string helpers (MIT)
 * `maintenance_break.php` - check to send the maintenance break pattern
+* `maximebf_debugbar.php` - facade for Maxime Bouroumeau-Fuseau's DebugBar
 * `measure_exec_time.php` - debugging
 * `memcached_connect.php` - open preconfigured connection to the Memcached
 * `mk_calendar.php` - HTML calendar widget
-* `ob_cache.php` - cache output buffer
+* `ob_cache.php` - cache output buffer & HTTP headers
 * `ob_minifier.php` - simple minifier and compressor
 * `ob_sfucator.php` - xor all page content on server and decode on client
 * `observer.php` - design pattern
@@ -97,6 +100,7 @@ Supported cache databases: Redis, Memcached, APCu
 * `singleton.php` - each time you use a singleton, one little kitten dies
 * `sitemap_generator.php` - `sitemap.xml` builder
 * `sqlite3_db_dump.php` - Ephestione's SQLite3 database dumper (unknown license)
+* `string_interpolator.php` - PHP-FIG placeholder interpolation
 * `string_translator.php` - translate your app
 * `strip_php_comments.php` - remove comments from PHP source
 * `superclosure.php` - serializable anonymous functions

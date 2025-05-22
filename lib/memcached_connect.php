@@ -28,6 +28,11 @@
 				'weight'=>60 // optional, default: 0
 			]
 		])
+	 *
+	 * Most zwadzacy:
+	 *  a bridge for replacing a Predis\Client class with another
+	 *  recommended to be used with extreme caution
+	 *  more info below
 	 */
 
 	class memcached_connect_exception extends Exception {}
@@ -126,8 +131,10 @@
 
 		return memcached_connect_array($db_config, false);
 	}
-	function memcached_connect_array(array $servers, bool $type_hint=true)
-	{
+	function memcached_connect_array(
+		array $servers,
+		bool $type_hint=true
+	){
 		/*
 		 * Memcached connection helper
 		 * portable version
@@ -135,6 +142,7 @@
 		 * Returns the Memcached handle
 		 *
 		 * Warning:
+		 *  memcached_connect_bridge class is required
 		 *  memcached extension is required
 		 *
 		 * Note:
@@ -158,7 +166,9 @@
 			]);
 		 */
 
-		if(!class_exists('Memcached'))
+		if(!class_exists(
+			memcached_connect_bridge::class_exists()
+		))
 			throw new memcached_connect_exception(
 				'memcached extension is not loaded'
 			);
@@ -205,13 +215,19 @@
 						);
 			}
 
-		if(!isset($servers['options']['persistent_id']))
+		if(!isset(
+			$servers['options']['persistent_id']
+		))
 			$servers['options']['persistent_id']=null;
 
-		if(!isset($servers['options']['ignore_failed_servers']))
+		if(!isset(
+			$servers['options']['ignore_failed_servers']
+		))
 			$servers['options']['ignore_failed_servers']=false;
 
-		$memcached_handle=new Memcached($servers['options']['persistent_id']);
+		$memcached_handle=memcached_connect_bridge::Memcached(
+			$servers['options']['persistent_id']
+		);
 
 		foreach($servers as $server_index=>$server)
 		{
@@ -252,5 +268,84 @@
 		}
 
 		return $memcached_handle;
+	}
+
+	final class memcached_connect_bridge
+	{
+		/*
+		 * Most zwodzacy
+		 *
+		 * A bridge for replacing a Memcached class with another
+		 * It can be used for debugging and mocking methods
+		 *
+		 * Note:
+		 *  throws an memcached_connect_exception on error
+		 *
+		 * Usage:
+		 *  before calling any function from this library define a new class
+		 *  and set it as a replacement
+			class Memcached_mock extends Memcached
+			{
+				public function __construct(...$arguments)
+				{
+					// debug when database connection occurs
+
+					echo ': '.__METHOD__.'() :';
+
+					parent::{__FUNCTION__}(
+						...$arguments
+					);
+				}
+				public function __destruct()
+				{
+					// debug when disconnected from database
+					echo ': '.__METHOD__.'() :';
+				}
+
+				// other methods
+			}
+
+			// set the Memcached_mock class as a substitute for the Memcached class
+			memcached_connect_bridge::set_class('Memcached_mock', function(...$arguments){
+				return new Memcached_mock(
+					...$arguments
+				);
+			});
+		 *  then use the functions from this library as if nothing had happened
+		 */
+
+		private static $predis_class_name='Memcached';
+		private static $predis_class=null;
+
+		public static function set_class(
+			string $class_name,
+			callable $callback
+		){
+			self::$predis_class_name=$class_name;
+			self::$predis_class[0]=$callback;
+		}
+
+		public static function class_exists()
+		{
+			return self::$predis_class_name;
+		}
+		public static function Memcached(...$arguments)
+		{
+			if(self::$predis_class !== null)
+				return self::$predis_class[0](
+					...$arguments
+				);
+
+			return new Memcached(
+				...$arguments
+			);
+		}
+
+		public function __construct()
+		{
+			throw new memcached_connect_exception(
+				'You cannot initialize '.self::class
+			);
+		}
 	}
 ?>

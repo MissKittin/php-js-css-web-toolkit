@@ -52,11 +52,30 @@
 				echo ' (executed multipath_route)';
 		});
 
-		superclosure_router::add(['/arg1/arg([0-9])/arg3'], function(){
+		superclosure_router::add(['/arg1/arg([0-9])/arg3'], function($matches){
+			if($matches[1] === '9')
+			{
+				$GLOBALS['regex_route_abandoned']=true;
+				return true;
+			}
+
 			++$GLOBALS['regex_route'];
+			$GLOBALS['regex_route_matches']=$matches[1];
 
 			if($GLOBALS['do_echo'])
 				echo ' (executed regex_route)';
+		}, true);
+
+		superclosure_router::add(['/arg1/arg([0-9])/arg3'], function($matches){
+			if($matches[1] !== '9') // for reverse mode
+				return true;
+
+			$GLOBALS['regex_route_abandoned']=true; // for reverse mode
+			++$GLOBALS['regex_route_B'];
+			$GLOBALS['regex_route_B_matches']=$matches[1];
+
+			if($GLOBALS['do_echo'])
+				echo ' (executed regex_route_B)';
 		}, true);
 
 		superclosure_router::add(['/arg1/arg2/arg3'], function(){
@@ -76,7 +95,11 @@
 
 	echo ' -> Validating cache';
 		//echo ' ('.md5(file_get_contents(__DIR__.'/tmp/'.basename(__FILE__))).')';
-		if(md5(file_get_contents(__DIR__.'/tmp/'.basename(__FILE__))) === '3bc9cf6483bf85c38dfd6387a36b4522')
+		if(
+			md5(file_get_contents(__DIR__.'/tmp/'.basename(__FILE__)))
+			===
+			'2c6df939cb615821c5d7da2188f3ad99'
+		)
 			echo ' [ OK ]'.PHP_EOL;
 		else
 		{
