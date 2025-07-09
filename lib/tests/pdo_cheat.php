@@ -34,6 +34,37 @@
 	 *  var_export_contains.php library is required
 	 */
 
+	function sort_query_result($array)
+	{
+		/* array(0=>array('column'=>'value',),) */
+		if(isset($array[0]))
+		{
+			usort($array, function($a, $b){
+				return ($a['id'] > $b['id']);
+			});
+
+			return array_map(function($item){
+				foreach($item as $key=>$value)
+				{
+					if($value === null)
+						continue;
+
+					$item[$key]=strval($value);
+				}
+
+				return $item;
+			}, $array);
+		}
+
+		/* array('column'=>'value',) */
+		return array_map(function($value){
+			if($value === null)
+				return null;
+
+			return strval($value);
+		}, $array);
+	}
+
 	if(!class_exists('PDO'))
 	{
 		echo 'PDO extension is not loaded'.PHP_EOL;
@@ -238,13 +269,11 @@
 		$pdo_cheat_alter_handle->alter_table()
 		->	add_alter_test('INTEGER');
 		$pdo_handle->exec('INSERT INTO pdo_cheat_alter_test_table(alter_test) VALUES(2)');
-		$output_string_a="array(0=>array('id'=>1,'name'=>NULL,'surname'=>NULL,'personal_id'=>NULL,'alter_test'=>2,),)";
-		$output_string_b="array(0=>array('id'=>'1','name'=>NULL,'surname'=>NULL,'personal_id'=>NULL,'alter_test'=>'2',),)";
-		$query_result=$pdo_handle->query('SELECT * FROM pdo_cheat_alter_test_table')->fetchAll(PDO::FETCH_NAMED);
-		if(
-			var_export_contains($query_result, $output_string_a) ||
-			var_export_contains($query_result, $output_string_b)
-		)
+		$query_result=sort_query_result($pdo_handle->query('SELECT * FROM pdo_cheat_alter_test_table')->fetchAll(PDO::FETCH_NAMED));
+		if(var_export_contains(
+			$query_result,
+			"array(0=>array('id'=>'1','name'=>NULL,'surname'=>NULL,'personal_id'=>NULL,'alter_test'=>'2',),)"
+		))
 			echo ' [ OK ]'.PHP_EOL;
 		else
 		{
@@ -256,13 +285,11 @@
 		$pdo_cheat_alter_handle->alter_table()
 		->	rename_from_alter_test()
 		->	rename_to_alter_test_a();
-		$output_string_a="array(0=>array('id'=>1,'name'=>NULL,'surname'=>NULL,'personal_id'=>NULL,'alter_test_a'=>2,),)";
-		$output_string_b="array(0=>array('id'=>'1','name'=>NULL,'surname'=>NULL,'personal_id'=>NULL,'alter_test_a'=>'2',),)";
-		$query_result=$pdo_handle->query('SELECT * FROM pdo_cheat_alter_test_table')->fetchAll(PDO::FETCH_NAMED);
-		if(
-			var_export_contains($query_result, $output_string_a) ||
-			var_export_contains($query_result, $output_string_b)
-		)
+		$query_result=sort_query_result($pdo_handle->query('SELECT * FROM pdo_cheat_alter_test_table')->fetchAll(PDO::FETCH_NAMED));
+		if(var_export_contains(
+			$query_result,
+			"array(0=>array('id'=>'1','name'=>NULL,'surname'=>NULL,'personal_id'=>NULL,'alter_test_a'=>'2',),)"
+		))
 			echo ' [ OK ]';
 		else
 		{
@@ -274,13 +301,11 @@
 		$pdo_cheat_alter_handle->alter_table()
 		->	rename_from_alter_test_a()
 		->	rename_to_alter_test();
-		$output_string_a="array(0=>array('id'=>1,'name'=>NULL,'surname'=>NULL,'personal_id'=>NULL,'alter_test'=>2,),)";
-		$output_string_b="array(0=>array('id'=>'1','name'=>NULL,'surname'=>NULL,'personal_id'=>NULL,'alter_test'=>'2',),)";
-		$query_result=$pdo_handle->query('SELECT * FROM pdo_cheat_alter_test_table')->fetchAll(PDO::FETCH_NAMED);
-		if(
-			var_export_contains($query_result, $output_string_a) ||
-			var_export_contains($query_result, $output_string_b)
-		)
+		$query_result=sort_query_result($pdo_handle->query('SELECT * FROM pdo_cheat_alter_test_table')->fetchAll(PDO::FETCH_NAMED));
+		if(var_export_contains(
+			$query_result,
+			"array(0=>array('id'=>'1','name'=>NULL,'surname'=>NULL,'personal_id'=>NULL,'alter_test'=>'2',),)"
+		))
 			echo ' [ OK ]'.PHP_EOL;
 		else
 		{
@@ -300,14 +325,12 @@
 			case 'sqlite':
 				$pdo_handle->exec('INSERT INTO pdo_cheat_alter_test_table(alter_test) VALUES("asd")');
 		}
-		$output_string_a="array(0=>array('id'=>1,'name'=>NULL,'surname'=>NULL,'personal_id'=>NULL,'alter_test'=>'2',),1=>array('id'=>2,'name'=>NULL,'surname'=>NULL,'personal_id'=>NULL,'alter_test'=>'asd',),)";
-		$output_string_c="array(0=>array('id'=>1,'name'=>NULL,'surname'=>NULL,'personal_id'=>NULL,'alter_test'=>'2',),1=>array('id'=>NULL,'name'=>NULL,'surname'=>NULL,'personal_id'=>NULL,'alter_test'=>'asd',),)";
-		$output_string_b="array(0=>array('id'=>'1','name'=>NULL,'surname'=>NULL,'personal_id'=>NULL,'alter_test'=>'2',),1=>array('id'=>'2','name'=>NULL,'surname'=>NULL,'personal_id'=>NULL,'alter_test'=>'asd',),)";
-		$query_result=$pdo_handle->query('SELECT * FROM pdo_cheat_alter_test_table')->fetchAll(PDO::FETCH_NAMED);
+		$output_string_a="array(0=>array('id'=>'1','name'=>NULL,'surname'=>NULL,'personal_id'=>NULL,'alter_test'=>'2',),1=>array('id'=>'2','name'=>NULL,'surname'=>NULL,'personal_id'=>NULL,'alter_test'=>'asd',),)";
+		$output_string_b="array(0=>array('id'=>'1','name'=>NULL,'surname'=>NULL,'personal_id'=>NULL,'alter_test'=>'2',),1=>array('id'=>NULL,'name'=>NULL,'surname'=>NULL,'personal_id'=>NULL,'alter_test'=>'asd',),)";
+		$query_result=sort_query_result($pdo_handle->query('SELECT * FROM pdo_cheat_alter_test_table')->fetchAll(PDO::FETCH_NAMED));
 		//echo ' ('.var_export_contains($query_result, '', true).')';
 		if(
 			var_export_contains($query_result, $output_string_a) ||
-			var_export_contains($query_result, $output_string_c) ||
 			var_export_contains($query_result, $output_string_b)
 		)
 			echo ' [ OK ]'.PHP_EOL;
@@ -329,13 +352,11 @@
 		$pdo_cheat_alter_handle=new pdo_cheat($pdo_cheat_alter);
 		$pdo_cheat_alter_handle->alter_table()
 		->	drop_alter_test();
-		$output_string_a="array(0=>array('id'=>1,'name'=>NULL,'surname'=>NULL,'personal_id'=>NULL,),)";
-		$output_string_b="array(0=>array('id'=>'1','name'=>NULL,'surname'=>NULL,'personal_id'=>NULL,),)";
-		$query_result=$pdo_handle->query('SELECT * FROM pdo_cheat_alter_test_table')->fetchAll(PDO::FETCH_NAMED);
-		if(
-			var_export_contains($query_result, $output_string_a) ||
-			var_export_contains($query_result, $output_string_b)
-		)
+		$query_result=sort_query_result($pdo_handle->query('SELECT * FROM pdo_cheat_alter_test_table')->fetchAll(PDO::FETCH_NAMED));
+		if(var_export_contains(
+			$query_result,
+			"array(0=>array('id'=>'1','name'=>NULL,'surname'=>NULL,'personal_id'=>NULL,),)"
+		))
 			echo ' [ OK ]'.PHP_EOL;
 		else
 		{
@@ -346,16 +367,12 @@
 		$pdo_cheat_alter_handle=new pdo_cheat($pdo_cheat_alter);
 		$pdo_cheat_alter_handle->alter_table()
 		->	rename_table('pdo_cheat_alter_test_table_r');
-		$output_string_a_a="array(0=>array('id'=>1,'name'=>NULL,'surname'=>NULL,'personal_id'=>NULL,'alter_test'=>2,),)";
-		$output_string_a_b="array(0=>array('id'=>1,'name'=>NULL,'surname'=>NULL,'personal_id'=>NULL,),)";
-		$output_string_b_a="array(0=>array('id'=>'1','name'=>NULL,'surname'=>NULL,'personal_id'=>NULL,'alter_test'=>'2',),)";
-		$output_string_b_b="array(0=>array('id'=>'1','name'=>NULL,'surname'=>NULL,'personal_id'=>NULL,),)";
-		$query_result=$pdo_handle->query('SELECT * FROM pdo_cheat_alter_test_table_r')->fetchAll(PDO::FETCH_NAMED);
+		$output_string_a="array(0=>array('id'=>'1','name'=>NULL,'surname'=>NULL,'personal_id'=>NULL,'alter_test'=>'2',),)";
+		$output_string_b="array(0=>array('id'=>'1','name'=>NULL,'surname'=>NULL,'personal_id'=>NULL,),)";
+		$query_result=sort_query_result($pdo_handle->query('SELECT * FROM pdo_cheat_alter_test_table_r')->fetchAll(PDO::FETCH_NAMED));
 		if(
-			var_export_contains($query_result, $output_string_a_a) ||
-			var_export_contains($query_result, $output_string_a_b) ||
-			var_export_contains($query_result, $output_string_b_a) ||
-			var_export_contains($query_result, $output_string_b_b)
+			var_export_contains($query_result, $output_string_a) ||
+			var_export_contains($query_result, $output_string_b)
 		)
 			echo ' [ OK ]'.PHP_EOL;
 		else
@@ -395,13 +412,11 @@
 		->	surname(null)
 		->	personal_id(40)
 		->	save_row();
-		$output_string_a="array(0=>array('id'=>1,'name'=>'Test1','surname'=>'tseT','personal_id'=>20,),1=>array('id'=>2,'name'=>'Test2','surname'=>'tseT','personal_id'=>30,),2=>array('id'=>3,'name'=>'Test3','surname'=>NULL,'personal_id'=>40,),)";
-		$output_string_b="array(0=>array('id'=>'1','name'=>'Test1','surname'=>'tseT','personal_id'=>'20',),1=>array('id'=>'2','name'=>'Test2','surname'=>'tseT','personal_id'=>'30',),2=>array('id'=>'3','name'=>'Test3','surname'=>NULL,'personal_id'=>'40',),)";
-		$query_result=$pdo_handle->query('SELECT * FROM pdo_cheat_test_table')->fetchAll(PDO::FETCH_NAMED);
-		if(
-			var_export_contains($query_result, $output_string_a) ||
-			var_export_contains($query_result, $output_string_b)
-		)
+		$query_result=sort_query_result($pdo_handle->query('SELECT * FROM pdo_cheat_test_table')->fetchAll(PDO::FETCH_NAMED));
+		if(var_export_contains(
+			$query_result,
+			"array(0=>array('id'=>'1','name'=>'Test1','surname'=>'tseT','personal_id'=>'20',),1=>array('id'=>'2','name'=>'Test2','surname'=>'tseT','personal_id'=>'30',),2=>array('id'=>'3','name'=>'Test3','surname'=>NULL,'personal_id'=>'40',),)"
+		))
 			echo ' [ OK ]'.PHP_EOL;
 		else
 		{
@@ -416,20 +431,22 @@
 			->	select_personal_id()
 			->	get_row_by_surname('tseT')
 			->	get_row();
-			if(($test_person !== false) && ($test_person->id() == '1') /*int*/ && ($test_person->personal_id() == '20'))
+			if(
+				($test_person !== false) &&
+				($test_person->id() == '1') /* int */ &&
+				($test_person->personal_id() == '20') /* int */
+			)
 				echo ' [ OK ]';
 			else
 			{
 				echo ' [FAIL]';
 				$errors[]='Reading rows first result/dump row phase 1';
 			}
-			$output_string_a="array('id'=>1,'personal_id'=>20,)";
-			$output_string_b="array('id'=>'1','personal_id'=>'20',)";
-			$query_result=$test_person->dump_row();
-			if(
-				var_export_contains($query_result, $output_string_a) ||
-				var_export_contains($query_result, $output_string_b)
-			)
+			$query_result=sort_query_result($test_person->dump_row());
+			if(var_export_contains(
+				$query_result,
+				"array('id'=>'1','personal_id'=>'20',)"
+			))
 				echo ' [ OK ]'.PHP_EOL;
 			else
 			{
@@ -444,20 +461,22 @@
 			->	get_row_by_surname('tseT')
 			->	get_row();
 			$test_person=$test_person->get_next_row();
-			if(($test_person !== false) && ($test_person->id() == '2') /* int */ && ($test_person->personal_id() == '30'))
+			if(
+				($test_person !== false) &&
+				($test_person->id() == '2') /* int */ &&
+				($test_person->personal_id() == '30') /* int */
+			)
 				echo ' [ OK ]';
 			else
 			{
 				echo ' [FAIL]';
 				$errors[]='Reading rows second result/dump row phase 1';
 			}
-			$output_string_a="array('id'=>2,'personal_id'=>30,)";
-			$output_string_b="array('id'=>'2','personal_id'=>'30',)";
-			$query_result=$test_person->dump_row();
-			if(
-				var_export_contains($query_result, $output_string_a) ||
-				var_export_contains($query_result, $output_string_b)
-			)
+			$query_result=sort_query_result($test_person->dump_row());
+			if(var_export_contains(
+				$query_result,
+				"array('id'=>'2','personal_id'=>'30',)"
+			))
 				echo ' [ OK ]'.PHP_EOL;
 			else
 			{
@@ -472,20 +491,22 @@
 			->	select_personal_id()
 			->	get_row_by_surname(false)
 			->	get_row();
-			if(($test_person !== false) && ($test_person->id() == '3') /*int*/ && ($test_person->personal_id() == '40'))
+			if(
+				($test_person !== false) &&
+				($test_person->id() == '3') /* int */ &&
+				($test_person->personal_id() == '40') /* int */
+			)
 				echo ' [ OK ]';
 			else
 			{
 				echo ' [FAIL]';
 				$errors[]='Reading rows is null/dump row phase 1';
 			}
-			$output_string_a="array('id'=>3,'personal_id'=>40,)";
-			$output_string_b="array('id'=>'3','personal_id'=>'40',)";
-			$query_result=$test_person->dump_row();
-			if(
-				var_export_contains($query_result, $output_string_a) ||
-				var_export_contains($query_result, $output_string_b)
-			)
+			$query_result=sort_query_result($test_person->dump_row());
+			if(var_export_contains(
+				$query_result,
+				"array('id'=>'3','personal_id'=>'40',)"
+			))
 				echo ' [ OK ]'.PHP_EOL;
 			else
 			{
@@ -499,20 +520,22 @@
 				->	select_personal_id()
 				->	get_row_by_surname(true)
 				->	get_row();
-				if(($test_person !== false) && ($test_person->id() == '1') /*int*/ && ($test_person->personal_id() == '20'))
+				if(
+					($test_person !== false) &&
+					($test_person->id() == '1') /* int */ &&
+					($test_person->personal_id() == '20') /* int */
+				)
 					echo ' [ OK ]';
 				else
 				{
 					echo ' [FAIL]';
 					$errors[]='Reading rows is not null first result/dump row phase 1';
 				}
-				$output_string_a="array('id'=>1,'personal_id'=>20,)";
-				$output_string_b="array('id'=>'1','personal_id'=>'20',)";
-				$query_result=$test_person->dump_row();
-				if(
-					var_export_contains($query_result, $output_string_a) ||
-					var_export_contains($query_result, $output_string_b)
-				)
+				$query_result=sort_query_result($test_person->dump_row());
+				if(var_export_contains(
+					$query_result,
+					"array('id'=>'1','personal_id'=>'20',)"
+				))
 					echo ' [ OK ]'.PHP_EOL;
 				else
 				{
@@ -527,20 +550,22 @@
 				->	get_row_by_surname(true)
 				->	get_row();
 				$test_person=$test_person->get_next_row();
-				if(($test_person !== false) && ($test_person->id() == '2') /*int*/ && ($test_person->personal_id() == '30'))
+				if(
+					($test_person !== false) &&
+					($test_person->id() == '2') /* int */ &&
+					($test_person->personal_id() == '30') /* int */
+				)
 					echo ' [ OK ]';
 				else
 				{
 					echo ' [FAIL]';
 					$errors[]='Reading rows is not null second result/dump row phase 1';
 				}
-				$output_string_a="array('id'=>2,'personal_id'=>30,)";
-				$output_string_b="array('id'=>'2','personal_id'=>'30',)";
-				$query_result=$test_person->dump_row();
-				if(
-					var_export_contains($query_result, $output_string_a) ||
-					var_export_contains($query_result, $output_string_b)
-				)
+				$query_result=sort_query_result($test_person->dump_row());
+				if(var_export_contains(
+					$query_result,
+					"array('id'=>'2','personal_id'=>'30',)"
+				))
 					echo ' [ OK ]'.PHP_EOL;
 				else
 				{
@@ -554,18 +579,12 @@
 			->	get_row_by_name('Test1')
 			->	get_row();
 			$test_person->personal_id(null)->save_row();
-			$output_string_a="array(0=>array('id'=>3,'name'=>'Test3','surname'=>NULL,'personal_id'=>40,),1=>array('id'=>2,'name'=>'Test2','surname'=>'tseT','personal_id'=>30,),2=>array('id'=>1,'name'=>'Test1','surname'=>'tseT','personal_id'=>NULL,),)";
-			$output_string_b="array(0=>array('id'=>'1','name'=>'Test1','surname'=>'tseT','personal_id'=>NULL,),1=>array('id'=>'2','name'=>'Test2','surname'=>'tseT','personal_id'=>'30',),2=>array('id'=>'3','name'=>'Test3','surname'=>NULL,'personal_id'=>'40',),)";
-			$output_string_c="array(0=>array('id'=>1,'name'=>'Test1','surname'=>'tseT','personal_id'=>NULL,),1=>array('id'=>2,'name'=>'Test2','surname'=>'tseT','personal_id'=>30,),2=>array('id'=>3,'name'=>'Test3','surname'=>NULL,'personal_id'=>40,),)";
-			$output_string_d="array(0=>array('id'=>2,'name'=>'Test2','surname'=>'tseT','personal_id'=>30,),1=>array('id'=>3,'name'=>'Test3','surname'=>NULL,'personal_id'=>40,),2=>array('id'=>1,'name'=>'Test1','surname'=>'tseT','personal_id'=>NULL,),)";
-			$query_result=$pdo_handle->query('SELECT * FROM pdo_cheat_test_table')->fetchAll(PDO::FETCH_NAMED);
+			$query_result=sort_query_result($pdo_handle->query('SELECT * FROM pdo_cheat_test_table')->fetchAll(PDO::FETCH_NAMED));
 			//echo ' ('.var_export_contains($query_result, '', true).')';
-			if(
-				var_export_contains($query_result, $output_string_a) ||
-				var_export_contains($query_result, $output_string_b) ||
-				var_export_contains($query_result, $output_string_c) ||
-				var_export_contains($query_result, $output_string_d)
-			)
+			if(var_export_contains(
+				$query_result,
+				"array(0=>array('id'=>'1','name'=>'Test1','surname'=>'tseT','personal_id'=>NULL,),1=>array('id'=>'2','name'=>'Test2','surname'=>'tseT','personal_id'=>'30',),2=>array('id'=>'3','name'=>'Test3','surname'=>NULL,'personal_id'=>'40',),)"
+			))
 				echo ' [ OK ]'.PHP_EOL;
 			else
 			{
@@ -577,18 +596,12 @@
 			->	get_row_by_name('Test1')
 			->	get_row();
 			$test_person->personal_id(50)->save_row();
-			$output_string_a="array(0=>array('id'=>3,'name'=>'Test3','surname'=>NULL,'personal_id'=>40,),1=>array('id'=>2,'name'=>'Test2','surname'=>'tseT','personal_id'=>30,),2=>array('id'=>1,'name'=>'Test1','surname'=>'tseT','personal_id'=>50,),)";
-			$output_string_b="array(0=>array('id'=>'1','name'=>'Test1','surname'=>'tseT','personal_id'=>'50',),1=>array('id'=>'2','name'=>'Test2','surname'=>'tseT','personal_id'=>'30',),2=>array('id'=>'3','name'=>'Test3','surname'=>NULL,'personal_id'=>'40',),)";
-			$output_string_c="array(0=>array('id'=>1,'name'=>'Test1','surname'=>'tseT','personal_id'=>50,),1=>array('id'=>2,'name'=>'Test2','surname'=>'tseT','personal_id'=>30,),2=>array('id'=>3,'name'=>'Test3','surname'=>NULL,'personal_id'=>40,),)";
-			$output_string_d="array(0=>array('id'=>2,'name'=>'Test2','surname'=>'tseT','personal_id'=>30,),1=>array('id'=>3,'name'=>'Test3','surname'=>NULL,'personal_id'=>40,),2=>array('id'=>1,'name'=>'Test1','surname'=>'tseT','personal_id'=>50,),)";
-			$query_result=$pdo_handle->query('SELECT * FROM pdo_cheat_test_table')->fetchAll(PDO::FETCH_NAMED);
+			$query_result=sort_query_result($pdo_handle->query('SELECT * FROM pdo_cheat_test_table')->fetchAll(PDO::FETCH_NAMED));
 			//echo ' ('.var_export_contains($query_result, '', true).')';
-			if(
-				var_export_contains($query_result, $output_string_a) ||
-				var_export_contains($query_result, $output_string_b) ||
-				var_export_contains($query_result, $output_string_c) ||
-				var_export_contains($query_result, $output_string_d)
-			)
+			if(var_export_contains(
+				$query_result,
+				"array(0=>array('id'=>'1','name'=>'Test1','surname'=>'tseT','personal_id'=>'50',),1=>array('id'=>'2','name'=>'Test2','surname'=>'tseT','personal_id'=>'30',),2=>array('id'=>'3','name'=>'Test3','surname'=>NULL,'personal_id'=>'40',),)"
+			))
 				echo ' [ OK ]'.PHP_EOL;
 			else
 			{
@@ -597,18 +610,12 @@
 			}
 
 	echo ' -> Dumping table';
-		$output_string_a="array(0=>array('id'=>1,'name'=>'Test3','surname'=>NULL,'personal_id'=>40,),1=>array('id'=>2,'name'=>'Test2','surname'=>'tseT','personal_id'=>30,),2=>array('id'=>1,'name'=>'Test1','surname'=>'tseT','personal_id'=>50,),)";
-		$output_string_b="array(0=>array('id'=>'1','name'=>'Test1','surname'=>'tseT','personal_id'=>'50',),1=>array('id'=>'2','name'=>'Test2','surname'=>'tseT','personal_id'=>'30',),2=>array('id'=>'3','name'=>'Test3','surname'=>NULL,'personal_id'=>'40',),)";
-		$output_string_c="array(0=>array('id'=>1,'name'=>'Test1','surname'=>'tseT','personal_id'=>50,),1=>array('id'=>2,'name'=>'Test2','surname'=>'tseT','personal_id'=>30,),2=>array('id'=>3,'name'=>'Test3','surname'=>NULL,'personal_id'=>40,),)";
-		$output_string_d="array(0=>array('id'=>2,'name'=>'Test2','surname'=>'tseT','personal_id'=>30,),1=>array('id'=>3,'name'=>'Test3','surname'=>NULL,'personal_id'=>40,),2=>array('id'=>1,'name'=>'Test1','surname'=>'tseT','personal_id'=>50,),)";
-		$query_result=$pdo_cheat->dump_table();
+		$query_result=sort_query_result($pdo_cheat->dump_table());
 		//echo ' ('.var_export_contains($query_result, '', true).')';
-		if(
-			var_export_contains($query_result, $output_string_a) ||
-			var_export_contains($query_result, $output_string_b) ||
-			var_export_contains($query_result, $output_string_c) ||
-			var_export_contains($query_result, $output_string_d)
-		)
+		if(var_export_contains(
+			$query_result,
+			"array(0=>array('id'=>'1','name'=>'Test1','surname'=>'tseT','personal_id'=>'50',),1=>array('id'=>'2','name'=>'Test2','surname'=>'tseT','personal_id'=>'30',),2=>array('id'=>'3','name'=>'Test3','surname'=>NULL,'personal_id'=>'40',),)"
+		))
 			echo ' [ OK ]'.PHP_EOL;
 		else
 		{
@@ -633,13 +640,11 @@
 			$pdo_cheat->delete_row()
 			->	name('Test1')
 			->	delete_row();
-			$output_string_a="array(0=>array('id'=>2,'name'=>'Test2','surname'=>'tseT','personal_id'=>30,),1=>array('id'=>3,'name'=>'Test3','surname'=>NULL,'personal_id'=>40,),)";
-			$output_string_b="array(0=>array('id'=>'2','name'=>'Test2','surname'=>'tseT','personal_id'=>'30',),1=>array('id'=>'3','name'=>'Test3','surname'=>NULL,'personal_id'=>'40',),)";
-			$query_result=$pdo_handle->query('SELECT * FROM pdo_cheat_test_table')->fetchAll(PDO::FETCH_NAMED);
-			if(
-				var_export_contains($query_result, $output_string_a) ||
-				var_export_contains($query_result, $output_string_b)
-			)
+			$query_result=sort_query_result($pdo_handle->query('SELECT * FROM pdo_cheat_test_table')->fetchAll(PDO::FETCH_NAMED));
+			if(var_export_contains(
+				$query_result,
+				"array(0=>array('id'=>'2','name'=>'Test2','surname'=>'tseT','personal_id'=>'30',),1=>array('id'=>'3','name'=>'Test3','surname'=>NULL,'personal_id'=>'40',),)"
+			))
 				echo ' [ OK ]'.PHP_EOL;
 			else
 			{
@@ -650,13 +655,11 @@
 			$pdo_cheat->delete_row()
 			->	surname(false)
 			->	delete_row();
-			$output_string_a="array(0=>array('id'=>2,'name'=>'Test2','surname'=>'tseT','personal_id'=>30,),)";
-			$output_string_b="array(0=>array('id'=>'2','name'=>'Test2','surname'=>'tseT','personal_id'=>'30',),)";
-			$query_result=$pdo_handle->query('SELECT * FROM pdo_cheat_test_table')->fetchAll(PDO::FETCH_NAMED);
-			if(
-				var_export_contains($query_result, $output_string_a) ||
-				var_export_contains($query_result, $output_string_b)
-			)
+			$query_result=sort_query_result($pdo_handle->query('SELECT * FROM pdo_cheat_test_table')->fetchAll(PDO::FETCH_NAMED));
+			if(var_export_contains(
+				$query_result,
+				"array(0=>array('id'=>'2','name'=>'Test2','surname'=>'tseT','personal_id'=>'30',),)"
+			))
 				echo ' [ OK ]'.PHP_EOL;
 			else
 			{
@@ -671,13 +674,11 @@
 		->	surname('tseT')
 		->	personal_id(20)
 		->	save_row();
-		$output_string_a="array(0=>array('id'=>4,'name'=>'Test1','surname'=>'tseT','personal_id'=>20,),)";
-		$output_string_b="array(0=>array('id'=>'4','name'=>'Test1','surname'=>'tseT','personal_id'=>'20',),)";
-		$query_result=$pdo_handle->query('SELECT * FROM pdo_cheat_test_table')->fetchAll(PDO::FETCH_NAMED);
-		if(
-			var_export_contains($query_result, $output_string_a) ||
-			var_export_contains($query_result, $output_string_b)
-		)
+		$query_result=sort_query_result($pdo_handle->query('SELECT * FROM pdo_cheat_test_table')->fetchAll(PDO::FETCH_NAMED));
+		if(var_export_contains(
+			$query_result,
+			"array(0=>array('id'=>'4','name'=>'Test1','surname'=>'tseT','personal_id'=>'20',),)"
+		))
 			echo ' [ OK ]'.PHP_EOL;
 		else
 		{

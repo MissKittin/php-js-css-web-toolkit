@@ -8,6 +8,7 @@ The rest of the documentation is located in the `lv_arr.php` and `lv_str.php` li
 * [Required libraries](#required-libraries)
 * [Suggested extensions and packages](#suggested-extensions)
 * [Note, Usage and Hint](#note)
+* [Subcomponents](#subcomponents)
 * [String helpers](#string-helpers)
 * [Array helpers](#array-helpers)
 * [Pluralizer](#pluralizer)
@@ -51,8 +52,8 @@ The rest of the documentation is located in the `lv_arr.php` and `lv_str.php` li
 * `nesbot/carbon`
 * `symfony/var-dumper` (for development)
 ```
-php composer.phar --optimize-autoloader require doctrine/inflector illuminate/view league/commonmark nesbot/carbon
-php composer.phar --optimize-autoloader require --dev symfony/var-dumper
+php composer.phar require doctrine/inflector illuminate/view league/commonmark nesbot/carbon
+php composer.phar require --dev symfony/var-dumper
 ```
 composer.json:
 ```
@@ -78,6 +79,10 @@ Just include the component:
 ```
 require './com/lv_hlp/main.php';
 ```
+or if you want to include a subcomponent, use e.g:
+```
+require './com/lv_hlp/view.php';
+```
 
 ## Hint
 The names of the functions and classes are quite long. To shorten them:
@@ -86,6 +91,15 @@ use lv_hlp_collection as collection;
 use lv_hlp_pluralizer as pluralizer;
 use function lv_str_kebab as kebab;
 ```
+
+## Subcomponents
+If you only need one functionality from a component, you can include the following file(s) instead of `main.php`:
+* `str.php` - string helpers and fluent strings
+* `arr.php` - array helpers and collections
+* `pluralizer.php`
+* `encrypter.php`
+* `view.php`
+* `inertia.php` - Inertia.js adapter
 
 ## String helpers
 * `lv_hlp_of`  

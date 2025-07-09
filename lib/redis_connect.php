@@ -169,7 +169,7 @@
 					'dbindex'=>int-db-index, // optional, default: 0
 					'auth'=>[ // optional
 						'user'=>'string-phpredis',
-						'pass'=>'string0phpredis'
+						'pass'=>'string-phpredis'
 					],
 					'timeout'=>float-timeout, // optional, default: 0
 					'retry_interval'=>int-retry-interval, // optional, default: 0
@@ -326,25 +326,25 @@
 		 *  then use the functions from this library as if nothing had happened
 		 */
 
-		private static $predis_class_name='Redis';
-		private static $predis_class=null;
+		private static $redis_class_name='Redis';
+		private static $redis_class=null;
 
 		public static function set_class(
 			string $class_name,
 			callable $callback
 		){
-			self::$predis_class_name=$class_name;
-			self::$predis_class[0]=$callback;
+			self::$redis_class_name=$class_name;
+			self::$redis_class[0]=$callback;
 		}
 
 		public static function class_exists()
 		{
-			return self::$predis_class_name;
+			return self::$redis_class_name;
 		}
 		public static function Redis(...$arguments)
 		{
-			if(self::$predis_class !== null)
-				return self::$predis_class[0](
+			if(self::$redis_class !== null)
+				return self::$redis_class[0](
 					...$arguments
 				);
 

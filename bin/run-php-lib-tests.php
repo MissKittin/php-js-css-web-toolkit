@@ -1,9 +1,17 @@
 <?php
 	/*
 	 * Run PHP library tests in batch mode
-	 * Looks for files in $argv[1] directory
-	 * Looks for files in ../lib/tests directory
-	 * Looks for files in ../tests directory
+	 *
+	 * Note:
+	 *  looks for files in $argv[1] directory
+	 *  looks for files in ../lib/tests directory
+	 *  looks for files in ../tests directory
+	 *
+	 * Hint:
+	 *  you can specify prepend and append scripts using environment variables
+	 *  variables:
+	 *   TEST_AUTO_PREPEND_FILE
+	 *   TEST_AUTO_APPEND_FILE
 	 */
 
 	putenv('TK_BIN='.__DIR__);
@@ -59,7 +67,21 @@
 	else
 		$files=array_slice(scandir($tests_dir), 2);
 
+	$auto_prepend_file='';
+	$auto_append_file='';
 	$failed_tests=[];
+
+	if(getenv('TEST_AUTO_PREPEND_FILE') !== false)
+		$auto_prepend_file=''
+		.	'-d auto_prepend_file="'
+		.		getenv('TEST_AUTO_PREPEND_FILE')
+		.	'" ';
+
+	if(getenv('TEST_AUTO_APPEND_FILE') !== false)
+		$auto_append_file=''
+		.	'-d auto_append_file="'
+		.		getenv('TEST_AUTO_APPEND_FILE')
+		.	'" ';
 
 	echo ' -> Directory: '.$tests_dir.PHP_EOL;
 
@@ -68,7 +90,13 @@
 		{
 			echo '-> Running '.$test.PHP_EOL;
 
-			system('"'.PHP_BINARY.'" "'.$tests_dir.'/'.$test.'"', $test_result);
+			system(''
+			.	'"'.PHP_BINARY.'" '
+			.	$auto_prepend_file
+			.	$auto_append_file
+			.	'"'.$tests_dir.'/'.$test.'"'
+			,	$test_result
+			);
 
 			if($test_result !== 0)
 				$failed_tests[]=$test;

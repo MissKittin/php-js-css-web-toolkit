@@ -156,6 +156,14 @@
 			exit(1);
 		}
 
+		echo ' -> Creating temporary files';
+			@mkdir(__DIR__.'/tmp/.composer/vendor/maximebf-debugbar-test');
+			@mkdir(__DIR__.'/tmp/.composer/vendor/maximebf-debugbar-test/maximebf-debugbar-test-pkg');
+			@mkdir(__DIR__.'/tmp/.composer/vendor/maximebf-debugbar-test/maximebf-debugbar-test-pkg/src');
+			@mkdir(__DIR__.'/tmp/.composer/vendor/maximebf-debugbar-test/maximebf-debugbar-test-pkg/src/MyPackage');
+			@mkdir(__DIR__.'/tmp/.composer/vendor/maximebf-debugbar-test/maximebf-debugbar-test-pkg/src/MyPackage/Resources');
+		echo ' [ OK ]'.PHP_EOL;
+
 		echo ' -> Mocking classes and functions';
 			} namespace Test\DebugBar {
 				class DebugBar extends \DebugBar\DebugBar {}
@@ -165,6 +173,10 @@
 				public static function test_vendor_dir()
 				{
 					return static::$vendor_dir;
+				}
+				public static function test_resources_dir()
+				{
+					return static::$resources_dir;
 				}
 			}
 			$GLOBALS['header_output']='';
@@ -225,6 +237,20 @@
 			}
 			maximebf_debugbar_test::set_vendor_dir(__DIR__.'/tmp/.composer');
 			if(maximebf_debugbar_test::test_vendor_dir() === __DIR__.'/tmp/.composer/vendor')
+				echo ' [ OK ]'.PHP_EOL;
+			else
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				$failed=true;
+			}
+
+		echo ' -> Testing add_resources_dir()';
+			maximebf_debugbar_test::add_resources_dir('maximebf-debugbar-test/maximebf-debugbar-test-pkg', 'src/MyPackage/Resources');
+			//echo ' ('.var_export_contains(maximebf_debugbar_test::test_resources_dir(), '', true).')';
+			if(var_export_contains(
+				maximebf_debugbar_test::test_resources_dir(),
+				"array('/php-debugbar/php-debugbar'=>'src/DebugBar/Resources','/maximebf/debugbar'=>'src/DebugBar/Resources','/maximebf-debugbar-test/maximebf-debugbar-test-pkg'=>'src/MyPackage/Resources',)"
+			))
 				echo ' [ OK ]'.PHP_EOL;
 			else
 			{
@@ -303,7 +329,10 @@
 			::	set_csp_nonce('barnonce')
 			::	add_csp_header('test-section', 'testvalue');
 			//echo ' ('.var_export_contains(maximebf_debugbar_test::get_csp_headers(), '', true).')';
-			if(var_export_contains(maximebf_debugbar_test::get_csp_headers(), "array('script-src'=>array(0=>'\'nonce-barnonce\'',),'img-src'=>array(0=>'data:',),'font-src'=>array(0=>'\'self\'',1=>'data:',),'test-section'=>array(0=>'testvalue',),)"))
+			if(var_export_contains(
+				maximebf_debugbar_test::get_csp_headers(),
+				"array('script-src'=>array(0=>'\'nonce-barnonce\'',),'img-src'=>array(0=>'data:',),'font-src'=>array(0=>'\'self\'',1=>'data:',),'test-section'=>array(0=>'testvalue',),)"
+			))
 				echo ' [ OK ]'.PHP_EOL;
 			else
 			{

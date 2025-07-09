@@ -22,6 +22,7 @@
 			})
 		::	set_vendor_dir('./vendor') // must be after enable()
 		::	set_vendor_dir('phar://./vendor.phar/vendor') // you can hit and miss, the one above has priority if hit
+		::	add_resources_dir('my-vendor/my-package', 'src/MyPackage/Resources') // optional, use if you want to route to assets from another package, here: VENDOR_DIR.'/my-vendor/my-package/src/MyPackage/Resources'; must be after enable() and set_vendor_dir()
 		::	set_storage( // optional, see https://php-debugbar.com/docs/storage/
 				(class_exists('\DebugBar\Storage\FileStorage')) ?
 				new DebugBar\Storage\FileStorage(
@@ -160,6 +161,10 @@
 		protected static $collectors=[];
 		protected static $instance=null;
 		protected static $vendor_dir=null;
+		protected static $resources_dir=[
+			'/php-debugbar/php-debugbar'=>'src/DebugBar/Resources',
+			'/maximebf/debugbar'=>'src/DebugBar/Resources'
+		];
 
 		public static function __callStatic($name, $arguments)
 		{
@@ -176,6 +181,31 @@
 				file_exists($vendor_dir)
 			)
 				static::$vendor_dir=$vendor_dir;
+
+			return static::class;
+		}
+		public static function add_resources_dir(
+			string $package,
+			string $directory
+		){
+			if(!static::$enabled)
+				return static::class;
+
+			if(static::$vendor_dir === null)
+				throw new maximebf_debugbar_exception(
+					'vendor directory path is not set - use set_vendor_dir() before add_resources_dir()'
+				);
+
+			if(!file_exists(''
+			.	static::$vendor_dir
+			.	'/'.$package
+			.	'/'.$directory
+			))
+				return static::class;
+
+			static::$resources_dir[
+				'/'.$package
+			]=$directory;
 
 			return static::class;
 		}
@@ -308,52 +338,57 @@
 			if(strpos($path, '..') !== false)
 				return false;
 
-			$package_dir='/maximebf/debugbar';
+			foreach(
+				static::$resources_dir
+				as $package_dir=>$resources_dir
+			){
+				if(!is_dir(''
+				.	static::$vendor_dir.'/'
+				.	$package_dir
+				))
+					continue;
 
-			if(is_dir(''
-			.	static::$vendor_dir
-			.	'/php-debugbar/php-debugbar'
-			))
-				$package_dir='/php-debugbar/php-debugbar';
+				$asset=''
+				.	static::$vendor_dir
+				.	$package_dir.'/'.$resources_dir.'/'
+				.	substr(
+						$path,
+						$base_path_length
+					);
 
-			$asset=''
-			.	static::$vendor_dir
-			.	$package_dir.'/src/DebugBar/Resources/'
-			.	substr(
-					$path,
-					$base_path_length
-				);
+				if(!is_file($asset))
+					continue;
 
-			if(!is_file($asset))
-				return false;
+				if($return_path)
+					return $asset;
 
-			if($return_path)
-				return $asset;
+				switch(pathinfo($asset, PATHINFO_EXTENSION))
+				{
+					case 'css':
+						header('Content-Type: text/css');
+					break;
+					case 'js':
+						header('Content-Type: text/javascript');
+					break;
+					case 'otf':
+						header('Content-Type: application/x-font-opentype');
+					break;
+					case 'woff':
+						header('Content-Type: application/font-woff');
+					break;
+					case 'woff2':
+						header('Content-Type: application/font-woff2');
+					break;
+					default:
+						header('Content-Type: '.mime_content_type($asset));
+				}
 
-			switch(pathinfo($asset, PATHINFO_EXTENSION))
-			{
-				case 'css':
-					header('Content-Type: text/css');
-				break;
-				case 'js':
-					header('Content-Type: text/javascript');
-				break;
-				case 'otf':
-					header('Content-Type: application/x-font-opentype');
-				break;
-				case 'woff':
-					header('Content-Type: application/font-woff');
-				break;
-				case 'woff2':
-					header('Content-Type: application/font-woff2');
-				break;
-				default:
-					header('Content-Type: '.mime_content_type($asset));
+				readfile($asset);
+
+				return true;
 			}
 
-			readfile($asset);
-
-			return true;
+			return false;
 		}
 
 		public static function add_csp_header(string $section, string $value)

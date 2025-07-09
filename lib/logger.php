@@ -420,7 +420,7 @@
 				);
 
 			if(
-				($this->lock_file === null) &&
+				($this->lock_file !== null) &&
 				(!file_exists(dirname(
 					$this->lock_file
 				))) &&

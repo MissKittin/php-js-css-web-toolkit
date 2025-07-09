@@ -76,6 +76,25 @@
 	 *
 	 *   check_argc() [returns $_SERVER['argc'] or null]
 	 *
+	 *   $args=new check_argv_parser($argv);
+	 *   $args=new check_argv_parser($argv, ['-ignored-single-arg-a', '--ignored-single-arg-b']);
+	 *    get('arg') [returns string or null]
+	 *     look for --arg, -arg, --arg= or -arg= and return the value or null
+	 *    get('arg', 'default value') [returns string]
+	 *     look for --arg, -arg, --arg= or -arg= and return the (default) value
+	 *    get_single(0) [returns string or null]
+	 *     return first single argument or null
+	 *    get_single(0, 'default_value') [returns string]
+	 *     return first single argument or default_value
+	 *    get_script_name() [returns string]
+	 *     return $argv[0]
+	 *    Supported argument types:
+	 *     --argname value
+	 *     -argname value
+	 *     --argname=value
+	 *     -argname=value
+	 *     single-arg
+	 *
 	 *  $_COOKIE:
 	 *   check_cookie('cookie_name') [returns cookie if it exists, null if not]
 	 *
@@ -305,6 +324,87 @@
 			return $_SERVER['argc'];
 
 		return null;
+	}
+	class check_argv_parser
+	{
+		protected $script_name=null;
+		protected $args=[];
+		protected $single_args=[];
+		protected $ignore_args;
+
+		public function __construct(
+			array $argv,
+			array $ignore_args=[]
+		){
+			$this->ignore_args=$ignore_args;
+
+			if(!isset($argv[0]))
+				return;
+
+			$this->script_name=$argv[0];
+			$argv_length=count($argv);
+
+			for($i=1; $i<$argv_length; ++$i)
+			{
+				if(in_array(
+					$argv[$i],
+					$this->ignore_args
+				))
+					continue;
+
+				if(substr($argv[$i], 0, 2) === '--')
+					$argv[$i]=substr($argv[$i], 2);
+				else if(substr($argv[$i], 0, 1) === '-')
+					$argv[$i]=substr($argv[$i], 1);
+				else
+				{
+					$this->single_args[]=$argv[$i];
+					continue;
+				}
+
+				if(strpos($argv[$i], '=') !== false)
+				{
+					$explode=explode('=', $argv[$i]);
+					$this->args[$explode[0]]=$explode[1];
+
+					continue;
+				}
+
+				if(isset(
+					$argv[$i+1]
+				))
+					$this->args[
+						$argv[$i]
+					]=$argv[++$i];
+			}
+		}
+
+		public function get(
+			string $arg,
+			?string $default_value=null
+		){
+			if(!isset(
+				$this->args[$arg]
+			))
+				return $default_value;
+
+			return $this->args[$arg];
+		}
+		public function get_single(
+			int $arg,
+			?string $default_value=null
+		){
+			if(!isset(
+				$this->single_args[$arg]
+			))
+				return $default_value;
+
+			return $this->single_args[$arg];
+		}
+		public function get_script_name()
+		{
+			return $this->script_name;
+		}
 	}
 
 	function check_cookie(string $array_item)

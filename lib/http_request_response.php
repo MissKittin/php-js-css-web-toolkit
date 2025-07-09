@@ -151,7 +151,9 @@
 	 *
 	 * Response:
 	 *  [static] middleware(closure_callback, bool_before=false) [returns self]
-	 *   register middleware before or after (true)
+	 *   register new middleware function
+	 *   before sending headers (via PHP header() function) and body (true)
+	 *   or after sending headers and before sending body (false, default)
 	 *  [static] middleware_arg(string_arg_name, value) [returns self]
 	 *   register middleware argument (will be passed to middleware closures)
 	 *   note: value can be anything
@@ -1165,7 +1167,10 @@
 		}
 		public function is_https()
 		{
-			return isset($_SERVER['HTTPS']);
+			return (
+				isset($_SERVER['HTTPS']) &&
+				($_SERVER['HTTPS'] === 'on')
+			);
 		}
 		public function language()
 		{
@@ -1269,11 +1274,11 @@
 		}
 		public function uri()
 		{
-			$protocol='https';
+			$protocol='http';
 			$auth='';
 
 			if($this->is_https())
-				$protocol='http';
+				$protocol='https';
 
 			if($this->auth_user() !== false)
 			{

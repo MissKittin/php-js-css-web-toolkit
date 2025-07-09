@@ -133,20 +133,29 @@
 				echo ' [SKIP]'.PHP_EOL;
 
 		echo ' -> Including main.php';
-			try {
-				if(@(include __DIR__.'/../main.php') === false)
-				{
-					echo ' [FAIL]'.PHP_EOL;
+			foreach([
+				'bootstrap.php',
+				'str.php',
+				'arr.php',
+				'pluralizer.php',
+				'encrypter.php',
+				'view.php',
+				'inertia.php'
+			] as $script)
+				try {
+					if(@(include __DIR__.'/../'.$script) === false)
+					{
+						echo ' [FAIL]'.PHP_EOL;
+						exit(1);
+					}
+				} catch(Throwable $error) {
+					echo ' [FAIL]'
+					.	PHP_EOL.PHP_EOL
+					.	'Caught: '.$error->getMessage()
+					.	PHP_EOL;
+
 					exit(1);
 				}
-			} catch(Throwable $error) {
-				echo ' [FAIL]'
-					.PHP_EOL.PHP_EOL
-					.'Caught: '.$error->getMessage()
-					.PHP_EOL;
-
-				exit(1);
-			}
 		echo ' [ OK ]'.PHP_EOL;
 
 		$failed=false;
@@ -1163,22 +1172,27 @@
 		echo ' [ OK ]'.PHP_EOL;
 
 		echo ' -> Including main.php';
-			try {
-				if(!_include_tested_library(
-					__NAMESPACE__,
-					__DIR__.'/../main.php'
-				)){
-					echo ' [FAIL]'.PHP_EOL;
+			foreach([
+				'str.php',
+				'arr.php',
+				'inertia.php'
+			] as $script)
+				try {
+					if(!_include_tested_library(
+						__NAMESPACE__,
+						__DIR__.'/../'.$script
+					)){
+						echo ' [FAIL]'.PHP_EOL;
+						exit(1);
+					}
+				} catch(Throwable $error) {
+					echo ' [FAIL]'
+						.PHP_EOL.PHP_EOL
+						.'Caught: '.$error->getMessage()
+						.PHP_EOL;
+
 					exit(1);
 				}
-			} catch(Throwable $error) {
-				echo ' [FAIL]'
-					.PHP_EOL.PHP_EOL
-					.'Caught: '.$error->getMessage()
-					.PHP_EOL;
-
-				exit(1);
-			}
 		echo ' [ OK ]'.PHP_EOL;
 
 		echo ' -> Mocking lv_hlp_inertia';

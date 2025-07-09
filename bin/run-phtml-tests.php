@@ -3,9 +3,16 @@
 	 * Start HTTP server
 	 * and run phtml files (tests for Js and CSS libraries)
 	 *
-	 * Looks for files in $argv[1] directory
-	 * Looks for files in ../lib/tests directory
-	 * Looks for files in ../tests directory
+	 * Note:
+	 *  looks for files in $argv[1] directory
+	 *  looks for files in ../lib/tests directory
+	 *  looks for files in ../tests directory
+	 *
+	 * Hint:
+	 *  you can specify prepend and append scripts using environment variables
+	 *  variables:
+	 *   TEST_AUTO_PREPEND_FILE
+	 *   TEST_AUTO_APPEND_FILE
 	 *
 	 * Warning:
 	 *  check_var.php library is required
@@ -23,7 +30,14 @@
 					return false;
 
 				error_log('Requested test '.$_SERVER['REQUEST_URI']);
-				require('./'.strtok($_SERVER['REQUEST_URI'], '?'));
+
+				if(getenv('TEST_AUTO_PREPEND_FILE') !== false)
+					require getenv('TEST_AUTO_PREPEND_FILE');
+
+				require './'.strtok($_SERVER['REQUEST_URI'], '?');
+
+				if(getenv('TEST_AUTO_APPEND_FILE') !== false)
+					require getenv('TEST_AUTO_APPEND_FILE');
 
 				return true;
 			}
@@ -115,6 +129,8 @@
 			exit();
 		}
 
+		$auto_prepend_file='';
+		$auto_append_file='';
 		$serve_args=check_env('SERVE_ARGS');
 		$php_http_addr=check_argv_next_param('--ip');
 		$php_http_port=check_argv_next_param('--port');
@@ -139,6 +155,12 @@
 
 		if($serve_args !== '')
 			echo 'PHP arguments: '.$serve_args.PHP_EOL;
+
+		if(getenv('TEST_AUTO_PREPEND_FILE') !== false)
+			echo 'auto_prepend_file: '.getenv('TEST_AUTO_PREPEND_FILE').PHP_EOL;
+
+		if(getenv('TEST_AUTO_APPEND_FILE') !== false)
+			echo 'auto_append_file: '.getenv('TEST_AUTO_APPEND_FILE').PHP_EOL;
 
 		echo PHP_EOL;
 

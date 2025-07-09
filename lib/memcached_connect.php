@@ -30,7 +30,7 @@
 		])
 	 *
 	 * Most zwadzacy:
-	 *  a bridge for replacing a Predis\Client class with another
+	 *  a bridge for replacing a Memcached class with another
 	 *  recommended to be used with extreme caution
 	 *  more info below
 	 */
@@ -314,25 +314,25 @@
 		 *  then use the functions from this library as if nothing had happened
 		 */
 
-		private static $predis_class_name='Memcached';
-		private static $predis_class=null;
+		private static $memcached_class_name='Memcached';
+		private static $memcached_class=null;
 
 		public static function set_class(
 			string $class_name,
 			callable $callback
 		){
-			self::$predis_class_name=$class_name;
-			self::$predis_class[0]=$callback;
+			self::$memcached_class_name=$class_name;
+			self::$memcached_class[0]=$callback;
 		}
 
 		public static function class_exists()
 		{
-			return self::$predis_class_name;
+			return self::$memcached_class_name;
 		}
 		public static function Memcached(...$arguments)
 		{
-			if(self::$predis_class !== null)
-				return self::$predis_class[0](
+			if(self::$memcached_class !== null)
+				return self::$memcached_class[0](
 					...$arguments
 				);
 

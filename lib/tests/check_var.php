@@ -211,6 +211,117 @@
 			$errors[]='check_argc failed';
 		}
 
+	echo ' -> Testing check_argv_parser'.PHP_EOL;
+		$parser=new check_argv_parser([
+			'script.php',
+			'single',
+			'--arg', 'val',
+			'-h',
+			'-arg2', 'val2',
+			'--help',
+			'--arg3=val 3',
+			'single2'
+		], [
+			'-h',
+			'--help'
+		]);
+		echo '  -> get';
+			if($parser->get('arg') === 'val')
+				echo ' [ OK ]';
+			else
+			{
+				echo ' [FAIL]';
+				$errors[]='check_argv_parser get 1 failed';
+			}
+			if($parser->get('arg2') === 'val2')
+				echo ' [ OK ]';
+			else
+			{
+				echo ' [FAIL]';
+				$errors[]='check_argv_parser get 2 failed';
+			}
+			if($parser->get('arg3', 'defarg3') === 'val 3')
+				echo ' [ OK ]';
+			else
+			{
+				echo ' [FAIL]';
+				$errors[]='check_argv_parser get 3 failed';
+			}
+			if($parser->get('arg4') === null)
+				echo ' [ OK ]';
+			else
+			{
+				echo ' [FAIL]';
+				$errors[]='check_argv_parser get 4 failed';
+			}
+			if($parser->get('arg5', 'defarg5') === 'defarg5')
+				echo ' [ OK ]';
+			else
+			{
+				echo ' [FAIL]';
+				$errors[]='check_argv_parser get 5 failed';
+			}
+			if($parser->get('-h', 'ignored') === 'ignored')
+				echo ' [ OK ]';
+			else
+			{
+				echo ' [FAIL]';
+				$errors[]='check_argv_parser get 6 failed';
+			}
+			if($parser->get('--help', 'ignored') === 'ignored')
+				echo ' [ OK ]'.PHP_EOL;
+			else
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				$errors[]='check_argv_parser get 7 failed';
+			}
+		echo '  -> get_single';
+			if($parser->get_single(0) === 'single')
+				echo ' [ OK ]';
+			else
+			{
+				echo ' [FAIL]';
+				$errors[]='check_argv_parser get_single 1 failed';
+			}
+			if($parser->get_single(1, 'defsingle2') === 'single2')
+				echo ' [ OK ]';
+			else
+			{
+				echo ' [FAIL]';
+				$errors[]='check_argv_parser get_single 2 failed';
+			}
+			if($parser->get_single(2) === null)
+				echo ' [ OK ]';
+			else
+			{
+				echo ' [FAIL]';
+				$errors[]='check_argv_parser get_single 3 failed';
+			}
+			if($parser->get_single(2, 'defsingle3') === 'defsingle3')
+				echo ' [ OK ]'.PHP_EOL;
+			else
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				$errors[]='check_argv_parser get_single 4 failed';
+			}
+		echo '  -> get_script_name';
+			if($parser->get_script_name() === 'script.php')
+				echo ' [ OK ]'.PHP_EOL;
+			else
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				$errors[]='check_argv_parser get_script_name failed';
+			}
+		echo '  -> empty';
+			$parser=new check_argv_parser([]);
+			if($parser->get_script_name() === null)
+				echo ' [ OK ]'.PHP_EOL;
+			else
+			{
+				echo ' [FAIL]'.PHP_EOL;
+				$errors[]='check_argv_parser empty failed';
+			}
+
 	echo ' -> Testing check_cookie'.PHP_EOL;
 		echo '  -> returns string';
 			$_COOKIE['testcookie']='goodvalue';

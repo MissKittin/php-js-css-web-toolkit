@@ -64,7 +64,7 @@ Supported cache databases: Redis, Memcached, APCu
 * `include_into_namespace.php` - function that facilitates including libraries to a namespace (mainly for testing purposes)
 * `ioc_container.php` - dependency injection containers
 * `is_float_equal.php`
-* `json_contents.php` - Combination of `file_*_contexts()` and `json_*code()` functions
+* `json_contents.php` - combination of `file_*_contexts()` and `json_*code()` functions
 * `logger.php` - easily write logs
 * `logrotate.php` - journalists rotation machine
 * `lv_arr.php` - Laravel array helpers & collections (MIT)
@@ -179,4 +179,5 @@ Supported cache databases: Redis, Memcached, APCu
 * `lv_hlp` - Laravel helpers (MIT)
 * `middleware_form` - customizable HTML form
 * `php_polyfill` - backport some features
+* `php_psr` - PSR compliance for toolkit libraries
 * `superclosure_router` - cacheable `uri_router.php`
